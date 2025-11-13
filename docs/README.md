@@ -78,7 +78,7 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
    ```bash
    pnpm install
    ```
-   (Este comando irá "içar" (hoist) todas as node*modules para a raiz, linkar os workspaces (apps/*, packages/\_) e instalar as dependências Python no ambiente virtual.)
+   (Este comando irá "içar" (hoist) todas as node_modules para a raiz, linkar os workspaces (apps/_, packages/_) e instalar as dependências Python no ambiente virtual.)
 
 ### 3.3. Rodando a Infra Local
 
@@ -179,37 +179,4 @@ pnpm --filter api test
 
 # Rodar testes E2E com o navegador aberto (debug)
 pnpm --filter e2e test:headed
-```
-## 3. Estrutura Atual do Monorepo
-
-```
-babybook/
-├─ apps/
-│  ├─ api/            # FastAPI + OpenAPI
-│  ├─ web/            # SPA (React/Vite)
-│  ├─ edge/           # SSR público (Hono)
-│  ├─ workers/        # Pipelines assíncronos (Modal-ready)
-│  └─ admin/          # Ferramentas operacionais (Typer)
-├─ packages/
-│  ├─ config/         # ESLint/Tailwind/TSConfig compartilhados
-│  ├─ ui/             # Design System (Radix + tokens)
-│  ├─ contracts/      # Tipos gerados do OpenAPI
-│  ├─ utils/          # Helpers puros
-│  └─ i18n/           # Provider e traduções
-├─ tests/
-│  ├─ e2e/            # Playwright
-│  ├─ web/            # Testes de UI/a11y (Vitest)
-│  ├─ api/            # Contratos FastAPI
-│  └─ workers/        # Pipelines com pytest
-└─ docs/              # Bússola estratégica
-```
-
-### Guia rápido
-
-```bash
-pnpm install
-pnpm dev:web     # SPA autenticada
-pnpm dev:edge    # Links públicos
-pnpm dev:api     # FastAPI (porta 8000)
-pnpm dev:workers # Workers locais
 ```

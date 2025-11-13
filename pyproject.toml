@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["apps/api", "apps/workers", "apps/admin"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "N", "ASYNC", "S"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict_optional = true
+namespace_packages = true
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = ["tests/api", "apps/api/babybook_api/tests", "tests/workers"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,6 @@
+packages:
+  - apps/web
+  - apps/edge
+  - packages/*
+  - tests/e2e
+  - tests/web

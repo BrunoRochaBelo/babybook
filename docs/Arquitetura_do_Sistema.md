@@ -1,0 +1,570 @@
+# Arquitetura & Domínio - Baby Book
+
+Documento de referência técnica. Cobre stack, fluxos críticos, segurança, governança, SLOs e políticas de custo para sustentar o modelo de "Acesso Perpétuo", garantindo lucratividade no D0 através da Provisão de Custo de Estoque (PCE).
+
+## Sumário
+
+- Visão, objetivos e princípios
+  - 1.1. Metas de Engenharia (SLOs) e Implicações (Alinhado)
+  - 1.2. Metas Mensuráveis de Produto (KPIs) (Alinhado)
+  - 1.3. Restrições e premissas (Alinhado)
+  - 1.4. Requisitos não funcionais
+  - 1.5. Diretrizes de acessibilidade (WCAG)
+- Stack, topologia e desenho de alto nível
+  - 2.1. Stack, escolhas e racional (Alinhado)
+  - 2.2. Mapa de comunicações
+  - 2.3. DNS, domínios e políticas
+  - 2.4. Contratos e compatibilidade (API v1)
+  - 2.5. Padrões de chaves S3 e lifecycle (Alinhado)
+  - 2.6. Presets de mídia e derivados
+- Domínio de produto
+  - 3.1. Entidades principais (Campos-chave)
+  - 3.2. Quotas e política de upsell (Alinhado com "Pacotes de Repetição")
+  - 3.3. Regras de negócio e invariantes
+  - 3.4. Séries & rascunhos
+  - 3.5. Print-on-Demand (Futuro)
+  - 3.6. Cápsula do Tempo (Futuro)
+  - 3.7. Domínio de Faturamento (Pagamento Único)
+  - 3.8. Entidades de Faturamento (Alinhado com "Pacotes de Repetição")
+- Fluxos críticos (com contratos)
+  - 4.1. Registro de Conta (Onboarding)
+  - 4.2. Verificação de E-mail
+  - 4.3. Recuperação de Senha
+  - 4.4. Autenticação (sessão + CSRF)
+  - 4.5. Upload multipart direto ao B2 (Fluxo de Erro Detalhado)
+  - 4.6. Compartilhamento público (SSR na Edge)
+  - 4.7. Exportação completa (ZIP + manifest)
+  - 4.8. Guestbook (mural) com RBAC
+  - 4.9. Logout e invalidação de sessão
+  - 4.10. Fluxo de Compra (Webhook) (Alinhado com "Pacotes de Repetição")
+- Segurança e conformidade (STRIDE)
+  - 5.1. CSP, cookies, CORS e headers
+  - 5.2. Gestão de segredos e privilégios
+  - 5.3. LGPD, privacidade e RLS
+  - 5.4. Política de retenção e Cold Storage (Implementação Detalhada)
+- Modelo padronizado de erros (API) (Alinhado)
+- Capacidade, performance e escala
+  - 7.1. Orçamentos de performance (budgets)
+  - 7.2. Step-Cost (degraus de escala e custo)
+  - 7.3. Paginação e anti-N+1
+- Governança de dados e DR (Neon PITR)
+- Observabilidade e SLOs
+  - 9.1. SLIs, alertas e orçamentos de erro
+  - 9.2. Telemetria e correlação ponta a ponta
+  - 9.3. Política de Retries e DLQ (Dead-Letter Queue)
+- Riscos arquiteturais e mitigação (Alinhado com PCE)
+- Roadmap técnico (Simplificado)
+- Apêndices (Guias de Implementação)
+  - A. Matriz RBAC (Controle de Acesso)
+  - B. Tabela de Rate-Limit (Defesa de API)
+  - C. Estratégia de Desenvolvimento Local (DevEx)
+  - D. Observabilidade (Logs Unificados & Tracing)
+  - E. Governança de Banco (Migrações de Schema)
+
+## 1. Visão, objetivos e princípios
+
+Objetivo: Garantir uma experiência de usuário fluida e calma, sustentada por uma arquitetura de custo variável (pay-per-use) que viabilize financeiramente o modelo de Acesso Perpétuo. A arquitetura deve escalar de zero (ociosidade) a picos sazonais (ex: Dia das Mães) sem intervenção manual e com custo previsível.
+
+Princípios:
+
+- **Elasticidade Econômica:** Eliminar custo fixo (ociosidade) é a condição de sobrevivência do modelo. Usar Neon (DB) e Modal (Workers) para escalar a zero.
+
+  **Implicação:** Aceitamos cold starts (a primeira consulta do dia ao Neon, o primeiro job do Modal) como um trade-off explícito para obter custo zero em repouso. A engenharia deve focar em minimizar o impacto percebido (ex: spinners na UI), não em eliminar o cold start (o que aumentaria o custo fixo).
+
+- **Simplicidade Operacional:** Menos peças, menor MTTR (Mean Time to Repair).
+
+  **Implicação:** Escolhemos serviços gerenciados (Cloudflare Queues, Neon) em vez de auto-hospedados (Redis, RabbitMQ), mesmo que sejam menos flexíveis. O custo de gerenciamento de infraestrutura é um custo fixo (tempo de engenharia) que deve ser eliminado.
+
+- **Robustez Assíncrona:** Desacoplar tarefas pesadas (transcode) da API (aceite) através de uma fila robusta. A UX do usuário é "fire-and-forget".
+
+  **Implicação:** A UI deve ser desenhada de forma otimista. Quando o usuário faz um upload e a API retorna 202 Accepted, o item deve aparecer imediatamente na UI com um estado "processando". O usuário nunca deve esperar pela transcodificação. Isso exige um mecanismo de atualização de estado no cliente. Dado o princípio de 'Simplicidade Operacional', a solução preferencial é o Short Polling (ex: a cada 5-10 segundos, GET /assets/status?ids=...), evitando a complexidade de WebSockets.
+
+- **Privacidade por Padrão:** LGPD by design; RLS (Row-Level Security) em dados sensíveis.
+
+  **Implicação:** Nenhuma consulta de aplicação deve acessar tabelas sensíveis (ex: Health) diretamente. O acesso deve ser feito através de views ou funções que aplicam as regras de RLS. Debug em produção não pode envolver SELECT \* em dados de usuário.
+
+- **Portabilidade:** Aderência a interfaces padrão (HTTP, SQL, S3) para mitigar vendor lock-in.
+
+  **Implicação:** Evitamos usar recursos específicos de provedor na lógica de negócio (ex: branching do Neon em produção, ou schedulers específicos do Modal). A aplicação deve rodar em qualquer Postgres (SQL), qualquer S3 (HTTP) e qualquer orquestrador de contêineres (HTTP).
+
+### 1.1 Metas de Engenharia (SLOs) e Implicações (Alinhado)
+
+- **SLO de Leitura (p95) ≤ 500 ms (dinâmico):**
+
+  **Implicação (Engenharia):** Este é o tempo para carregar o dashboard principal (ex: GET /moments). Exige otimização cuidadosa de consulta (evitar N+1, usar JOINs eficientes) e, potencialmente, um cache de aplicação em memória (ex: fastapi-cache com backend in-memory) para os "hot paths" se o Neon se tornar um gargalo. Se a escala exigir um cache distribuído, a solução deve ser serverless (ex: Cloudflare KV), alinhada ao stack.
+
+- **SLO de Escrita Leve (p95) ≤ 800 ms (metadados, mural):**
+
+  **Implicação (Engenharia):** Ações como POST /guestbook ou PATCH /moments/{id} (mudar notas). A API deve realizar apenas a escrita no DB e retornar. Qualquer lógica complexa (ex: notificar outros usuários, checar 5 regras de negócio) deve ser deferida para um worker via fila.
+
+- **SLO de Aceite de Upload (p95) ≤ 1500 ms:**
+
+  **Implicação (Engenharia):** Este é o tempo combinado do POST /init e POST /complete. É a "velocidade percebida" pelo usuário. A API não pode fazer validações pesadas síncronas (ex: checar hash SHA256 do arquivo). Deve apenas (1) checar quota (rápido), (2) criar a linha Asset no DB (rápido), (3) publicar na fila (rápido) e retornar 202.
+
+- **SLO de Time-to-Ready (p95) ≤ 2 min:**
+
+  **Implicação (Engenharia):** Do complete ao derivado pronto. Este SLO dita nossas escolhas de custo vs. performance. Se este SLO for violado, temos duas opções: (1) Aumentar o custo (mais CPU/RAM nos workers Modal) ou (2) Reduzir a qualidade (presets de 720p com bitrate menor, menos thumbnails).
+
+- **SLO de Custo de Estoque (Médio) ≤ R$ 2,00 /conta/ano:**
+
+  **Implicação (Engenharia):** Alinhado com a Viabilidade (visao_viabilidade_babybook.md, Seção 2.3). Este é o "God SLO" (o SLO principal). O custo auditado é R$ 1,53/ano. O SLO de R$ 2,00 dá à engenharia uma margem de ~30% para flutuações de câmbio ou preço de provedor antes que o modelo financeiro precise ser revisto. Todos os outros SLOs (performance, disponibilidade) são balanceados contra este.
+
+### 1.2 Metas Mensuráveis de Produto (KPIs) (Alinhado)
+
+- **Funil de Onboarding:** Taxa de conversão (Registro → Verificação → Primeiro Upload).
+
+  **Link (Engenharia):** Falhas no SLO de Aceite de Upload ou complexidade no fluxo de verificação (4.2) aumentam o atrito e matam este KPI.
+
+- **Taxa de Conclusão (Base):** % de usuários que completam os 60 momentos base.
+
+  **Link (Engenharia):** Performance de leitura (SLO p95 < 500ms) e UI fluida são essenciais. Se o app for lento, o usuário abandona.
+
+- **Taxa de Attach (Upsell):** % de usuários (base A1) que compram um "Pacote de Repetição" (Alvo: 20% A1, 25% A2, 30% A3+).
+
+  **Link (Engenharia):** Alinhado com a Viabilidade. Este KPI agora mede lucro incremental (gravy), não sobrevivência. A engenharia deve garantir que o fluxo de POST /webhooks/payment (4.10) seja 100% robusto e idempotente.
+
+- **CAC (Custo de Aquisição):** Custo blended por nova conta paga (Alvo A1: R$ 80).
+
+  **Link (Engenharia):** Embora seja um KPI de marketing, um funil de onboarding lento (engenharia) aumenta o CAC.
+
+### 1.3 Restrições e premissas (Alinhado)
+
+- Infra multi-fornecedor: Cloudflare (Edge/CDN/Fila), Fly.io (API), Neon (DB), Backblaze B2 (S3), Modal (workers).
+- API stateless: Sessão via cookie \_\_Host-session. Permite escalar horizontalmente.
+- Upload direto ao B2 (multipart): API não trafega payload pesado; apenas orquestra.
+- Quotas Base: 2 GiB de storage por conta; 60 momentos únicos; 5 entradas gratuitas para cada momento recorrente.
+- Modelo de Negócio: Acesso Perpétuo (pagamento único) + Upsell de "Pacotes de Repetição" (pagamentos únicos adicionais). O modelo não é de assinatura (MRR) e não depende de upsell para sobreviver (graças ao PCE).
+- Formato canônico: Vídeo MP4 (H.264/AAC) em 720p (base). 1080p pode ser um entitlement (direito) concedido via upsell, mas não é um shed-load.
+
+## 2. Stack, topologia e desenho de alto nível
+
+### 2.1 Stack, escolhas e racional (Alinhado)
+
+| Componente     | Escolha                    | Racional (Alinhado com a Viabilidade)                                                                                                                               |
+| -------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entrega/Edge   | Cloudflare Pages           | CDN global, SSL/WAF nativos, deploy via Git. Custo zero para estáticos. Simplicidade operacional.                                                                   |
+| SSR Público    | Cloudflare Workers         | Renderiza links públicos de share (share.babybook.com). Mantém a stack unificada na Cloudflare, custo fixo zero.                                                    |
+| Backend (API)  | FastAPI (Python) @ Fly.io  | Async nativo, performance de I/O, ecossistema Python (conecta ao Modal). Fly nos dá uma micro-VM "quente" e barata.                                                 |
+| Banco de Dados | Neon (PostgreSQL)          | O pilar da elasticidade econômica. Autosuspend (escala-a-zero) em ociosidade. Vital para o modelo de Acesso Perpétuo.                                               |
+| Armazenamento  | Backblaze B2               | Melhor TCO (Custo Total) para S3. Bandwidth Alliance com Cloudflare zera custos de egress (o maior risco de custo). Esta aliança é uma premissa de negócio crítica. |
+| Processamento  | Modal (Python Workers)     | "Serverless de verdade" para compute pesado (ffmpeg). Paga-se por segundo de CPU usado. Custo zero em ociosidade.                                                   |
+| Fila (Queue)   | Cloudflare Queues          | Desacopla a API dos workers. Absorve picos (Dia das Mães) e garante retries. Custo zero na camada gratuita.                                                         |
+| Sessão/Auth    | Cookies \_\_Host- + CSRF   | Abordagem B-F-F (Backend-for-Frontend) clássica. Simples e segura.                                                                                                  |
+| IaC / CI/CD    | Terraform + GitHub Actions | Padrão de indústria para infra declarativa e pipelines de automação.                                                                                                |
+
+### 2.2 Mapa de comunicações
+
+- Cliente → API (via /api/ proxy): HTTPS (Cookie \_\_Host-session + Header X-CSRF-Token).
+- Cliente → B2: HTTPS (PUT multipart via Presigned-URL).
+- API → B2: HTTPS (SDK S3) - Apenas para gerar Presigned-URLs.
+- API → Cloudflare Queues: HTTPS (SDK) - Para publicar jobs (ex: transcode_asset_id_123).
+- Workers (Modal) → Cloudflare Queues: HTTPS (SDK) - Para consumir jobs.
+- Workers (Modal) → B2: HTTPS (SDK) - GET original, PUT derivados (thumbs, 720p).
+- Workers (Modal) → API: HTTPS (PATCH /assets/{id}) - Para atualizar status. Autenticado via Authorization: Bearer <MODAL_SERVICE_TOKEN>.
+- Gateway (Pagamento) → API: HTTPS (Webhook) - POST /webhooks/payment (protegido por HMAC).
+
+### 2.5 Padrões de chaves S3 e lifecycle (Alinhado)
+
+Chaves:
+
+- media/u/{account_id}/{asset_id}/original.{ext}
+- media/u/{account_id}/{asset_id}/deriv/{preset}.{ext} (ex: 720p.mp4)
+- exports/{account_id}/{export_id}.zip
+- tmp/uploads/{uuid}
+
+Racional da Estrutura:
+
+- u/{account_id}/: Este prefixo é o limite do tenant. Essencial para: (1) Políticas de segurança, (2) Regras de Lifecycle (aplicar cold storage por conta, 5.4), e (3) Exclusão de dados (LGPD).
+- .../original vs .../deriv: Separa o dado imutável (fonte da verdade) dos caches descartáveis. deriv pode ter um TTL curto (90 dias) para economizar custos.
+
+Lifecycle (B2) - Alinhado com Risco de Custo:
+
+- tmp/uploads/\*: Delete em 3 dias (limpeza de órfãos).
+- exports/\*: Delete em 72 horas (segurança).
+- .../deriv/\*: Delete em 90 dias (economia de custo, são recriáveis).
+
+Política de Cold Storage (Definida): Esta é uma mitigação de custo não opcional. Após 12 meses de inatividade da conta (sem login), um job agendado (ver 5.4) deve mover todos os assets .../original.{ext} para a classe de armazenamento fria (ex: B2 Glacier, R2 Infrequent Access). Ver Seção 10 para o impacto no Risco #1.
+
+## 3. Domínio de produto
+
+### 3.1 Entidades principais (Campos-chave)
+
+- **Account:**
+
+  - id (uuid, pk)
+  - email (text, unique, lower)
+  - hashed_password (text)
+  - status (enum: pending, active, archived)
+  - entitlements (jsonb) - Ver Seção 3.8 para a nova estrutura.
+  - stripe_customer_id (text, unique, nullable)
+  - last_login_at (timestptz)
+
+- **Child:**
+
+  - id (uuid, pk), account_id (fk), name (text), dob (date), timezone (text) (ex: 'America/Sao_Paulo').
+
+- **ChildAccess (Guardião/Convidado):**
+
+  - id (uuid, pk), account_id (fk) (Ref: Account, o usuário que recebe o acesso), child_id (fk) (Ref: Child, o recurso sendo acessado), role (enum: owner, guardian, viewer). (Nota: Renomeado de 'Person' para 'ChildAccess' para clareza, alinhado à Matriz RBAC. A entidade 'Person' será usada futuramente para tagging.)
+
+- **Moment:**
+
+  - id (uuid, pk)
+  - child_id (fk)
+  - chapter_id (fk, nullable)
+  - notes (text)
+  - privacy (enum: private, people, link)
+  - occurred_at (timestptz) - Data em que o momento ocorreu (definida pelo usuário).
+
+- **Asset:**
+
+  - id (uuid, pk)
+  - account_id (fk) - (Nota: moment_id (fk) foi removido. Assets pertencem à conta e são vinculados a momentos via MomentAsset.)
+  - status (enum: uploading, queued, processing, ready, error, archived)
+  - original_key (text) - Chave S3 do arquivo original.
+  - derivs (jsonb) - Ex: { "thumb_320": "...", "720p": "..." }
+  - filesize (int8) - Tamanho do original (usado para checagem de quota).
+  - error_message (text, nullable)
+
+- **MomentAsset (Join Table):**
+  - moment_id (fk), asset_id (fk), slot_key (text) (ex: 'photo_1', 'video_main').
+
+### 3.2 Quotas e política de upsell (Alinhado com "Pacotes de Repetição")
+
+**Base (Acesso Perpétuo):** storage_quota = 2 GiB (limite físico). moments_quota = 60 (momentos únicos/guiados). recurrent_limit = 5 (limite de entradas para cada momento recorrente, ex: 5 "Visitas Especiais", 5 "Consultas").
+
+**Enforcement (Implementação):**
+
+- POST /uploads/init { ... filesize }: Checa Usage.total_bytes < Account.entitlements.quota_storage_gb. Se falhar, retorna 402 Payment Required (code: quota.bytes.exceeded).
+- POST /moments: Checa Usage.total_moments < Account.entitlements.moments_quota. Se falhar, retorna 402 (code: quota.moments.exceeded).
+- POST /moments { recurrent_chapter_id: '...' }: Checa Usage.recurrent_visits < Account.entitlements.recurrent_limit (a menos que Account.entitlements.features.unlimited_social == true).
+- Se a checagem (3) falhar, a API retorna 402 Payment Required (code: quota.recurrent_limit.exceeded).
+- A UI deve interceptar o código quota.recurrent_limit.exceeded e exibir o modal de upsell específico para "Pacotes de Repetição".
+
+**Política de Upsell (Produto, não Utilidade):** O upsell não é "Compre +1 GiB". O upsell é a compra de "Pacotes de Repetição Ilimitada" (pagamento único).
+
+Exemplo 1: Pacote "Social" (R$ 29) → Define Account.entitlements.features.unlimited_social = true.
+
+Exemplo 2: Pacote "Saúde" (R$ 29) → Define Account.entitlements.features.unlimited_health = true.
+
+**Implicação:** A UI de upsell vende experiência, não espaço. Isso alinha a monetização com a proposta de valor (curadoria).
+
+### 3.3 Regras de negócio e invariantes
+
+- Um Moment só é publicável (privacy=link) se todos os Assets associados estiverem status=ready.
+- Links de Share são noindex (via header X-Robots-Tag).
+- Idempotência (Obrigatório): POST /uploads/complete, POST /export, POST /webhooks/payment.
+- Concorrência (Obrigatório): PATCH /moments/{id} deve usar ETag/If-Match para evitar lost updates.
+
+### 3.7 Domínio de Faturamento (Pagamento Único)
+
+**Provedor:** Gateway de pagamento (ex: Stripe) via checkout gerenciado.
+
+**Estratégia:** A API não armazena dados de cartão (PCI Nível A). O cliente é redirecionado para o portal do provedor (Stripe Checkout).
+
+**Comunicação:** A API consome webhooks assinados (HMAC) do provedor para provisionar entitlements (ver 4.10).
+
+### 3.8 Entidades de Faturamento (Alinhado com "Pacotes de Repetição")
+
+- **Plan:** (Definição no Stripe, ex: price\_...) Ex: "Acesso Perpétuo Base", "Pacote Repetição Social".
+
+- **Entitlement:** (O que o usuário comprou - armazenado no JSONB Account.entitlements)
+
+  Estrutura Exemplo:
+
+  ```
+  {
+    "quotas": {
+      "storage_gb": 2,
+      "moments_quota": 60,
+      "recurrent_limit": 5
+    },
+    "features": {
+      "allow_1080p": false,
+      "unlimited_social": false,
+      "unlimited_health": false,
+      "unlimited_creative": false
+    }
+  }
+  ```
+
+- **Purchase:** (Referência no DB) id (uuid, pk), account_id (fk), stripe_customer_id (text), stripe_payment_intent_id (text, unique), plan_id (text), amount (int), paid_at (timestptz).
+
+## 4. Fluxos críticos (com contratos)
+
+### 4.5 Upload multipart direto ao B2 (Fluxo de Erro Detalhado)
+
+Este é o fluxo mais crítico, agora desacoplado pela fila.
+
+- **C (Cliente) → API:** POST /uploads/init {filename, size, mime}
+- **API:** Checa quota (3.2).
+
+  **Caminho de Erro (Quota Física):** Retorna 413 Payload Too Large (code: quota.bytes.exceeded). A UI deve interceptar este código e informar ao usuário que ele atingiu o limite físico de 2GiB da conta, sugerindo a remoção de mídias antigas ou entrando em contato com o suporte (este não é um gatilho de upsell).
+
+- **API:** Cria Asset (status=uploading), gera Presigned URLs (multipart).
+- **API → C:** 200 OK { upload_id, presigned_urls[...] }
+- **C → B2:** PUT (partes do arquivo) para as URLs pré-assinadas.
+- **C → API:** POST /uploads/complete { upload_id, etags[...] } (com Idempotency-Key).
+- **API:** Valida ETags, marca Asset (status=queued).
+- **API → Cloudflare Queues:** Publica job (mensagem: { "trace_id": "...", "asset_id": "..." }).
+- **API → C:** 202 Accepted { asset_id, status: "queued" } (UX é "fire-and-forget").
+- **W (Worker Modal):** Consome job da Cloudflare Queues.
+- **W → B2:** GET original.
+- **W → B2:** PUT derivados (thumbs, 720p).
+- **W → API:** PATCH /assets/{id} { status: "ready" } (com Service-Token).
+
+  **Caminho de Erro (API Offline):** Se a API estiver offline, o Worker falha. A Fila (CF Queues) deve re-tentar o job automaticamente (ver 9.3).
+
+  **Caminho de Erro (Processamento):** Se o ffmpeg falhar, o Worker deve fazer PATCH /assets/{id} { status: "error", error_message: "..." } e não re-tentar (enviar para DLQ, 9.3).
+
+### 4.10 Fluxo de Compra (Webhook) (Alinhado com "Pacotes de Repetição")
+
+Substitui o "Ciclo de Vida da Assinatura" por "Confirmação de Compra Única".
+
+- **PMT (Gateway) → API:** POST /webhooks/payment { ... } (Payload, Stripe-Signature).
+- **API:** Valida Assinatura HMAC (Segurança).
+
+  **Caminho de Erro (Segurança):** Retorna 401 Unauthorized (code: billing.webhook.signature.invalid).
+
+- **API:** Valida Idempotência (usa event_id do gateway, checa Purchase.stripe_payment_intent_id).
+
+  **Caminho de Erro (Duplicado):** Retorna 200 OK (reconhece, mas não processa de novo).
+
+- **API:** Processa o evento (ex: payment_intent.succeeded).
+- **API → DB:** (Em transação)
+
+  - Localiza Account (via customer_id).
+  - Localiza o Plan comprado (ex: "Pacote Repetição Social").
+  - Atualiza Entitlements (Nova Lógica):
+    ```
+    -- Exemplo para o Pacote Social
+    UPDATE Account
+    SET entitlements = jsonb_set(
+        entitlements,
+        '{features, unlimited_social}',
+        'true'::jsonb
+    )
+    WHERE stripe_customer_id = '...';
+    ```
+  - Grava Purchase no DB (gravando o event_id para idempotência).
+
+  **Caminho de Erro (DB):** Se a transação falhar, a API retorna 500 Internal Server Error. O Gateway (Stripe) deve re-tentar o webhook.
+
+- **API → PMT:** 200 OK.
+
+## 5. Segurança e conformidade (STRIDE)
+
+### 5.4 Política de retenção e Cold Storage (Implementação Detalhada)
+
+- Logs operacionais: 30-90 dias.
+- Exports: 72 h (B2 Lifecycle).
+- Derivados (Cache): 90 dias (B2 Lifecycle) - Recriáveis sob demanda.
+
+**Mitigação de Custo (Acesso Perpétuo):**
+
+- **Ação de Custo (Implementação):** Um job agendado (ex: Modal Cron daily) roda SELECT id FROM Account WHERE status = 'active' AND last_login_at < NOW() - INTERVAL '12 months'.
+- Para cada conta, o job (1) atualiza Account.status = 'archived' e (2) enfileira um novo job (ex: archive_account_assets) na Cloudflare Queues.
+- **Job de Arquivamento (Worker Modal):** O worker lista todos os original.{ext} da conta no B2 (media/u/{account_id}/...) e executa a transição de storage (API do B2/S3) para a classe "Archive".
+- **UX de Restauração (Implementação):**
+  - Usuário loga (se status='archived', API atualiza para status='active').
+  - Usuário tenta acessar um Moment com Asset.status = 'archived'.
+  - UI mostra placeholder e botão "Restaurar do Arquivo" (e o aviso "Pode levar algumas horas").
+  - Usuário clica → API enfileira um job de restore (ex: restore_asset).
+  - Worker (Modal) chama a API do B2 (ex: "Standard" retrieval, 3-5 horas).
+  - A API deve ter um webhook (ou poller) para detectar que o restore do B2 foi concluído.
+  - Quando concluído, o webhook/poller atualiza Asset.status = 'ready'. A UI (via polling) reflete a mudança.
+
+## 6. Modelo padronizado de erros (API) (Alinhado)
+
+Envelope mantido: { error: { code, message, details, trace_id } }
+
+Novos Códigos de Domínio (Revisados):
+
+- auth.account.pending_verification
+- auth.csrf.invalid
+- quota.bytes.exceeded (Limite físico de 2GiB)
+- quota.moments.exceeded (Limite de 60 momentos únicos)
+- quota.recurrent_limit.exceeded (Ex: 6ª visita. Gatilho para o upsell de Pacote de Repetição)
+- quota.payment.required (402 - Genérico)
+- upload.etag.mismatch, upload.mime.unsupported
+- validation.precondition.failed (412 - ETag não bateu)
+- billing.webhook.signature.invalid (401)
+- billing.event.idempotency.failed (409 ou 200 OK, ver 4.10)
+- asset.archived (para UX de restauração do cold storage)
+- asset.restore.inprogress (se o usuário tentar restaurar um asset já em processo)
+
+## 7. Capacidade, performance e escala
+
+### 7.1 Orçamentos de performance (budgets)
+
+- Front (Web Vitals): $TTI \le 2.5$ s em 4G; bundle inicial (core) $\le 200$ KB gzip; code-splitting agressivo por rota.
+- API: $p95 \le 300$ ms (leitura) e $\le 800$ ms (escrita leve).
+- Workers: queue_time $p95 \le 30$ s; processing_time (SLO 1.1) $\le 90$ s.
+
+### 7.2 Step-Cost (degraus de escala e custo)
+
+- Fase A (MVP): 2-4 instâncias API; warm pool 10 (Modal); limites conservadores.
+- Fase B (Promo): 4-8 instâncias API; warm pool 20-30; cron de prewarm ativo.
+- Fase C (Pico): 8-12 instâncias API; warm pool 40-60; shed-load (pausar 1080p via feature flag) ativado se queue_time > 60s.
+
+### 7.3 Paginação e anti-N+1
+
+- Paginação: Obrigatório por cursor (ex: limit, cursor_created_at) (fwd-only) para feeds de Moment.
+- Anti-N+1: Evitar expands automáticos. Usar projeções e JOINs controlados (via SQLModel / SQLAlchemy selectinload).
+
+## 8. Governança de dados e DR (Neon PITR)
+
+- Backups/PITR: RPO (Recovery Point Objective) $\le 15$ min; RTO (Recovery Time Objective) $\le 2$ h. Janelas de retenção (7-30 dias) via Neon.
+- Auditoria: Tabela AuditLog imutável por 180 dias.
+- Drills de DR: Exercícios trimestrais de restauração (via branching do Neon) em ambiente de staging.
+
+## 9. Observabilidade e SLOs
+
+### 9.1 SLIs, alertas e orçamentos de erro
+
+- SLIs: Latência p95; taxa 5xx; queue_time.
+- Alertas: Burn rate (ex: 14d/1h) nos SLIs. Alerta de Custo (ex: B2 egress > $100/dia).
+- Ações: Freeze de deploy se exceder orçamento de erro.
+
+### 9.2 Telemetria e correlação ponta a ponta
+
+- Logs JSON (via structlog em Python) com trace_id, account_id, asset_id.
+- Scrubbing de PII (ex: email, password) antes de enviar para o sink de logs.
+- Sampling adaptativo em pico (para evitar custos de log).
+
+### 9.3 Política de Retries e DLQ (Dead-Letter Queue)
+
+**Falha Transitória (Retry):**
+
+- Exemplos: 503 Service Unavailable, timeout de rede, 429 Too Many Requests.
+- Ação (Cloudflare Queues): A própria Fila deve ser configurada para retries automáticos com backoff exponencial.
+
+**Falha Definitiva (DLQ - Dead-Letter Queue):**
+
+- Exemplos: 400 Bad Request (arquivo de mídia corrompido), 404 Not Found (asset original sumiu), 401/403 (Service-Token revogado).
+- Ação (Cloudflare Queues): Após esgotar os retries, a Fila deve ser configurada para enviar a mensagem falha para uma DLQ.
+- Ação (Engenharia): A DLQ deve gerar um alerta. Exige intervenção manual (Runbook). O Worker deve logar o error_message no Asset (se possível).
+
+## 10. Riscos arquiteturais e mitigação (Alinhado com PCE)
+
+| Risco                                     | Mitigação (Alinhada com Viabilidade visao_viabilidade_babybook.md)                                                                                                                                                                                                                                                             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Custo de Longo Prazo (Acesso Perpétuo) | O maior risco. Mitigado por: (1) Hedge Mandatório (créditos USD). (2) Cold Storage Agressivo (5.4) após 12 meses. (3) Cláusula de "Taxa de Manutenção" (Termos de Uso) para contas inativas > 36 meses. Detalhe: Legalmente, "Acesso Perpétuo" deve ser definido como "perpétuo enquanto o serviço for comercialmente viável". |
+| 2. Câmbio (USD/BRL)                       | Risco financeiro que impacta o Custo de Estoque (R$ 1,53). Mitigado pela Política de Hedge Mandatório (compra de créditos USD pré-pagos no B2/Modal/Fly quando o câmbio estiver favorável).                                                                                                                                    |
+| 3. Cold Start (DB/Workers)                | Aceitar em p99. Manter pool warm (Modal) e instâncias mínimas (Fly.io) em picos sazonais. A UI deve sempre mostrar um spinner otimista para mascarar o cold start do Neon.                                                                                                                                                     |
+| 4. Fim da "Bandwidth Alliance"            | Risco de plataforma que quebraria o Custo de Estoque (aumentando o egress). Mitigação de Longo Prazo: Migrar o storage do B2 para o Cloudflare R2, que tem zero custo de egress por padrão, eliminando a dependência da aliança.                                                                                               |
+| 5. Risco de Upsell Baixo                  | Rebaixado de Risco de Sobrevivência para Risco de Lucro. O modelo (visao_viabilidade_babybook.md, Seção 5.3) sobrevive com 0% de attach rate (graças ao PCE). Mitigação (Produto): O upsell é agora 100% "gravy". A mitigação é o Plano de Engajamento (CRM, Highlight Reels) para maximizar este lucro extra.                 |
+
+## 11. Roadmap técnico (Simplificado)
+
+- **MVP (Core Loop):**
+
+  - Identidade (Onboarding, Auth, Reset).
+  - Upload (4.5) com Fila (Cloudflare Queues) e Worker (Modal 720p).
+  - Share SSR (4.6), Export (4.7).
+  - Quotas Base (3.2) - Incluindo a lógica de 5 entradas recorrentes.
+  - Observabilidade mínima (SLOs 1.1) e DR (Neon PITR).
+  - Fluxo de Compra (4.10) do "Acesso Perpétuo" Base.
+
+- **v1.0 (Lançamento):**
+
+  - Billing (4.10) Completo: Checkout de "Pacotes de Repetição" (Upsell).
+  - i18n completo, Guestbook (4.8), RBAC (Apêndice A).
+  - Implementação da Política de Cold Storage (5.4) e UX de restauração (vital para o custo de longo prazo).
+
+- **v1.1 (Pós-Lançamento):**
+  - Reforço de Segurança (ALE para Health/Vault, MFA).
+  - Otimização de Custo (Dashboards de custo/tenant).
+  - Features de Upsell (Print-on-Demand, Cápsula do Tempo).
+
+## 12. Apêndices (Guias de Implementação)
+
+### Apêndice A: Matriz RBAC (Controle de Acesso)
+
+Define quem pode fazer o quê. Owner é o dono da conta (pagante). Guardian é um co-administrador (ex: cônjuge). Viewer é um convidado (ex: avós).
+
+| Recurso/Ação                  | Owner (Dono) | Guardian (Guardião) | Viewer (Convidado) | Público (SSR) |
+| ----------------------------- | ------------ | ------------------- | ------------------ | ------------- |
+| Account (Conta)               |              |                     |                    |               |
+| Ver/Editar Faturamento        | ✅           | ❌                  | ❌                 | ❌            |
+| Editar Pref. da Conta         | ✅           | ❌                  | ❌                 | ❌            |
+| Child (Criança)               |              |                     |                    |               |
+| Criar/Editar Perfil           | ✅           | ✅                  | ❌                 | ❌            |
+| Convidar/Remover Pessoas      | ✅           | ✅                  | ❌                 | ❌            |
+| Mudar Papel (Viewer/Guardian) | ✅           | ✅                  | ❌                 | ❌            |
+| Moment (Momentos)             |              |                     |                    |               |
+| Criar/Editar/Excluir          | ✅           | ✅                  | ❌                 | ❌            |
+| Ver (Privado)                 | ✅           | ✅                  | ✅                 | ❌            |
+| Gerar/Revogar Link (Share)    | ✅           | ✅                  | ❌                 | ❌            |
+| Ver (Link SSR)                | ❌           | ❌                  | ❌                 | ✅            |
+| Guestbook (Mural)             |              |                     |                    |               |
+| Postar Mensagem               | ✅           | ✅                  | ✅ (se habilitado) | ❌            |
+| Moderar (Aprovar/Remover)     | ✅           | ✅                  | ❌                 | ❌            |
+| Export/Print                  |              |                     |                    |               |
+| Solicitar Exportação (4.7)    | ✅           | ✅                  | ❌                 | ❌            |
+| Criar Print-on-Demand (3.5)   | ✅           | ✅                  | ❌                 | ❌            |
+
+### Apêndice B: Tabela de Rate-Limit (Defesa de API)
+
+Limites por IP (para rotas não autenticadas) e por account_id (para rotas autenticadas) para prevenir abuso e DoS.
+
+| Rota (Prefixo /v1)         | Limite Base        | Janela | Observações (Risco)                     |
+| -------------------------- | ------------------ | ------ | --------------------------------------- |
+| POST /auth/register        | 5 req/hora/IP      | 3600s  | (DoS) Evitar abuso/spam de e-mail.      |
+| POST /auth/login           | 10 req/min/IP      | 60s    | (Spoofing) Lockout progressivo.         |
+| POST /auth/password/forgot | 3 req/hora/IP      | 3600s  | (DoS) Evitar spam de e-mail.            |
+| POST /webhooks/payment     | (Sem limite de IP) | -      | (Spoofing) Protegido por HMAC (4.10).   |
+| POST /uploads/init         | 20 req/min/Conta   | 60s    | (DoS) Proteger B2 e API de hotspots.    |
+| POST /uploads/complete     | 20 req/min/Conta   | 60s    | (Tampering) Idempotência obrigatória.   |
+| POST /moments              | 30 req/min/Conta   | 60s    | (DoS) Validação de quotas (3.2).        |
+| POST /export               | 1 job/hora/Conta   | 3600s  | (DoS/Custo) Retornar 429 (job recente). |
+| GET /share/{token} (SSR)   | 100 req/min/IP     | 60s    | (DoS) Proteger SSR de abuso.            |
+
+### Apêndice C: Estratégia de Desenvolvimento Local (DevEx)
+
+Objetivo: Garantir que um desenvolvedor possa rodar e testar a aplicação localmente com o mínimo de atrito, sem depender dos serviços de nuvem (Neon, Modal, B2), que são usados em staging.
+
+Ferramenta Padrão: Um docker-compose.yml será mantido na raiz do repositório.
+
+Serviços no Compose:
+
+- api: A aplicação FastAPI, rodando com reload (ex: uvicorn ... --reload).
+- db: Imagem postgres:15 padrão. O Alembic (Apêndice E) local será apontado para este container.
+- storage: Mock S3 (ex: minio/minio). As variáveis de ambiente da API (SDK S3) apontarão para este endpoint local.
+
+Mock da Fila: Para alinhar com o princípio de "Simplicidade Operacional", o worker (Modal) não será simulado localmente. Para testes de POST /uploads/complete, o mock da Cloudflare Queues na API (ativado por ENV=local) deve simplesmente chamar a lógica de transcodificação em processo (in-process) ou marcar o asset como "pronto" imediatamente, permitindo que o desenvolvedor teste a UI sem a complexidade da fila.
+
+### Apêndice D: Observabilidade (Logs Unificados & Tracing)
+
+Problema: O stack multi-provider (Fly, Modal, CF) torna o debugging impossível sem correlação.
+
+Solução: Sink Unificado.
+
+Ferramenta: Um sink de logs unificado (ex: BetterStack, Logtail, Datadog) deve ser configurado para receber logs de todos os serviços (Fly.io, Modal, Cloudflare).
+
+Contrato de Tracing (Obrigatório):
+
+- A API (Fly.io) deve gerar um X-Trace-ID (ou X-Request-ID) para cada requisição recebida.
+- Esse X-Trace-ID deve ser incluído em todos os logs estruturados (JSON) gerados pela API.
+- Esse X-Trace-ID deve ser passado para a mensagem da Fila (Cloudflare Queues) (ver 4.5).
+- O Worker (Modal), ao consumir a mensagem, deve extrair o X-Trace-ID e incluí-lo em todos os seus logs.
+
+Resultado: O desenvolvedor busca um único X-Trace-ID no sink de logs e vê a jornada completa da requisição, desde o POST /uploads/init (API) até o ffmpeg (Worker), em um só lugar.
+
+### Apêndice E: Governança de Banco (Migrações de Schema)
+
+Problema: Evolução do schema do Neon (Postgres) de forma caótica ou manual.
+
+Solução: Migrações como Código.
+
+Ferramenta Padrão: Dado o stack (FastAPI/Python), a ferramenta oficial para gerenciar migrações de schema será o Alembic.
+
+Repositório: As migrações (.py) são versionadas e tratadas como código, fazendo parte do pull request que as introduz.
+
+Execução (CI/CD): A migração será executada automaticamente durante o deploy no Fly.io, usando a diretiva [deploy.release_command] no fly.toml.
+
+```
+fly.toml: [deploy] release_command = "alembic upgrade head"
+```
+
+Rolling Updates: A API deve suportar, brevemente, N (código antigo) e N+1 (código novo) rodando simultaneamente. Migrações destrutivas (ex: DROP COLUMN) devem ser feitas em duas fases (deploy A introduz a mudança sem quebrar o código antigo; deploy B remove o código antigo e finaliza).

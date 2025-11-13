@@ -1,0 +1,26 @@
+{
+  "name": "babybook",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @babybook/web dev",
+    "dev:edge": "pnpm --filter @babybook/edge dev",
+    "dev:api": "uvicorn babybook_api.main:app --app-dir apps/api --reload",
+    "dev:workers": "python apps/workers/app/main.py",
+    "lint": "pnpm lint:js && pnpm lint:py",
+    "lint:js": "pnpm -r --workspace-concurrency=1 run lint --if-present",
+    "lint:py": "ruff check apps/api apps/workers apps/admin",
+    "typecheck": "pnpm --filter @babybook/* exec tsc --noEmit && pnpm --filter @babybook/tests-* exec tsc --noEmit",
+    "test": "pnpm lint && pnpm typecheck && pnpm -r test"
+  },
+  "devDependencies": {
+    "eslint": "^9.7.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.2"
+  }
+}

@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0
+    hooks:
+      - id: prettier
+        additional_dependencies:
+          - prettier@3.3.2
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.6.0
+    hooks:
+      - id: eslint
+        files: ^(apps|packages|tests)/(web|edge|ui|utils|i18n|e2e|web)/

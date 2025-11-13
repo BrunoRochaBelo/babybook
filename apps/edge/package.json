@@ -1,0 +1,23 @@
+{
+  "name": "@babybook/edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "build": "wrangler deploy --dry-run",
+    "lint": "eslint src --ext .ts --config ../../packages/config/eslint/index.mjs",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "hono": "^4.4.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240718.0",
+    "miniflare": "^3.20240718.0",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.72.2",
+    "vitest": "^2.0.5"
+  }
+}

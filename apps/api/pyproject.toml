@@ -1,0 +1,38 @@
+[project]
+name = "babybook-api"
+version = "0.1.0"
+description = "Serviço FastAPI do Baby Book"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.111.0",
+  "uvicorn[standard]>=0.29.0",
+  "sqlalchemy[asyncio]>=2.0.31",
+  "asyncpg>=0.29.0",
+  "alembic>=1.13.2",
+  "pydantic>=2.7.4",
+  "pydantic-settings>=2.3.4",
+  "httpx>=0.27.0",
+  "aioboto3>=12.4.0",
+  "itsdangerous>=2.2.0",
+  "passlib[bcrypt]>=1.7.4",
+  "limits>=3.11.0",
+  "tenacity>=8.5.0",
+  "orjson>=3.10.6"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.3.2",
+  "pytest-asyncio>=0.23.8",
+  "pytest-cov>=5.0.0",
+  "requests>=2.32.3",
+  "faker>=25.0.0",
+  "pyyaml>=6.0.2",
+  "ruff>=0.6.8",
+  "mypy>=1.10.0"
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

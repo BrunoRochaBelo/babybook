@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+  # 1. Banco de Dados (PostgreSQL 15)
+  # Alinhado com o Neon (Postgres)
+  db:
+    image: postgres:15-alpine
+    container_name: babybook_db_local
+    ports:
+      - "5432:5432" # Expõe o banco na porta padrão
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-babybook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-babybook}
+      POSTGRES_DB: ${POSTGRES_DB:-babybook_dev}
+    volumes:
+      - babybook-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Storage Mock (Minio S3)
+  # Alinhado com o Backblaze B2 (S3 compatible)
+  storage:
+    image: minio/minio:latest
+    container_name: babybook_storage_local
+    ports:
+      - "9000:9000" # API Endpoint
+      - "9001:9001" # Console Web
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - babybook-storage-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. API (FastAPI)
+  # Depende do DB e Storage estarem prontos
+  api:
+    container_name: babybook_api_local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile # Assume que existe um Dockerfile na API
+    ports:
+      - "8000:8000"
+    environment:
+      # Sobrescreve as envs de produção para apontar para os serviços locais
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-babybook}:${POSTGRES_PASSWORD:-babybook}@db:5432/${POSTGRES_DB:-babybook_dev}"
+      S3_ENDPOINT_URL: "http://storage:9000"
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_NAME: "babybook"
+      ENV: "local" # Habilita o mock da fila (0.4)
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    # Monta o código da API para live-reload
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+
+volumes:
+  babybook-db-data:
+    driver: local
+  babybook-storage-data:
+    driver: local

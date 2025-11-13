@@ -1,0 +1,7 @@
+aioboto3>=12.4.0
+orjson>=3.10.6
+pillow>=10.4.0
+tenacity>=8.5.0
+
+[test]
+pytest>=8.3.2

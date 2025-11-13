@@ -1,0 +1,22 @@
+{
+  "name": "@babybook/i18n",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.tsx",
+  "scripts": {
+    "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "i18next": "^23.11.4",
+    "react-i18next": "^15.0.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
