@@ -19,6 +19,10 @@ explicit_package_bases = true
 minversion = "8.0"
 addopts = "-ra -q"
 testpaths = ["tests/api", "apps/api/babybook_api/tests", "tests/workers"]
+markers = [
+  "contract: testes que validam contratos externos/OpenAPI",
+  "asyncio: testes que executam corrotinas usando um loop de evento"
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]

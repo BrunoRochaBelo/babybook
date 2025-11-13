@@ -16,7 +16,7 @@ app.get("/s/:token", async (c) => {
   if (!parseResult.success) {
     return c.json(
       { error: { code: "share.token.invalid", message: "Token inválido" } },
-      400
+      400 as any
     );
   }
 
@@ -24,7 +24,7 @@ app.get("/s/:token", async (c) => {
   const response = await fetch(`${apiBaseUrl}/shares/${parseResult.data.token}`);
 
   if (!response.ok) {
-    return c.json(await response.json(), response.status);
+    return c.json(await response.json(), response.status as any);
   }
 
   const payload = await response.json();

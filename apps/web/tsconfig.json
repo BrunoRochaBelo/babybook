@@ -1,8 +1,8 @@
 {
-  "extends": "@babybook/config/tsconfig",
+  "extends": "../../packages/config/tsconfig/base.json",
   "include": ["src", "vite.config.ts"],
   "compilerOptions": {
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "types": ["vite/client", "vitest/globals", "node", "react", "react-dom"],
     "baseUrl": ".",
     "paths": {

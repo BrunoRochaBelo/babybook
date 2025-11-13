@@ -213,3 +213,5 @@ pnpm dev:edge    # Links públicos
 pnpm dev:api     # FastAPI (porta 8000)
 pnpm dev:workers # Workers locais
 ```
+
+> ⚙️ Por padrão o frontend conversa com a API real. Se quiser trabalhar somente com dados mockados (MSW), adicione `VITE_ENABLE_MSW=true` no `.env.local` da web antes de rodar `pnpm dev:web`. Lembre de desligar a flag para validar integrações reais.

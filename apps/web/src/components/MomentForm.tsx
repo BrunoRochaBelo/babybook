@@ -1,226 +1,210 @@
 import { useState } from "react";
-import {
-  ArrowLeft,
-  Upload,
-  Video,
-  Mic,
-  Image as ImageIcon,
-  X,
-  Check,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useCreateMoment } from "@/hooks/api";
+import { Plus, X } from "lucide-react";
 
 interface MomentFormProps {
-  momentTitle: string;
-  momentDescription?: string;
-  babyName: string;
-  isRecurrent?: boolean;
-  onBack: () => void;
-  onSave: () => void;
+  childId: string;
+  templateId?: string;
+  onSuccess?: () => void;
 }
 
-export function MomentForm({
-  momentTitle,
-  momentDescription,
-  babyName,
-  isRecurrent = false,
-  onBack,
-  onSave,
-}: MomentFormProps) {
-  const [date, setDate] = useState("");
-  const [story, setStory] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<
-    { type: string; name: string }[]
-  >([]);
+export const MomentForm = ({
+  childId,
+  templateId,
+  onSuccess,
+}: MomentFormProps) => {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [occurredAt, setOccurredAt] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const { mutate: createMoment, isPending } = useCreateMoment();
 
-  const handleSave = () => {
-    if (!date) {
-      toast.error("Por favor, selecione a data do momento");
+  const handleAddMedia = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setMediaFiles([...mediaFiles, ...files]);
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !occurredAt) {
       return;
     }
-
-    toast.success("✅ Momento registrado permanentemente!", {
-      description: "Guardado com segurança no seu cofre",
-      duration: 3000,
-    });
-
-    setTimeout(onSave, 1000);
-  };
-
-  const handleFileUpload = (type: string) => {
-    setUploadedFiles([
-      ...uploadedFiles,
-      { type, name: `${type}-${Date.now()}` },
-    ]);
-    const typeLabel =
-      type === "video" ? "Vídeo" : type === "audio" ? "Áudio" : "Foto";
-    toast.success(`${typeLabel} adicionado!`);
-  };
-
-  const removeFile = (index: number) => {
-    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
-    toast.success("Arquivo removido");
+    createMoment(
+      {
+        childId,
+        title,
+        summary,
+        occurredAt,
+        templateKey: templateId,
+        payload: mediaFiles.length
+          ? {
+              media: mediaFiles.map((file) => ({
+                id: file.name,
+                type: file.type.startsWith("video")
+                  ? "video"
+                  : file.type.startsWith("audio")
+                    ? "audio"
+                    : "image",
+                url: URL.createObjectURL(file),
+              })),
+            }
+          : undefined,
+      },
+      {
+        onSuccess: () => {
+          setTitle("");
+          setSummary("");
+          setOccurredAt(new Date().toISOString().split("T")[0]);
+          setMediaFiles([]);
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            navigate("/jornada");
+          }
+        },
+      },
+    );
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header - Sticky */}
-      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <button
-            onClick={onBack}
-            className="mb-3 -ml-2 h-9 flex items-center gap-2 hover:opacity-80 transition-opacity text-foreground"
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Título */}
+      <div>
+        <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
+          Título do Momento *
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl focus:border-[#F2995D] focus:outline-none"
+          placeholder="Ex: Primeiro Sorriso"
+          required
+        />
+      </div>
+
+      {/* Data */}
+      <div>
+        <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
+          Data do Momento *
+        </label>
+        <input
+          type="date"
+          value={occurredAt}
+          onChange={(e) => setOccurredAt(e.target.value)}
+          className="w-full px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl focus:border-[#F2995D] focus:outline-none"
+          required
+        />
+      </div>
+
+      {/* Descrição */}
+      <div>
+        <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
+          Descrição (opcional)
+        </label>
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          className="w-full px-4 py-3 border-2 border-[#C9D3C2] rounded-2xl resize-none focus:border-[#F2995D] focus:outline-none"
+          rows={4}
+          placeholder="Conte a história desse momento especial..."
+        />
+      </div>
+
+      {/* Upload de mídia */}
+      <div>
+        <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
+          Adicionar Mídias (Fotos, Vídeos, Áudio)
+        </label>
+        <div className="border-2 border-dashed border-[#C9D3C2] rounded-2xl p-6 text-center hover:border-[#F2995D] transition-colors cursor-pointer">
+          <input
+            type="file"
+            multiple
+            accept="image/*,video/*,audio/*"
+            onChange={handleAddMedia}
+            className="hidden"
+            id="media-input"
+          />
+          <label
+            htmlFor="media-input"
+            className="flex flex-col items-center justify-center cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </button>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl mb-1 sm:mb-2 font-serif">
-                {momentTitle}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {momentDescription}
-              </p>
-            </div>
-          </div>
+            <Plus className="w-8 h-8 text-[#C9D3C2] mb-2" />
+            <p className="text-sm text-[#2A2A2A] font-medium">
+              Clique para adicionar fotos, vídeos ou áudio
+            </p>
+            <p className="text-xs text-[#C9D3C2] mt-1">
+              Até 10 mídias por momento
+            </p>
+          </label>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-6"
-        >
-          {/* Date Input */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Data do Momento *
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          {/* Story Textarea */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Conte a história deste momento
-            </label>
-            <textarea
-              value={story}
-              onChange={(e) => setStory(e.target.value)}
-              placeholder="Descreva seus sentimentos, detalhes importantes, o que tornou este momento especial..."
-              className="w-full px-4 py-3 rounded-2xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-[150px] resize-none"
-            />
-          </div>
-
-          {/* File Upload Section */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-foreground">Mídia (opcional)</h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                onClick={() => handleFileUpload("photo")}
-                className="p-4 border-2 border-dashed border-primary/30 rounded-2xl hover:bg-primary/5 transition-colors flex flex-col items-center gap-2 text-foreground"
+        {/* Lista de mídias adicionadas */}
+        {mediaFiles.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-semibold text-[#2A2A2A]">
+              Mídias adicionadas ({mediaFiles.length})
+            </p>
+            {mediaFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between bg-[#F7F3EF] p-3 rounded-xl"
               >
-                <ImageIcon className="w-5 h-5 text-primary" />
-                <span className="text-sm">Adicionar Foto</span>
-              </button>
-
-              <button
-                onClick={() => handleFileUpload("video")}
-                className="p-4 border-2 border-dashed border-primary/30 rounded-2xl hover:bg-primary/5 transition-colors flex flex-col items-center gap-2 text-foreground"
-              >
-                <Video className="w-5 h-5 text-primary" />
-                <span className="text-sm">Adicionar Vídeo</span>
-              </button>
-
-              <button
-                onClick={() => handleFileUpload("audio")}
-                className="p-4 border-2 border-dashed border-primary/30 rounded-2xl hover:bg-primary/5 transition-colors flex flex-col items-center gap-2 text-foreground"
-              >
-                <Mic className="w-5 h-5 text-primary" />
-                <span className="text-sm">Adicionar Áudio</span>
-              </button>
-            </div>
-
-            {/* Uploaded Files */}
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {uploadedFiles.length} arquivo(s) adicionado(s)
-                </p>
-                {uploadedFiles.map((file, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl"
-                  >
-                    <div className="flex items-center gap-2">
-                      {file.type === "photo" && (
-                        <ImageIcon className="w-4 h-4 text-primary" />
-                      )}
-                      {file.type === "video" && (
-                        <Video className="w-4 h-4 text-primary" />
-                      )}
-                      {file.type === "audio" && (
-                        <Mic className="w-4 h-4 text-primary" />
-                      )}
-                      <span className="text-sm font-medium">{file.name}</span>
-                    </div>
-                    <button
-                      onClick={() => removeFile(index)}
-                      className="p-1 hover:bg-primary/20 rounded-lg transition-colors"
-                    >
-                      <X className="w-4 h-4 text-foreground/60" />
-                    </button>
-                  </motion.div>
-                ))}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-[#C9D3C2] rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                    {file.type.startsWith("image")
+                      ? "🖼️"
+                      : file.type.startsWith("video")
+                        ? "🎬"
+                        : "🎵"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-[#2A2A2A] truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-[#C9D3C2]">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveMedia(index)}
+                  className="p-1 hover:bg-white rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-[#C76A6A]" />
+                </button>
               </div>
-            )}
+            ))}
           </div>
-
-          {/* Recurrent Info */}
-          {isRecurrent && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="p-4 bg-accent/10 border border-accent/30 rounded-2xl"
-            >
-              <p className="text-sm text-foreground/80">
-                ℹ️ Este é um momento recorrente. Você pode registrá-lo várias
-                vezes ao longo do tempo.
-              </p>
-            </motion.div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={onBack}
-              className="flex-1 px-6 py-3 border border-border text-foreground rounded-xl hover:bg-muted transition-colors font-medium"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex-1 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl transition-colors font-medium flex items-center justify-center gap-2"
-            >
-              <Check className="w-4 h-4" />
-              Guardar Momento
-            </button>
-          </div>
-        </motion.div>
+        )}
       </div>
-    </div>
+
+      {/* Botões */}
+      <div className="flex gap-2 pt-4">
+        <button
+          type="submit"
+          disabled={isPending || !title}
+          className="flex-1 bg-[#F2995D] text-white px-6 py-3 rounded-2xl font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+        >
+          {isPending ? "Salvando..." : "Salvar Momento"}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate("/jornada")}
+          className="flex-1 bg-[#C9D3C2] text-[#2A2A2A] px-6 py-3 rounded-2xl font-semibold hover:bg-opacity-80 transition-all"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
   );
-}
+};

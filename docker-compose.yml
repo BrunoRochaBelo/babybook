@@ -67,6 +67,22 @@ services:
       - ./apps/api:/app/apps/api
       - ./packages:/app/packages
 
+  # 4. Web (Frontend)
+  # Exemplo: assumindo um app em Node.js (React/Vue/etc)
+  web:
+    container_name: babybook_web_local
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: devserver
+    ports:
+      - "5173:5173"
+    volumes:
+      # Monta apenas o código do frontend dentro do workspace
+      - ./apps/web:/app/apps/web
+    depends_on:
+      - api
+
 volumes:
   babybook-db-data:
     driver: local

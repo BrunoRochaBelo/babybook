@@ -3,3 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2024-07-11"
 logpush = true
 routes = []
+
+[vars]
+API_BASE_URL = "https://api.babybook.dev"

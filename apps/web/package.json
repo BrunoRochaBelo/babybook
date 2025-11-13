@@ -5,16 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "dev:local": "vite",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs",
-    "test": "vitest"
+    "test": "vitest",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@babybook/contracts": "workspace:*",
     "@babybook/i18n": "workspace:*",
     "@babybook/ui": "workspace:*",
     "@babybook/utils": "workspace:*",
+    "axios": "^1.6.8",
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.2",
@@ -60,5 +63,10 @@
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
     "vitest": "^2.0.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
