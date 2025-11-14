@@ -1,50 +1,163 @@
-import { Lock, Upload } from "lucide-react";
+import { useMemo } from "react";
+import { IdCard, ShieldCheck, Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useVaultDocuments } from "@/hooks/api";
+import type { VaultDocument, VaultDocumentKind } from "@babybook/contracts";
 
 interface VaultTabProps {
   childId: string;
 }
 
+type DocumentSlot = {
+  id: VaultDocumentKind;
+  label: string;
+  helper: string;
+};
+
+const DOCUMENT_SLOTS: DocumentSlot[] = [
+  {
+    id: "certidao",
+    label: "Certidao de nascimento",
+    helper: "Escaneie o documento original",
+  },
+  {
+    id: "cpf_rg",
+    label: "CPF ou RG",
+    helper: "Anexe a via digital ou comprovante",
+  },
+  {
+    id: "sus_plano",
+    label: "Cartao SUS / Plano",
+    helper: "Foto legivel do cartao oficial",
+  },
+  {
+    id: "outro",
+    label: "Outros arquivos",
+    helper: "Receitas, comprovantes e laudos",
+  },
+];
+
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 export const VaultTab = ({ childId }: VaultTabProps) => {
-  const documents = [
-    { id: "birth_certificate", label: "Certidão de Nascimento", icon: "📄" },
-    { id: "cpf", label: "CPF", icon: "🆔" },
-    { id: "health_card", label: "Cartão SUS", icon: "🏥" },
-  ];
+  const { data: documents = [], isLoading } = useVaultDocuments(childId);
+  const documentsByKind = useMemo(() => {
+    const map = new Map<VaultDocumentKind, VaultDocument>();
+    documents.forEach((doc) => map.set(doc.kind, doc));
+    return map;
+  }, [documents]);
 
   return (
-    <div>
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-6">
-        <div className="flex gap-2">
-          <Lock className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-700">
-            Estes documentos são privados e visíveis apenas para você. Nunca
-            serão incluídos em álbuns impressos.
-          </p>
+    <section className="space-y-6">
+      <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-surface">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+              Cofre de documentos
+            </p>
+            <h2 className="mt-1 font-serif text-2xl text-ink">
+              Guardamos somente o essencial
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Estes arquivos permanecem privados e nunca entram nos fotolivros
+              impressos. Use o cofre para manter os dados da crianca seguros em
+              um unico lugar.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {documents.map((doc) => (
-          <div
-            key={doc.id}
-            className="bg-white rounded-2xl p-6 border-2 border-dashed border-[#C9D3C2] text-center hover:border-[#F2995D] transition-colors"
-          >
-            <p className="text-4xl mb-3">{doc.icon}</p>
-            <h4 className="font-semibold text-[#2A2A2A] mb-4">{doc.label}</h4>
-            <button className="flex items-center justify-center gap-2 w-full bg-[#F2995D] text-white px-4 py-2 rounded-xl font-semibold hover:bg-opacity-90 transition-all">
-              <Upload className="w-4 h-4" />
-              Upload
-            </button>
-          </div>
-        ))}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {DOCUMENT_SLOTS.map((slot) => {
+          const existing = documentsByKind.get(slot.id);
+          return (
+            <div
+              key={slot.id}
+              className={cn(
+                "rounded-[28px] border-2 bg-surface p-5 text-center transition",
+                existing ? "border-ink" : "border-dashed border-border hover:border-ink",
+              )}
+            >
+              <IdCard className="mx-auto h-8 w-8 text-ink" />
+              <h3 className="mt-3 font-semibold text-ink">{slot.label}</h3>
+              {existing ? (
+                <>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    Registrado em {formatDate(existing.createdAt)}
+                  </p>
+                  {existing.note && (
+                    <p className="mt-2 text-xs text-ink-muted">{existing.note}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-ink-muted">{slot.helper}</p>
+                  <button
+                    type="button"
+                    disabled
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary/60 px-4 py-2 text-sm font-semibold text-primary-foreground opacity-70"
+                    title="Upload disponivel em breve"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Fazer upload
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
-        <p className="text-sm text-yellow-800">
-          <strong>Segurança:</strong> Ao acessar esta seção após 5 minutos de
-          inatividade, será solicitado que você se autentique novamente.
+      <div className="rounded-[28px] border border-border bg-surface p-5 shadow-sm">
+        <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+          Historico do cofre
+        </p>
+        {isLoading ? (
+          <p className="mt-2 text-sm text-ink-muted">Carregando documentos...</p>
+        ) : documents.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-muted">
+            Nenhum documento enviado ainda. Assim que fizer upload de um arquivo,
+            ele aparece aqui.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm text-ink">
+            {documents.map((doc) => (
+              <li
+                key={doc.id}
+                className="rounded-2xl border border-border px-4 py-2 text-left"
+              >
+                <p className="font-semibold text-ink">
+                  {DOCUMENT_SLOTS.find((slot) => slot.id === doc.kind)?.label ??
+                    doc.kind}
+                </p>
+                <p className="text-xs text-ink-muted">
+                  Registrado em {formatDate(doc.createdAt)}
+                </p>
+                {doc.note && (
+                  <p className="mt-1 text-xs text-ink-muted">{doc.note}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-[28px] border border-border bg-surface-muted/60 p-5 text-sm text-ink">
+        <p>
+          <strong>Seguranca reforcada:</strong> apos 5 minutos sem interacao,
+          esta aba exige nova autenticacao (senha, PIN ou biometria). Caso
+          esteja em um dispositivo compartilhado, finalize a sessao depois de
+          gerenciar novos documentos.
         </p>
       </div>
-    </div>
+    </section>
   );
 };

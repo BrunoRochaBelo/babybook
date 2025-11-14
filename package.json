@@ -5,6 +5,7 @@
   "packageManager": "pnpm@9.12.0",
   "scripts": {
     "dev:web": "pnpm --filter @babybook/web run dev",
+    "dev:landig": "cd landingpage && pnpm dev",
     "dev:edge": "pnpm --filter @babybook/edge dev",
     "dev:api": "uvicorn babybook_api.main:app --app-dir apps/api --reload",
     "dev:workers": "python apps/workers/app/main.py",

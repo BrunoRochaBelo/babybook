@@ -1,6 +1,7 @@
 packages:
   - apps/web
   - apps/edge
+  - landingpage
   - packages/*
   - tests/e2e
   - tests/web

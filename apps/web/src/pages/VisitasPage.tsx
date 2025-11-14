@@ -3,6 +3,7 @@ import { Users, CheckCircle } from "lucide-react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
+import { cn } from "@/lib/utils";
 
 export const VisitasPage = () => {
   const { selectedChild } = useSelectedChild();
@@ -26,29 +27,31 @@ export const VisitasPage = () => {
       </h1>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 bg-white rounded-2xl p-2 border border-[#C9D3C2]">
-        <button
-          onClick={() => setActiveTab("approved")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all font-medium ${
-            activeTab === "approved"
-              ? "bg-[#F2995D] text-white"
-              : "text-[#2A2A2A] hover:bg-[#F7F3EF]"
-          }`}
-        >
-          <CheckCircle className="w-5 h-5" />
-          <span className="text-sm">Aprovadas</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all font-medium ${
-            activeTab === "pending"
-              ? "bg-[#F2995D] text-white"
-              : "text-[#2A2A2A] hover:bg-[#F7F3EF]"
-          }`}
-        >
-          <Users className="w-5 h-5" />
-          <span className="text-sm">Pendentes</span>
-        </button>
+      <div className="mb-6 flex flex-wrap gap-2 rounded-[28px] border border-border bg-surface p-2 shadow-sm">
+        {[
+          { id: "approved", icon: CheckCircle, label: "Aprovadas" },
+          { id: "pending", icon: Users, label: "Pendentes" },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as "approved" | "pending")}
+              className={cn(
+                "flex-1 min-w-[120px] rounded-full border px-4 py-2 text-sm font-semibold transition",
+                isActive
+                  ? "border-ink bg-primary text-primary-foreground"
+                  : "border-transparent text-ink-muted hover:border-border",
+              )}
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}

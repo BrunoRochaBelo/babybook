@@ -1,0 +1,426 @@
+/* Custom fonts for headings and body text */
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design token definitions based on a warm, welcoming colour palette.  
+ * These variables drive the Tailwind configuration via CSS custom properties.  
+ */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  /* Clean, soft and sophisticated palette */
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  /* Primary action: soft and warm */
+  --primary: #e8845c;
+  --primary-foreground: #ffffff;
+  /* Secondary: subtle sage */
+  --secondary: #d4e4d1;
+  --secondary-foreground: #1a1a1a;
+  /* Muted: very light neutral */
+  --muted: #f8f8f8;
+  --muted-foreground: #6b6b6b;
+  /* Accent: soft terracotta */
+  --accent: #e8b4a0;
+  --accent-foreground: #1a1a1a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: transparent;
+  --input-background: #f8f8f8;
+  --switch-background: #e5e5e5;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #e8845c;
+  /* Chart colours - warm palette */
+  --chart-1: #e8845c;
+  --chart-2: #c8d5c4;
+  --chart-3: #d89b7c;
+  --chart-4: #a8c0a3;
+  --chart-5: #f4a582;
+  --radius: 3rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3d3530;
+  --sidebar-primary: #e8845c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f1ec;
+  --sidebar-accent-foreground: #3d3530;
+  --sidebar-border: rgba(61, 53, 48, 0.12);
+  --sidebar-ring: #e8845c;
+}
+
+.dark {
+  --background: #2a2420;
+  --foreground: #f5f1ec;
+  --card: #3d3530;
+  --card-foreground: #f5f1ec;
+  --popover: #3d3530;
+  --popover-foreground: #f5f1ec;
+  --primary: #e8845c;
+  --primary-foreground: #ffffff;
+  --secondary: #4a5447;
+  --secondary-foreground: #f5f1ec;
+  --muted: #4a423c;
+  --muted-foreground: #c4bcb4;
+  --accent: #d89b7c;
+  --accent-foreground: #f5f1ec;
+  --destructive: #e55c5c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(245, 241, 236, 0.12);
+  --input: rgba(245, 241, 236, 0.12);
+  --ring: #e8845c;
+  --chart-1: #e8845c;
+  --chart-2: #8fa88b;
+  --chart-3: #d89b7c;
+  --chart-4: #a8c0a3;
+  --chart-5: #f4a582;
+  --sidebar: #3d3530;
+  --sidebar-foreground: #f5f1ec;
+  --sidebar-primary: #e8845c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #4a423c;
+  --sidebar-accent-foreground: #f5f1ec;
+  --sidebar-border: rgba(245, 241, 236, 0.12);
+  --sidebar-ring: #e8845c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      "Manrope",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Lora", Georgia, serif;
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]):not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Smooth transitions for all interactive elements */
+@layer utilities {
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Safe area insets for mobile devices */
+  .safe-area-inset-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-inset-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Custom breakpoint for extra small screens */
+@media (min-width: 475px) {
+  .xs\:inline {
+    display: inline;
+  }
+  .xs\:block {
+    display: block;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+/* Efeitos de livro e textura */
+@keyframes page-turn-in {
+  0% {
+    transform: perspective(1000px) rotateY(-15deg);
+    opacity: 0;
+  }
+  100% {
+    transform: perspective(1000px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes float-up {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: var(--primary);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Textura de papel sutil */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.01) 2px,
+    rgba(0, 0, 0, 0.01) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+/* Efeito de virada de página nas seções */
+section {
+  opacity: 0;
+  transform: perspective(1000px) rotateY(-8deg);
+  transition: all 0.8s ease-out;
+}
+
+section.section-visible {
+  opacity: 1;
+  transform: perspective(1000px) rotateY(0deg);
+}
+
+/* Efeito de papel nas imagens */
+img {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+/* Sombra de página em cards */
+.hover\:shadow-xl:hover,
+.hover\:shadow-2xl:hover {
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+/* Efeito Typewriter */
+.typewriter-line-1 {
+  animation:
+    typewriter 1.5s steps(22) 0s 1 normal both,
+    blink-caret 0.75s step-end infinite;
+}
+
+.typewriter-line-2 {
+  animation:
+    typewriter 2s steps(30) 0s 1 normal both,
+    blink-caret 0.75s step-end 3s 3;
+}
+
+/* Gradiente radial personalizado */
+.bg-gradient-radial {
+  background: radial-gradient(
+    ellipse at center,
+    var(--accent) 0%,
+    var(--background) 50%,
+    var(--primary) 100%
+  );
+  background-size: 200% 200%;
+}

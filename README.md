@@ -214,4 +214,5 @@ pnpm dev:api     # FastAPI (porta 8000)
 pnpm dev:workers # Workers locais
 ```
 
-> ⚙️ Por padrão o frontend conversa com a API real. Se quiser trabalhar somente com dados mockados (MSW), adicione `VITE_ENABLE_MSW=true` no `.env.local` da web antes de rodar `pnpm dev:web`. Lembre de desligar a flag para validar integrações reais.
+> ⚙️ Em `pnpm dev:web` habilitamos o [MSW](https://mswjs.io/) automaticamente e carregamos o perfil **Bruno (owner)** com as crianças _Alice_ e _Theo_. Isso garante que toda a interface fique navegável mesmo sem backend.  
+> Para validar contra a API real, crie um `.env.local` em `apps/web` com `VITE_ENABLE_MSW=false` (ou defina a variável no shell) e execute `pnpm dev:web` com o backend rodando. Lembre-se de reativar a flag quando precisar voltar ao modo mockado.

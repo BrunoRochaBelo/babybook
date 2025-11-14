@@ -8,15 +8,25 @@ import {
   guestbookEntrySchema,
   healthMeasurementSchema,
   HealthMeasurement,
+  healthVisitSchema,
+  HealthVisit,
+  healthVaccineSchema,
+  HealthVaccine,
   momentSchema,
   Moment,
   paginatedChildrenSchema,
   paginatedGuestbookSchema,
+  paginatedHealthVisitsSchema,
+  paginatedHealthVaccinesSchema,
   paginatedMomentsSchema,
+  paginatedVaultDocumentsSchema,
   QuotaUsage,
   quotaUsageSchema,
   UserProfile,
   userProfileSchema,
+  vaultDocumentSchema,
+  VaultDocument,
+  VaultDocumentKind,
 } from "@babybook/contracts";
 import { apiClient, ApiError } from "@/lib/api-client";
 
@@ -44,6 +54,20 @@ type CreateGuestbookEntryInput = {
 };
 
 type CreateHealthMeasurementInput = Omit<HealthMeasurement, "id">;
+
+type CreateHealthVisitInput = {
+  childId: string;
+  date: string;
+  reason: string;
+  notes?: string | null;
+};
+
+type CreateVaultDocumentInput = {
+  childId: string;
+  kind: VaultDocumentKind;
+  assetId: string;
+  note?: string | null;
+};
 
 export const useChildren = () =>
   useQuery({
@@ -220,6 +244,133 @@ export const useCreateHealthMeasurement = () => {
     onSuccess: (created) => {
       queryClient.invalidateQueries({
         queryKey: ["health-measurements", created.childId],
+      });
+    },
+  });
+};
+
+export const useHealthVisits = (childId?: string) =>
+  useQuery({
+    queryKey: ["health-visits", childId],
+    enabled: Boolean(childId),
+    queryFn: async (): Promise<HealthVisit[]> => {
+      if (!childId) {
+        return [];
+      }
+      try {
+        const response = await apiClient.get("/health/visits", {
+          schema: paginatedHealthVisitsSchema,
+          searchParams: { child_id: childId },
+        });
+        return response.items;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
+  });
+
+export const useCreateHealthVisit = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: CreateHealthVisitInput): Promise<HealthVisit> => {
+      try {
+        return await apiClient.post(
+          "/health/visits",
+          {
+            child_id: payload.childId,
+            date: payload.date,
+            reason: payload.reason,
+            notes: payload.notes,
+          },
+          { schema: healthVisitSchema },
+        );
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          return {
+            id: nanoid(),
+            childId: payload.childId,
+            date: payload.date,
+            reason: payload.reason,
+            notes: payload.notes ?? null,
+            createdAt: new Date().toISOString(),
+          };
+        }
+        throw error;
+      }
+    },
+    onSuccess: (visit) => {
+      queryClient.invalidateQueries({
+        queryKey: ["health-visits", visit.childId],
+      });
+    },
+  });
+};
+
+export const useHealthVaccines = (childId?: string) =>
+  useQuery({
+    queryKey: ["health-vaccines", childId],
+    enabled: Boolean(childId),
+    queryFn: async (): Promise<HealthVaccine[]> => {
+      if (!childId) {
+        return [];
+      }
+      try {
+        const response = await apiClient.get("/health/vaccines", {
+          schema: paginatedHealthVaccinesSchema,
+          searchParams: { child_id: childId },
+        });
+        return response.items;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
+  });
+
+export const useVaultDocuments = (childId?: string) =>
+  useQuery({
+    queryKey: ["vault-documents", childId],
+    queryFn: async (): Promise<VaultDocument[]> => {
+      try {
+        const response = await apiClient.get("/vault/documents", {
+          schema: paginatedVaultDocumentsSchema,
+          searchParams: childId ? { child_id: childId } : undefined,
+        });
+        return response.items;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
+  });
+
+export const useCreateVaultDocument = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      payload: CreateVaultDocumentInput,
+    ): Promise<VaultDocument> => {
+      return apiClient.post(
+        "/vault/documents",
+        {
+          child_id: payload.childId,
+          kind: payload.kind,
+          asset_id: payload.assetId,
+          note: payload.note,
+        },
+        { schema: vaultDocumentSchema },
+      );
+    },
+    onSuccess: (doc) => {
+      queryClient.invalidateQueries({
+        queryKey: ["vault-documents", doc.childId],
       });
     },
   });

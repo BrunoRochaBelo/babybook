@@ -1,32 +1,35 @@
 import React from "react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useDashboardData } from "../hooks/useDashboardData";
-import { ChildSelector } from "../components/ChildSelector";
 import { NextMomentSuggestion } from "../components/NextMomentSuggestion";
 import { MomentsTimeline } from "../components/MomentsTimeline";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { JourneyProgressCard } from "../components/JourneyProgressCard";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
-  const { children, selectedChild, setSelectedChildId } = useSelectedChild();
+  const { selectedChild } = useSelectedChild();
   const { data, isLoading } = useDashboardData(selectedChild?.id);
 
   const handleCreateAvulso = () => {
     navigate("/jornada/moment/avulso");
   };
 
+  const hasBirthday = Boolean(selectedChild?.birthday);
+  const completedMoments = data?.moments.filter(
+    (moment) => moment.status === "published",
+  ).length ?? 0;
+
   return (
     <div className="max-w-4xl mx-auto">
-      <ChildSelector
-        children={children}
-        selectedChildId={selectedChild?.id}
-        onChildChange={setSelectedChildId}
+      <NextMomentSuggestion
+        template={data?.nextTemplate ?? null}
+        childName={selectedChild?.name ?? undefined}
+        hasBirthday={hasBirthday}
       />
 
-      {selectedChild && data?.nextTemplate && (
-        <NextMomentSuggestion template={data.nextTemplate} />
-      )}
+      <JourneyProgressCard completed={completedMoments} />
 
       <MomentsTimeline moments={data?.moments || []} isLoading={isLoading} />
 

@@ -4,6 +4,7 @@ import {
   mockChildren,
   mockGuestbookEntries,
   mockHealthMeasurements,
+  mockHealthVaccines,
   mockMoments,
   mockUser,
 } from "./data";
@@ -11,6 +12,7 @@ import {
   Child,
   GuestbookEntry,
   HealthMeasurement,
+  HealthVaccine,
   Moment,
 } from "@babybook/contracts";
 
@@ -78,10 +80,21 @@ const toHealthResponse = (measurement: HealthMeasurement) => ({
   height: measurement.height,
 });
 
+const toVaccineResponse = (vaccine: HealthVaccine) => ({
+  id: vaccine.id,
+  child_id: vaccine.childId,
+  name: vaccine.name,
+  due_date: vaccine.dueDate,
+  applied_at: vaccine.appliedAt,
+  status: vaccine.status,
+  notes: vaccine.notes,
+});
+
 const mutableChildren = [...mockChildren];
 const mutableMoments = [...mockMoments];
 const mutableGuestbook = [...mockGuestbookEntries];
 const mutableMeasurements = [...mockHealthMeasurements];
+const mutableVaccines = [...mockHealthVaccines];
 
 export const handlers = [
   http.get(withBase("/me"), () =>
@@ -221,6 +234,17 @@ export const handlers = [
     };
     mutableMeasurements.push(measurement);
     return HttpResponse.json(toHealthResponse(measurement), { status: 201 });
+  }),
+  http.get(withBase("/health/vaccines"), ({ request }) => {
+    const url = new URL(request.url);
+    const childId = url.searchParams.get("child_id");
+    const vaccines = childId
+      ? mutableVaccines.filter((vaccine) => vaccine.childId === childId)
+      : mutableVaccines;
+    return HttpResponse.json({
+      items: vaccines.map(toVaccineResponse),
+      next: null,
+    });
   }),
 ];
 

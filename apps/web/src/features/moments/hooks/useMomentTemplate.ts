@@ -1,62 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  GUIDED_MOMENT_SEQUENCE,
+  type CatalogSequenceItem,
+  getMomentByTemplateKey,
+} from "@/data/momentCatalog";
 
-export interface MomentTemplate {
-  id: string;
-  title: string;
-  description: string;
-}
+export type MomentTemplate = CatalogSequenceItem;
 
-const templates: Record<string, MomentTemplate> = {
-  descoberta: {
-    id: "descoberta",
-    title: "A Descoberta",
-    description: "O primeiro momento especial. Registre detalhes do nascimento ou chegada.",
-  },
-  "primeiro-sorriso": {
-    id: "primeiro-sorriso",
-    title: "Primeiro Sorriso",
-    description: "Aquele sorriso inesquecível que derreteu seu coração.",
-  },
-  "primeira-gargalhada": {
-    id: "primeira-gargalhada",
-    title: "Primeira Gargalhada",
-    description: "O som mais especial que você já ouviu.",
-  },
-  "primeira-comida": {
-    id: "primeira-comida",
-    title: "Primeira Comida",
-    description: "A reação à introdução alimentar.",
-  },
-  "primeiro-dente": {
-    id: "primeiro-dente",
-    title: "Primeiro Dente",
-    description: "O tão esperado primeiro dentinho!",
-  },
-  "primeiro-dia-escola": {
-    id: "primeiro-dia-escola",
-    title: "Primeiro Dia na Escola",
-    description: "Um marco importante nessa jornada.",
-  },
-  "meses-passados": {
-    id: "meses-passados",
-    title: "Meses se Passaram",
-    description: "Reflexão sobre o tempo que passou.",
-  },
+const findTemplate = (templateId: string): MomentTemplate | null => {
+  if (!templateId) {
+    return null;
+  }
+  const byId = GUIDED_MOMENT_SEQUENCE.find(
+    (template) => template.id === templateId,
+  );
+  if (byId) {
+    return byId;
+  }
+  const byTemplateKey = getMomentByTemplateKey(templateId);
+  return byTemplateKey ?? null;
 };
 
-const fetchMomentTemplate = async (templateId: string): Promise<MomentTemplate | null> => {
-  console.log(`Fetching template ${templateId}`);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(templates[templateId] || null);
-    }, 100);
-  });
-};
+const fetchMomentTemplate = async (
+  templateId: string,
+): Promise<MomentTemplate | null> => findTemplate(templateId);
 
 export const useMomentTemplate = (templateId: string) => {
   return useQuery({
     queryKey: ["momentTemplate", templateId],
     queryFn: () => fetchMomentTemplate(templateId),
-    enabled: !!templateId,
+    enabled: Boolean(templateId),
   });
 };

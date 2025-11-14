@@ -154,6 +154,100 @@ export const healthMeasurementSchema = z.object({
 
 export type HealthMeasurement = z.infer<typeof healthMeasurementSchema>;
 
+const rawHealthVisitSchema = z.object({
+  id: z.string().uuid(),
+  child_id: z.string().uuid(),
+  date: isoDateSchema,
+  reason: z.string(),
+  notes: z.string().nullable().optional(),
+  created_at: isoDateSchema,
+});
+
+export const healthVisitSchema = rawHealthVisitSchema.transform((visit) => ({
+  id: visit.id,
+  childId: visit.child_id,
+  date: visit.date,
+  reason: visit.reason,
+  notes: visit.notes ?? null,
+  createdAt: visit.created_at,
+}));
+
+export type HealthVisit = z.infer<typeof healthVisitSchema>;
+
+export const paginatedHealthVisitsSchema = paginatedResponse(
+  rawHealthVisitSchema,
+).transform(({ items, next }) => ({
+  items: items.map((visit) => healthVisitSchema.parse(visit)),
+  next,
+}));
+
+export type PaginatedHealthVisits = z.infer<typeof paginatedHealthVisitsSchema>;
+
+const rawVaccineSchema = z.object({
+  id: z.string().uuid(),
+  child_id: z.string().uuid(),
+  name: z.string(),
+  due_date: isoDateSchema,
+  applied_at: isoDateSchema.nullable(),
+  status: z.enum(["scheduled", "completed", "overdue"]),
+  notes: z.string().nullable().optional(),
+});
+
+export const healthVaccineSchema = rawVaccineSchema.transform((vaccine) => ({
+  id: vaccine.id,
+  childId: vaccine.child_id,
+  name: vaccine.name,
+  dueDate: vaccine.due_date,
+  appliedAt: vaccine.applied_at,
+  status: vaccine.status,
+  notes: vaccine.notes ?? null,
+}));
+
+export type HealthVaccine = z.infer<typeof healthVaccineSchema>;
+
+export const paginatedHealthVaccinesSchema = paginatedResponse(
+  rawVaccineSchema,
+).transform(({ items, next }) => ({
+  items: items.map((item) => healthVaccineSchema.parse(item)),
+  next,
+}));
+
+export type PaginatedHealthVaccines = z.infer<
+  typeof paginatedHealthVaccinesSchema
+>;
+
+const vaultDocumentKindSchema = z.enum(["certidao", "cpf_rg", "sus_plano", "outro"]);
+export type VaultDocumentKind = z.infer<typeof vaultDocumentKindSchema>;
+
+const rawVaultDocumentSchema = z.object({
+  id: z.string().uuid(),
+  child_id: z.string().uuid(),
+  kind: vaultDocumentKindSchema,
+  asset_id: z.string().uuid(),
+  note: z.string().nullable(),
+  created_at: isoDateSchema,
+});
+
+export const vaultDocumentSchema = rawVaultDocumentSchema.transform((doc) => ({
+  id: doc.id,
+  childId: doc.child_id,
+  kind: doc.kind,
+  assetId: doc.asset_id,
+  note: doc.note ?? null,
+  createdAt: doc.created_at,
+}));
+
+export type VaultDocument = z.infer<typeof vaultDocumentSchema>;
+
+export const paginatedVaultDocumentsSchema = paginatedResponse(
+  rawVaultDocumentSchema,
+).transform(({ items, next }) => ({
+  items: items.map((doc) => vaultDocumentSchema.parse(doc)),
+  next,
+}));
+
+export type PaginatedVaultDocuments = z.infer<typeof paginatedVaultDocumentsSchema>;
+
 const rawUsageSchema = z.object({
   bytes_used: z.number().nonnegative(),
   bytes_quota: z.number().nonnegative(),
@@ -170,11 +264,14 @@ export const quotaUsageSchema = rawUsageSchema.transform((usage) => ({
 
 export type QuotaUsage = z.infer<typeof quotaUsageSchema>;
 
+const userRoleSchema = z.enum(["owner", "guardian", "viewer"]);
+
 const rawUserProfileSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   name: z.string(),
   locale: z.string().nullable().optional(),
+  role: userRoleSchema.optional(),
 });
 
 export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
@@ -182,6 +279,7 @@ export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
   email: profile.email,
   name: profile.name,
   locale: profile.locale ?? "pt-BR",
+  role: profile.role ?? "owner",
 }));
 
 export type UserProfile = z.infer<typeof userProfileSchema>;

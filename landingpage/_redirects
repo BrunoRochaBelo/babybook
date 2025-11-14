@@ -1,0 +1,4 @@
+/*    /index.html   200
+
+# API proxy (when backend is ready)
+# /api/*  https://your-backend-url.com/api/:splat  200

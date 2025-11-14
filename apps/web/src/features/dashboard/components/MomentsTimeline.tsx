@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MOMENT_CATALOG } from "@/data/momentCatalog";
 import { MomentCard } from "@/components/MomentCard";
+import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { cn } from "@/lib/utils";
 
 interface MomentsTimelineProps {
@@ -18,7 +19,9 @@ export const MomentsTimeline = ({
   isLoading,
 }: MomentsTimelineProps) => {
   const navigate = useNavigate();
+  const { selectedChild } = useSelectedChild();
   const [viewMode, setViewMode] = useState<ViewMode>("timeline");
+  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(null);
 
   const publishedTemplateKeys = useMemo(
     () =>
@@ -58,30 +61,57 @@ export const MomentsTimeline = ({
     navigate("/jornada/moment/avulso");
   };
 
+  const handlePlaceholderClick = (templateId: string, templateKey: string) => {
+    if (!selectedChild) {
+      navigate("/perfil-usuario");
+      return;
+    }
+
+    const related = moments
+      .filter((moment) => moment.templateKey === templateKey)
+      .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
+
+    const published = related.find((moment) => moment.status === "published");
+    if (published) {
+      navigate(`/jornada/moment/${published.id}`);
+      return;
+    }
+
+    const draft = related.find((moment) => moment.status === "draft");
+    if (draft) {
+      navigate(`/jornada/moment/draft/${templateId}`);
+      return;
+    }
+
+    navigate(`/jornada/moment/draft/${templateId}`);
+  };
+
   const hasMoments = moments && moments.length > 0;
 
-  const renderSkeletons = () => (
-    <div className="mt-6 space-y-4">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="h-32 rounded-3xl border border-sage/60 bg-white shadow-sm"
-        />
-      ))}
-    </div>
-  );
+  const renderTimeline = () => {
+    if (isLoading) {
+      return (
+        <div className="mt-6 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-32 rounded-3xl border border-border bg-surface shadow-sm"
+            />
+          ))}
+        </div>
+      );
+    }
 
-  const renderTimelineView = () => {
     if (!hasMoments) {
       return (
-        <div className="mt-6 rounded-3xl border border-dashed border-sage/80 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">
-            Nenhum momento publicado ainda. Use o HUD ou crie um momento livre
-            para iniciar a história.
+        <div className="mt-6 rounded-3xl border border-dashed border-border bg-surface p-8 text-center shadow-sm">
+          <p className="text-sm text-ink-muted">
+            Nenhum momento publicado ainda. Use o HUD ou crie um momento livre para
+            iniciar a história.
           </p>
           <button
             onClick={handleCreateAvulso}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-white transition hover:opacity-90"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
           >
             <Plus className="h-5 w-5" />
             Registrar primeiro momento
@@ -99,78 +129,111 @@ export const MomentsTimeline = ({
     );
   };
 
-  const renderChaptersView = () => (
+  const renderChapters = () => (
     <div className="mt-6 space-y-4">
-      {chapterProgress.map((chapter) => (
-        <div
-          key={chapter.id}
-          className="rounded-3xl border border-sage/70 bg-white p-5 shadow-sm"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                {chapter.title}
-              </p>
-              <h4 className="mt-1 font-serif text-xl text-ink">
-                {chapter.subtitle}
-              </h4>
-              <p className="text-sm text-muted-foreground">{chapter.range}</p>
+      {chapterProgress.map((chapter) => {
+        const isExpanded = expandedChapterId === chapter.id;
+        return (
+          <div
+            key={chapter.id}
+            className="rounded-3xl border border-border bg-surface p-5 shadow-sm"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                  {chapter.title}
+                </p>
+                <h4 className="mt-1 font-serif text-xl text-ink">
+                  {chapter.subtitle}
+                </h4>
+                <p className="text-sm text-ink-muted">{chapter.range}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-serif text-3xl text-ink">
+                  {chapter.completed}
+                  <span className="text-ink-muted">/{chapter.total}</span>
+                </p>
+                <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                  momentos
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="font-serif text-3xl text-ink">
-                {chapter.completed}
-                <span className="text-muted-foreground">/{chapter.total}</span>
-              </p>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                momentos
-              </p>
+
+            <div className="mt-4 h-1.5 rounded-full bg-muted/40">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${chapter.progressPercent}%` }}
+              />
             </div>
-          </div>
-          <div className="mt-4 h-1.5 rounded-full bg-sage/50">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${chapter.progressPercent}%` }}
-            />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(`/jornada/capitulos/${chapter.id}`)}
-              className="rounded-2xl border border-sage/80 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink"
-            >
-              Abrir capítulo
-            </button>
-            {chapter.nextMoment && (
+
+            <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() =>
-                  navigate(`/jornada/moment/draft/${chapter.nextMoment?.id}`)
+                  setExpandedChapterId((current) =>
+                    current === chapter.id ? null : chapter.id,
+                  )
                 }
-                className="flex-1 rounded-2xl border border-dashed border-sage/80 px-4 py-2 text-left transition hover:border-ink"
+                className={cn(
+                  "rounded-2xl border border-border px-4 py-2 text-sm font-semibold transition",
+                  isExpanded ? "bg-primary text-primary-foreground" : "text-ink hover:border-ink",
+                )}
               >
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Próximo do capítulo
-                </p>
-                <p className="font-semibold text-ink">
-                  {chapter.nextMoment.title}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {chapter.nextMoment.prompt}
-                </p>
+                {isExpanded ? "Esconder momentos" : "Ver todos os momentos"}
               </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/jornada/capitulos/${chapter.id}`)}
+                className="rounded-2xl border border-dashed border-border px-4 py-2 text-xs uppercase tracking-[0.3em] text-ink-muted transition hover:border-ink"
+              >
+                Abrir capítulo completo
+              </button>
+            </div>
+
+            {isExpanded && (
+              <div className="mt-5 space-y-3">
+                {chapter.moments.map((template) => {
+                  const related = moments.filter(
+                    (moment) => moment.templateKey === template.templateKey,
+                  );
+                  const publishedCount = related.filter(
+                    (moment) => moment.status === "published",
+                  ).length;
+
+                  return (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() =>
+                        handlePlaceholderClick(template.id, template.templateKey)
+                      }
+                      className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-left transition hover:border-ink"
+                      disabled={isLoading}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                            {template.type === "recurring" ? "Recorrente" : "Único"}
+                          </p>
+                          <p className="font-semibold text-ink">{template.title}</p>
+                        </div>
+                        <span className="text-xs text-ink-muted">
+                          {publishedCount > 0
+                            ? `${publishedCount} preenchido(s)`
+                            : "Ainda não iniciado"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-ink-muted">
+                        {template.prompt}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
-          {!chapter.nextMoment && (
-            <button
-              type="button"
-              className="mt-3 w-full rounded-2xl border border-dashed border-sage/70 px-4 py-3 text-sm font-semibold text-moss"
-              onClick={() => navigate(`/jornada/capitulos/${chapter.id}`)}
-            >
-              Capítulo completo! 🙌
-            </button>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -178,37 +241,55 @@ export const MomentsTimeline = ({
     <section className="mb-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
             Linha do tempo guiada
           </p>
           <h3 className="font-serif text-2xl text-ink">
-            Capítulos & registros
+            {viewMode === "timeline"
+              ? "Momentos publicados"
+              : "Capítulos & registros"}
           </h3>
+          <p className="text-sm text-ink-muted">
+            {viewMode === "timeline"
+              ? "A timeline mostra o que já foi preenchido. Continue registrando lembranças livres quando quiser."
+              : "Este catálogo é fixo. Selecione um capítulo para ver todos os placeholders e clique em qualquer momento para começar a preencher, mesmo sem dados salvos."}
+          </p>
         </div>
-        <div className="rounded-2xl border border-sage/80 bg-white p-1 shadow-sm">
-          {(["timeline", "chapters"] as ViewMode[]).map((mode) => (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-2xl border border-border bg-surface p-1 shadow-sm">
+            {(["timeline", "chapters"] as ViewMode[]).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  "rounded-2xl px-4 py-2 text-sm font-medium transition",
+                  viewMode === mode
+                    ? "bg-primary text-primary-foreground"
+                    : "text-ink-muted hover:text-ink",
+                )}
+              >
+                {mode === "timeline" ? "Timeline" : "Capítulos"}
+              </button>
+            ))}
+          </div>
+          {viewMode === "chapters" && (
             <button
-              key={mode}
               type="button"
-              onClick={() => setViewMode(mode)}
-              className={cn(
-                "rounded-2xl px-4 py-2 text-sm font-medium transition",
-                viewMode === mode
-                  ? "bg-primary text-white"
-                  : "text-muted-foreground hover:text-ink",
-              )}
+              onClick={() => navigate("/jornada/capitulos")}
+              className="rounded-2xl border border-border px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
             >
-              {mode === "timeline" ? "Timeline" : "Capítulos"}
+              Ver catálogo completo
             </button>
-          ))}
+          )}
         </div>
       </div>
 
-      {isLoading
-        ? renderSkeletons()
-        : viewMode === "timeline"
-          ? renderTimelineView()
-          : renderChaptersView()}
+      {viewMode === "timeline"
+        ? renderTimeline()
+        : isLoading
+          ? null
+          : renderChapters()}
     </section>
   );
 };

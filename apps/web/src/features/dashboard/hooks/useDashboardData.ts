@@ -1,45 +1,49 @@
 import { useMemo } from "react";
-import { useMoments } from "@/hooks/api";
 import type { Moment } from "@babybook/contracts";
-
-interface DashboardTemplate {
-  id: string;
-  title: string;
-  description: string;
-}
+import { useMoments } from "@/hooks/api";
+import {
+  GUIDED_MOMENT_SEQUENCE,
+  type CatalogSequenceItem,
+} from "@/data/momentCatalog";
 
 interface DashboardData {
   moments: Moment[];
-  nextTemplate: DashboardTemplate;
+  nextTemplate: CatalogSequenceItem | null;
 }
 
-const templateSuggestions: DashboardTemplate[] = [
-  {
-    id: "descoberta",
-    title: "A Descoberta",
-    description: "O primeiro momento especial",
-  },
-  {
-    id: "primeiro-sorriso",
-    title: "Primeiro Sorriso",
-    description: "Aquele sorriso inesquecível",
-  },
-  {
-    id: "primeira-gargalhada",
-    title: "Primeira Gargalhada",
-    description: "O som mais especial",
-  },
-];
+const pickNextTemplate = (moments: Moment[]): CatalogSequenceItem | null => {
+  if (!moments.length) {
+    return GUIDED_MOMENT_SEQUENCE[0] ?? null;
+  }
 
-const pickNextTemplate = (moments: Moment[]): DashboardTemplate => {
-  const seenTemplates = new Set(
+  const draftKeys = new Set(
     moments
+      .filter(
+        (moment): moment is Moment & { templateKey: string } =>
+          moment.status === "draft" && Boolean(moment.templateKey),
+      )
+      .map((moment) => moment.templateKey),
+  );
+  if (draftKeys.size > 0) {
+    const draftCandidate = GUIDED_MOMENT_SEQUENCE.find((item) =>
+      draftKeys.has(item.templateKey),
+    );
+    if (draftCandidate) {
+      return draftCandidate;
+    }
+  }
+
+  const completedTemplates = new Set(
+    moments
+      .filter((moment) => moment.status === "published")
       .map((moment) => moment.templateKey)
       .filter((template): template is string => Boolean(template)),
   );
+
   return (
-    templateSuggestions.find((template) => !seenTemplates.has(template.id)) ??
-    templateSuggestions[0]
+    GUIDED_MOMENT_SEQUENCE.find(
+      (template) => !completedTemplates.has(template.templateKey),
+    ) ?? null
   );
 };
 

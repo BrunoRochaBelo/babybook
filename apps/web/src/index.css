@@ -1,14 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color: #0f172a;
-  background-color: #f8fbff;
+  --bb-color-bg: #f7f3ef;
+  --bb-color-surface: #ffffff;
+  --bb-color-ink: #2a2a2a;
+  --bb-color-ink-muted: rgba(42, 42, 42, 0.7);
+  --bb-color-muted: #c9d3c2;
+  --bb-color-accent: #f2995d;
+  --bb-color-accent-soft: #fad5b8;
+  --bb-color-danger: #c76a6a;
+  --bb-color-danger-soft: #f2c8c8;
+  --bb-color-success: #8c9b87;
+  --bb-color-border: #e3dbcf;
+  --bb-radius-md: 12px;
+  --bb-radius-lg: 16px;
+
+  color: var(--bb-color-ink);
+  background-color: var(--bb-color-bg);
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark {
+  --bb-color-bg: #201a16;
+  --bb-color-surface: #2a2420;
+  --bb-color-ink: #f5f1ec;
+  --bb-color-ink-muted: rgba(245, 241, 236, 0.75);
+  --bb-color-muted: #4a423c;
+  --bb-color-accent: #f2995d;
+  --bb-color-accent-soft: #d89b7c;
+  --bb-color-danger: #e55c5c;
+  --bb-color-danger-soft: #7a2f2f;
+  --bb-color-success: #8c9b87;
+  --bb-color-border: rgba(245, 241, 236, 0.24);
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background-color: var(--bb-color-bg);
+  color: var(--bb-color-ink);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Lora", "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }

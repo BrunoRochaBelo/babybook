@@ -7,10 +7,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 
 interface HealthGrowthTabProps {
   childId: string;
@@ -24,102 +23,143 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (date && (weight || height)) {
-      createMeasurement({
-        childId,
-        date,
-        weight: weight ? parseFloat(weight) : undefined,
-        height: height ? parseFloat(height) : undefined,
-      });
-      setDate("");
-      setWeight("");
-      setHeight("");
-      setShowForm(false);
+  const sortedMeasurements = [...measurements].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  const lastMeasurement = sortedMeasurements.at(-1);
+
+  const chartData = sortedMeasurements.map((measurement) => ({
+    date: new Date(measurement.date).toLocaleDateString("pt-BR", {
+      month: "short",
+      day: "numeric",
+    }),
+    weight: measurement.weight,
+    height: measurement.height,
+  }));
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!date || (!weight && !height)) {
+      return;
     }
+    createMeasurement({
+      childId,
+      date,
+      weight: weight ? parseFloat(weight) : undefined,
+      height: height ? parseFloat(height) : undefined,
+    });
+    setDate("");
+    setWeight("");
+    setHeight("");
+    setShowForm(false);
   };
 
-  const chartData = [...measurements]
-    .sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    )
-    .map((m) => ({
-      date: new Date(m.date).toLocaleDateString("pt-BR", {
-        month: "short",
-        day: "numeric",
-      }),
-      weight: m.weight,
-      height: m.height,
-    }));
-
   return (
-    <div>
-      <button
-        onClick={() => setShowForm(!showForm)}
-        className="flex items-center gap-2 bg-[#F2995D] text-white px-4 py-2 rounded-xl font-semibold hover:bg-opacity-90 transition-all mb-6"
-      >
-        <Plus className="w-4 h-4" />
-        Adicionar Medição
-      </button>
+    <section className="space-y-6">
+      <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+              Curva de crescimento
+            </p>
+            <h2 className="mt-1 font-serif text-2xl text-ink">
+              Monitoramento contínuo
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Registre peso e altura sempre que fizer uma medição oficial. Os
+              dados alimentam o gráfico e ficam prontos para a próxima consulta.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowForm((state) => !state)}
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar medição
+            <ChevronDown
+              className={`h-4 w-4 transition ${showForm ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+
+        {lastMeasurement && (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                Última medição
+              </p>
+              <p className="mt-2 text-ink">
+                {new Date(lastMeasurement.date).toLocaleDateString("pt-BR", {
+                  day: "numeric",
+                  month: "long",
+                })}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                Peso / Altura
+              </p>
+              <p className="mt-2 font-serif text-2xl text-ink">
+                {lastMeasurement.weight ? `${lastMeasurement.weight} kg` : "--"}{" "}
+                • {lastMeasurement.height ? `${lastMeasurement.height} cm` : "--"}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl p-6 mb-6 border border-[#C9D3C2]"
+          className="rounded-[32px] border border-border bg-surface p-6 shadow-sm"
         >
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
-                Data
-              </label>
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="flex flex-col text-sm font-medium text-ink">
+              Data
               <input
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
+                onChange={(event) => setDate(event.target.value)}
+                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 required
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
-                Peso (kg)
-              </label>
+            </label>
+            <label className="flex flex-col text-sm font-medium text-ink">
+              Peso (kg)
               <input
                 type="number"
-                step="0.1"
+                step="0.01"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
-                placeholder="3.5"
+                onChange={(event) => setWeight(event.target.value)}
+                placeholder="3,50"
+                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
-                Altura (cm)
-              </label>
+            </label>
+            <label className="flex flex-col text-sm font-medium text-ink">
+              Altura (cm)
               <input
                 type="number"
                 step="0.1"
                 value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
+                onChange={(event) => setHeight(event.target.value)}
                 placeholder="50"
+                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
               />
-            </div>
+            </label>
           </div>
-          <div className="flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={isPending}
-              className="bg-[#F2995D] text-white px-6 py-2 rounded-xl font-semibold hover:bg-opacity-90 disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-2 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              {isPending ? "Salvando..." : "Salvar"}
+              {isPending ? "Salvando..." : "Salvar medição"}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="bg-[#C9D3C2] text-[#2A2A2A] px-6 py-2 rounded-xl font-semibold hover:bg-opacity-80"
+              className="inline-flex items-center justify-center rounded-2xl border border-border px-6 py-2 text-sm font-semibold text-ink transition hover:border-ink"
             >
               Cancelar
             </button>
@@ -128,65 +168,93 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
       )}
 
       {chartData.length > 0 ? (
-        <div className="bg-white rounded-2xl p-6 border border-[#C9D3C2]">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#C9D3C2" />
-              <XAxis dataKey="date" stroke="#2A2A2A" />
-              <YAxis stroke="#2A2A2A" />
-              <Tooltip />
-              <Legend />
-              {chartData.some((d) => d.weight) && (
-                <Line
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#F2995D"
-                  name="Peso (kg)"
+        <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                Ver gráfico
+              </p>
+              <h3 className="font-serif text-xl text-ink">
+                Peso x altura ao longo do tempo
+              </h3>
+            </div>
+          </div>
+          <div className="mt-4 h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="4 4" stroke="#E3DBCF" />
+                <XAxis dataKey="date" stroke="#8C8C8C" />
+                <YAxis stroke="#8C8C8C" />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 16,
+                    borderColor: "#E3DBCF",
+                  }}
                 />
-              )}
-              {chartData.some((d) => d.height) && (
-                <Line
-                  type="monotone"
-                  dataKey="height"
-                  stroke="#C76A6A"
-                  name="Altura (cm)"
-                />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            {measurements.map((m) => (
-              <div key={m.id} className="bg-[#F7F3EF] rounded-xl p-4">
-                <p className="text-xs text-[#C9D3C2] mb-1">
-                  {new Date(m.date).toLocaleDateString("pt-BR")}
+                {chartData.some((item) => item.weight) && (
+                  <Line
+                    type="monotone"
+                    dataKey="weight"
+                    stroke="#F2995D"
+                    strokeWidth={2}
+                    name="Peso (kg)"
+                    dot={false}
+                  />
+                )}
+                {chartData.some((item) => item.height) && (
+                  <Line
+                    type="monotone"
+                    dataKey="height"
+                    stroke="#C76A6A"
+                    strokeWidth={2}
+                    name="Altura (cm)"
+                    dot={false}
+                  />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            {sortedMeasurements.map((measurement) => (
+              <div
+                key={measurement.id}
+                className="rounded-2xl border border-border px-4 py-3"
+              >
+                <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                  {new Date(measurement.date).toLocaleDateString("pt-BR")}
                 </p>
-                {m.weight && (
-                  <p className="text-sm text-[#2A2A2A]">
-                    Peso: <strong>{m.weight}kg</strong>
-                  </p>
-                )}
-                {m.height && (
-                  <p className="text-sm text-[#2A2A2A]">
-                    Altura: <strong>{m.height}cm</strong>
-                  </p>
-                )}
+                <div className="mt-1 text-sm text-ink">
+                  {typeof measurement.weight === "number" && (
+                    <p>
+                      Peso: <strong>{measurement.weight} kg</strong>
+                    </p>
+                  )}
+                  {typeof measurement.height === "number" && (
+                    <p>
+                      Altura: <strong>{measurement.height} cm</strong>
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-2xl border border-[#C9D3C2]">
-          <p className="text-[#C9D3C2] mb-4">Nenhuma medição registrada</p>
+        <div className="rounded-[32px] border border-dashed border-border bg-surface p-10 text-center shadow-sm">
+          <p className="text-sm text-ink-muted">
+            Nenhuma medição registrada ainda. Use o botão acima para começar o
+            histórico oficial de crescimento.
+          </p>
           <button
+            type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 bg-[#F2995D] text-white px-6 py-2 rounded-xl font-semibold"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
           >
-            <Plus className="w-4 h-4" />
-            Registrar Primeira Medição
+            <Plus className="h-4 w-4" />
+            Registrar primeira medição
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 };

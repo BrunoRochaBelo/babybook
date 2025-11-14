@@ -50,7 +50,7 @@ export const MomentForm = ({
         title,
         summary: summary || undefined,
         occurredAt,
-        templateKey: template?.id,
+        templateKey: template?.templateKey ?? template?.id,
         payload: mediaFiles.length
           ? {
               media: mediaFiles.map((file) => ({

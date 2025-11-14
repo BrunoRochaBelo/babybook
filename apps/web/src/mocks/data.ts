@@ -2,6 +2,7 @@ import {
   Child,
   GuestbookEntry,
   HealthMeasurement,
+  HealthVaccine,
   Moment,
   MomentMedia,
   UserProfile,
@@ -479,9 +480,64 @@ export const mockHealthMeasurements: HealthMeasurement[] = [
   },
 ];
 
+export const mockHealthVaccines: HealthVaccine[] = [
+  {
+    id: "vax-1",
+    childId: "child-1",
+    name: "BCG",
+    dueDate: "2024-03-20",
+    appliedAt: "2024-03-20",
+    status: "completed",
+    notes: "Aplicada na maternidade",
+  },
+  {
+    id: "vax-2",
+    childId: "child-1",
+    name: "Hepatite B (2ª dose)",
+    dueDate: "2024-04-15",
+    appliedAt: "2024-04-18",
+    status: "completed",
+  },
+  {
+    id: "vax-3",
+    childId: "child-1",
+    name: "Penta (DTP/Hib/HB)",
+    dueDate: "2024-06-15",
+    appliedAt: null,
+    status: "scheduled",
+  },
+  {
+    id: "vax-4",
+    childId: "child-1",
+    name: "Rotavírus",
+    dueDate: "2024-06-15",
+    appliedAt: null,
+    status: "scheduled",
+  },
+  {
+    id: "vax-5",
+    childId: "child-2",
+    name: "Tríplice Viral",
+    dueDate: "2024-07-20",
+    appliedAt: "2024-07-22",
+    status: "completed",
+    notes: "Sem reações.",
+  },
+  {
+    id: "vax-6",
+    childId: "child-2",
+    name: "Meningocócica ACWY",
+    dueDate: "2024-08-01",
+    appliedAt: null,
+    status: "overdue",
+    notes: "Reagendar consulta.",
+  },
+];
+
 export const mockUser: UserProfile = {
   id: "user-1",
   email: "bruno@example.com",
   name: "Bruno",
   locale: "pt-BR",
+  role: "owner",
 };

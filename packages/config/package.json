@@ -9,12 +9,14 @@
   "exports": {
     "./eslint": "./eslint/index.mjs",
     "./tailwind": "./tailwind/tailwind.config.js",
-    "./tsconfig": "./tsconfig/base.json"
+    "./tsconfig": "./tsconfig/base.json",
+    "./design-tokens": "./design-tokens.ts"
   },
   "files": [
     "eslint",
     "tailwind",
-    "tsconfig"
+    "tsconfig",
+    "design-tokens.ts"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.1.0",
