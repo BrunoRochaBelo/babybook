@@ -146,7 +146,7 @@ export const SaudePage = () => {
   if (isAuthLoading && !isMockMode) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-12 text-center">
-        <div className="rounded-[32px] border border-border bg-surface p-8 shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
           <h1 className="font-serif text-3xl text-ink">Carregando perfil</h1>
           <p className="mt-2 text-sm text-ink-muted">
             Buscando o perfil e as permissões da conta para liberar a aba Saúde...
@@ -159,7 +159,7 @@ export const SaudePage = () => {
   if (!isOwner) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-12">
-        <div className="rounded-[32px] border border-border bg-surface p-8 text-center shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
             <FolderLock className="h-5 w-5" />
           </div>
@@ -177,7 +177,7 @@ export const SaudePage = () => {
   if (!selectedChild) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-12 text-center">
-        <div className="rounded-[32px] border border-border bg-surface p-8 shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
           <h1 className="font-serif text-3xl text-ink">Escolha uma criança</h1>
           <p className="mt-2 text-sm text-ink-muted">
             Para acompanhar curva, consultas e documentos, selecione ou cadastre
@@ -196,20 +196,11 @@ export const SaudePage = () => {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
-      <header className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
-        <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-          Livro 2 • Saúde
-        </p>
-        <h1 className="mt-2 font-serif text-3xl text-ink">
-          {selectedChild.name}: utilitários privados
-        </h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          Guardamos dados sensíveis de crescimento, consultas e documentos. Só
-          você, como dono do álbum, tem acesso.
-        </p>
-      </header>
+      <div className="text-center">
+        <h1 className="text-3xl font-serif text-ink">Livro da Saúde</h1>
+      </div>
 
-      <div className="mt-6 rounded-[28px] border border-border bg-surface p-2 shadow-sm">
+      <div className="mt-6 rounded-2xl border border-border bg-surface p-2 shadow-sm">
         <LayoutGroup id="health-tabs">
           <div className="flex flex-wrap gap-2">
             {HEALTH_TABS.map((tab) => {
@@ -221,7 +212,7 @@ export const SaudePage = () => {
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "relative flex-1 min-w-[150px] overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-300",
+                    "relative flex-1 min-w-[150px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300",
                     isActive
                       ? "text-primary-foreground"
                       : "text-ink-muted hover:text-ink",
@@ -230,7 +221,7 @@ export const SaudePage = () => {
                   {isActive && (
                     <motion.span
                       layoutId="health-nav-pill"
-                      className="absolute inset-0 rounded-full bg-primary shadow-[0_12px_24px_rgba(242,153,93,0.28)]"
+                      className="absolute inset-0 rounded-2xl bg-primary shadow-[0_12px_24px_rgba(242,153,93,0.28)]"
                       transition={{
                         type: "spring",
                         stiffness: 320,
@@ -270,7 +261,7 @@ export const SaudePage = () => {
 
       {!isMockMode && reauthRequired && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4">
-          <div className="w-full max-w-md rounded-[32px] border border-border bg-surface p-8 text-center shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 text-center shadow-2xl">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-danger/15 text-danger">
               <Shield className="h-5 w-5" />
             </div>

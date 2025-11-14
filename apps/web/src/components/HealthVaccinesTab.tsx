@@ -1,5 +1,6 @@
 import { useHealthVaccines } from "@/hooks/api";
-import { CheckCircle, Clock3, Syringe, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock3, AlertCircle } from "lucide-react";
+import { HudCard } from "@/components/HudCard";
 
 interface HealthVaccinesTabProps {
   childId: string;
@@ -23,95 +24,148 @@ const statusConfig = {
   },
 };
 
+const VACCINE_CALENDAR = [
+  {
+    period: "Ao nascer",
+    vaccines: ["BCG", "Hepatite B"],
+  },
+  {
+    period: "2 meses",
+    vaccines: [
+      "Pentavalente (1ª dose)",
+      "Poliomielite inativada (1ª dose)",
+      "Rotavírus (1ª dose)",
+      "Pneumocócica 13 (1ª dose)",
+      "Meningocócica C (1ª dose)",
+    ],
+  },
+  {
+    period: "4 meses",
+    vaccines: [
+      "Pentavalente (2ª dose)",
+      "Poliomielite inativada (2ª dose)",
+      "Rotavírus (2ª dose)",
+      "Pneumocócica 13 (2ª dose)",
+    ],
+  },
+  {
+    period: "6 meses",
+    vaccines: [
+      "Pentavalente (3ª dose)",
+      "Poliomielite inativada (3ª dose)",
+      "Hepatite B (3ª dose)",
+    ],
+  },
+  {
+    period: "9 meses",
+    vaccines: ["Febre amarela"],
+  },
+  {
+    period: "12 meses",
+    vaccines: [
+      "Tríplice viral",
+      "Pneumocócica 13 (reforço)",
+      "Meningocócica C (reforço)",
+    ],
+  },
+  {
+    period: "15 meses",
+    vaccines: [
+      "Tetra viral",
+      "Hepatite A",
+      "DTP (1º reforço)",
+    ],
+  },
+];
+
 export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
   const { data = [], isLoading } = useHealthVaccines(childId);
 
+  const schedule = VACCINE_CALENDAR.map((section) => ({
+    ...section,
+    vaccines: section.vaccines.map((vaccineName) => {
+      const entry =
+        data.find((vaccine) =>
+          vaccine.name.toLowerCase().includes(vaccineName.toLowerCase()),
+        ) ?? null;
+      return {
+        name: vaccineName,
+        entry,
+      };
+    }),
+  }));
+
+  const totalVaccines = schedule.reduce(
+    (total, section) => total + section.vaccines.length,
+    0,
+  );
+  const applied = data.filter((vaccine) => vaccine.status === "completed")
+    .length;
+  const percentage =
+    totalVaccines === 0
+      ? 0
+      : Math.min(100, Math.round((applied / totalVaccines) * 100));
+
   return (
     <section className="space-y-6">
-      <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Syringe className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-              Vacinas
-            </p>
-            <h2 className="mt-1 font-serif text-2xl text-ink">
-              Cartão de vacinação em dia
-            </h2>
-            <p className="mt-2 text-sm text-ink-muted">
-              Acompanhe doses previstas e registradas. Mantenha o cartão sempre
-              atualizado para o pediatra e para futuras viagens.
-            </p>
-          </div>
-        </div>
-      </div>
+      <HudCard
+        title={"HUD \u2022 cartão de vacinas"}
+        value={`${applied} de ${totalVaccines} vacinas registradas`}
+        description="Acompanhe cada período do calendário nacional."
+        progressPercent={percentage}
+      />
 
-      <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-              Histórico
-            </p>
-            <h3 className="font-serif text-xl text-ink">
-              Próximas doses e registros
-            </h3>
-          </div>
+      {isLoading ? (
+        <div className="rounded-[32px] border border-border bg-surface p-6 text-sm text-ink-muted shadow-sm">
+          Carregando calendário...
         </div>
+      ) : (
+        schedule.map((section) => (
+          <div
+            key={section.period}
+            className="rounded-[32px] border border-border bg-surface p-6 shadow-sm"
+          >
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+              {section.period}
+            </p>
+            <div className="mt-4 space-y-3">
+              {section.vaccines.map(({ name, entry }) => {
+                const status =
+                  (entry && statusConfig[entry.status as keyof typeof statusConfig]) ||
+                  statusConfig.scheduled;
+                const StatusIcon = status.icon;
 
-        {isLoading ? (
-          <div className="mt-6 space-y-3">
-            {[1, 2, 3].map((index) => (
-              <div
-                key={index}
-                className="h-16 animate-pulse rounded-2xl bg-surface-muted"
-              />
-            ))}
-          </div>
-        ) : data.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-ink-muted">
-            Nenhuma vacina registrada ainda. Adicione registros direto pelo
-            pediatra ou importando do cartão físico.
-          </div>
-        ) : (
-          <ul className="mt-6 space-y-3">
-            {data.map((vaccine) => {
-              const status = statusConfig[vaccine.status];
-              const StatusIcon = status.icon;
-              return (
-                <li
-                  key={vaccine.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3"
-                >
-                  <div>
-                    <p className="font-semibold text-ink">{vaccine.name}</p>
-                    <p className="text-xs text-ink-muted">
-                      Prevista para{" "}
-                      {new Date(vaccine.dueDate).toLocaleDateString("pt-BR")}
-                    </p>
-                    {vaccine.appliedAt && (
-                      <p className="text-xs text-ink-muted">
-                        Aplicada em{" "}
-                        {new Date(vaccine.appliedAt).toLocaleDateString("pt-BR")}
-                      </p>
-                    )}
-                    {vaccine.notes && (
-                      <p className="mt-1 text-xs text-ink-muted">
-                        {vaccine.notes}
-                      </p>
-                    )}
+                return (
+                  <div
+                    key={name}
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-4 py-3"
+                  >
+                    <div>
+                      <p className="font-semibold text-ink">{name}</p>
+                      {entry?.dueDate && (
+                        <p className="text-xs text-ink-muted">
+                          Prevista para {new Date(entry.dueDate).toLocaleDateString("pt-BR")}
+                        </p>
+                      )}
+                      {entry?.appliedAt ? (
+                        <p className="text-xs text-ink-muted">
+                          Aplicada em {new Date(entry.appliedAt).toLocaleDateString("pt-BR")}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-ink-muted">Sem registro aplicado</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <StatusIcon className={status.className} />
+                      <span className={status.className}>{status.label}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <StatusIcon className={status.className} />
-                    <span className={status.className}>{status.label}</span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          </div>
+        ))
+      )}
     </section>
   );
 };

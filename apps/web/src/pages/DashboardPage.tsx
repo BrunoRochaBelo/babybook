@@ -45,13 +45,14 @@ export const DashboardPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
+      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-[#2A2A2A]">Jornada</h1>
       {/* Child Selector */}
       {children.length > 0 && (
-        <div className="mb-6">
+        <div className="mb-6 flex justify-center">
           <select
             value={selectedChild?.id || ""}
             onChange={(e) => handleChildChange(e.target.value)}
-            className="w-full px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl bg-white text-[#2A2A2A]"
+            className="w-full max-w-sm px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl bg-white text-[#2A2A2A]"
           >
             {children.map((child) => (
               <option key={child.id} value={child.id}>
@@ -83,8 +84,7 @@ export const DashboardPage = () => {
             </button>
           </div>
           <p className="text-xs text-[#C9D3C2]">
-            Não obrigatório. Você pode criar um momento livre a qualquer
-            momento.
+            Não obrigatório. Você pode criar um momento livre a qualquer momento.
           </p>
         </div>
       )}

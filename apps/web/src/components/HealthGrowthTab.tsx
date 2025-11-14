@@ -9,7 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ChevronDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { HudCard } from "@/components/HudCard";
 
 interface HealthGrowthTabProps {
   childId: string;
@@ -27,6 +28,29 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
   const lastMeasurement = sortedMeasurements.at(-1);
+  const measurementGoal = 12;
+  const measurementsPercent =
+    measurementGoal === 0
+      ? 0
+      : Math.min(
+          100,
+          Math.round((sortedMeasurements.length / measurementGoal) * 100),
+        );
+  const lastMeasurementDate = lastMeasurement
+    ? new Date(lastMeasurement.date).toLocaleDateString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const hudValue = lastMeasurement
+    ? `${lastMeasurement.weight ? `${lastMeasurement.weight} kg` : "--"} \u2022 ${
+        lastMeasurement.height ? `${lastMeasurement.height} cm` : "--"
+      }`
+    : "Acompanhe peso e altura";
+  const hudDescription = lastMeasurement
+    ? `Atualizado em ${lastMeasurementDate}. ${sortedMeasurements.length} de ${measurementGoal} registros recomendados.`
+    : "Registre peso e altura sempre que fizer uma medição oficial para alimentar o gráfico da próxima consulta.";
 
   const chartData = sortedMeasurements.map((measurement) => ({
     date: new Date(measurement.date).toLocaleDateString("pt-BR", {
@@ -56,58 +80,39 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-              Curva de crescimento
-            </p>
-            <h2 className="mt-1 font-serif text-2xl text-ink">
-              Monitoramento contínuo
-            </h2>
-            <p className="mt-2 text-sm text-ink-muted">
-              Registre peso e altura sempre que fizer uma medição oficial. Os
-              dados alimentam o gráfico e ficam prontos para a próxima consulta.
-            </p>
-          </div>
+      <HudCard
+        title={"HUD \u2022 curva de crescimento"}
+        value={hudValue}
+        description={hudDescription}
+        progressPercent={measurementsPercent}
+        actions={
           <button
             type="button"
             onClick={() => setShowForm((state) => !state)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
-            Adicionar medição
-            <ChevronDown
-              className={`h-4 w-4 transition ${showForm ? "rotate-180" : ""}`}
-            />
+            {showForm ? "Fechar formulário" : "Adicionar medição"}
           </button>
-        </div>
+        }
+      />
 
-        {lastMeasurement && (
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                Última medição
-              </p>
-              <p className="mt-2 text-ink">
-                {new Date(lastMeasurement.date).toLocaleDateString("pt-BR", {
-                  day: "numeric",
-                  month: "long",
-                })}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                Peso / Altura
-              </p>
-              <p className="mt-2 font-serif text-2xl text-ink">
-                {lastMeasurement.weight ? `${lastMeasurement.weight} kg` : "--"}{" "}
-                • {lastMeasurement.height ? `${lastMeasurement.height} cm` : "--"}
-              </p>
-            </div>
+      {lastMeasurement && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+              Última medição
+            </p>
+            <p className="mt-2 text-ink">{lastMeasurementDate}</p>
           </div>
-        )}
-      </div>
+          <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+              Peso / Altura
+            </p>
+            <p className="mt-2 font-serif text-2xl text-ink">{hudValue}</p>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <form
@@ -242,8 +247,7 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
       ) : (
         <div className="rounded-[32px] border border-dashed border-border bg-surface p-10 text-center shadow-sm">
           <p className="text-sm text-ink-muted">
-            Nenhuma medição registrada ainda. Use o botão acima para começar o
-            histórico oficial de crescimento.
+            Nenhuma medição registrada ainda. Use o botão acima para começar o histórico oficial de crescimento.
           </p>
           <button
             type="button"

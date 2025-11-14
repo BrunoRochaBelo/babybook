@@ -1,11 +1,9 @@
 import React from "react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useDashboardData } from "../hooks/useDashboardData";
-import { NextMomentSuggestion } from "../components/NextMomentSuggestion";
 import { MomentsTimeline } from "../components/MomentsTimeline";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { JourneyProgressCard } from "../components/JourneyProgressCard";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
@@ -22,16 +20,19 @@ export const DashboardPage = () => {
   ).length ?? 0;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <NextMomentSuggestion
-        template={data?.nextTemplate ?? null}
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-ink">
+        Jornada
+      </h1>
+
+      <MomentsTimeline
+        moments={data?.moments || []}
+        isLoading={isLoading}
+        nextTemplate={data?.nextTemplate ?? null}
         childName={selectedChild?.name ?? undefined}
         hasBirthday={hasBirthday}
+        completedCount={completedMoments}
       />
-
-      <JourneyProgressCard completed={completedMoments} />
-
-      <MomentsTimeline moments={data?.moments || []} isLoading={isLoading} />
 
       {selectedChild && data?.moments && data.moments.length > 0 && (
         <button

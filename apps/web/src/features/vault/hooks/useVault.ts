@@ -24,13 +24,6 @@ const mockDocuments: Document[] = [
     uploadedAt: "2023-02-15T14:30:00Z",
     type: "pdf",
   },
-  {
-    id: "3",
-    name: "primeiro-desenho.jpg",
-    size: "1.8 MB",
-    uploadedAt: "2023-04-10T18:45:00Z",
-    type: "image",
-  },
 ];
 
 const fetchVaultDocuments = async (childId: string | undefined): Promise<Document[]> => {
