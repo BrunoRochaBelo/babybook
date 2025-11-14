@@ -199,6 +199,32 @@ Encapsula os padrões de negócio do Baby Book, alinhados ao **Catálogo de Mome
   - `QuotaBanner`: Avisos sobre o uso de armazenamento.
   - `RecurringMomentUpsellBanner`: Banner para upgrade de momentos recorrentes.
 
+### 5.2. Inventário implementado (apps/web)
+
+Enquanto a biblioteca compartilhada não é extraída para pacotes, o app web já materializa vários desses componentes. Eles são a referência viva que precisamos manter sincronizada com esta documentação:
+
+- **Jornada**
+  - `MainLayout` (`apps/web/src/layouts/MainLayout.tsx`): Header fixo com `BBChildSwitcher`, painel de notificações e bottom nav com `LayoutGroup`.
+  - `MomentsTimeline` (`apps/web/src/features/dashboard/components/MomentsTimeline.tsx`): alterna entre "Timeline" e "Capítulos", renderiza placeholders clicáveis e chama rota específica (`/jornada/moment/...`) dependendo do estado (draft/published).
+  - `NextMomentSuggestion` + `JourneyProgressCard`: HUD oficial para mostrar próxima sugestão, estados sem criança/aniversário e conclusão da jornada.
+  - `MomentCard` (`apps/web/src/components/MomentCard.tsx`): card canônico usado em `/momentos` e `/jornada`. Implementa badge de status, chip de privacidade e resumo com `line-clamp`.
+  - `MomentForm` (`apps/web/src/components/MomentForm.tsx`): formulários de rascunho e avulso compartilham o mesmo componente (stateful), com slots de mídia (ainda não genéricos) e navegação pós-sucesso.
+
+- **Saúde**
+  - `HealthGrowthTab`, `HealthPediatrianTab`, `HealthVaccinesTab` (`apps/web/src/components`): cada tab usa `HudCard`, formulários inline e gráficos/listas específicas. O modal de reautenticação está em `apps/web/src/pages/SaudePage.tsx`.
+  - `HudCard` (mesmo diretório) define a semântica visual dos painéis informativos (título uppercase, serif, barra de progresso).
+
+- **Cofre**
+  - `VaultPage` + `DocumentRow` + `UploadModal` (`apps/web/src/features/vault`): implementam HUD, slots guiados e modal com upload fictício. Esse trio será migrado para `VaultDocumentSection`/`VaultUploadDialog` quando o pacote existir.
+
+- **Visitas**
+  - `VisitasPage`, `GuestbookForm`, `GuestbookList`: cobertura completa do livro de visitas com tabs animadas e convites (QR + share actions). A HUD reutiliza `HudCard`.
+
+- **Perfil / Cápsula**
+  - `BBChildSwitcher` (`apps/web/src/components/bb/ChildSwitcher.tsx`), `PerfilCriancaPage`, `CapsulePage`, `ProfilePage`: mantêm padrões de dropdown, cards e formulários que precisam virar componentes compartilhados (`ChildProfileHeader`, `CapsuleLayout`, etc.).
+
+> Toda vez que um desses componentes ganhar props novas ou comportamento especial (ex.: novo estado no HUD, novo slot no Cofre), reflita aqui quais tokens e convenções foram usados para orientar a extração futura para `@babybook/ui-domain`.
+
 ---
 
 ## 6. Integração e Exemplos

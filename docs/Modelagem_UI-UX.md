@@ -120,49 +120,70 @@ Testes manuais com VoiceOver (iOS) e TalkBack (Android) são parte do QA (item 1
 
 ### 2.1 Estrutura global
 
-A estrutura de rotas é pensada para separar claramente as "memórias" (core loop) dos "utilitários" (configuração e perfil), alinhando-se à Rationale dos "3 Livros".
+A estrutura de rotas é pensada para separar claramente as "memórias" (core loop) dos "utilitários" (configuração e perfil), alinhando-se à Rationale dos "Livros" enquanto reflete o que já está entregue em `apps/web/src/app/router.tsx`.
 
-/ (ou /jornada): Aba "Jornada" (Dashboard / Jornada Guiada). É a "home".
-/saude: Aba "Saúde" (Utilitários do Owner).
-/visitas: Aba "Visitas" (Livro de Visitas).
-/jornada/moment/draft/:template_id: Rota para preencher um rascunho (ex: "Primeiro Sorriso").
-/jornada/moment/avulso: Rota para o formulário genérico (B.1 Momento Avulso).
-/jornada/moment/:id: Visualização de um momento preenchido (leitura, edição).
-/jornada/capitulos: (Sub-rota) "Biblioteca" de capítulos.
-/jornada/perfil-crianca: (Sub-rota) Hub de contexto da criança (Árvore da Família, Cápsula do Tempo).
-/capsule/:id: Rota direta para a Cápsula do Tempo (acessada via Perfil da Criança).
-/saude/crescimento: (Sub-rota) Utilitário "Curva de Crescimento".
-/saude/pediatra: (Sub-rota) Utilitário "Visitas ao Pediatra".
-/saude/cofre: (Sub-rota) Utilitário "Cofre de Documentos".
-/perfil-usuario: Hub de Perfil do Usuário (Conta, Guardiões, Pedidos, Configurações).
-/perfil-usuario/guardians: Gerenciamento de Guardiões e links públicos.
-/perfil-usuario/orders: Meus pedidos (PoD).
-/perfil-usuario/settings: Configurações da conta (Notificações, Idioma, Excluir Conta).
-/share/:token: Página pública (SSR) de um momento compartilhado.
+- `/` ⇒ redireciona para `/jornada`, a home do produto. `/dashboard` também redireciona para lá para manter retrocompatibilidade.
+- `/jornada`: Aba "Jornada" (Dashboard / Jornada Guiada) dentro do `MainLayout`. Agrupa HUD, timeline e atalhos para capítulos.
+- `/momentos` e `/momentos/:id`: Inventário completo e detalhe de momentos publicados (lista com `MomentCard` e página de leitura).
+- `/jornada/moment/draft/:template_id`: Fluxo de rascunho guiado (usa `MomentForm` pré-preenchido com copy do template).
+- `/jornada/moment/avulso`: Fluxo livre disparado pelo FAB.
+- `/jornada/capitulos` e `/jornada/capitulos/:chapterId`: Catálogo fixo e visão detalhada de capítulos (placeholders interativos).
+- `/jornada/perfil-crianca`: Hub de contexto da criança (perfil, cápsula, compartilhamento).
+- `/capsula`: Tela da cápsula do tempo (não recebe mais o `:id`; depende do `ChildSwitcher`/estado global).
+- `/saude`: Livro da Saúde com tabs internas para Crescimento, Pediatra e Vacinas (rota única, o tab é controlado por estado).
+- `/cofre`: Cofre de documentos (HUD + slots com `VaultPage`).
+- `/visitas`: Livro de Visitas com HUD, tabs de moderação e convites.
+- `/perfil-usuario` (alias `/perfil`): Hub da conta, usado para dados pessoais e gestão de crianças.
+
+Rotas especiais:
+
+- `/jornada/perfil-crianca` e `/perfil-usuario` são alcançadas via o switcher do header.
+- Wildcard `*` redireciona para `/jornada`, evitando 404.
+- `MainLayout` controla header + navegação inferior para todas as rotas acima (exceto redirects), garantindo consistência visual e o HUD fixo no topo.
 
 ### 2.2 Navegação base (Os 3 Livros)
 
-A barra de navegação principal (Bottom Nav) reflete a Rationale de IA dos "3 Livros".
+A barra de navegação principal (Bottom Nav) reflete a Rationale de IA dos "Livros", mas hoje expõe **quatro** entradas porque o Cofre ganhou vida própria (veja `apps/web/src/layouts/MainLayout.tsx`):
 
-Itens:Jornada (Memórias Afetivas): O memorial. Contém a timeline, o HUD e o FAB (+).
-Saúde (Utilitários Privados): Visível apenas para o "Owner". Contém Curva de Crescimento, Pediatra e Cofre.
-Visitas (Memorial Social): Contém o Livro de Visitas. Visível para "Owner" (com moderação) e "Guardiões" (apenas leitura).
-Ações de Contexto (Perfil/Configurações): O acesso principal ao Perfil do Usuário (Conta, Pedidos, Sair) é um ícone no header da "Aba Jornada". Um link secundário é posicionado no "Perfil da Criança" (item 4.2) para garantir 'descobrimento' (discoverability).
-Botão central + (FAB): O FAB (+) vive dentro da "Aba Jornada" e tem uma única função: acionar o formulário de "Momento Avulso" (/jornada/moment/avulso).
+- **Jornada (Memórias Afetivas):** o memorial com HUD, timeline, capítulos e FAB.
+- **Saúde (Utilitários Privados):** visível apenas para o Owner autenticado; carrega tabs de Crescimento, Pediatra e Vacinas e bloqueia o conteúdo com reautenticação após 5 minutos inativo.
+- **Visitas (Memorial Social):** livro de visitas com moderação, convites e HUD de slots.
+- **Cofre:** atalho direto para documentos críticos, mesmo fora da aba Saúde. O layout espelha o HUD + slots listados em `/cofre`.
+
+Complementos:
+
+- **Header**: concentra o brand, o botão de notificações (painel colapsável com destaques), o `BBChildSwitcher` e links para perfil/conta.
+- **FAB (+)**: permanece exclusivo da Jornada, visível quando há criança selecionada e momentos carregados (`DashboardPage`). Sempre chama `/jornada/moment/avulso`.
+- **HUD contextual**: renderizado logo após a seleção de view (timeline vs capítulos) e varia entre `NextMomentSuggestion` ou `JourneyProgressCard`.
+- **Ações de perfil/configuração**: além do header, o Perfil da Criança mantém um CTA explícito para `/perfil-usuario`.
 
 ### 2.3 Arquitetura de conteúdos
 
-Aba "Jornada" (O Memorial): É a "home". Seu principal componente é o HUD (Head-Up Display) que mostra o próximo "rascunho" sugerido (ex: "Próxima sugestão: O Primeiro Sorriso"). Abaixo do HUD, a timeline de momentos.
-Sub-navegação (dentro da Jornada): Esta aba contém o acesso ao "Perfil da Criança" (onde vivem a "Árvore da Família" e a "Cápsula do Tempo") e aos "Capítulos" (a visão de organização).
-Aba "Saúde" (O Utilitário): Funciona como um painel privado do "Owner".
-Contém as sub-seções: "Curva de Crescimento", "Visitas ao Pediatra" e "Cofre de Documentos".
-Esta aba inteira fica oculta para "Guardiões".
-Aba "Visitas" (O Social): Contém exclusivamente o "Livro de Visitas" com seu fluxo de moderação (ver item 4.4).
-Perfil do Usuário (O Administrativo): Acessado pelo ícone no header e por um link de acesso claro no 'Perfil da Criança' (item 4.2), este hub (/perfil-usuario) leva para:
-Conta & Quota: Barra de progresso de 2GB.
-Guardiões & Compartilhamento: Gerenciamento de acessos.
-Exportar & Pedidos: Acesso aos fluxos de ZIP e PoD.
-Configurações: Sair, Excluir Conta, etc.
+- **Aba Jornada (Memorial guiado)**: combina HUD + seletor de modo.
+  - `MomentsTimeline` alterna entre *Timeline* (feed com `MomentCard`, placeholders clicáveis e estados vazios animados) e *Capítulos* (list/grid com progresso por capítulo e call-to-action para `/jornada/capitulos/:chapterId`).
+  - HUD varia conforme estado: ausência de criança selecionada, ausência de aniversário, jornada completa ou sugerindo o próximo template (`NextMomentSuggestion`).
+  - FAB cria momentos avulsos e há atalhos visíveis para `/momentos`, `/jornada/moment/draft/*`, `/jornada/moment/avulso` e `/jornada/capitulos`.
+  - O `ChapterMomentsPage` garante rastreabilidade do catálogo oficial (`apps/web/src/data/momentCatalog.ts`) e respeita estados draft/published.
+
+- **Aba Saúde (Painel privado)**:
+  - Tabs internas (`HealthGrowthTab`, `HealthPediatrianTab`, `HealthVaccinesTab`) são controladas em memória, não por rotas. Cada tab usa HUDs reutilizáveis e componentes ricos (`recharts`, formulários inline) e cobra reforço de autenticação (`Shield` modal) após 5 minutos sem atividade.
+  - Regras de visibilidade: se `useAuthStore.user.role !== "owner"` e não estiver em modo mock, toda a aba mostra o empty state bloqueado.
+  - Estados vazios reforçam o CTA (ex.: "Registrar primeira medição", "Registrar primeira visita" etc.).
+
+- **Aba Cofre (Documentos críticos)**:
+  - `/cofre` usa `VaultPage` com HUD que mostra progresso dos seis slots essenciais, regras de privacidade e `UploadModal`.
+  - Documentos extras aparecem num bloco "Documentos adicionais".
+  - Mensagens e ícones reforçam a promessa "não vai para o fotolivro" e a criptografia.
+
+- **Aba Visitas (Social + moderação)**:
+  - Tabs "Aprovadas" / "Pendentes" com `GuestbookList` e HUD indicando uso de slots (limite 20 + upsell para 50).
+  - Quando o tab ativo é "Aprovadas", o CTA "Deixar mensagem" abre o `GuestbookForm` como modal full-screen.
+  - Modal de convite (QR code + botões WhatsApp/E-mail) usa `navigator.clipboard` e templates prontos.
+
+- **Perfil da Criança / Perfil do Usuário**:
+  - `/jornada/perfil-crianca` se ancora no estado do `ChildSwitcher` e traz atalhos para cápsula, árvore da família e compartilhamento.
+  - `/perfil-usuario` centraliza informações de conta, filhos e botões de ação (`ProfilePage`).
+  - Ambos reforçam o caminho para editar dados necessários para o HUD (nome/aniversário).
 
 ## 3. Fluxos principais (user flows)
 

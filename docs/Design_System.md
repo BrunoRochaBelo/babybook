@@ -169,6 +169,23 @@ Este documento é pensado para:
 - Em refinamentos, revisar a seção de microcopy e de estados (erro, vazio, upsell) para garantir consistência.
 - Antes de release, cruzar o que foi construído com o checklist de QA visual e de acessibilidade.
 
+### 1.6 Estado atual do frontend (apps/web)
+
+Para que o design system continue sendo a "fonte de verdade", o estado real do app (`apps/web`, Vite + React Router + Tailwind) precisa constar aqui. Quando um componente/domínio for alterado no código, esta tabela deve ser atualizada no mesmo PR.
+
+| Área / fluxo | Componentes implementados | Observações de design |
+| --- | --- | --- |
+| Estrutura Global | `MainLayout` (header + painel de notificações + `BBChildSwitcher`) e rotas declaradas no `AppRouter`. | Bottom nav com 4 livros (`Jornada`, `Saúde`, `Visitas`, `Cofre`) animada com `LayoutGroup`. FAB exclusivo da Jornada. |
+| HUD / Jornada | `NextMomentSuggestion`, `JourneyProgressCard`, `MomentsTimeline`, `ChapterMomentsPage`, `ChaptersPage`. | HUD cobre 4 estados (sem criança, sem data, próxima sugestão, jornada completa). Timeline alterna `Timeline` × `Capítulos` preservando tokens de cor/canto. |
+| Cartões de domínio | `MomentCard`, placeholders do catálogo (`momentCatalog.ts`), `HudCard`. | `MomentCard` aplica badges (`Rascunho`, `Arquivado`) e chips de privacidade; `HudCard` padroniza tipografia serif + progress bar para métricas. |
+| Saúde | `HealthGrowthTab`, `HealthPediatrianTab`, `HealthVaccinesTab`. | Crescimento usa `recharts` e formulário inline; Pediatra tem cards serifados com `CalendarClock`; Vacinas colore estados (`text-success`, `text-accent`, `text-danger`). |
+| Cofre | `VaultPage`, `DocumentRow`, `UploadModal`. | HUD mostra "x de 6 documentos essenciais"; slots vazios usam borda tracejada e CTAs `Adicionar`; modal reforça privacidade. |
+| Cápsula / Perfil | `CapsulePage`, `PerfilCriancaPage`, `ProfilePage`. | Cápsula valida mínimo de 10 anos para selar e alterna cartões "selado" × "em edição"; Perfil lista filhos e ações com `Button` outline/ghost. |
+| Visitas | `VisitasPage` (tabs `approved/pending`), `GuestbookList`, `GuestbookForm`. | HUD mostra uso de slots (20 → CTA "Ampliar para 50"), tabs com `LayoutGroup`, modal de convite com QR + botões WhatsApp/E-mail. |
+| Formulários | `MomentForm`, `GuestbookForm` e formulários inline dos tabs de Saúde. | Inputs 2xl, borda `#C9D3C2`, estados disabled em `opacity-50`; mensagens auxiliares reforçam copy acolhedora. |
+
+> Referência visual: tokens de cor, tipografia e raio moram em `apps/web/src/index.css`. Este arquivo deve ser visto como a implementação "live" das tabelas da Seção 5.
+
 ---
 
 ## 2. Filosofia de design e identidade
