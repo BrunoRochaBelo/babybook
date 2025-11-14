@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Activity, Stethoscope, Syringe, FolderLock } from "lucide-react";
+import {
+  Activity,
+  Stethoscope,
+  Syringe,
+  FolderLock,
+  Shield,
+} from "lucide-react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAuthStore } from "@/store/auth";
@@ -121,6 +128,21 @@ export const SaudePage = () => {
     logout();
   };
 
+  const renderTabContent = () => {
+    if (!selectedChild) {
+      return null;
+    }
+    switch (activeTab) {
+      case "pediatra":
+        return <HealthPediatrianTab childId={selectedChild.id} />;
+      case "vacinas":
+        return <HealthVaccinesTab childId={selectedChild.id} />;
+      case "crescimento":
+      default:
+        return <HealthGrowthTab childId={selectedChild.id} />;
+    }
+  };
+
   if (isAuthLoading && !isMockMode) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-12 text-center">
@@ -187,41 +209,63 @@ export const SaudePage = () => {
         </p>
       </header>
 
-      <div className="mt-6 flex flex-wrap gap-2 rounded-[28px] border border-border bg-surface p-2 shadow-sm">
-        {HEALTH_TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex-1 min-w-[150px] rounded-full border px-4 py-2 text-sm font-semibold transition",
-                isActive
-                  ? "border-ink bg-primary text-primary-foreground"
-                  : "border-transparent text-ink-muted hover:border-border",
-              )}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
+      <div className="mt-6 rounded-[28px] border border-border bg-surface p-2 shadow-sm">
+        <LayoutGroup id="health-tabs">
+          <div className="flex flex-wrap gap-2">
+            {HEALTH_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "relative flex-1 min-w-[150px] overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-300",
+                    isActive
+                      ? "text-primary-foreground"
+                      : "text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="health-nav-pill"
+                      className="absolute inset-0 rounded-full bg-primary shadow-[0_12px_24px_rgba(242,153,93,0.28)]"
+                      transition={{
+                        type: "spring",
+                        stiffness: 320,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 transition-colors duration-300",
+                        isActive ? "text-primary-foreground" : "text-ink-muted",
+                      )}
+                    />
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </LayoutGroup>
       </div>
 
       <div className="mt-8">
-        {activeTab === "crescimento" && (
-          <HealthGrowthTab childId={selectedChild.id} />
-        )}
-        {activeTab === "pediatra" && (
-          <HealthPediatrianTab childId={selectedChild.id} />
-        )}
-        {activeTab === "vacinas" && (
-          <HealthVaccinesTab childId={selectedChild.id} />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            {renderTabContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {!isMockMode && reauthRequired && (

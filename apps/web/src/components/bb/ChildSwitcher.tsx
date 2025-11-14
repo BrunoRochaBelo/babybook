@@ -4,10 +4,25 @@ import { Link } from "react-router-dom";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { cn } from "@/lib/utils";
 
-export function BBChildSwitcher() {
+interface BBChildSwitcherProps {
+  isOpen?: boolean;
+  onOpenChange?: (value: boolean) => void;
+}
+
+export function BBChildSwitcher({ isOpen: externalOpen, onOpenChange }: BBChildSwitcherProps = {}) {
   const { children, selectedChild, setSelectedChildId } = useSelectedChild();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const isControlled = externalOpen !== undefined;
+  const isOpen = isControlled ? externalOpen : internalOpen;
+  const setOpen = (value: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof value === "function" ? value(isOpen) : value;
+    if (!isControlled) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -19,12 +34,12 @@ export function BBChildSwitcher() {
         event.target instanceof Node &&
         !containerRef.current.contains(event.target)
       ) {
-        setIsOpen(false);
+        setOpen(false);
       }
     };
     document.addEventListener("pointerdown", handleClickOutside);
     return () => document.removeEventListener("pointerdown", handleClickOutside);
-  }, [isOpen]);
+  }, [isOpen, setOpen]);
 
   const hasChildren = children.length > 0;
 
@@ -32,20 +47,15 @@ export function BBChildSwitcher() {
     <div className="relative" ref={containerRef}>
       <button
         type="button"
-        onClick={() => hasChildren && setIsOpen((state) => !state)}
+        onClick={() => hasChildren && setOpen((state) => !state)}
         className={cn(
-          "flex items-center gap-3 rounded-[32px] border border-border bg-surface px-4 py-2 text-left shadow-sm transition hover:border-ink/40",
+          "inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium transition hover:border-ink/40",
           !hasChildren && "cursor-not-allowed opacity-70",
         )}
       >
-        <div className="flex flex-col">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-            Criança
-          </p>
-          <p className="font-serif text-lg text-ink">
-            {selectedChild ? selectedChild.name : "Cadastre uma criança"}
-          </p>
-        </div>
+        <span className="font-semibold text-ink">
+          {selectedChild ? selectedChild.name : "Cadastre uma criança"}
+        </span>
         <ChevronDown
           className={cn(
             "h-4 w-4 text-ink-muted transition",
@@ -55,7 +65,7 @@ export function BBChildSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-30 mt-3 w-80 rounded-[32px] border border-border bg-surface p-4 shadow-2xl">
+        <div className="absolute right-0 z-30 mt-3 w-80 rounded-[28px] border border-border bg-surface p-4 shadow-2xl">
           <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
             Escolher álbum
           </p>
@@ -66,7 +76,7 @@ export function BBChildSwitcher() {
                 type="button"
                 onClick={() => {
                   setSelectedChildId(child.id);
-                  setIsOpen(false);
+                  setOpen(false);
                 }}
                 className={cn(
                   "w-full rounded-2xl border px-3 py-2 text-left text-sm transition",
@@ -84,14 +94,24 @@ export function BBChildSwitcher() {
               </p>
             )}
           </div>
-          <Link
-            to="/jornada/perfil-crianca"
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-ink/30 px-3 py-2 text-sm font-medium text-ink transition hover:border-ink hover:text-accent"
-            onClick={() => setIsOpen(false)}
-          >
-            <UserRound className="h-4 w-4" />
-            Ver perfil da criança
-          </Link>
+          <div className="mt-4 space-y-2">
+            <Link
+              to="/jornada/perfil-crianca"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-ink/30 px-3 py-2 text-sm font-medium text-ink transition hover:border-ink hover:text-accent"
+              onClick={() => setOpen(false)}
+            >
+              <UserRound className="h-4 w-4" />
+              Ver perfil da criança
+            </Link>
+            <Link
+              to="/perfil-usuario"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border px-3 py-2 text-sm font-medium text-ink transition hover:border-ink hover:text-accent"
+              onClick={() => setOpen(false)}
+            >
+              <UserRound className="h-4 w-4" />
+              Gerenciar conta
+            </Link>
+          </div>
         </div>
       )}
     </div>
