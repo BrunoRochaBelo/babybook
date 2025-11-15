@@ -118,9 +118,9 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 ### 3.6. O que NÃO roda localmente (A Fila e o Worker)
 
-Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não roda localmente. Isso é uma decisão de arquitetura deliberada para simplificar radicalmente o DevEx. Não queremos que um dev frontend precise gerenciar um stack complexo de workers Python. Em ENV=local, a API (FastAPI) não publica na Fila. Ela simula o worker executando o job de forma síncrona (no mesmo processo) e atualiza o asset.status para 'ready' imediatamente.
+Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não precisa rodar localmente para o fluxo padrão. Em `ENV=local` e `INLINE_WORKER_ENABLED=true`, a API usa o modo inline: ela não publica na Fila e processa o job no mesmo processo, atualizando o asset.status para `ready` imediatamente. Isso preserva o DevEx do apps/web sem exigir ffmpeg/minio adicionais.
 
-Implicação: Isso permite que o desenvolvedor frontend (no apps/web) tenha a experiência de upload completa (do upload ao status 'ready') sem precisar rodar o stack de workers. Para testar o Worker (Modal): O desenvolvedor de backend deve testar o worker (Modal) de forma isolada, em um ambiente de staging ou preview (ex: modal deploy ...).
+Quando alguém precisar testar o Worker (Modal) “de verdade”, basta definir `INLINE_WORKER_ENABLED=false`, escolher um provedor de fila (`QUEUE_PROVIDER=database` ou Cloudflare) e rodar `pnpm dev:workers` (ou o deploy Modal). O docker-compose já cria automaticamente os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`, então o ambiente local fica alinhado ao de produção.
 
 ## 4. O que tem aqui? (Estrutura do Monorepo)
 
@@ -180,3 +180,45 @@ pnpm --filter api test
 # Rodar testes E2E com o navegador aberto (debug)
 pnpm --filter e2e test:headed
 ```
+
+
+### Modos do front-end
+
+`ash
+pnpm dev:web      # SPA (auto-detecta MSW, padrão mock)
+pnpm dev:web:mock # Força MSW/dados seedados
+pnpm dev:web:real # Desativa MSW (aponta para a API real)
+`
+
+No modo real, configure VITE_ENABLE_MSW=false e VITE_MEDIA_BASE_URL no .env.local para apontar para o host dos derivados. Use pnpm dev:web:mock para voltar ao modo totalmente local.
+
+### Worker real no ambiente local
+
+Para executar o pipeline completo em dev:
+1. Defina `INLINE_WORKER_ENABLED=false`.
+2. Suba o compose (`docker compose up -d`) para criar os buckets via `storage-init`.
+3. Rode `docker compose --profile workers up worker` (ou `pnpm dev:workers`).
+
+Isso aproxima o ambiente local do comportamento em produção (jobs persistidos no banco e consumidos pelo worker Python).
+
+
+#### Administrando a fila
+
+```bash
+cd apps/admin
+python -m babybook_admin.cli worker-jobs list --status pending
+python -m babybook_admin.cli worker-jobs replay <job_id>
+```
+
+
+
+#### SPA em contêiner
+
+`ash
+docker compose --profile web-prod up web-prod
+`
+
+Esse profile usa pps/web/Dockerfile para gerar o bundle estático em http://localhost:4173, apontando para a API/storage do compose.
+
+> Dica: defina `VITE_MEDIA_BASE_URL` (por exemplo, `http://localhost:9000`) para que a SPA gere as URLs dos derivados ao usar o bucket local.
+

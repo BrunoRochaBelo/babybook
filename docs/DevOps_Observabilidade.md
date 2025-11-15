@@ -660,3 +660,12 @@ async def complete_upload(
 
     return {"asset_id": asset.id, "status": "queued"}
 ```
+
+## Checklist de Provisionamento dos Workers
+
+1. Armazene o `SERVICE_API_TOKEN` no secrets manager do provedor (Fly/Modal) e injete-o tanto na API quanto nos workers. Nunca versione esse token.
+2. Crie os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no Backblaze B2 (ou provedor equivalente) e configure lifecycle policies (derivados expiram em 30 dias, exports em 72h).
+3. No Modal/Fly, construa a imagem dos workers com `ffmpeg`/`ffprobe` e valide que as envs `FFMPEG_PATH`/`FFPROBE_PATH` apontam para o binário existente.
+4. Configure a Cloudflare Queue com Dead-Letter Queue (DLQ) após N tentativas e garanta o mesmo nome/credenciais usados na API (`CLOUDFLARE_*`).
+5. Aponte `QUEUE_PROVIDER=cloudflare` em produção e mantenha `INLINE_WORKER_ENABLED=false` para evitar processamento inline fora do dev.
+

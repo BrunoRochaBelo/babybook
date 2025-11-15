@@ -28,7 +28,7 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
   const lastMeasurement = sortedMeasurements.at(-1);
-  const measurementGoal = 12;
+  const measurementGoal: number = 12;
   const measurementsPercent =
     measurementGoal === 0
       ? 0

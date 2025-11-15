@@ -1474,6 +1474,27 @@ components:
         bytes_quota: { type: integer, format: int64 }
         moments_used: { type: integer }
         moments_quota: { type: integer }
+    AssetVariantInput:
+      type: object
+      required: [preset, key, size_bytes, kind]
+      properties:
+        preset: { type: string, maxLength: 80 }
+        key: { type: string, maxLength: 255 }
+        size_bytes: { type: integer, format: int64 }
+        width_px: { type: integer, minimum: 1, nullable: true }
+        height_px: { type: integer, minimum: 1, nullable: true }
+        kind: { type: string, enum: [photo, video, audio] }
+    AssetStatusUpdate:
+      type: object
+      properties:
+        status: { type: string, enum: [queued, processing, ready, failed] }
+        duration_ms: { type: integer, format: int64, minimum: 0 }
+        error_code: { type: string, maxLength: 120 }
+        viewer_accessible: { type: boolean }
+        key_original: { type: string, maxLength: 255 }
+        variants:
+          type: array
+          items: { $ref: "#/components/schemas/AssetVariantInput" }
     Person:
       type: object
       properties:

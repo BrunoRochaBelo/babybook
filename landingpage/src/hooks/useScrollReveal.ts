@@ -11,16 +11,28 @@ export function useScrollReveal() {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("section-visible");
+          entry.target.classList.remove("section-reveal");
+          observer.unobserve(entry.target);
         }
       });
     }, observerOptions);
 
     // Observa todas as seções exceto a primeira (hero)
-    const sections = document.querySelectorAll("section:not(:first-child)");
-    sections.forEach((section) => observer.observe(section));
+    const sections = Array.from(
+      document.querySelectorAll("section:not(:first-child)"),
+    );
+
+    sections.forEach((section) => {
+      section.classList.add("section-reveal");
+      observer.observe(section);
+    });
 
     return () => {
-      sections.forEach((section) => observer.unobserve(section));
+      sections.forEach((section) => {
+        observer.unobserve(section);
+        section.classList.remove("section-reveal");
+        section.classList.remove("section-visible");
+      });
     };
   }, []);
 }

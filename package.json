@@ -9,6 +9,8 @@
     "dev:edge": "pnpm --filter @babybook/edge dev",
     "dev:api": "uvicorn babybook_api.main:app --app-dir apps/api --reload",
     "dev:workers": "python apps/workers/app/main.py",
+    "dev:web:mock": "pnpm --filter @babybook/web run dev:mock",
+    "dev:web:real": "pnpm --filter @babybook/web run dev:real",
     "preview:web": "pnpm --filter @babybook/web build && pnpm --filter @babybook/web preview --host 0.0.0.0 --port 4173",
     "lint": "pnpm lint:js && pnpm lint:py",
     "lint:js": "pnpm -r --workspace-concurrency=1 run lint --if-present",

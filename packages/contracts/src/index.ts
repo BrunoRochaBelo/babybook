@@ -39,12 +39,43 @@ export const paginatedChildrenSchema = paginatedResponse(rawChildSchema).transfo
   }),
 );
 
-const momentMediaSchema = z.object({
+const rawMomentMediaSchema = z.object({
   id: z.string(),
-  kind: z.enum(["photo", "video", "audio"]),
-  url: z.string().url(),
+  type: z.enum(["image", "video", "audio"]),
+  url: z.string().url().optional(),
+  key: z.string().optional(),
   durationSeconds: z.number().int().optional(),
+  variants: z
+    .array(
+      z.object({
+        preset: z.string(),
+        key: z.string().optional(),
+        url: z.string().url().optional(),
+        size_bytes: z.number().int().nonnegative().optional(),
+        width_px: z.number().int().positive().nullable().optional(),
+        height_px: z.number().int().positive().nullable().optional(),
+        kind: z.enum(["photo", "video", "audio"]).optional(),
+      }),
+    )
+    .optional(),
 });
+
+export const momentMediaSchema = rawMomentMediaSchema.transform((media) => ({
+  id: media.id,
+  kind: media.type === "image" ? "photo" : media.type,
+  url: media.url ?? null,
+  key: media.key ?? null,
+  durationSeconds: media.durationSeconds,
+  variants: media.variants?.map((variant) => ({
+    preset: variant.preset,
+    key: variant.key ?? null,
+    url: variant.url ?? null,
+    sizeBytes: variant.size_bytes ?? null,
+    widthPx: variant.width_px ?? null,
+    heightPx: variant.height_px ?? null,
+    kind: variant.kind ?? (media.type === "image" ? "photo" : media.type),
+  })),
+}));
 
 export type MomentMedia = z.infer<typeof momentMediaSchema>;
 
@@ -68,22 +99,7 @@ export const momentSchema = rawMomentSchema.transform((moment) => {
   const payload = moment.payload ?? {};
   const media = Array.isArray((payload as Record<string, unknown>).media)
     ? ((payload as { media?: unknown }).media as unknown[])
-        .map((entry) =>
-          z
-            .object({
-              id: z.string(),
-              type: z.enum(["image", "video", "audio"]),
-              url: z.string().url(),
-              durationSeconds: z.number().int().optional(),
-            })
-            .transform((value) => ({
-              id: value.id,
-              kind: value.type === "image" ? "photo" : value.type,
-              url: value.url,
-              durationSeconds: value.durationSeconds,
-            }))
-            .safeParse(entry),
-        )
+        .map((entry) => momentMediaSchema.safeParse(entry))
         .filter((result) => result.success)
         .map((result) => result.data)
     : [];
@@ -283,6 +299,28 @@ export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
 }));
 
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+export const assetVariantInputSchema = z.object({
+  preset: z.string().max(80),
+  key: z.string().max(255),
+  size_bytes: z.number().int().nonnegative(),
+  width_px: z.number().int().positive().nullable().optional(),
+  height_px: z.number().int().positive().nullable().optional(),
+  kind: z.enum(["photo", "video", "audio"]),
+});
+
+export type AssetVariantInput = z.infer<typeof assetVariantInputSchema>;
+
+export const assetStatusUpdateSchema = z.object({
+  status: z.enum(["queued", "processing", "ready", "failed"]).optional(),
+  duration_ms: z.number().int().nonnegative().nullable().optional(),
+  error_code: z.string().max(120).nullable().optional(),
+  viewer_accessible: z.boolean().optional(),
+  key_original: z.string().max(255).nullable().optional(),
+  variants: z.array(assetVariantInputSchema).optional(),
+});
+
+export type AssetStatusUpdate = z.infer<typeof assetStatusUpdateSchema>;
 
 export const apiErrorSchema = z
   .object({

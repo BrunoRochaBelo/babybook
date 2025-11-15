@@ -40,6 +40,31 @@ services:
       timeout: 5s
       retries: 5
 
+  storage-init:
+    image: minio/mc:latest
+    container_name: babybook_storage_init
+    depends_on:
+      storage:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      STORAGE_BUCKET_UPLOADS: ${STORAGE_BUCKET_UPLOADS:-babybook-uploads}
+      STORAGE_BUCKET_DERIVATIVES: ${STORAGE_BUCKET_DERIVATIVES:-babybook-media}
+      STORAGE_BUCKET_EXPORTS: ${STORAGE_BUCKET_EXPORTS:-babybook-exports}
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://storage:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD &&
+      mc mb -p local/$STORAGE_BUCKET_UPLOADS || true &&
+      mc mb -p local/$STORAGE_BUCKET_DERIVATIVES || true &&
+      mc mb -p local/$STORAGE_BUCKET_EXPORTS || true &&
+      mc ilm add local/$STORAGE_BUCKET_DERIVATIVES --expiry-days 30 || true &&
+      mc ilm add local/$STORAGE_BUCKET_EXPORTS --expiry-days 3 || true &&
+      echo 'Buckets verificados' &&
+      exit 0
+      "
+    restart: "no"
+
   # 3. API (FastAPI)
   # Depende do DB e Storage estarem prontos
   api:
@@ -57,6 +82,8 @@ services:
       S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET_NAME: "babybook"
       ENV: "local" # Habilita o mock da fila (0.4)
+      INLINE_WORKER_ENABLED: ${INLINE_WORKER_ENABLED:-true}
+      SERVICE_API_TOKEN: ${SERVICE_API_TOKEN:-service-token}
     depends_on:
       db:
         condition: service_healthy
@@ -82,6 +109,50 @@ services:
       - ./apps/web:/app/apps/web
     depends_on:
       - api
+
+  web-prod:
+    container_name: babybook_web_static
+    profiles: ["web-prod"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      VITE_API_BASE_URL: "http://api:8000"
+      VITE_MEDIA_BASE_URL: "http://storage:9000"
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "4173:4173"
+
+  worker:
+    container_name: babybook_workers_local
+    profiles: ["workers"]
+    build:
+      context: .
+      dockerfile: apps/workers/Dockerfile
+    environment:
+      QUEUE_PROVIDER: database
+      WORKER_DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-babybook}:${POSTGRES_PASSWORD:-babybook}@db:5432/${POSTGRES_DB:-babybook_dev}"
+      STORAGE_ENDPOINT_URL: "http://storage:9000"
+      STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      STORAGE_BUCKET_UPLOADS: ${STORAGE_BUCKET_UPLOADS:-babybook-uploads}
+      STORAGE_BUCKET_DERIVATIVES: ${STORAGE_BUCKET_DERIVATIVES:-babybook-media}
+      STORAGE_BUCKET_EXPORTS: ${STORAGE_BUCKET_EXPORTS:-babybook-exports}
+      WORKER_API_BASE_URL: "http://api:8000"
+      SERVICE_API_TOKEN: ${SERVICE_API_TOKEN:-service-token}
+      FFMPEG_PATH: /usr/bin/ffmpeg
+      FFPROBE_PATH: /usr/bin/ffprobe
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      storage-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./apps/workers:/app/apps/workers
 
 volumes:
   babybook-db-data:

@@ -4,7 +4,7 @@ import math
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,6 +13,7 @@ from babybook_api.auth.session import UserSession, get_current_user
 from babybook_api.db.models import Account, Asset, UploadSession
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.observability import get_trace_id
 from babybook_api.schemas.assets import (
     AssetKind,
     UploadCompleteRequest,
@@ -121,6 +122,7 @@ async def init_upload(
 )
 async def complete_upload(
     payload: UploadCompleteRequest,
+    request: Request,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
     queue: QueuePublisher = Depends(get_queue_publisher),
@@ -161,10 +163,13 @@ async def complete_upload(
             "account_id": str(asset.account_id),
             "key": asset.key_original,
             "kind": asset.kind,
+            "mime": asset.mime,
+            "scope": asset.scope,
         },
         metadata={
             "upload_id": str(session.id),
             "user_id": current_user.id,
+            "trace_id": get_trace_id(request),
         },
     )
     await db.commit()

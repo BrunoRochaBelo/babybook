@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMoment } from "@/hooks/api";
+import { getMediaUrl } from "@/lib/media";
 import { ChevronLeft, Share2, Edit, Trash2 } from "lucide-react";
 
 export const MomentDetailPage = () => {
@@ -71,20 +72,20 @@ export const MomentDetailPage = () => {
               >
                 {media.kind === "photo" && (
                   <img
-                    src={media.url}
+                    src={getMediaUrl(media, "full") ?? getMediaUrl(media) ?? ""}
                     alt={moment.title}
                     className="w-full h-full object-cover"
                   />
                 )}
                 {media.kind === "video" && (
                   <video
-                    src={media.url}
+                    src={getMediaUrl(media) ?? ""}
                     controls
                     className="w-full h-full object-cover"
                   />
                 )}
                 {media.kind === "audio" && (
-                  <audio src={media.url} controls className="w-full" />
+                  <audio src={getMediaUrl(media) ?? ""} controls className="w-full" />
                 )}
               </div>
             ))}

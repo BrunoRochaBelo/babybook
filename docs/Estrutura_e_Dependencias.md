@@ -147,7 +147,7 @@ pnpm dev:local
 
 API (FastAPI): http://localhost:8000/docs (Acesse para ver a documentação interativa do OpenAPI).
 Web (SPA): http://localhost:3000 (Abra no navegador para usar o app).
-Workers (Modal): Não rodam localmente. Esta é uma decisão de arquitetura para simplificar o DevEx. A API (apps/api), ao detectar ENV=local (definido no docker-compose.yml, Seção 3.2), ativa um mock da Cloudflare Queues. O endpoint /uploads/complete (1) publica a mensagem na fila mock (que pode ser um noop ou log) e (2) chama sincronamente (em processo) uma versão de debug da lógica do worker (ex: app/ffmpeg.py) ou simplesmente marca o asset como status: 'ready' no banco. Isso permite testar 99% do fluxo da UI sem a complexidade da fila e dos workers remotos.
+Workers (Modal): Por padrão, não precisam rodar localmente. Em `ENV=local` + `INLINE_WORKER_ENABLED=true`, a API ativa o modo inline e processa o job no mesmo processo (mock da Cloudflare Queues). Isso cobre 99% do fluxo da UI sem exigir ffmpeg. Quando precisar validar o pipeline real (fila + worker), defina `INLINE_WORKER_ENABLED=false`, aponte o `QUEUE_PROVIDER` para `database` ou Cloudflare e execute `pnpm dev:workers` (ou deploy Modal) — o docker-compose já provisiona os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`.
 Edge (Público): (Simulado via wrangler dev em outra porta, ex: 8787, via pnpm dev:edge).
 
 ### 1.5. Rodando Testes

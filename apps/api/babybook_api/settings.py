@@ -1,12 +1,14 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env.local", extra="ignore")
 
+    app_env: Literal["local", "staging", "production"] = Field(default="local", alias="ENV")
     database_url: str = "postgresql+asyncpg://babybook:babybook@localhost:5432/babybook_dev"
     secret_key: str = "dev-secret-key"
     cors_origins: list[str] = ["http://localhost:5173"]
@@ -27,6 +29,7 @@ class Settings(BaseSettings):
     cloudflare_queue_name: str | None = None
     cloudflare_api_token: str | None = None
     cloudflare_api_base_url: str = "https://api.cloudflare.com/client/v4"
+    inline_worker_enabled: bool = Field(default=True, alias="INLINE_WORKER_ENABLED")
 
 
 @lru_cache(maxsize=1)

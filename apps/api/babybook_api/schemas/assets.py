@@ -59,3 +59,4 @@ class AssetStatusUpdate(BaseModel):
     error_code: str | None = Field(default=None, max_length=120)
     viewer_accessible: bool | None = None
     variants: list[AssetVariantInput] | None = None
+    key_original: str | None = Field(default=None, max_length=255)

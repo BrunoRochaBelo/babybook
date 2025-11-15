@@ -40,6 +40,8 @@ async def patch_asset(
         asset.error_code = payload.error_code
     if payload.viewer_accessible is not None:
         asset.viewer_accessible = payload.viewer_accessible
+    if payload.key_original is not None:
+        asset.key_original = payload.key_original
     if payload.variants is not None:
         asset.variants.clear()
         for variant in payload.variants:

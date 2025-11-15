@@ -2,20 +2,26 @@ import type { Moment as ApiMoment } from "@babybook/contracts";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getMomentByTemplateKey } from "@/data/momentCatalog";
+import { getMediaUrl } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
 interface MomentCardProps {
   moment: ApiMoment;
 }
 
-const extractCoverImage = (
-  media: Array<{ kind?: string | null; url?: string | null }> | undefined,
-) => {
+const extractCoverImage = (media: ApiMoment["media"]) => {
   if (!media || media.length === 0) {
     return undefined;
   }
-  const photo = media.find((item) => item.kind === "photo");
-  return photo?.url ?? media[0]?.url;
+  const photo = media.find((item) => item.kind === "photo") ?? media[0];
+  if (!photo) {
+    return undefined;
+  }
+  return (
+    getMediaUrl(photo, "card") ??
+    getMediaUrl(photo, "thumb") ??
+    getMediaUrl(photo)
+  );
 };
 
 const statusBadge = (status: ApiMoment["status"]) => {

@@ -8,7 +8,24 @@ import {
   UserProfile,
 } from "@babybook/contracts";
 
-type MediaSeed = Pick<MomentMedia, "id" | "kind" | "url"> & {
+type MediaKind = "photo" | "video" | "audio";
+
+type VariantSeed = {
+  preset: string;
+  url?: string | null;
+  key?: string | null;
+  sizeBytes?: number | null;
+  widthPx?: number | null;
+  heightPx?: number | null;
+  kind?: MediaKind;
+};
+
+type MediaSeed = {
+  id: string;
+  kind: MediaKind;
+  url?: string | null;
+  key?: string | null;
+  variants?: VariantSeed[];
   durationSeconds?: number;
 };
 
@@ -57,8 +74,18 @@ const makeMoment = ({
   media: media.map((item) => ({
     id: item.id,
     kind: item.kind,
-    url: item.url,
+    url: item.url ?? null,
+    key: item.key ?? null,
     durationSeconds: item.durationSeconds ?? undefined,
+    variants: item.variants?.map((variant) => ({
+      preset: variant.preset,
+      url: variant.url ?? null,
+      key: variant.key ?? null,
+      sizeBytes: variant.sizeBytes ?? null,
+      widthPx: variant.widthPx ?? null,
+      heightPx: variant.heightPx ?? null,
+      kind: (variant.kind ?? item.kind) as MediaKind,
+    })),
   })),
   rev: 1,
   createdAt: createdAt ?? at("2024-01-01"),
@@ -107,6 +134,17 @@ export const mockMoments: Moment[] = [
         id: "bb-alice-newborn",
         kind: "photo",
         url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=900&fit=crop",
+        key: "media/mock/bb-alice-newborn/original.jpg",
+        variants: [
+          {
+            preset: "thumb",
+            url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=300&fit=crop",
+          },
+          {
+            preset: "full",
+            url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1600&fit=crop",
+          },
+        ],
       },
     ],
     createdAt: at("2024-03-15", "08:10:00"),
@@ -497,6 +535,7 @@ export const mockHealthVaccines: HealthVaccine[] = [
     dueDate: "2024-04-15",
     appliedAt: "2024-04-18",
     status: "completed",
+    notes: null,
   },
   {
     id: "vax-3",
@@ -505,6 +544,7 @@ export const mockHealthVaccines: HealthVaccine[] = [
     dueDate: "2024-06-15",
     appliedAt: null,
     status: "scheduled",
+    notes: null,
   },
   {
     id: "vax-4",
@@ -513,6 +553,7 @@ export const mockHealthVaccines: HealthVaccine[] = [
     dueDate: "2024-06-15",
     appliedAt: null,
     status: "scheduled",
+    notes: null,
   },
   {
     id: "vax-5",

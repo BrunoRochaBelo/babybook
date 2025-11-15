@@ -6,6 +6,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from importlib import import_module
 from typing import Any, Protocol
 
 import httpx
@@ -13,10 +14,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from babybook_api.db.models import WorkerJob
-
-from .exports import build_export_zip
-from .ffmpeg import transcode_video
-from .images import create_thumbnail
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +28,7 @@ class QueueMessage:
 
 
 class JobHandler(Protocol):
-    async def __call__(self, payload: dict[str, Any]) -> None: ...
+    async def __call__(self, payload: dict[str, Any], metadata: dict[str, Any]) -> None: ...
 
 
 class QueueBackend(Protocol):
@@ -42,11 +39,27 @@ class QueueBackend(Protocol):
     async def close(self) -> None: ...
 
 
+def _lazy_handler(path: str) -> JobHandler:
+    module_name, attr = path.split(":", 1)
+
+    async def _runner(payload: dict[str, Any], metadata: dict[str, Any]) -> None:
+        module = import_module(module_name)
+        handler = getattr(module, attr)
+        return await handler(payload, metadata)
+
+    return _runner
+
+
 JOB_MAP: dict[str, JobHandler] = {
-    "video.transcode": transcode_video,
-    "image.thumbnail": create_thumbnail,
-    "export.zip": build_export_zip,
+    "video.transcode": _lazy_handler("app.ffmpeg:transcode_video"),
+    "image.thumbnail": _lazy_handler("app.images:create_thumbnail"),
+    "export.zip": _lazy_handler("app.exports:build_export_zip"),
 }
+
+
+def _trace_prefix(metadata: dict[str, Any]) -> str:
+    trace_id = metadata.get("trace_id")
+    return f"[{trace_id}] " if trace_id else ""
 
 
 class InMemoryQueueBackend:
@@ -198,9 +211,10 @@ class CloudflareQueueBackend:
 
 
 class QueueConsumer:
-    def __init__(self, concurrency: int = 2) -> None:
+    def __init__(self, concurrency: int = 2, *, exit_on_idle: bool = False) -> None:
         self.concurrency = concurrency
         self.poll_interval = float(os.getenv("QUEUE_POLL_INTERVAL", "2"))
+        self.exit_on_idle = exit_on_idle
         self.backend = self._build_backend()
 
     def _build_backend(self) -> QueueBackend:
@@ -243,6 +257,9 @@ class QueueConsumer:
                     await asyncio.sleep(self.poll_interval)
                     continue
                 if not messages:
+                    if self.exit_on_idle:
+                        logger.info("Fila vazia, encerrando processamento (exit_on_idle)")
+                        break
                     await asyncio.sleep(self.poll_interval)
                     continue
                 await asyncio.gather(*(self._handle_message(msg) for msg in messages))
@@ -251,17 +268,18 @@ class QueueConsumer:
 
     async def _handle_message(self, message: QueueMessage) -> None:
         handler = JOB_MAP.get(message.kind)
+        prefix = _trace_prefix(message.metadata)
         if handler is None:
-            logger.warning("Job desconhecido: %s", message.kind)
+            logger.warning("%sJob desconhecido: %s", prefix, message.kind)
             await self.backend.ack(message, success=True)
             return
         try:
-            await handler(message.payload)
+            await handler(message.payload, message.metadata)
         except Exception as exc:  # pragma: no cover - processamento real
-            logger.exception("Falha ao processar job %s", message.id)
+            logger.exception("%sFalha ao processar job %s", prefix, message.id)
             await self.backend.ack(message, success=False, error=str(exc))
             return
         try:
             await self.backend.ack(message, success=True)
         except Exception:  # pragma: no cover - logging runtime falhas externas
-            logger.exception("Falha ao confirmar job %s", message.id)
+            logger.exception("%sFalha ao confirmar job %s", prefix, message.id)

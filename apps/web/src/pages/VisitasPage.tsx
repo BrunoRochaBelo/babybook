@@ -8,7 +8,7 @@ import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
 import { cn } from "@/lib/utils";
 
-const TOTAL_SLOTS = 20;
+const TOTAL_SLOTS: number = 20;
 
 export const VisitasPage = () => {
   const { selectedChild } = useSelectedChild();

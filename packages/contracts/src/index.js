@@ -28,12 +28,40 @@ export const paginatedChildrenSchema = paginatedResponse(rawChildSchema).transfo
     items: items.map((child) => childSchema.parse(child)),
     next,
 }));
-const momentMediaSchema = z.object({
+const rawMomentMediaSchema = z.object({
     id: z.string(),
-    kind: z.enum(["photo", "video", "audio"]),
-    url: z.string().url(),
+    type: z.enum(["image", "video", "audio"]),
+    url: z.string().url().optional(),
+    key: z.string().optional(),
     durationSeconds: z.number().int().optional(),
+    variants: z
+        .array(z.object({
+        preset: z.string(),
+        key: z.string().optional(),
+        url: z.string().url().optional(),
+        size_bytes: z.number().int().nonnegative().optional(),
+        width_px: z.number().int().positive().nullable().optional(),
+        height_px: z.number().int().positive().nullable().optional(),
+        kind: z.enum(["photo", "video", "audio"]).optional(),
+    }))
+        .optional(),
 });
+export const momentMediaSchema = rawMomentMediaSchema.transform((media) => ({
+    id: media.id,
+    kind: media.type === "image" ? "photo" : media.type,
+    url: media.url ?? null,
+    key: media.key ?? null,
+    durationSeconds: media.durationSeconds,
+    variants: media.variants?.map((variant) => ({
+        preset: variant.preset,
+        key: variant.key ?? null,
+        url: variant.url ?? null,
+        sizeBytes: variant.size_bytes ?? null,
+        widthPx: variant.width_px ?? null,
+        heightPx: variant.height_px ?? null,
+        kind: variant.kind ?? (media.type === "image" ? "photo" : media.type),
+    })),
+}));
 const rawMomentSchema = z.object({
     id: z.string().uuid(),
     child_id: z.string().uuid(),
@@ -53,20 +81,7 @@ export const momentSchema = rawMomentSchema.transform((moment) => {
     const payload = moment.payload ?? {};
     const media = Array.isArray(payload.media)
         ? payload.media
-            .map((entry) => z
-            .object({
-            id: z.string(),
-            type: z.enum(["image", "video", "audio"]),
-            url: z.string().url(),
-            durationSeconds: z.number().int().optional(),
-        })
-            .transform((value) => ({
-            id: value.id,
-            kind: value.type === "image" ? "photo" : value.type,
-            url: value.url,
-            durationSeconds: value.durationSeconds,
-        }))
-            .safeParse(entry))
+            .map((entry) => momentMediaSchema.safeParse(entry))
             .filter((result) => result.success)
             .map((result) => result.data)
         : [];
@@ -132,18 +147,37 @@ export const quotaUsageSchema = rawUsageSchema.transform((usage) => ({
     momentsUsed: usage.moments_used,
     momentsQuota: usage.moments_quota,
 }));
+const userRoleSchema = z.enum(["owner", "guardian", "viewer"]);
 const rawUserProfileSchema = z.object({
     id: z.string().uuid(),
     email: z.string().email(),
     name: z.string(),
     locale: z.string().nullable().optional(),
+    role: userRoleSchema.optional(),
 });
 export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
     id: profile.id,
     email: profile.email,
     name: profile.name,
     locale: profile.locale ?? "pt-BR",
+    role: profile.role ?? "owner",
 }));
+export const assetVariantInputSchema = z.object({
+    preset: z.string().max(80),
+    key: z.string().max(255),
+    size_bytes: z.number().int().nonnegative(),
+    width_px: z.number().int().positive().nullable().optional(),
+    height_px: z.number().int().positive().nullable().optional(),
+    kind: z.enum(["photo", "video", "audio"]),
+});
+export const assetStatusUpdateSchema = z.object({
+    status: z.enum(["queued", "processing", "ready", "failed"]).optional(),
+    duration_ms: z.number().int().nonnegative().nullable().optional(),
+    error_code: z.string().max(120).nullable().optional(),
+    viewer_accessible: z.boolean().optional(),
+    key_original: z.string().max(255).nullable().optional(),
+    variants: z.array(assetVariantInputSchema).optional(),
+});
 export const apiErrorSchema = z
     .object({
     error: z.object({

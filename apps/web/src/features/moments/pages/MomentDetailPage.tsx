@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMoment } from "@/hooks/api";
+import { getMediaUrl } from "@/lib/media";
 import { ChevronLeft, Share2, Edit, Trash2 } from "lucide-react";
 
 const MomentDetailSkeleton = () => (
@@ -60,13 +61,28 @@ export const MomentDetailPage = () => {
           <span className="font-semibold text-gray-700">Voltar</span>
         </button>
         <div className="flex gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button
+            type="button"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Compartilhar momento"
+            title="Compartilhar momento"
+          >
             <Share2 className="w-5 h-5 text-primary" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button
+            type="button"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Editar momento"
+            title="Editar momento"
+          >
             <Edit className="w-5 h-5 text-gray-700" />
           </button>
-          <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
+          <button
+            type="button"
+            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+            aria-label="Excluir momento"
+            title="Excluir momento"
+          >
             <Trash2 className="w-5 h-5 text-red-600" />
           </button>
         </div>
@@ -84,20 +100,20 @@ export const MomentDetailPage = () => {
               >
                 {media.kind === "photo" && (
                   <img
-                    src={media.url}
+                    src={getMediaUrl(media, "full") ?? getMediaUrl(media) ?? ""}
                     alt={moment.title}
                     className="w-full h-full object-cover"
                   />
                 )}
                 {media.kind === "video" && (
                   <video
-                    src={media.url}
+                    src={getMediaUrl(media) ?? ""}
                     controls
                     className="w-full h-full object-cover"
                   />
                 )}
                 {media.kind === "audio" && (
-                  <audio src={media.url} controls className="w-full" />
+                  <audio src={getMediaUrl(media) ?? ""} controls className="w-full" />
                 )}
               </div>
             ))}

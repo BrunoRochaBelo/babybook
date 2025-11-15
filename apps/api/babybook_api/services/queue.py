@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from babybook_api.db.models import WorkerJob
 from babybook_api.deps import get_db_session
 from babybook_api.settings import settings
+from .inline_worker import process_inline_job
 
 logger = logging.getLogger(__name__)
 
@@ -104,9 +105,25 @@ class CloudflareQueuePublisher:
                 raise RuntimeError("Queue publish failed") from exc
 
 
+class InlineQueuePublisher:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def publish(
+        self,
+        *,
+        kind: str,
+        payload: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        await process_inline_job(self._session, kind=kind, payload=payload)
+
+
 async def get_queue_publisher(
     db: AsyncSession = Depends(get_db_session),
 ) -> QueuePublisher:
+    if settings.app_env == "local" and settings.inline_worker_enabled:
+        return InlineQueuePublisher(db)
     if settings.queue_provider == "database":
         return DatabaseQueuePublisher(db)
     return CloudflareQueuePublisher()

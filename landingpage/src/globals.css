@@ -374,14 +374,30 @@ body::before {
 
 /* Efeito de virada de página nas seções */
 section {
-  opacity: 0;
-  transform: perspective(1000px) rotateY(-8deg);
+  opacity: 1;
+  transform: none;
   transition: all 0.8s ease-out;
 }
 
-section.section-visible {
+.section-reveal {
+  opacity: 0;
+  transform: perspective(1000px) rotateY(-8deg);
+}
+
+.section-reveal.section-visible {
   opacity: 1;
   transform: perspective(1000px) rotateY(0deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-reveal,
+  .section-reveal.section-visible {
+    opacity: 1;
+    transform: none;
+  }
+  section {
+    transition: none;
+  }
 }
 
 /* Efeito de papel nas imagens */

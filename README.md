@@ -118,9 +118,9 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 ### 3.6. O que NÃO roda localmente (A Fila e o Worker)
 
-Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não roda localmente. Isso é uma decisão de arquitetura deliberada para simplificar radicalmente o DevEx. Não queremos que um dev frontend precise gerenciar um stack complexo de workers Python. Em ENV=local, a API (FastAPI) não publica na Fila. Ela simula o worker executando o job de forma síncrona (no mesmo processo) e atualiza o asset.status para 'ready' imediatamente.
+Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não precisa rodar localmente para o fluxo padrão. Para simplificar o DevEx, usamos o modo **inline worker**: em `ENV=local` e `INLINE_WORKER_ENABLED=true`, a API (FastAPI) não publica na fila. Ela simula o processamento assincrono no mesmo processo e atualiza o asset.status para `ready` imediatamente. Isso mantém o upload funcional para quem está desenvolvendo o apps/web sem depender de ffmpeg/minio adicionais.
 
-Implicação: Isso permite que o desenvolvedor frontend (no apps/web) tenha a experiência de upload completa (do upload ao status 'ready') sem precisar rodar o stack de workers. Para testar o Worker (Modal): O desenvolvedor de backend deve testar o worker (Modal) de forma isolada, em um ambiente de staging ou preview (ex: modal deploy ...).
+Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou o modo `QUEUE_PROVIDER=database`), basta definir `INLINE_WORKER_ENABLED=false`, executar `pnpm dev:workers` (ou rodar o worker no provedor Modal) e deixar a API publicar os jobs normalmente. A composição local (`docker-compose`) já cria os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO; é só reutilizar essas envs em produção.
 
 ## 4. O que tem aqui? (Estrutura do Monorepo)
 
@@ -209,6 +209,8 @@ babybook/
 ```bash
 pnpm install
 pnpm dev:web     # SPA autenticada
+pnpm dev:web:mock # SPA com MSW e seeds
+pnpm dev:web:real # SPA apontando para API real (desativa MSW)
 pnpm dev:edge    # Links públicos
 pnpm dev:api     # FastAPI (porta 8000)
 pnpm dev:workers # Workers locais
@@ -216,3 +218,42 @@ pnpm dev:workers # Workers locais
 
 > ⚙️ Em `pnpm dev:web` habilitamos o [MSW](https://mswjs.io/) automaticamente e carregamos o perfil **Bruno (owner)** com as crianças _Alice_ e _Theo_. Isso garante que toda a interface fique navegável mesmo sem backend.  
 > Para validar contra a API real, crie um `.env.local` em `apps/web` com `VITE_ENABLE_MSW=false` (ou defina a variável no shell) e execute `pnpm dev:web` com o backend rodando. Lembre-se de reativar a flag quando precisar voltar ao modo mockado.
+> Dica: use `pnpm dev:web:mock` para garantir que os dados simulados estão ativos ou `pnpm dev:web:real` para desativá-los automaticamente.
+
+### Worker real no ambiente local
+
+O modo inline (padrão em `ENV=local`) resolve quase todos os cenários. Para exercitar o pipeline completo com fila + worker:
+
+1. Defina `INLINE_WORKER_ENABLED=false` no `.env.local` (ou no shell).
+2. Suba os serviços de apoio normalmente (`docker compose up -d`); o serviço `storage-init` cria automaticamente os buckets `babybook-uploads`, `babybook-media` (derivados com TTL de 30 dias) e `babybook-exports` (72h).
+3. Rode `docker compose --profile workers up worker` para iniciar o worker Python (ou `pnpm dev:workers` se preferir rodar fora dos contêineres).
+
+Com esses passos, o `/uploads/complete` publica jobs no banco (queue provider = `database`), o worker consome e atualiza o asset via `PATCH /assets/{id}`, replicando o comportamento de produção.
+
+
+#### Administrando a fila
+
+Use o CLI do `apps/admin` para inspecionar e reprocessar jobs:
+
+```bash
+cd apps/admin
+python -m babybook_admin.cli worker-jobs list --status pending --limit 10
+python -m babybook_admin.cli worker-jobs replay <job_id>
+```
+
+Defina `BABYBOOK_DATABASE_URL` para apontar para outro banco (por padrão usa o `settings.database_url`).
+
+
+
+#### SPA em contêiner
+
+Quando quiser rodar o front no compose (modo produção), habilite o profile web-prod:
+
+`ash
+docker compose --profile web-prod up web-prod
+`
+
+O container usa pps/web/Dockerfile para buildar o bundle e serve o app em http://localhost:4173 apontando para a API/storage do compose.
+
+> Dica: para que o apps/web encontre os derivados no ambiente real/local, defina `VITE_MEDIA_BASE_URL` com o host do bucket (ex.: `http://localhost:9000`).
+

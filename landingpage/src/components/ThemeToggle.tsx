@@ -9,7 +9,10 @@ export function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-card"
-      aria-label="Alternar tema claro/escuro"
+      role="switch"
+      aria-checked={theme === "dark"}
+      aria-label="Alternar entre tema claro e escuro"
+      title={theme === "dark" ? "Tema escuro ativado" : "Tema claro ativado"}
     >
       {theme === "light" ? (
         <>
