@@ -78,7 +78,7 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
    ```bash
    pnpm install
    ```
-   (Este comando irá "içar" (hoist) todas as node_modules para a raiz, linkar os workspaces (apps/_, packages/_) e instalar as dependências Python no ambiente virtual.)
+   (Este comando irá "içar" (hoist) todas as node*modules para a raiz, linkar os workspaces (apps/*, packages/\_) e instalar as dependências Python no ambiente virtual.)
 
 ### 3.3. Rodando a Infra Local
 
@@ -111,10 +111,18 @@ Após a infra (Docker) estar rodando e migrada, rode os serviços locais (API e 
 pnpm dev:local
 ```
 
+Para iniciar a landing page + API + Workers com o ambiente Python criado, rode primeiro `pnpm run bootstrap` e depois `pnpm run dev:all`.
+
+Se não quiser subir os Workers (evitar conexões com o banco local), utilize a versão "lite":
+
+```bash
+pnpm run dev:all:lite
+```
+
 Isso irá iniciar os apps em modo watch (hot-reload):
 
 - API (FastAPI): http://localhost:8000 (Acesse /docs para o Swagger).
-- Web (React/Vite): http://localhost:3000
+- Web (React/Vite): http://localhost:5173
 
 ### 3.6. O que NÃO roda localmente (A Fila e o Worker)
 
@@ -127,7 +135,6 @@ Quando alguém precisar testar o Worker (Modal) “de verdade”, basta definir 
 Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura do Projeto (Seção 2) define isso em detalhes.
 
 - **/apps/**: Descrição: O código executável. Cada pasta é uma "fronteira" de deploy.
-
   - api/: O "Cérebro" (FastAPI, Python). Controla RBAC, Quotas, Negócio.
   - web/: O "Coração" (React SPA, Vite). A experiência da "Ana" (Persona).
   - edge/: O "Rosto Público" (SSR Links, Hono/CF). O que o "Sérgio" (Persona) vê.
@@ -135,7 +142,6 @@ Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura
   - admin/: Ferramentas de CLI (ex: rodar Jobs manuais, db:upgrade).
 
 - **/packages/**: Descrição: Código compartilhado que não é deployável sozinho. É o nosso "core" interno, linkado via pnpm para os apps/.
-
   - contracts/: O "Contrato" (Tipos TS gerados da OpenAPI). A cola anti-quebra.
   - ui/: Os "Blocos" (Design System, shadcn/React).
   - config/: Configs (ESLint, TSConfig, Tailwind).
@@ -154,13 +160,11 @@ Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura
 A qualidade é garantida por gates no CI/CD (Estrutura do Projeto, Seção 15). A nossa filosofia segue a "Pirâmide de Testes":
 
 - **Base (Rápida): Unidade**
-
   - Onde: apps/api/tests/unit, apps/web/tests/unit.
   - O quê: Lógica pura, isolada.
   - Exemplo: Testar uma função de validação no zod (packages/contracts) ou uma lógica de cálculo de data (packages/utils).
 
 - **Meio (Contrato): Integração**
-
   - O quê: Testa a "cola" entre os componentes.
   - Exemplo (Backend): Testar o endpoint POST /moments com um mock do db e da Fila CF (Cloudflare Queues).
   - Exemplo (Frontend): Testar o componente MomentCard contra um payload JSON mockado (via msw).
@@ -181,7 +185,6 @@ pnpm --filter api test
 pnpm --filter e2e test:headed
 ```
 
-
 ### Modos do front-end
 
 `ash
@@ -195,12 +198,12 @@ No modo real, configure VITE_ENABLE_MSW=false e VITE_MEDIA_BASE_URL no .env.loca
 ### Worker real no ambiente local
 
 Para executar o pipeline completo em dev:
+
 1. Defina `INLINE_WORKER_ENABLED=false`.
 2. Suba o compose (`docker compose up -d`) para criar os buckets via `storage-init`.
 3. Rode `docker compose --profile workers up worker` (ou `pnpm dev:workers`).
 
 Isso aproxima o ambiente local do comportamento em produção (jobs persistidos no banco e consumidos pelo worker Python).
-
 
 #### Administrando a fila
 
@@ -209,8 +212,6 @@ cd apps/admin
 python -m babybook_admin.cli worker-jobs list --status pending
 python -m babybook_admin.cli worker-jobs replay <job_id>
 ```
-
-
 
 #### SPA em contêiner
 
@@ -221,4 +222,3 @@ docker compose --profile web-prod up web-prod
 Esse profile usa pps/web/Dockerfile para gerar o bundle estático em http://localhost:4173, apontando para a API/storage do compose.
 
 > Dica: defina `VITE_MEDIA_BASE_URL` (por exemplo, `http://localhost:9000`) para que a SPA gere as URLs dos derivados ao usar o bucket local.
-

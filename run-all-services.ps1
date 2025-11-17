@@ -103,6 +103,7 @@ Write-Header "SERVIÇOS A INICIALIZAR" "Green"
 if (-not $ApiOnly -and -not $WebOnly) {
     Write-Service "API (FastAPI)" "pnpm dev:api" "8000"
     Write-Service "Web (Vite SPA)" "pnpm dev:web" "5173"
+    Write-Service "Landing Page" "pnpm dev:landig" "3001"
     Write-Service "Edge (Cloudflare)" "pnpm dev:edge" "8787"
     Write-Service "Workers (Background)" "pnpm dev:workers" "-"
 } elseif ($ApiOnly) {
@@ -134,6 +135,9 @@ if (-not $ApiOnly) {
     
     Write-Host "`n  ⚙️  Iniciando Workers..." -ForegroundColor Cyan
     Start-ServiceTerminal -Name "Baby Book - Workers" -Command "pnpm dev:workers" -Port "-" -Index 4
+
+        Write-Host "`n  🧾 Iniciando Landing Page..." -ForegroundColor Cyan
+        Start-ServiceTerminal -Name "Baby Book - Landing (3001)" -Command "pnpm run dev:landig" -Port "3001" -Index 5
 }
 
 Write-Host "`n╔════════════════════════════════════════════════════╗
@@ -145,6 +149,7 @@ Write-Host "     • Web:        http://localhost:5173" -ForegroundColor White
 Write-Host "     • API Docs:   http://localhost:8000/docs" -ForegroundColor White
 Write-Host "     • MinIO:      http://localhost:9001" -ForegroundColor White
 Write-Host "     • Edge Dev:   http://localhost:8787" -ForegroundColor White
+Write-Host "     • Landing:    http://localhost:3001" -ForegroundColor White
 
 Write-Host "`n  🛑 Para parar os serviços, feche os terminais ou Ctrl+C em cada um" -ForegroundColor Yellow
 Write-Host "`n  💡 Dica: Use -ApiOnly ou -WebOnly para iniciar apenas um serviço" -ForegroundColor Gray

@@ -111,10 +111,55 @@ Após a infra (Docker) estar rodando e migrada, rode os serviços locais (API e 
 pnpm dev:local
 ```
 
+Para iniciar a landing page, API e workers em paralelo, use (recomendado com o venv Python ativo):
+
+````bash
+& .\.venv\Scripts\Activate.ps1  # Windows PowerShell, se ainda não estiver ativo
+pnpm run dev:all
+
+No Windows, você pode usar o helper que ativa o venv e inicia todos os serviços em um comando:
+```bash
+pnpm run dev:all:win
+```
+
+No macOS / Linux, use:
+
+```bash
+pnpm run dev:all:unix
+```
+
+Se ainda não criou o ambiente Python e instalou dependências, rode primeiro:
+
+Windows:
+```powershell
+pnpm run setup:py:win
+```
+
+macOS / Linux:
+```bash
+pnpm run setup:py:unix
+
+Se preferir não rodar os Workers (e evitar conectar ao banco local), use a variante "lite":
+
+```bash
+pnpm run dev:all:lite
+```
+
+Ou use `dev:all:lite:win` / `dev:all:lite:unix` manualmente para ativar venv e rodar a versão "lite".
+```
+
+````
+
+Observações:
+
+- A Landing Page roda por padrão em http://localhost:3001
+- API (FastAPI) roda em http://localhost:8000
+- Web (React/Vite) roda em http://localhost:5173
+
 Isso irá iniciar os apps em modo watch (hot-reload):
 
 - API (FastAPI): http://localhost:8000 (Acesse /docs para o Swagger).
-- Web (React/Vite): http://localhost:3000
+- Web (React/Vite): http://localhost:5173
 
 ### 3.6. O que NÃO roda localmente (A Fila e o Worker)
 
@@ -127,7 +172,6 @@ Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou 
 Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura do Projeto (Seção 2) define isso em detalhes.
 
 - **/apps/**: Descrição: O código executável. Cada pasta é uma "fronteira" de deploy.
-
   - api/: O "Cérebro" (FastAPI, Python). Controla RBAC, Quotas, Negócio.
   - web/: O "Coração" (React SPA, Vite). A experiência da "Ana" (Persona).
   - edge/: O "Rosto Público" (SSR Links, Hono/CF). O que o "Sérgio" (Persona) vê.
@@ -135,7 +179,6 @@ Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura
   - admin/: Ferramentas de CLI (ex: rodar Jobs manuais, db:upgrade).
 
 - **/packages/**: Descrição: Código compartilhado que não é deployável sozinho. É o nosso "core" interno, linkado via pnpm para os apps/.
-
   - contracts/: O "Contrato" (Tipos TS gerados da OpenAPI). A cola anti-quebra.
   - ui/: Os "Blocos" (Design System, shadcn/React).
   - config/: Configs (ESLint, TSConfig, Tailwind).
@@ -154,13 +197,11 @@ Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura
 A qualidade é garantida por gates no CI/CD (Estrutura do Projeto, Seção 15). A nossa filosofia segue a "Pirâmide de Testes":
 
 - **Base (Rápida): Unidade**
-
   - Onde: apps/api/tests/unit, apps/web/tests/unit.
   - O quê: Lógica pura, isolada.
   - Exemplo: Testar uma função de validação no zod (packages/contracts) ou uma lógica de cálculo de data (packages/utils).
 
 - **Meio (Contrato): Integração**
-
   - O quê: Testa a "cola" entre os componentes.
   - Exemplo (Backend): Testar o endpoint POST /moments com um mock do db e da Fila CF (Cloudflare Queues).
   - Exemplo (Frontend): Testar o componente MomentCard contra um payload JSON mockado (via msw).
@@ -180,6 +221,7 @@ pnpm --filter api test
 # Rodar testes E2E com o navegador aberto (debug)
 pnpm --filter e2e test:headed
 ```
+
 ## 3. Estrutura Atual do Monorepo
 
 ```
@@ -230,7 +272,6 @@ O modo inline (padrão em `ENV=local`) resolve quase todos os cenários. Para ex
 
 Com esses passos, o `/uploads/complete` publica jobs no banco (queue provider = `database`), o worker consome e atualiza o asset via `PATCH /assets/{id}`, replicando o comportamento de produção.
 
-
 #### Administrando a fila
 
 Use o CLI do `apps/admin` para inspecionar e reprocessar jobs:
@@ -243,8 +284,6 @@ python -m babybook_admin.cli worker-jobs replay <job_id>
 
 Defina `BABYBOOK_DATABASE_URL` para apontar para outro banco (por padrão usa o `settings.database_url`).
 
-
-
 #### SPA em contêiner
 
 Quando quiser rodar o front no compose (modo produção), habilite o profile web-prod:
@@ -256,4 +295,3 @@ docker compose --profile web-prod up web-prod
 O container usa pps/web/Dockerfile para buildar o bundle e serve o app em http://localhost:4173 apontando para a API/storage do compose.
 
 > Dica: para que o apps/web encontre os derivados no ambiente real/local, defina `VITE_MEDIA_BASE_URL` com o host do bucket (ex.: `http://localhost:9000`).
-

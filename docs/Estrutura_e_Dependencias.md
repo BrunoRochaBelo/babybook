@@ -146,7 +146,7 @@ pnpm dev:local
 ```
 
 API (FastAPI): http://localhost:8000/docs (Acesse para ver a documentação interativa do OpenAPI).
-Web (SPA): http://localhost:3000 (Abra no navegador para usar o app).
+Web (SPA): http://localhost:5173 (Abra no navegador para usar o app).
 Workers (Modal): Por padrão, não precisam rodar localmente. Em `ENV=local` + `INLINE_WORKER_ENABLED=true`, a API ativa o modo inline e processa o job no mesmo processo (mock da Cloudflare Queues). Isso cobre 99% do fluxo da UI sem exigir ffmpeg. Quando precisar validar o pipeline real (fila + worker), defina `INLINE_WORKER_ENABLED=false`, aponte o `QUEUE_PROVIDER` para `database` ou Cloudflare e execute `pnpm dev:workers` (ou deploy Modal) — o docker-compose já provisiona os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`.
 Edge (Público): (Simulado via wrangler dev em outra porta, ex: 8787, via pnpm dev:edge).
 

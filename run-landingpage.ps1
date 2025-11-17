@@ -1,1 +1,1 @@
-pnpm --filter landingpage dev
+pnpm run dev:landig
