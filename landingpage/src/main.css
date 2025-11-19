@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- ESTILOS BASE & UTILITÁRIOS --- */
+body {
+    overflow-x: hidden;
+    /* background-color: #FDFCF8;  Replaced by Tailwind class in HTML or config */
+    /* color: #0F172A; Replaced by Tailwind class in HTML or config */
+}
+
+/* Scrollbar fina e elegante (apenas desktop) */
+@media (min-width: 768px) {
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+    }
+}
+
+/* Animações de Entrada */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- INTERAÇÕES ESPECÍFICAS --- */
+
+/* Seção Horizontal (Livros) */
+.horizontal-scroll-section {
+    height: 400vh; /* Altura extra para permitir o scroll horizontal */
+    position: relative;
+}
+.sticky-wrapper {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+.horizontal-track {
+    display: flex;
+    gap: 5vw; /* Espaçamento entre cards */
+    padding-left: 5vw; /* Mobile: menos padding */
+    will-change: transform;
+}
+@media (min-width: 768px) {
+    .horizontal-track {
+        padding-left: 10vw; /* Desktop: mais respiro */
+    }
+}
+
+/* Seção Caos -> Ordem */
+.chaos-container {
+    height: 200vh;
+    position: relative;
+}
+.chaos-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.photo-scatter {
+    position: absolute;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+.photo-scatter.organized {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.9) !important; /* Desktop Scale */
+    box-shadow: 0 0 0 4px white, 0 20px 40px rgba(0,0,0,0.15);
+    margin-left: calc(var(--i) * 4px);
+    margin-top: calc(var(--i) * -4px);
+}
+
+/* Mobile Scale Fix */
+@media (max-width: 768px) {
+    .photo-scatter.organized {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0.7) !important; /* Menor no mobile */
+    }
+}
+
+/* Accordion FAQ */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.accordion-btn[aria-expanded="true"] svg {
+    transform: rotate(45deg);
+}
+
+/* --- COFRE INTERATIVO (Estilos Personalizados) --- */
+#vault-card .vault-locked {
+    transform: translateY(0);
+    opacity: 1;
+}
+#vault-card .vault-content {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Estado Aberto (Trigger via JS) */
+#vault-card.is-unlocked .vault-locked {
+    transform: translateY(-100%); /* Cadeado sobe */
+    opacity: 0;
+}
+#vault-card.is-unlocked .vault-content {
+    opacity: 1;
+    transform: scale(1);
+}
+/* Brilho dourado quando abre */
+#vault-card.is-unlocked {
+    border-color: rgba(245, 158, 11, 0.5); /* Amber-500 */
+    box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.3);
+}
+
+/* Centralização da Linha do Tempo */
+.timeline-line {
+    left: 2rem; /* 32px = metade de w-16 (64px) */
+    transform: translateX(-50%); /* Centraliza exatamente no meio */
+}
