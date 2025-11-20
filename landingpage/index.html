@@ -31,9 +31,14 @@
 
   <!-- 1. HERO -->
   <section class="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-20">
-    <!-- Background Textura -->
-    <div class="absolute inset-0 -z-10 bg-[url('https://www.transparenttextures.com/patterns/cream-pixels.png')] opacity-50"></div>
-    <div class="absolute inset-0 -z-10 bg-gradient-radial from-indigo-50/50 via-cream to-cream"></div>
+    <!-- Background Video -->
+    <div class="absolute inset-0 -z-10 overflow-hidden">
+      <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-40">
+        <source src="/assets/video-hero.mp4" type="video/mp4">
+      </video>
+      <!-- Overlay para garantir contraste -->
+      <div class="absolute inset-0 bg-gradient-to-b from-cream/80 via-cream/50 to-cream"></div>
+    </div>
 
     <div class="max-w-4xl mx-auto text-center px-6 relative z-10">
       <span class="inline-block py-1 px-3 mb-6 text-xs font-bold tracking-widest text-indigo-500 uppercase bg-indigo-50 rounded-full border border-indigo-100 fade-in-up">
@@ -68,7 +73,7 @@
   </section>
 
   <!-- 2. O VAZIO (Caos vs Ordem Interativo) -->
-  <section class="chaos-container bg-paper border-t border-gray-100">
+  <section class="chaos-container bg-paper border-t border-gray-100 relative z-20">
     <div class="chaos-sticky">
       <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center px-6">
 
@@ -129,7 +134,7 @@
           <div class="relative z-10">
             <div class="text-4xl mb-4">📖</div>
             <h3 class="text-3xl md:text-4xl font-serif mb-4">Jornada</h3>
-            <p class="text-gray-300 text-base md:text-lg leading-relaxed">A vida dele em capítulos prontos. Do primeiro choro ao primeiro passo, organizado cronologicamente.</p>
+            <p class="text-gray-200 text-base md:text-lg leading-relaxed">A vida dele em capítulos prontos. Do primeiro choro ao primeiro passo, organizado cronologicamente.</p>
           </div>
         </div>
 
@@ -140,7 +145,7 @@
           <div class="relative z-10">
             <div class="text-4xl mb-4">🩺</div>
             <h3 class="text-3xl md:text-4xl font-serif mb-4">Saúde</h3>
-            <p class="text-gray-300 text-base md:text-lg leading-relaxed">Vacinas, consultas, crescimento. Tudo registrado e fácil de achar quando o médico perguntar.</p>
+            <p class="text-gray-200 text-base md:text-lg leading-relaxed">Vacinas, consultas, crescimento. Tudo registrado e fácil de achar quando o médico perguntar.</p>
           </div>
         </div>
 
@@ -151,7 +156,7 @@
           <div class="relative z-10">
             <div class="text-4xl mb-4">💌</div>
             <h3 class="text-3xl md:text-4xl font-serif mb-4">Visitas</h3>
-            <p class="text-gray-300 text-base md:text-lg leading-relaxed">Recados de quem ama. Aprovados por você, guardados para sempre. O livro de visitas digital.</p>
+            <p class="text-gray-200 text-base md:text-lg leading-relaxed">Recados de quem ama. Aprovados por você, guardados para sempre. O livro de visitas digital.</p>
           </div>
         </div>
 
@@ -177,7 +182,7 @@
 
             <div class="text-4xl mb-4 animate-pulse">🔓</div>
             <h3 class="text-3xl md:text-4xl font-serif mb-4 text-white">Cofre</h3>
-            <p class="text-gray-300 text-base md:text-lg leading-relaxed">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
+            <p class="text-gray-200 text-base md:text-lg leading-relaxed">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
           </div>
         </div>
 
@@ -277,22 +282,22 @@
       <div class="p-4 fade-in-up">
         <div class="text-indigo-400 text-2xl mb-2">✓</div>
         <h4 class="font-bold mb-1">Acesso vitalício</h4>
-        <p class="text-sm text-gray-400">Pague uma vez. Use para sempre.</p>
+        <p class="text-sm text-gray-300">Pague uma vez. Use para sempre.</p>
       </div>
       <div class="p-4 fade-in-up" style="transition-delay: 100ms;">
         <div class="text-indigo-400 text-2xl mb-2">✓</div>
         <h4 class="font-bold mb-1">100% Privado</h4>
-        <p class="text-sm text-gray-400">Suas memórias, suas regras (LGPD).</p>
+        <p class="text-sm text-gray-300">Suas memórias, suas regras (LGPD).</p>
       </div>
       <div class="p-4 fade-in-up" style="transition-delay: 200ms;">
         <div class="text-indigo-400 text-2xl mb-2">✓</div>
         <h4 class="font-bold mb-1">Exportação</h4>
-        <p class="text-sm text-gray-400">Seus dados sempre saem com você.</p>
+        <p class="text-sm text-gray-300">Seus dados sempre saem com você.</p>
       </div>
       <div class="p-4 fade-in-up" style="transition-delay: 300ms;">
         <div class="text-indigo-400 text-2xl mb-2">✓</div>
         <h4 class="font-bold mb-1">Suporte Humanizado</h4>
-        <p class="text-sm text-gray-400">Feito por pais para pais.</p>
+        <p class="text-sm text-gray-300">Feito por pais para pais.</p>
       </div>
     </div>
   </section>
@@ -311,7 +316,7 @@
         </div>
         <p class="text-indigo-300 font-medium mb-8">Acesso vitalício completo</p>
 
-        <ul class="space-y-4 text-left text-gray-300 mb-10 max-w-xs mx-auto">
+        <ul class="space-y-4 text-left text-gray-200 mb-10 max-w-xs mx-auto">
           <li class="flex gap-3"><span class="text-indigo-500">✓</span> 4 livros digitais completos</li>
           <li class="flex gap-3"><span class="text-indigo-500">✓</span> 40+ capítulos guiados</li>
           <li class="flex gap-3"><span class="text-indigo-500">✓</span> Atualizações inclusas</li>
@@ -329,7 +334,8 @@
   <!-- 8. FUTURO (Roadmap) -->
   <section class="py-20 px-6 bg-paper border-b border-gray-200">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="font-bold text-gray-800 mb-10 text-xl fade-in-up">Uma plataforma que cresce junto com a sua família.</h2>
+      <h2 class="font-bold text-gray-800 mb-4 text-xl fade-in-up">Uma plataforma que cresce junto com a sua família.</h2>
+      <p class="text-gray-500 mb-10 fade-in-up" style="transition-delay: 50ms;">No futuro, você poderá transformar sua história em novos formatos.</p>
       <div class="grid md:grid-cols-3 gap-8 text-left md:text-center">
         <div class="group fade-in-up">
           <div class="font-serif font-bold text-lg text-ink group-hover:text-indigo-600 transition-colors">Fotolivros impressos</div>
@@ -423,7 +429,7 @@
 
     <div class="max-w-4xl mx-auto text-center relative z-10 mb-20 fade-in-up">
       <h2 class="font-serif text-4xl md:text-6xl font-bold mb-6">A infância não espera.</h2>
-      <p class="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">Mas a história pode ser preservada. Comece hoje, no tempo que você tem.</p>
+      <p class="text-gray-200 text-lg mb-10 max-w-2xl mx-auto">Mas a história pode ser preservada. Comece hoje, no tempo que você tem.</p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
         <a href="#pricing" class="w-full sm:w-auto px-10 py-4 bg-white text-ink hover:bg-gray-100 rounded-xl font-bold text-lg transition-colors">
@@ -433,10 +439,10 @@
           Presentear uma história
         </a>
       </div>
-      <p class="text-sm text-gray-400">✓ Garantia de 30 dias · Se não for para você, devolvemos cada centavo</p>
+      <p class="text-sm text-gray-300">✓ Garantia de 30 dias · Se não for para você, devolvemos cada centavo</p>
     </div>
 
-    <div class="max-w-6xl mx-auto border-t border-gray-800 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-500">
+    <div class="max-w-6xl mx-auto border-t border-gray-800 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-400">
       <div class="flex flex-col md:flex-row gap-1 md:gap-6 items-center">
         <span class="font-semibold text-white">Baby Book © 2025</span>
         <span>Feito com afeto para famílias que valorizam memórias.</span>

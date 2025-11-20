@@ -9,6 +9,15 @@ body {
     /* color: #0F172A; Replaced by Tailwind class in HTML or config */
 }
 
+html {
+    scroll-padding-top: 100px; /* Adjust based on nav height */
+}
+
+::selection {
+    background-color: #F2995D; /* Accent color */
+    color: #FFFFFF;
+}
+
 /* Scrollbar fina e elegante (apenas desktop) */
 @media (min-width: 768px) {
     ::-webkit-scrollbar {
@@ -38,7 +47,7 @@ body {
 
 /* Seção Horizontal (Livros) */
 .horizontal-scroll-section {
-    height: 400vh; /* Altura extra para permitir o scroll horizontal */
+    height: 500vh; /* Altura extra para permitir o scroll horizontal */
     position: relative;
 }
 .sticky-wrapper {
@@ -48,7 +57,8 @@ body {
     width: 100%;
     overflow: hidden;
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* Align to bottom to clear top title */
+    padding-bottom: 5vh; /* Add breathing room at bottom */
 }
 .horizontal-track {
     display: flex;
@@ -64,7 +74,7 @@ body {
 
 /* Seção Caos -> Ordem */
 .chaos-container {
-    height: 200vh;
+    height: 300vh;
     position: relative;
 }
 .chaos-sticky {
@@ -120,16 +130,19 @@ body {
 }
 
 /* Estado Aberto (Trigger via JS) */
-#vault-card.is-unlocked .vault-locked {
+#vault-card.is-unlocked .vault-locked,
+#vault-card.is-open .vault-locked {
     transform: translateY(-100%); /* Cadeado sobe */
     opacity: 0;
 }
-#vault-card.is-unlocked .vault-content {
+#vault-card.is-unlocked .vault-content,
+#vault-card.is-open .vault-content {
     opacity: 1;
     transform: scale(1);
 }
 /* Brilho dourado quando abre */
-#vault-card.is-unlocked {
+#vault-card.is-unlocked,
+#vault-card.is-open {
     border-color: rgba(245, 158, 11, 0.5); /* Amber-500 */
     box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.3);
 }

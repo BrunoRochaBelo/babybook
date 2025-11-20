@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite'
+// Trigger reload
 
 export default defineConfig({
   server: {
-    port: 3001,
+    port: 3000
+  },
+  optimizeDeps: {
+    include: ['lenis']
   },
 })

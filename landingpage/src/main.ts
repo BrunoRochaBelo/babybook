@@ -1,4 +1,23 @@
 import './main.css'
+import Lenis from 'lenis'
+
+// Initialize Lenis for smooth scrolling
+const lenis = new Lenis({
+    duration: 1.2,
+    easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    orientation: 'vertical',
+    gestureOrientation: 'vertical',
+    smoothWheel: true,
+    wheelMultiplier: 1,
+    touchMultiplier: 2,
+})
+
+function raf(time: number) {
+    lenis.raf(time)
+    requestAnimationFrame(raf)
+}
+
+requestAnimationFrame(raf)
 
 document.addEventListener('DOMContentLoaded', () => {
             
@@ -27,9 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Calcula progresso dentro da seção (0 a 1)
             const progress = Math.max(0, Math.min(1, -rect.top / (rect.height - window.innerHeight)));
             
-            if (progress > 0.25) {
-                // Momento da "Ordem"
-                photos.forEach(p => p.classList.add('organized'));
+            // FASE 1: Texto (0.3)
+            if (progress > 0.3) {
                 if (highlight) {
                     highlight.style.color = "#F2995D"; // Using accent color
                     highlight.innerText = "Só precisava caber na vida real.";
@@ -37,14 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (text1) text1.classList.add('opacity-30'); // Esmaece texto antigo
                 if (text2) text2.classList.remove('opacity-30'); // Revela texto novo
             } else {
-                // Momento do "Caos"
-                photos.forEach(p => p.classList.remove('organized'));
                 if (highlight) {
                     highlight.style.color = "#9CA3AF";
                     highlight.innerText = "Só precisava caber na vida real."; // Mantem texto, muda cor
                 }
                 if (text1) text1.classList.remove('opacity-30');
                 if (text2) text2.classList.add('opacity-30');
+            }
+
+            // FASE 2: Fotos (0.6) - Só acontece DEPOIS do texto
+            if (progress > 0.6) {
+                photos.forEach(p => p.classList.add('organized'));
+            } else {
+                photos.forEach(p => p.classList.remove('organized'));
             }
         });
     }
@@ -58,18 +81,68 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('scroll', () => {
             const rect = scrollSection.getBoundingClientRect();
             const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
-            let percentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
+            const rawPercentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
             
+            // FASES DA ANIMAÇÃO (Ajustado com feedback v4 - Resistência)
+            // 0% - 60%: Scroll Horizontal (Move o trilho de 0 a 100%)
+            // 60% - 90%: Destrancar Cofre (Trilho parado, "dead zone" MUITO longa, tensão visual)
+            // 90% - 100%: Abrir Cofre (Trilho parado, conteúdo revela)
+
+            let movePercentage = 0;
+            
+            if (rawPercentage < 0.60) {
+                // Normalizando 0-0.60 para 0-1
+                movePercentage = rawPercentage / 0.60;
+            } else {
+                // Travado no fim do trilho a partir de 60%
+                movePercentage = 1;
+            }
+
             // Move o trilho
-            const moveAmount = percentage * (track.scrollWidth - window.innerWidth);
+            const moveAmount = movePercentage * (track.scrollWidth - window.innerWidth);
             track.style.transform = `translateX(-${moveAmount}px)`;
 
-            // Lógica do Cofre: Destrancar quando chegar quase no fim (90% do scroll da seção)
-            // Isso cria a sensação de "mais um scroll" para abrir
-            if (percentage > 0.92) {
-                vaultCard.classList.add('is-unlocked');
-            } else {
+            // Lógica do Cofre
+            const lockIcon = vaultCard.querySelector('.vault-locked .text-5xl') as HTMLElement; // Seleciona o ícone do cadeado
+
+            // Fase 2: Destrancar (60% a 90%)
+            // Resistência: O usuário precisa rolar bastante. Adicionamos tensão visual.
+            if (rawPercentage > 0.60 && rawPercentage <= 0.90) {
+                // REMOVIDO: vaultCard.classList.add('is-unlocked'); -> Isso abria o cofre visualmente!
+                if (lockIcon) lockIcon.classList.remove('animate-bounce'); // Remove animação padrão para não conflitar
+                
+                // Calcula tensão de 0 a 1 dentro da fase de travamento
+                const tension = (rawPercentage - 0.60) / 0.30;
+                
+                // Aplica efeito de "tremor" ou "pressão" baseado na tensão
+                // Tremor aleatório aumenta com a tensão
+                const shake = tension * 5; // Max 5px shake
+                const randomX = (Math.random() - 0.5) * shake;
+                const randomY = (Math.random() - 0.5) * shake;
+                const scale = 1 - (tension * 0.1); // Encolhe levemente (pressão)
+
+                if (lockIcon) {
+                    lockIcon.style.transform = `translate(${randomX}px, ${randomY}px) scale(${scale})`;
+                }
+
+            } else if (rawPercentage <= 0.60) {
                 vaultCard.classList.remove('is-unlocked');
+                if (lockIcon) {
+                    lockIcon.style.transform = 'none'; // Reseta
+                    lockIcon.classList.add('animate-bounce'); // Devolve a animação se voltar
+                }
+            }
+
+            // Fase 3: Abrir (90% a 100%)
+            if (rawPercentage > 0.90) {
+                vaultCard.classList.add('is-open');
+                const lockedState = vaultCard.querySelector('.vault-locked') as HTMLElement;
+                if (lockedState) lockedState.style.opacity = '0';
+                if (lockIcon) lockIcon.style.transform = 'scale(1.2)'; // Pop final ao abrir (opcional, mas já está sumindo com opacity)
+            } else {
+                vaultCard.classList.remove('is-open');
+                const lockedState = vaultCard.querySelector('.vault-locked') as HTMLElement;
+                if (lockedState) lockedState.style.opacity = '1';
             }
         });
     }
