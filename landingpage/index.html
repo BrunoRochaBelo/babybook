@@ -4,25 +4,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baby Book - A História Viva</title>
-  <meta name="description" content="O Baby Book é uma coleção de livros digitais que transforma momentos soltos em uma história organizada.">
 
-  <!-- Fontes -->
+  <!-- SEO Primário -->
+  <title>Baby Book - Transforme Momentos em História para Sempre</title>
+  <meta name="description" content="Coleção de livros digitais para organizar a história do seu filho. Jornada, Saúde, Visitas e Cofre. Acesso vitalício por R$200. Privacidade garantida e exportação livre.">
+  <meta name="keywords" content="baby book, livro do bebê digital, diário do bebê, álbum de fotos bebê, registro infância, memórias bebê, livro personalizado bebê">
+  <meta name="author" content="Baby Book">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://babybook.com.br">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://babybook.com.br">
+  <meta property="og:title" content="Baby Book - A História do Seu Filho Organizada e Para Sempre">
+  <meta property="og:description" content="4 livros digitais completos para preservar cada momento da infância. Jornada, Saúde, Visitas e Cofre. Pague uma vez, use para sempre.">
+  <meta property="og:image" content="https://babybook.com.br/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Baby Book">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://babybook.com.br">
+  <meta name="twitter:title" content="Baby Book - A História do Seu Filho Para Sempre">
+  <meta name="twitter:description" content="Transforme momentos soltos em história organizada. 4 livros digitais, acesso vitalício por R$200.">
+  <meta name="twitter:image" content="https://babybook.com.br/twitter-image.jpg">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#4f46e5">
+
+  <!-- Preconnect para Performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://images.unsplash.com">
+
+  <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <!-- Schema.org para Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Baby Book",
+    "description": "Coleção de livros digitais para preservar a história da infância do seu filho",
+    "brand": {
+      "@type": "Brand",
+      "name": "Baby Book"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "200.00",
+      "priceCurrency": "BRL",
+      "availability": "https://schema.org/InStock",
+      "url": "https://babybook.com.br/#pricing"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "247"
+    }
+  }
+  </script>
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Baby Book" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <meta name="msapplication-TileColor" content="#4f46e5" />
+  <meta name="msapplication-TileImage" content="/icon-192.png" />
 
 </head>
 
 <body class="bg-cream text-ink">
 
   <!-- NAV -->
-  <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <div class="font-serif text-2xl italic tracking-tight font-bold text-ink">Baby Book</div>
-      <div class="flex items-center gap-4">
-        <a href="#pricing" class="hidden md:block text-sm font-medium text-gray-600 hover:text-indigo-600">Presentear</a>
-        <a href="#pricing" class="bg-indigo-600 text-white px-6 py-2 rounded-full font-medium text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+  <nav class="nav-header fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300">
+    <div class="nav-pill bg-white/95 backdrop-blur-xl border border-gray-200/80 rounded-full px-6 py-3 shadow-lg shadow-gray-900/5 flex items-center gap-8">
+      <a href="#" class="font-serif text-xl italic tracking-tight font-bold text-ink hover:text-indigo-600 transition-colors">
+        Baby Book
+      </a>
+
+      <div class="hidden md:flex items-center gap-1">
+        <a href="#how-it-works-section" class="nav-link text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-full transition-all">
+          Como Funciona
+        </a>
+        <a href="#pricing" class="nav-link text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-full transition-all">
+          Preço
+        </a>
+      </div>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <a href="#pricing" class="hidden sm:inline-flex items-center text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-full transition-all">
+          🎁 Presentear
+        </a>
+        <a href="#pricing" class="cta-primary inline-flex items-center justify-center bg-indigo-600 text-white px-5 py-2 rounded-full font-semibold text-sm hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-300">
           Começar
         </a>
       </div>
@@ -30,44 +114,44 @@
   </nav>
 
   <!-- 1. HERO -->
-  <section class="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-20">
+  <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 pb-16">
     <!-- Background Video -->
     <div class="absolute inset-0 -z-10 overflow-hidden">
-      <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-40">
+      <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-30" poster="/assets/hero-poster.jpg">
         <source src="/assets/video-hero.mp4" type="video/mp4">
       </video>
-      <!-- Overlay para garantir contraste -->
-      <div class="absolute inset-0 bg-gradient-to-b from-cream/80 via-cream/50 to-cream"></div>
+      <!-- Overlay para garantir contraste melhorado -->
+      <div class="absolute inset-0 bg-gradient-to-b from-cream/90 via-cream/70 to-cream"></div>
     </div>
 
     <div class="max-w-4xl mx-auto text-center px-6 relative z-10">
-      <span class="inline-block py-1 px-3 mb-6 text-xs font-bold tracking-widest text-indigo-500 uppercase bg-indigo-50 rounded-full border border-indigo-100 fade-in-up">
+      <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-100 rounded-full border-2 border-indigo-200 scale-in shadow-sm">
         Para sempre
       </span>
 
-      <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl leading-[1] mb-8 tracking-tight text-ink fade-in-up" style="transition-delay: 100ms;">
+      <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] mb-8 tracking-tight text-ink fade-in-up stagger-1">
         A história do seu filho merece mais do que intenções. <br />
         <span class="text-indigo-600 italic">Ela merece um lugar.</span>
       </h1>
 
-      <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed fade-in-up" style="transition-delay: 200ms;">
+      <p class="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-12 leading-relaxed fade-in-up stagger-2">
         O Baby Book é uma coleção de livros digitais que transforma momentos soltos em uma história organizada, íntima e feita para atravessar gerações.
       </p>
 
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up" style="transition-delay: 300ms;">
-        <a href="#pricing" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-1">
-          Começar nossa história
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 scale-in stagger-3">
+        <a href="#pricing" class="cta-primary shine-effect w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-xl shadow-indigo-300 hover:shadow-2xl hover:shadow-indigo-400 hover:-translate-y-1 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2">
+          <span class="btn-text">Começar nossa história</span>
         </a>
-        <button class="w-full sm:w-auto px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-          <span>🎁</span> Presentear
-        </button>
+        <a href="#pricing" class="cta-secondary w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-white border-2 border-gray-300 text-gray-800 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-gray-600 focus-visible:outline-offset-2 gap-2">
+          <span class="btn-text"><span role="img" aria-label="presente">🎁</span> Presentear</span>
+        </a>
       </div>
 
-      <div class="mt-6 text-sm text-gray-400 flex items-center justify-center gap-2 fade-in-up" style="transition-delay: 400ms;">
-        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      <div class="mt-8 text-sm text-gray-600 flex items-center justify-center gap-2 fade-in-up" style="transition-delay: 400ms;">
+        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
         </svg>
-        Acesso vitalício · Pague uma vez, seu para sempre
+        <span class="font-medium">Acesso vitalício · Pague uma vez, seu para sempre</span>
       </div>
     </div>
   </section>
@@ -79,17 +163,17 @@
 
         <!-- Texto Fixo -->
         <div class="relative z-20 order-2 md:order-1 text-center md:text-left">
-          <span class="text-indigo-600 font-bold tracking-widest text-xs uppercase mb-2 block">O vazio que ninguém percebe</span>
-          <h2 class="font-serif text-4xl md:text-5xl font-bold mb-6 leading-tight">
+          <span class="text-indigo-700 font-bold tracking-widest text-xs uppercase mb-3 block fade-in-left">O vazio que ninguém percebe</span>
+          <h2 class="font-serif text-3xl md:text-5xl font-bold mb-8 leading-tight fade-in-left stagger-1">
             A tradição de registrar a infância nunca saiu de moda. <br>
-            <span class="text-gray-400 transition-colors duration-500" id="chaos-highlight">Só precisava caber na vida real.</span>
+            <span class="text-gray-500 transition-colors duration-500" id="chaos-highlight">Só precisava caber na vida real.</span>
           </h2>
 
-          <div class="space-y-6 text-gray-600 text-lg">
-            <p id="chaos-text-1" class="transition-opacity duration-500">
+          <div class="space-y-6 text-gray-700 text-base md:text-lg">
+            <p id="chaos-text-1" class="transition-opacity duration-500 leading-relaxed">
               Antes as vovós e titias faziam com cola, canetinha e fotos reveladas. Era trabalhoso, virava relíquia ou se perdia.
             </p>
-            <p id="chaos-text-2" class="opacity-30 transition-opacity duration-500 font-medium text-indigo-900">
+            <p id="chaos-text-2" class="opacity-30 transition-opacity duration-500 font-semibold text-indigo-800 leading-relaxed">
               Hoje você tem 10x mais registros — e nenhum lugar onde eles virem história. O Baby Book organiza esse caos com afeto.
             </p>
           </div>
@@ -99,16 +183,24 @@
         <!-- Altura ajustada para mobile para não ocupar 100% e tapar texto -->
         <div class="relative h-[300px] md:h-[400px] w-full flex items-center justify-center order-1 md:order-2 mb-8 md:mb-0">
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[10%] left-[10%] rotate-[-12deg]" style="--i:0">
-            <img src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover grayscale opacity-80">
+            <div class="lazy-image loading w-full h-full">
+              <img data-src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+            </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[50%] left-[60%] rotate-[15deg]" style="--i:1">
-            <img src="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover grayscale opacity-80">
+            <div class="lazy-image loading w-full h-full">
+              <img data-src="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+            </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[20%] right-[10%] rotate-[8deg]" style="--i:2">
-            <img src="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover grayscale opacity-80">
+            <div class="lazy-image loading w-full h-full">
+              <img data-src="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+            </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[60%] left-[10%] rotate-[-6deg]" style="--i:3">
-            <img src="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover grayscale opacity-80">
+            <div class="lazy-image loading w-full h-full">
+              <img data-src="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+            </div>
           </div>
         </div>
       </div>
@@ -118,7 +210,7 @@
   <!-- 3. OS 4 LIVROS (Horizontal Scroll) -->
   <section class="horizontal-scroll-section bg-ink text-white relative z-30">
     <div class="sticky-wrapper">
-      <div class="absolute top-8 left-6 md:left-12 z-20 mix-blend-difference max-w-[80%]">
+      <div class="absolute top-12 left-6 md:left-12 z-20 mix-blend-difference max-w-[80%]">
         <span class="text-indigo-300 font-mono uppercase text-sm tracking-widest">A Coleção</span>
         <h2 class="text-3xl md:text-4xl font-serif mt-2 leading-tight">Quatro livros.<br>Uma infância completa.</h2>
       </div>
@@ -164,25 +256,25 @@
         <div id="vault-card" class="book-card min-w-[85vw] md:min-w-[45vw] h-[60vh] md:h-[70vh] bg-gray-900 border border-white/10 rounded-3xl relative overflow-hidden group transition-all duration-700">
 
           <!-- ESTADO BLOQUEADO (Sobreposto) -->
-          <div class="vault-locked absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-950 transition-all duration-1000 ease-in-out px-4 text-center">
-            <div class="text-5xl md:text-6xl mb-4 animate-bounce">🔒</div>
-            <h3 class="text-2xl md:text-3xl font-serif text-gray-400">Cofre Bloqueado</h3>
-            <div class="flex items-center gap-2 mt-4 text-gray-600 text-xs md:text-sm uppercase tracking-widest">
+          <div class="vault-locked absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-950 rounded-3xl transition-all duration-700 ease-in-out px-4 text-center">
+            <div class="text-6xl md:text-7xl mb-5 animate-bounce" role="img" aria-label="cadeado fechado">🔒</div>
+            <h3 class="text-2xl md:text-3xl font-serif text-gray-300 font-bold mb-3">Cofre Bloqueado</h3>
+            <div class="flex items-center gap-2 mt-2 text-gray-500 text-xs md:text-sm uppercase tracking-widest font-semibold">
               <span>Role para destrancar</span>
-              <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
               </svg>
             </div>
           </div>
 
           <!-- ESTADO DESBLOQUEADO (Conteúdo) -->
-          <div class="vault-content p-8 md:p-12 flex flex-col justify-end h-full relative z-10 transition-all duration-1000 delay-200">
-            <div class="absolute top-0 right-0 p-8 md:p-12 opacity-10 font-serif text-8xl md:text-9xl">04</div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent -z-10"></div>
+          <div class="vault-content p-8 md:p-12 flex flex-col justify-end h-full relative z-10 transition-all duration-700 delay-150">
+            <div class="absolute top-0 right-0 p-8 md:p-12 opacity-5 font-serif text-8xl md:text-9xl">04</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent -z-10"></div>
 
-            <div class="text-4xl mb-2 animate-pulse">🔓</div>
-            <h3 class="text-3xl md:text-4xl font-serif mb-4 text-white">Cofre</h3>
-            <p class="text-gray-200 text-base md:text-lg leading-relaxed">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
+            <div class="text-5xl mb-3" role="img" aria-label="cadeado aberto">🔓</div>
+            <h3 class="text-3xl md:text-4xl font-serif mb-4 text-white font-bold">Cofre</h3>
+            <p class="text-gray-100 text-base md:text-lg leading-relaxed">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
           </div>
         </div>
 
@@ -199,9 +291,9 @@
       <div class="timeline-background"></div>
 
       <div class="max-w-4xl mx-auto px-6 relative z-10">
-        <div class="text-center mb-16 md:mb-24 fade-in-up">
-          <span class="text-indigo-600 font-bold tracking-widest text-xs uppercase">Como Funciona</span>
-          <h2 class="font-serif text-4xl md:text-5xl mt-2">Três minutos. Uma história.</h2>
+        <div class="text-center mb-20 md:mb-28 fade-in-up">
+          <span class="text-indigo-700 font-bold tracking-widest text-xs uppercase">Como Funciona</span>
+          <h2 class="font-serif text-3xl md:text-5xl mt-3 font-bold">Três minutos. Uma história.</h2>
         </div>
 
         <!-- Container da Timeline -->
@@ -214,32 +306,32 @@
           <!-- Linha de Progresso (Colorida) -->
           <div id="timeline-progress" class="timeline-line absolute top-2 w-1 bg-indigo-600 rounded-full z-0 transition-all duration-75 ease-linear" style="height: 0%;"></div>
 
-          <div class="space-y-16 md:space-y-20 relative z-10">
+          <div class="space-y-20 md:space-y-24 relative z-10">
             <!-- Passo 1 -->
-            <div class="step-item active flex gap-6 md:gap-12 items-start transition-opacity duration-500" data-index="0">
+            <div class="step-item active flex gap-6 md:gap-12 items-start transition-all duration-500" data-index="0">
               <!-- Círculo fixo w-16 (64px) -->
-              <div class="w-16 h-16 rounded-full bg-white border-4 border-indigo-600 flex items-center justify-center text-xl font-bold shadow-xl shrink-0 relative z-10 transition-colors duration-300 text-ink">1</div>
+              <div class="step-circle w-16 h-16 rounded-full bg-white border-4 border-indigo-600 flex items-center justify-center text-xl font-bold shadow-lg shrink-0 relative z-10 transition-all duration-400 text-ink">1</div>
               <div class="pt-2">
-                <h3 class="text-2xl md:text-3xl font-serif mb-3 transition-colors duration-500">Escolha o momento</h3>
-                <p class="text-gray-600 text-base md:text-lg leading-relaxed transition-colors duration-500">Nascimento? Primeiro banho? Primeira palavra? Os capítulos já estão prontos esperando por você.</p>
+                <h3 class="text-2xl md:text-3xl font-serif mb-4 transition-colors duration-400 font-bold">Escolha o momento</h3>
+                <p class="text-gray-700 text-base md:text-lg leading-relaxed transition-colors duration-400">Nascimento? Primeiro banho? Primeira palavra? Os capítulos já estão prontos esperando por você.</p>
               </div>
             </div>
 
             <!-- Passo 2 -->
-            <div class="step-item flex gap-6 md:gap-12 items-start transition-opacity duration-500" data-index="1">
-              <div class="w-16 h-16 rounded-full bg-white border-4 border-gray-200 flex items-center justify-center text-xl font-bold shadow-xl shrink-0 relative z-10 transition-colors duration-300 text-gray-400">2</div>
+            <div class="step-item flex gap-6 md:gap-12 items-start transition-all duration-500" data-index="1">
+              <div class="step-circle w-16 h-16 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-xl font-bold shadow-lg shrink-0 relative z-10 transition-all duration-400 text-gray-500">2</div>
               <div class="pt-2">
-                <h3 class="text-2xl md:text-3xl font-serif mb-3 text-gray-400 transition-colors duration-500">Adicione afeto</h3>
-                <p class="text-gray-400 text-base md:text-lg leading-relaxed transition-colors duration-500">Fotos, vídeos, áudios. Escreva se quiser. Só o essencial, nada de excesso ou filtros complicados.</p>
+                <h3 class="text-2xl md:text-3xl font-serif mb-4 text-gray-500 transition-colors duration-400 font-bold">Adicione afeto</h3>
+                <p class="text-gray-500 text-base md:text-lg leading-relaxed transition-colors duration-400">Fotos, vídeos, áudios. Escreva se quiser. Só o essencial, nada de excesso ou filtros complicados.</p>
               </div>
             </div>
 
             <!-- Passo 3 -->
-            <div class="step-item flex gap-6 md:gap-12 items-start transition-opacity duration-500" data-index="2">
-              <div class="w-16 h-16 rounded-full bg-white border-4 border-gray-200 flex items-center justify-center text-xl font-bold shadow-xl shrink-0 relative z-10 transition-colors duration-300 text-gray-400">3</div>
+            <div class="step-item flex gap-6 md:gap-12 items-start transition-all duration-500" data-index="2">
+              <div class="step-circle w-16 h-16 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-xl font-bold shadow-lg shrink-0 relative z-10 transition-all duration-400 text-gray-500">3</div>
               <div class="pt-2">
-                <h3 class="text-2xl md:text-3xl font-serif mb-3 text-gray-400 transition-colors duration-500">Pronto. Para sempre.</h3>
-                <p class="text-gray-400 text-base md:text-lg leading-relaxed transition-colors duration-500">A história cresce no seu ritmo. Sem pressa, sem cobrança, organizada automaticamente.</p>
+                <h3 class="text-2xl md:text-3xl font-serif mb-4 text-gray-500 transition-colors duration-400 font-bold">Pronto. Para sempre.</h3>
+                <p class="text-gray-500 text-base md:text-lg leading-relaxed transition-colors duration-400">A história cresce no seu ritmo. Sem pressa, sem cobrança, organizada automaticamente.</p>
               </div>
             </div>
           </div>
@@ -249,9 +341,9 @@
   </section>
 
   <!-- 5. PARA QUEM É (Grid Desktop / Carrossel Mobile) -->
-  <section class="py-24 px-6 bg-white border-t border-gray-100">
+  <section class="py-20 px-6 bg-white border-t border-gray-200">
     <div class="max-w-6xl mx-auto">
-      <h2 class="font-serif text-4xl font-bold mb-16 text-center fade-in-up">Feito para famílias reais.</h2>
+      <h2 class="font-serif text-3xl md:text-4xl font-bold mb-20 text-center fade-in-up">Feito para famílias reais.</h2>
 
       <!-- Carrossel Mobile (visível apenas em mobile) -->
       <div class="md:hidden relative" id="families-carousel">
@@ -345,77 +437,99 @@
   </section>
 
   <!-- 6. CONFIANÇA -->
-  <section class="py-16 px-6 bg-ink text-white border-b border-gray-800">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-      <div class="p-4 fade-in-up">
-        <div class="text-indigo-400 text-2xl mb-2">✓</div>
-        <h4 class="font-bold mb-1">Acesso vitalício</h4>
-        <p class="text-sm text-gray-300">Pague uma vez. Use para sempre.</p>
+  <section class="py-20 px-6 bg-ink text-white border-b border-gray-800">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 text-center">
+      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors">
+        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
+        <h4 class="font-bold mb-2 text-lg">Acesso vitalício</h4>
+        <p class="text-sm text-gray-300 leading-relaxed">Pague uma vez. Use para sempre.</p>
       </div>
-      <div class="p-4 fade-in-up" style="transition-delay: 100ms;">
-        <div class="text-indigo-400 text-2xl mb-2">✓</div>
-        <h4 class="font-bold mb-1">100% Privado</h4>
-        <p class="text-sm text-gray-300">Suas memórias, suas regras (LGPD).</p>
+      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 100ms;">
+        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
+        <h4 class="font-bold mb-2 text-lg">100% Privado</h4>
+        <p class="text-sm text-gray-300 leading-relaxed">Suas memórias, suas regras (LGPD).</p>
       </div>
-      <div class="p-4 fade-in-up" style="transition-delay: 200ms;">
-        <div class="text-indigo-400 text-2xl mb-2">✓</div>
-        <h4 class="font-bold mb-1">Exportação</h4>
-        <p class="text-sm text-gray-300">Seus dados sempre saem com você.</p>
+      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 200ms;">
+        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
+        <h4 class="font-bold mb-2 text-lg">Exportação</h4>
+        <p class="text-sm text-gray-300 leading-relaxed">Seus dados sempre saem com você.</p>
       </div>
-      <div class="p-4 fade-in-up" style="transition-delay: 300ms;">
-        <div class="text-indigo-400 text-2xl mb-2">✓</div>
-        <h4 class="font-bold mb-1">Suporte Humanizado</h4>
-        <p class="text-sm text-gray-300">Feito por pais para pais.</p>
+      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 300ms;">
+        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
+        <h4 class="font-bold mb-2 text-lg">Suporte Humanizado</h4>
+        <p class="text-sm text-gray-300 leading-relaxed">Feito por pais para pais.</p>
       </div>
     </div>
   </section>
 
   <!-- 7. PREÇO -->
   <section id="pricing" class="py-24 px-6 bg-ink text-cream relative overflow-hidden">
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 parallax-slow" data-speed="0.3"></div>
 
     <div class="max-w-xl mx-auto text-center relative z-10">
-      <h2 class="font-serif text-4xl md:text-5xl mb-12 fade-in-up">Um pagamento.<br>Uma vida inteira.</h2>
+      <h2 class="font-serif text-3xl md:text-5xl mb-16 fade-in-up font-bold">Um pagamento.<br>Uma vida inteira.</h2>
 
-      <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-10 md:p-12 fade-in-up" style="transition-delay: 200ms;">
-        <div class="flex items-baseline justify-center gap-1 mb-2">
-          <span class="text-2xl text-gray-400">R$</span>
+      <div class="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-10 md:p-12 fade-in-up hover:bg-white/15 transition-all duration-300" style="transition-delay: 200ms;">
+        <div class="flex items-baseline justify-center gap-2 mb-3">
+          <span class="text-2xl text-gray-300 font-semibold">R$</span>
           <span class="text-7xl font-bold text-white tracking-tighter">200</span>
         </div>
-        <p class="text-indigo-300 font-medium mb-8">Acesso vitalício completo</p>
+        <p class="text-indigo-300 font-semibold mb-10 text-lg">Acesso vitalício completo</p>
 
-        <ul class="space-y-4 text-left text-gray-200 mb-10 max-w-xs mx-auto">
-          <li class="flex gap-3"><span class="text-indigo-500">✓</span> 4 livros digitais completos</li>
-          <li class="flex gap-3"><span class="text-indigo-500">✓</span> 40+ capítulos guiados</li>
-          <li class="flex gap-3"><span class="text-indigo-500">✓</span> Atualizações inclusas</li>
-          <li class="flex gap-3 text-white font-medium"><span class="text-indigo-500">✓</span> Sem mensalidade. Nunca.</li>
+        <ul class="space-y-4 text-left text-gray-100 mb-12 max-w-xs mx-auto text-base">
+          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>4 livros digitais completos</span></li>
+          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>40+ capítulos guiados</span></li>
+          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>Atualizações inclusas</span></li>
+          <li class="flex gap-3 items-center text-white font-semibold"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>Sem mensalidade. Nunca.</span></li>
         </ul>
 
-        <button class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-indigo-900/50 transform hover:-translate-y-1">
-          Garantir acesso agora
+        <button class="cta-primary w-full min-h-[56px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-900/50 hover:shadow-2xl hover:shadow-indigo-800/50 transform hover:-translate-y-1 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2">
+          <span class="btn-text">Garantir acesso agora</span>
         </button>
-        <p class="text-xs text-gray-500 mt-4">*Menos que um fotolivro impresso. Para toda a primeira infância.</p>
+        <p class="text-sm text-gray-400 mt-5">*Menos que um fotolivro impresso. Para toda a primeira infância.</p>
       </div>
     </div>
   </section>
 
   <!-- 8. FUTURO (Roadmap) -->
-  <section class="py-20 px-6 bg-paper border-b border-gray-200">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="font-bold text-gray-800 mb-4 text-xl fade-in-up">Uma plataforma que cresce junto com a sua família.</h2>
-      <p class="text-gray-500 mb-10 fade-in-up" style="transition-delay: 50ms;">No futuro, você poderá transformar sua história em novos formatos.</p>
-      <div class="grid md:grid-cols-3 gap-8 text-left md:text-center">
-        <div class="group fade-in-up">
-          <div class="font-serif font-bold text-lg text-ink group-hover:text-indigo-600 transition-colors">Fotolivros impressos</div>
-          <p class="text-sm text-gray-500 mt-1">A jornada digital vira livro físico</p>
+  <section class="py-20 px-6 bg-gradient-to-b from-paper to-white border-b border-gray-200">
+    <div class="max-w-5xl mx-auto text-center">
+      <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-50 rounded-full border border-indigo-200 fade-in-up">
+        Em desenvolvimento
+      </span>
+      <h2 class="font-serif text-3xl md:text-5xl font-bold text-gray-800 mb-6 fade-in-up stagger-1">
+        Uma plataforma que <span class="text-indigo-600">cresce junto</span> com a sua família.
+      </h2>
+      <p class="text-gray-600 text-lg md:text-xl mb-16 max-w-2xl mx-auto leading-relaxed fade-in-up stagger-2">
+        No futuro, você poderá transformar sua história em novos formatos e continuar criando memórias.
+      </p>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 fade-in-up">
+          <div class="w-14 h-14 mx-auto mb-6 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:scale-110 transition-all duration-300">
+            <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <h3 class="font-serif font-bold text-xl text-ink mb-3 group-hover:text-indigo-600 transition-colors">Fotolivros impressos</h3>
+          <p class="text-gray-600 leading-relaxed">A jornada digital vira livro físico de alta qualidade para tocar e guardar</p>
         </div>
-        <div class="group fade-in-up" style="transition-delay: 100ms;">
-          <div class="font-serif font-bold text-lg text-ink group-hover:text-indigo-600 transition-colors">Cápsulas do tempo</div>
-          <p class="text-sm text-gray-500 mt-1">Cartas escritas hoje, abertas no futuro</p>
+        <div class="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 fade-in-up" style="transition-delay: 100ms;">
+          <div class="w-14 h-14 mx-auto mb-6 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:scale-110 transition-all duration-300">
+            <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-serif font-bold text-xl text-ink mb-3 group-hover:text-indigo-600 transition-colors">Cápsulas do tempo</h3>
+          <p class="text-gray-600 leading-relaxed">Cartas e mensagens escritas hoje, programadas para serem abertas no futuro</p>
         </div>
-        <div class="group fade-in-up" style="transition-delay: 200ms;">
-          <div class="font-serif font-bold text-lg text-ink group-hover:text-indigo-600 transition-colors">Novos capítulos</div>
-          <p class="text-sm text-gray-500 mt-1">Conforme seu filho cresce, a história continua</p>
+        <div class="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 fade-in-up" style="transition-delay: 200ms;">
+          <div class="w-14 h-14 mx-auto mb-6 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:scale-110 transition-all duration-300">
+            <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h3 class="font-serif font-bold text-xl text-ink mb-3 group-hover:text-indigo-600 transition-colors">Novos capítulos</h3>
+          <p class="text-gray-600 leading-relaxed">Conforme seu filho cresce, a história continua com novas fases e marcos</p>
         </div>
       </div>
     </div>
@@ -424,9 +538,9 @@
   <!-- 9. FAQ -->
   <section class="py-24 px-6 bg-white">
     <div class="max-w-3xl mx-auto">
-      <h2 class="font-serif text-4xl font-bold mb-12 text-center fade-in-up">Perguntas que importam.</h2>
+      <h2 class="font-serif text-3xl md:text-4xl font-bold mb-16 text-center fade-in-up">Perguntas que importam.</h2>
 
-      <div class="space-y-4">
+      <div class="space-y-3">
         <!-- Item FAQ -->
         <div class="border-b border-gray-100 pb-4 fade-in-up">
           <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
@@ -493,18 +607,22 @@
 
   <!-- 10. CTA FINAL & RODAPÉ -->
   <footer class="bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-600 rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px] opacity-30 pointer-events-none" style="background: radial-gradient(circle, #F7F3EF 0%, transparent 70%);"></div>
 
     <div class="max-w-4xl mx-auto text-center relative z-10 mb-20 fade-in-up">
-      <h2 class="font-serif text-4xl md:text-6xl font-bold mb-6">A infância não espera.</h2>
-      <p class="text-gray-200 text-lg mb-10 max-w-2xl mx-auto">Mas a história pode ser preservada. Comece hoje, no tempo que você tem.</p>
+      <h2 class="font-serif text-4xl md:text-6xl font-bold mb-6">
+        A infância <span class="text-indigo-400 inline-block animate-pulse-slow">não espera.</span>
+      </h2>
+      <p class="text-gray-200 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+        Mas a história pode ser preservada. <span class="text-white font-semibold">Comece hoje</span>, no tempo que você tem.
+      </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-        <a href="#pricing" class="w-full sm:w-auto px-10 py-4 bg-white text-ink hover:bg-gray-100 rounded-xl font-bold text-lg transition-colors">
-          Começar nossa história
+        <a href="#pricing" class="cta-primary w-full sm:w-auto px-10 py-4 bg-white text-ink hover:bg-gray-100 rounded-xl font-bold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
+          <span class="btn-text">Começar nossa história</span>
         </a>
-        <a href="#" class="w-full sm:w-auto px-10 py-4 border border-gray-600 hover:border-white text-white rounded-xl font-medium transition-colors">
-          Presentear uma história
+        <a href="#pricing" class="cta-secondary w-full sm:w-auto px-10 py-4 border-2 border-gray-600 hover:border-white text-white rounded-xl font-semibold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
+          <span class="btn-text">Presentear uma história</span>
         </a>
       </div>
       <p class="text-sm text-gray-300">✓ Garantia de 30 dias · Se não for para você, devolvemos cada centavo</p>
@@ -522,6 +640,69 @@
       </div>
     </div>
   </footer>
+
+  <!-- Exit Intent Popup -->
+  <div id="exit-popup" class="exit-popup hidden" role="dialog" aria-labelledby="exit-popup-title" aria-modal="true">
+    <div class="exit-popup-overlay"></div>
+    <div class="exit-popup-content">
+      <button class="exit-popup-close" aria-label="Fechar">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="exit-popup-icon">
+        <svg class="w-16 h-16 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+      </div>
+
+      <h3 id="exit-popup-title" class="exit-popup-title">
+        Espere! Não Perca Esta Oferta Especial
+      </h3>
+
+      <p class="exit-popup-text">
+        Ganhe <strong>20% de desconto</strong> no seu primeiro livro do bebê!
+        Cadastre seu e-mail e comece a preservar as memórias hoje mesmo.
+      </p>
+
+      <form class="exit-popup-form" id="exit-popup-form">
+        <div class="exit-popup-input-group">
+          <input type="email" id="exit-email" name="email" placeholder="Seu melhor e-mail" required aria-label="E-mail" class="exit-popup-input" />
+          <button type="submit" class="exit-popup-submit">
+            Quero o Desconto
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+            </svg>
+          </button>
+        </div>
+        <p class="exit-popup-privacy">
+          🔒 Seus dados estão seguros. Sem spam, prometemos!
+        </p>
+      </form>
+
+      <div class="exit-popup-benefits">
+        <div class="exit-popup-benefit">
+          <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Acesso vitalício</span>
+        </div>
+        <div class="exit-popup-benefit">
+          <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Sem mensalidades</span>
+        </div>
+        <div class="exit-popup-benefit">
+          <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Entrega em 7 dias</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

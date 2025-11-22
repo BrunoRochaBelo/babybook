@@ -1,0 +1,41 @@
+{
+  "name": "Baby Book - Livro Digital do Bebê",
+  "short_name": "Baby Book",
+  "description": "Capture e preserve cada momento mágico do seu bebê em um livro digital personalizado",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F3EF",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "categories": ["lifestyle", "photography", "family"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}
