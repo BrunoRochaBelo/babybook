@@ -4,151 +4,340 @@
 
 /* --- ESTILOS BASE & UTILITÁRIOS --- */
 body {
-    overflow-x: hidden;
-    /* background-color: #FDFCF8;  Replaced by Tailwind class in HTML or config */
-    /* color: #0F172A; Replaced by Tailwind class in HTML or config */
+  overflow-x: hidden;
+  /* background-color: #FDFCF8;  Replaced by Tailwind class in HTML or config */
+  /* color: #0F172A; Replaced by Tailwind class in HTML or config */
 }
 
 html {
-    scroll-padding-top: 100px; /* Adjust based on nav height */
+  scroll-padding-top: 100px; /* Adjust based on nav height */
+  scroll-behavior: auto; /* Deixa o Lenis controlar */
+}
+
+/* Seções normais (não interativas) podem ter scroll-snap muito sutil */
+section:not(.chaos-container):not(.horizontal-scroll-section):not(
+    #how-it-works-section
+  ) {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
 }
 
 ::selection {
-    background-color: #F2995D; /* Accent color */
-    color: #FFFFFF;
+  background-color: #f2995d; /* Accent color */
+  color: #ffffff;
 }
 
 /* Scrollbar fina e elegante (apenas desktop) */
 @media (min-width: 768px) {
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #CBD5E1;
-        border-radius: 4px;
-    }
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+    transition: background 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 }
 
 /* Animações de Entrada */
 .fade-in-up {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .fade-in-up.visible {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* --- INTERAÇÕES ESPECÍFICAS --- */
 
 /* Seção Horizontal (Livros) */
 .horizontal-scroll-section {
-    height: 500vh; /* Altura extra para permitir o scroll horizontal */
-    position: relative;
+  height: 550vh; /* Equilibrado - tempo suficiente sem arrastar */
+  position: relative;
+  scroll-snap-align: none; /* Desabilita snap nesta seção específica */
 }
 .sticky-wrapper {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
-    display: flex;
-    align-items: flex-end; /* Align to bottom to clear top title */
-    padding-bottom: 5vh; /* Add breathing room at bottom */
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end; /* Align to bottom to clear top title */
+  padding-bottom: 5vh; /* Add breathing room at bottom */
 }
 .horizontal-track {
-    display: flex;
-    gap: 5vw; /* Espaçamento entre cards */
-    padding-left: 5vw; /* Mobile: menos padding */
-    will-change: transform;
+  display: flex;
+  gap: 5vw; /* Espaçamento entre cards */
+  padding-left: 5vw; /* Mobile: menos padding */
+  will-change: transform;
+  transition: transform 0.1s linear; /* Transição suave do movimento */
 }
 @media (min-width: 768px) {
-    .horizontal-track {
-        padding-left: 10vw; /* Desktop: mais respiro */
-    }
+  .horizontal-track {
+    padding-left: 10vw; /* Desktop: mais respiro */
+  }
 }
 
 /* Seção Caos -> Ordem */
 .chaos-container {
-    height: 300vh;
-    position: relative;
+  height: 320vh; /* Equilibrado para transições suaves sem ser muito lento */
+  position: relative;
+  scroll-snap-align: none; /* Desabilita snap nesta seção específica */
 }
 .chaos-sticky {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .photo-scatter {
-    position: absolute;
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2);
-    z-index: 10;
+  position: absolute;
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); /* Suave sem ser lento */
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  will-change: transform, box-shadow;
 }
 .photo-scatter.organized {
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) rotate(0deg) scale(0.9) !important; /* Desktop Scale */
-    box-shadow: 0 0 0 4px white, 0 20px 40px rgba(0,0,0,0.15);
-    margin-left: calc(var(--i) * 4px);
-    margin-top: calc(var(--i) * -4px);
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) rotate(0deg) scale(0.9) !important; /* Desktop Scale */
+  box-shadow:
+    0 0 0 4px white,
+    0 20px 40px rgba(0, 0, 0, 0.15);
+  margin-left: calc(var(--i) * 4px);
+  margin-top: calc(var(--i) * -4px);
+  transition-delay: calc(var(--i) * 0.05s); /* Stagger sutil */
 }
 
 /* Mobile Scale Fix */
 @media (max-width: 768px) {
-    .photo-scatter.organized {
-        transform: translate(-50%, -50%) rotate(0deg) scale(0.7) !important; /* Menor no mobile */
-    }
+  .photo-scatter.organized {
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.7) !important; /* Menor no mobile */
+  }
 }
 
 /* Accordion FAQ */
 .accordion-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .accordion-btn[aria-expanded="true"] svg {
-    transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+/* Espiral de Livro nos Cards */
+.book-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5%;
+  bottom: 5%;
+  width: 24px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 45%,
+    rgba(255, 255, 255, 0.15) 45%,
+    rgba(255, 255, 255, 0.15) 55%,
+    transparent 55%,
+    transparent 100%
+  );
+  background-size: 16px 30px;
+  background-repeat: repeat-y;
+  border-radius: 4px 0 0 4px;
+  z-index: 5;
+}
+
+.book-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5%;
+  bottom: 5%;
+  width: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px 0 0 4px;
+  z-index: 6;
 }
 
 /* --- COFRE INTERATIVO (Estilos Personalizados) --- */
 #vault-card .vault-locked {
-    transform: translateY(0);
-    opacity: 1;
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 #vault-card .vault-content {
-    opacity: 0;
-    transform: scale(0.95);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.15s; /* Delay menor */
 }
 
 /* Estado Aberto (Trigger via JS) */
 #vault-card.is-unlocked .vault-locked,
 #vault-card.is-open .vault-locked {
-    transform: translateY(-100%); /* Cadeado sobe */
-    opacity: 0;
+  transform: translateY(-100%); /* Cadeado sobe */
+  opacity: 0;
 }
 #vault-card.is-unlocked .vault-content,
 #vault-card.is-open .vault-content {
-    opacity: 1;
-    transform: scale(1);
+  opacity: 1;
+  transform: scale(1);
 }
 /* Brilho dourado quando abre */
 #vault-card.is-unlocked,
 #vault-card.is-open {
-    border-color: rgba(245, 158, 11, 0.5); /* Amber-500 */
-    box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.5); /* Amber-500 */
+  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.3);
+  transition: all 0.4s ease-out;
 }
 
 /* Centralização da Linha do Tempo */
+
+/* Seção Timeline - Scroll Travado com Parallax */
+#how-it-works-section {
+  min-height: 420vh; /* Equilibrado para consistência com outras seções */
+  position: relative;
+  scroll-snap-align: none; /* Desabilita snap nesta seção específica */
+}
+
+#how-it-works-wrapper {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fundo com parallax */
+.timeline-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #fdfcf8 0%, #f3f4f6 50%, #e5e7eb 100%);
+  will-change: transform;
+  transition: transform 0.05s linear; /* Mais responsível */
+}
+
+/* Container da timeline com z-index maior */
+#timeline-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* --- CARROSSEL MOBILE (Seção Famílias) --- */
+/* Ocultar scrollbar mantendo funcionalidade */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Transições suaves para os slides */
+.carousel-slide {
+  transition:
+    opacity 0.5s ease-in-out,
+    transform 0.5s ease-in-out;
+}
+
+/* Efeito de fade nos slides não ativos (opcional) */
+.carousel-slide:not(.active) {
+  opacity: 0.5;
+}
+.carousel-slide.active {
+  opacity: 1;
+}
+
+/* Indicadores (Dots) */
+.carousel-dot {
+  cursor: pointer;
+}
+.carousel-dot[aria-selected="true"] {
+  background-color: #4f46e5; /* indigo-600 */
+  width: 1.5rem; /* Expande quando ativo */
+  border-radius: 0.75rem;
+}
+
+/* Transições dos dots */
+.carousel-dot {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efeito pulse no dot ativo */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0);
+  }
+}
+
+.carousel-dot[aria-selected="true"] {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Estilo dos botões de navegação */
+.carousel-nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Classe utilitária para screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 .timeline-line {
-    left: 2rem; /* 32px = metade de w-16 (64px) */
-    transform: translateX(-50%); /* Centraliza exatamente no meio */
+  left: 2rem; /* 32px = metade de w-16 (64px) */
+  transform: translateX(-50%); /* Centraliza exatamente no meio */
+}
+
+/* Círculos da Timeline - Efeito de Escala */
+.step-item > div:first-child {
+  transform: scale(0.75);
+  opacity: 0.4;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-item.active > div:first-child {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Texto da Timeline - Efeito de Escala e Opacidade */
+.step-item > div:last-child {
+  transform: scale(0.9);
+  opacity: 0.3;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-item.active > div:last-child {
+  transform: scale(1);
+  opacity: 1;
 }
