@@ -28,11 +28,40 @@ const queryClient = new QueryClient({
 const enableMocksFlag = (
   import.meta.env.VITE_ENABLE_MSW ??
   (import.meta.env.DEV || import.meta.env.MODE === "test" ? "true" : "false")
-).toString().toLowerCase();
+)
+  .toString()
+  .toLowerCase();
 
 const shouldEnableMocks =
   enableMocksFlag !== "false" &&
   (import.meta.env.DEV || import.meta.env.MODE === "test");
+
+const AuthBootstrapper = ({ children }: PropsWithChildren) => {
+  const { data, isLoading, isError } = useUserProfile({
+    enabled: !shouldEnableMocks,
+  });
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+  const setLoading = useAuthStore((state) => state.setLoading);
+
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
+
+  useEffect(() => {
+    if (data) {
+      login(data);
+    }
+  }, [data, login]);
+
+  useEffect(() => {
+    if (!shouldEnableMocks && isError) {
+      logout();
+    }
+  }, [isError, logout]);
+
+  return <>{children}</>;
+};
 
 async function startApp() {
   if (shouldEnableMocks) {
@@ -85,28 +114,3 @@ function seedMockQueryData(client: QueryClient) {
     client.setQueryData(["vault-documents", child.id], []);
   });
 }
-
-const AuthBootstrapper = ({ children }: PropsWithChildren) => {
-  const { data, isLoading, isError } = useUserProfile();
-  const login = useAuthStore((state) => state.login);
-  const logout = useAuthStore((state) => state.logout);
-  const setLoading = useAuthStore((state) => state.setLoading);
-
-  useEffect(() => {
-    setLoading(isLoading);
-  }, [isLoading, setLoading]);
-
-  useEffect(() => {
-    if (data) {
-      login(data);
-    }
-  }, [data, login]);
-
-  useEffect(() => {
-    if (isError) {
-      logout();
-    }
-  }, [isError, logout]);
-
-  return <>{children}</>;
-};

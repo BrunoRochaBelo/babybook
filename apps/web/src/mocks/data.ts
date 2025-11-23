@@ -90,7 +90,8 @@ const makeMoment = ({
   rev: 1,
   createdAt: createdAt ?? at("2024-01-01"),
   updatedAt: updatedAt ?? createdAt ?? at("2024-01-01", "12:00:00"),
-  publishedAt: status === "published" ? publishedAt ?? updatedAt ?? null : null,
+  publishedAt:
+    status === "published" ? (publishedAt ?? updatedAt ?? null) : null,
 });
 
 export const mockChild: Child = {
@@ -201,7 +202,7 @@ export const mockMoments: Moment[] = [
     id: "bb-alice-03",
     childId: "child-1",
     title: "Primeiro Sorriso Social",
-    summary: "Alice respondeu ao nosso \"gugu-dadá\" com a maior expressão.",
+    summary: 'Alice respondeu ao nosso "gugu-dadá" com a maior expressão.',
     occurredAt: "2024-04-25",
     templateKey: "capitulo_3_primeiro_sorriso",
     status: "draft",
@@ -576,9 +577,11 @@ export const mockHealthVaccines: HealthVaccine[] = [
 ];
 
 export const mockUser: UserProfile = {
-  id: "user-1",
+  id: "c2e9a7c8-7d0a-4d38-8ba1-5f5a0f28c9ef",
   email: "bruno@example.com",
   name: "Bruno",
   locale: "pt-BR",
   role: "owner",
+  hasPurchased: false,
+  onboardingCompleted: true,
 };

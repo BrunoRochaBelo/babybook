@@ -130,6 +130,192 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   setupButtonLoading();
 
+  const setupSurfaceObserver = () => {
+    const surfaces = document.querySelectorAll<HTMLElement>(
+      ".section-surface, .hero-section",
+    );
+    if (!surfaces.length) return;
+
+    const surfaceObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("surface-active", entry.isIntersecting);
+        });
+      },
+      { threshold: 0.35 },
+    );
+
+    surfaces.forEach((surface) => surfaceObserver.observe(surface));
+  };
+  setupSurfaceObserver();
+
+  const setupParallaxSections = () => {
+    if (prefersReducedMotion) return;
+    const sections = document.querySelectorAll<HTMLElement>(
+      "[data-parallax-section]",
+    );
+    if (!sections.length) return;
+
+    const updateLayers = () => {
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const sectionCenter = rect.top + rect.height / 2;
+        const delta = sectionCenter - window.innerHeight / 2;
+        const layers = section.querySelectorAll<HTMLElement>(
+          "[data-parallax-depth]",
+        );
+
+        layers.forEach((layer) => {
+          const depth = parseFloat(layer.dataset.parallaxDepth || "0.15");
+          const movement = -(delta / window.innerHeight) * depth * 120;
+          layer.style.transform = `translate3d(0, ${movement}px, 0)`;
+        });
+      });
+    };
+
+    let ticking = false;
+    const requestUpdate = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateLayers();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    updateLayers();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+  };
+  setupParallaxSections();
+
+  const setupHeroCollapseProgress = () => {
+    const heroStage = document.getElementById("hero-stage");
+    if (!heroStage) return;
+    const root = document.documentElement;
+    let ticking = false;
+
+    const easeInOutQuad = (t: number) =>
+      t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    const updateProgress = () => {
+      const stageHeight = heroStage.offsetHeight;
+      const stageTop = heroStage.offsetTop;
+      const range = Math.max(stageHeight - window.innerHeight, 1);
+      const scrollY = window.scrollY;
+      const clampedScroll = Math.min(Math.max(scrollY - stageTop, 0), range);
+      const rawProgress = clampedScroll / range;
+      const easedProgress = easeInOutQuad(rawProgress);
+      root.style.setProperty(
+        "--hero-collapse-progress",
+        easedProgress.toFixed(4),
+      );
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateProgress);
+        ticking = true;
+      }
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", updateProgress);
+  };
+  setupHeroCollapseProgress();
+
+  const setupHeroPointerGlow = () => {
+    const hero = document.querySelector(".hero-section");
+    if (!hero) return;
+    const root = document.documentElement;
+
+    const updatePointerVars = (event: PointerEvent) => {
+      const rect = hero.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+      root.style.setProperty("--pointer-x", x.toFixed(2));
+      root.style.setProperty("--pointer-y", y.toFixed(2));
+    };
+
+    hero.addEventListener("pointermove", (event) =>
+      updatePointerVars(event as PointerEvent),
+    );
+    hero.addEventListener("pointerleave", () => {
+      root.style.setProperty("--pointer-x", "50");
+      root.style.setProperty("--pointer-y", "40");
+    });
+  };
+
+  const setupMagneticHover = () => {
+    const magnets = document.querySelectorAll<HTMLElement>(".magnetic");
+    if (!magnets.length) return;
+
+    magnets.forEach((magnet) => {
+      const strength = parseFloat(
+        magnet.dataset.magneticStrength ||
+          magnet.getAttribute("data-strength") ||
+          "0.25",
+      );
+
+      const handlePointerMove = (event: PointerEvent) => {
+        const rect = magnet.getBoundingClientRect();
+        const offsetX = event.clientX - (rect.left + rect.width / 2);
+        const offsetY = event.clientY - (rect.top + rect.height / 2);
+        magnet.style.transform = `translate3d(${offsetX * strength}px, ${offsetY * strength}px, 0)`;
+        magnet.classList.add("is-hovering");
+      };
+
+      const reset = () => {
+        magnet.style.transform = "";
+        magnet.classList.remove("is-hovering");
+      };
+
+      magnet.addEventListener("pointermove", (event) =>
+        handlePointerMove(event as PointerEvent),
+      );
+      magnet.addEventListener("pointerleave", reset);
+    });
+  };
+
+  const setupBookCardTilt = () => {
+    const cards = document.querySelectorAll<HTMLElement>(".book-card");
+    if (!cards.length) return;
+    const maxTilt = 8;
+
+    cards.forEach((card) => {
+      const handlePointerMove = (event: PointerEvent) => {
+        const rect = card.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        const tiltX = (0.5 - relY) * maxTilt;
+        const tiltY = (relX - 0.5) * maxTilt;
+        card.style.setProperty("--tilt-x", `${tiltX.toFixed(2)}deg`);
+        card.style.setProperty("--tilt-y", `${tiltY.toFixed(2)}deg`);
+      };
+
+      const resetTilt = () => {
+        card.style.removeProperty("--tilt-x");
+        card.style.removeProperty("--tilt-y");
+      };
+
+      card.addEventListener("pointermove", (event) =>
+        handlePointerMove(event as PointerEvent),
+      );
+      card.addEventListener("pointerleave", resetTilt);
+    });
+  };
+
+  if (!prefersReducedMotion) {
+    setupHeroPointerGlow();
+    setupMagneticHover();
+    setupBookCardTilt();
+  }
+
   // === 2. CURSOR PERSONALIZADO NOS CARDS === (DESABILITADO)
   // Função removida para restaurar experiência original
 

@@ -12,6 +12,7 @@ import {
 import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { BBChildSwitcher } from "@/components/bb/ChildSwitcher";
+import { useAuthStore } from "@/store/auth";
 
 const BOOKS_NAV = [
   {
@@ -60,6 +61,7 @@ export const MainLayout = () => {
   const [isChildSwitcherOpen, setChildSwitcherOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLDivElement | null>(null);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     if (!isNotificationsOpen) {
@@ -88,7 +90,10 @@ export const MainLayout = () => {
         <div className="mx-auto w-full max-w-5xl px-4 py-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <Link to="/jornada" className="flex items-center gap-2 text-2xl font-serif text-ink">
+              <Link
+                to="/jornada"
+                className="flex items-center gap-2 text-2xl font-serif text-ink"
+              >
                 <Sparkles className="h-5 w-5 text-primary" />
                 BabyBook
               </Link>
@@ -127,6 +132,11 @@ export const MainLayout = () => {
                   }
                 }}
               />
+              {!isAuthenticated && (
+                <Link to="/login" className="ml-2 text-sm font-semibold">
+                  Entrar
+                </Link>
+              )}
             </div>
           </div>
           <div className="relative mt-3" ref={notificationsRef}>
@@ -149,8 +159,12 @@ export const MainLayout = () => {
                 <div className="divide-y divide-border/60">
                   {FEATURED_NOTIFICATIONS.map((notification) => (
                     <div key={notification.id} className="px-4 py-3 text-sm">
-                      <p className="font-semibold text-ink">{notification.title}</p>
-                      <p className="text-xs text-ink-muted">{notification.description}</p>
+                      <p className="font-semibold text-ink">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-ink-muted">
+                        {notification.description}
+                      </p>
                       <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-ink-muted">
                         {notification.time}
                       </p>
@@ -202,15 +216,15 @@ export const MainLayout = () => {
                       <Icon
                         className={cn(
                           "h-5 w-5 transition-colors duration-300",
-                          isActive
-                            ? "text-surface"
-                            : "text-ink-muted",
+                          isActive ? "text-surface" : "text-ink-muted",
                         )}
                       />
                       <span
                         className={cn(
                           "text-sm font-semibold tracking-tight transition-[opacity,transform] duration-300",
-                          isActive ? "translate-x-0 opacity-100" : "translate-x-2 opacity-0",
+                          isActive
+                            ? "translate-x-0 opacity-100"
+                            : "translate-x-2 opacity-0",
                         )}
                       >
                         {book.label}

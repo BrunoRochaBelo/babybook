@@ -259,7 +259,7 @@ pnpm dev:workers # Workers locais
 ```
 
 > ⚙️ Em `pnpm dev:web` habilitamos o [MSW](https://mswjs.io/) automaticamente e carregamos o perfil **Bruno (owner)** com as crianças _Alice_ e _Theo_. Isso garante que toda a interface fique navegável mesmo sem backend.  
-> Para validar contra a API real, crie um `.env.local` em `apps/web` com `VITE_ENABLE_MSW=false` (ou defina a variável no shell) e execute `pnpm dev:web` com o backend rodando. Lembre-se de reativar a flag quando precisar voltar ao modo mockado.
+> Para validar contra a API real, crie/ajuste o `.env.local` em `apps/web` para **desativar** o MSW (`VITE_ENABLE_MSW=false`) e execute `pnpm dev:web` com o backend rodando. Quando terminar, volte o valor para `true` ou use `pnpm dev:web:mock` para restaurar o modo totalmente mockado.
 > Dica: use `pnpm dev:web:mock` para garantir que os dados simulados estão ativos ou `pnpm dev:web:real` para desativá-los automaticamente.
 
 ### Worker real no ambiente local

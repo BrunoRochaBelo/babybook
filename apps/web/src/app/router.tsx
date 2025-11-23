@@ -5,6 +5,12 @@ import {
   Navigate,
 } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
+import RequireAuth from "@/components/Auth/RequireAuth";
+import { LoginPage } from "@/pages/LoginPage";
+import { RegisterPage } from "@/pages/RegisterPage";
+import { CheckoutPage } from "@/pages/CheckoutPage";
+import { CheckoutSuccessPage } from "@/pages/CheckoutSuccessPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { MomentsListPage } from "@/features/moments/pages/MomentsListPage";
 import { MomentDetailPage } from "@/features/moments/pages/MomentDetailPage";
@@ -24,7 +30,13 @@ export function AppRouter() {
     <Router>
       <Routes>
         {/* Main app routes with layout */}
-        <Route element={<MainLayout />}>
+        <Route
+          element={
+            <RequireAuth>
+              <MainLayout />
+            </RequireAuth>
+          }
+        >
           <Route path="/jornada" element={<DashboardPage />} />
           <Route
             path="/dashboard"
@@ -35,7 +47,10 @@ export function AppRouter() {
           <Route path="/capsula" element={<CapsulePage />} />
           <Route path="/cofre" element={<VaultPage />} />
           <Route path="/perfil-usuario" element={<ProfilePage />} />
-          <Route path="/perfil" element={<Navigate to="/perfil-usuario" replace />} />
+          <Route
+            path="/perfil"
+            element={<Navigate to="/perfil-usuario" replace />}
+          />
           <Route
             path="/jornada/moment/draft/:template_id"
             element={<MomentDraftPage />}
@@ -56,6 +71,11 @@ export function AppRouter() {
 
         {/* Redirect root to dashboard */}
         <Route path="/" element={<Navigate to="/jornada" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/jornada" replace />} />

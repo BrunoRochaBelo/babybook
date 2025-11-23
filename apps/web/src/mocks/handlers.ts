@@ -16,7 +16,94 @@ import {
   Moment,
 } from "@babybook/contracts";
 
+type RawProfile = {
+  id: string;
+  email: string;
+  name: string;
+  locale: string;
+  role: string;
+  has_purchased: boolean;
+  onboarding_completed: boolean;
+};
+
+type MockAccount = RawProfile & { password: string };
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const defaultLocale = mockUser.locale ?? "pt-BR";
+const defaultRole = mockUser.role ?? "owner";
+const defaultHasPurchased = mockUser.hasPurchased ?? false;
+const defaultOnboardingCompleted = mockUser.onboardingCompleted ?? true;
+
+const randomId = () => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  return nanoid();
+};
+
+const makeAccount = ({
+  email,
+  password,
+  name,
+}: {
+  email: string;
+  password: string;
+  name?: string | null;
+}): MockAccount => ({
+  id: randomId(),
+  email,
+  name: name?.trim() && name.length > 0 ? name.trim() : email.split("@")[0],
+  locale: defaultLocale,
+  role: defaultRole,
+  has_purchased: defaultHasPurchased,
+  onboarding_completed: defaultOnboardingCompleted,
+  password,
+});
+
+const devEmail = normalizeEmail(
+  (import.meta.env.VITE_DEV_USER_EMAIL ?? mockUser.email).toString(),
+);
+const devPassword = (
+  import.meta.env.VITE_DEV_USER_PASSWORD ?? "password"
+).toString();
+
+const registeredUsers = new Map<string, MockAccount>();
+const seededAccount = makeAccount({
+  email: devEmail,
+  password: devPassword,
+  name: mockUser.name,
+});
+registeredUsers.set(devEmail, seededAccount);
+let activeUser: MockAccount = seededAccount;
+let sessionActive = true;
+
+const profilePayload = (): RawProfile => ({
+  id: activeUser.id,
+  email: activeUser.email,
+  name: activeUser.name,
+  locale: activeUser.locale,
+  role: activeUser.role,
+  has_purchased: activeUser.has_purchased,
+  onboarding_completed: activeUser.onboarding_completed,
+});
+
+const enableMocksFlag = (
+  import.meta.env.VITE_ENABLE_MSW ??
+  (import.meta.env.DEV || import.meta.env.MODE === "test" ? "true" : "false")
+)
+  .toString()
+  .toLowerCase();
+
+const shouldForceLocal = enableMocksFlag !== "false";
+
 const resolveBaseUrl = () => {
+  if (shouldForceLocal) {
+    return "/api";
+  }
   const raw = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
   if (raw.length === 0) {
     return "/api";
@@ -106,14 +193,95 @@ const mutableGuestbook = [...mockGuestbookEntries];
 const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
 
+const unauthorizedResponse = () =>
+  HttpResponse.json(
+    {
+      error: {
+        code: "auth.credentials.invalid",
+        message: "Credenciais inválidas.",
+        trace_id: "mock-trace-auth",
+      },
+    },
+    { status: 401 },
+  );
+
+const sessionRequiredResponse = () =>
+  HttpResponse.json(
+    {
+      error: {
+        code: "auth.session.invalid",
+        message: "Sessão não autenticada.",
+        trace_id: "mock-trace-session",
+      },
+    },
+    { status: 401 },
+  );
+
 export const handlers = [
+  http.get(withBase("/auth/csrf"), () =>
+    HttpResponse.json({ csrf_token: "mock-csrf-token" }),
+  ),
+  http.post(withBase("/auth/login"), async ({ request }) => {
+    const body = (await request.json()) as {
+      email?: string;
+      password?: string;
+    };
+    const email = body.email ? normalizeEmail(body.email) : "";
+    const password = body.password ?? "";
+    const user = registeredUsers.get(email);
+    if (!user || user.password !== password) {
+      return unauthorizedResponse();
+    }
+    activeUser = user;
+    sessionActive = true;
+    return HttpResponse.text("", { status: 204 });
+  }),
+  http.post(withBase("/auth/register"), async ({ request }) => {
+    const body = (await request.json()) as {
+      email?: string;
+      password?: string;
+      name?: string | null;
+    };
+    const email = body.email ? normalizeEmail(body.email) : "";
+    const password = body.password ?? "";
+    if (!email || !password) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "auth.register.invalid",
+            message: "Email e senha são obrigatórios.",
+            trace_id: "mock-trace-register",
+          },
+        },
+        { status: 422 },
+      );
+    }
+    if (registeredUsers.has(email)) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "auth.user.exists",
+            message: "Usuário já existe.",
+            trace_id: "mock-trace-register",
+          },
+        },
+        { status: 409 },
+      );
+    }
+    const newUser = makeAccount({ email, password, name: body.name });
+    registeredUsers.set(email, newUser);
+    activeUser = newUser;
+    sessionActive = true;
+    return HttpResponse.text("", { status: 201 });
+  }),
+  http.post(withBase("/auth/logout"), () => {
+    sessionActive = false;
+    return HttpResponse.text("", { status: 204 });
+  }),
   http.get(withBase("/me"), () =>
-    HttpResponse.json({
-      id: mockUser.id,
-      email: mockUser.email,
-      name: mockUser.name,
-      locale: mockUser.locale,
-    }),
+    sessionActive
+      ? HttpResponse.json(profilePayload())
+      : sessionRequiredResponse(),
   ),
   http.get(withBase("/me/usage"), () =>
     HttpResponse.json({
@@ -161,7 +329,13 @@ export const handlers = [
     const moment = mutableMoments.find((item) => item.id === params.momentId);
     if (!moment) {
       return HttpResponse.json(
-        { error: { code: "moment.not_found", message: "Momento não encontrado", trace_id: "mock-trace" } },
+        {
+          error: {
+            code: "moment.not_found",
+            message: "Momento não encontrado",
+            trace_id: "mock-trace",
+          },
+        },
         { status: 404 },
       );
     }
@@ -225,9 +399,7 @@ export const handlers = [
     mutableGuestbook.unshift(entry);
     return HttpResponse.json(toGuestbookResponse(entry), { status: 201 });
   }),
-  http.get(
-    withBase("/children/:childId/health/measurements"),
-    ({ params }) => {
+  http.get(withBase("/children/:childId/health/measurements"), ({ params }) => {
     const measurements = mutableMeasurements.filter(
       (measurement) => measurement.childId === params.childId,
     );

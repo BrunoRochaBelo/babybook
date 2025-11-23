@@ -99,3 +99,60 @@ async def bootstrap_dev_user(db: AsyncSession, email: str, password: str, accoun
     await db.flush()
     return user
 
+
+async def create_user(db: AsyncSession, email: str, password: str, name: str) -> User:
+    """
+    Cria usuário com conta nova. Retorna o usuário. Levanta AppError se o email já existir.
+    """
+    result = await db.execute(select(User).where(User.email == email.lower()))
+    existing = result.scalar_one_or_none()
+    if existing:
+        from babybook_api.errors import AppError
+
+        raise AppError(status_code=409, code="auth.user.exists", message="Usuario ja cadastrado.")
+
+    from babybook_api.db.models import Account
+
+    account = Account(name=name or email.split("@")[0], slug=(name or email.split("@")[0]).lower().replace(" ", "-"))
+    db.add(account)
+    await db.flush()
+
+    user = User(
+        account_id=account.id,
+        email=email.lower(),
+        password_hash=hash_password(password),
+        name=name or (email.split("@")[0]),
+        locale="pt-BR",
+        role="owner",
+    )
+    db.add(user)
+    await db.flush()
+    return user
+
+
+async def get_or_create_user_by_email(db: AsyncSession, email: str, name: str | None = None) -> User:
+    """
+    Return existing user by email or create a new account/user.
+    """
+    result = await db.execute(select(User).where(User.email == email.lower()))
+    existing = result.scalar_one_or_none()
+    if existing:
+        return existing
+
+    from babybook_api.db.models import Account
+
+    account = Account(name=name or email.split("@")[0], slug=(name or email.split("@")[0]).lower().replace(" ", "-"))
+    db.add(account)
+    await db.flush()
+    user = User(
+        account_id=account.id,
+        email=email.lower(),
+        password_hash=hash_password(""),
+        name=name or (email.split("@")[0]),
+        locale="pt-BR",
+        role="owner",
+    )
+    db.add(user)
+    await db.flush()
+    return user
+

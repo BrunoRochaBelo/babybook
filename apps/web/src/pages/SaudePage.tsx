@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/auth";
 import { HealthGrowthTab } from "@/components/HealthGrowthTab";
 import { HealthPediatrianTab } from "@/components/HealthPediatrianTab";
 import { HealthVaccinesTab } from "@/components/HealthVaccinesTab";
+import { useLogout } from "@/hooks/api";
 
 type HealthTab = "crescimento" | "pediatra" | "vacinas";
 
@@ -49,8 +50,9 @@ export const SaudePage = () => {
   const [activeTab, setActiveTab] = useState<HealthTab>("crescimento");
   const { selectedChild } = useSelectedChild();
   const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const clearAuth = useAuthStore((state) => state.logout);
   const isAuthLoading = useAuthStore((state) => state.isLoading);
+  const logoutMutation = useLogout();
   const [reauthRequired, setReauthRequired] = useState(false);
   const timerRef = useRef<number | null>(null);
   const enableMocksFlag = (
@@ -111,21 +113,32 @@ export const SaudePage = () => {
       docEvents.forEach((event) =>
         document.removeEventListener(event, listener),
       );
-      winEvents.forEach((event) =>
-        window.removeEventListener(event, listener),
-      );
+      winEvents.forEach((event) => window.removeEventListener(event, listener));
       clearTimer();
     };
-  }, [isOwner, selectedChild, isMockMode, handleActivity, scheduleTimer, clearTimer]);
+  }, [
+    isOwner,
+    selectedChild,
+    isMockMode,
+    handleActivity,
+    scheduleTimer,
+    clearTimer,
+  ]);
 
   const handleReauthContinue = () => {
     setReauthRequired(false);
     scheduleTimer();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearTimer();
-    logout();
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      clearAuth();
+    }
   };
 
   const renderTabContent = () => {
@@ -149,7 +162,8 @@ export const SaudePage = () => {
         <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
           <h1 className="font-serif text-3xl text-ink">Carregando perfil</h1>
           <p className="mt-2 text-sm text-ink-muted">
-            Buscando o perfil e as permissões da conta para liberar a aba Saúde...
+            Buscando o perfil e as permissões da conta para liberar a aba
+            Saúde...
           </p>
         </div>
       </section>
@@ -272,8 +286,9 @@ export const SaudePage = () => {
               Vamos confirmar que é você
             </h2>
             <p className="mt-2 text-sm text-ink-muted">
-              Por segurança, a aba Saúde bloqueia após alguns minutos de inatividade. Continue para
-              destravar ou encerre a sessão se não estiver em um dispositivo seguro.
+              Por segurança, a aba Saúde bloqueia após alguns minutos de
+              inatividade. Continue para destravar ou encerre a sessão se não
+              estiver em um dispositivo seguro.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <button

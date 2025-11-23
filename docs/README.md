@@ -193,7 +193,7 @@ pnpm dev:web:mock # Força MSW/dados seedados
 pnpm dev:web:real # Desativa MSW (aponta para a API real)
 `
 
-No modo real, configure VITE_ENABLE_MSW=false e VITE_MEDIA_BASE_URL no .env.local para apontar para o host dos derivados. Use pnpm dev:web:mock para voltar ao modo totalmente local.
+No modo real, configure `VITE_ENABLE_MSW=false` (por padrão mantemos `true` para rodar 100% mockado) e `VITE_MEDIA_BASE_URL` no `.env.local` para apontar para o host dos derivados. Use `pnpm dev:web:mock` para voltar ao modo totalmente local.
 
 ### Worker real no ambiente local
 

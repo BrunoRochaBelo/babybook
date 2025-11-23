@@ -1,22 +1,41 @@
 import { z } from "zod";
 import { apiErrorSchema, ApiErrorPayload } from "@babybook/contracts";
 
+const rawEnableMocks = (
+  import.meta.env.VITE_ENABLE_MSW ??
+  (import.meta.env.DEV || import.meta.env.MODE === "test" ? "true" : "false")
+)
+  .toString()
+  .toLowerCase();
+
+const SHOULD_FORCE_MOCKS = rawEnableMocks !== "false";
+
 const RAW_API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
 const FALLBACK_BASE_PATH = "/api";
 
 const ensureTrailingSlash = (value: string) =>
   value.endsWith("/") ? value : `${value}/`;
 
-const buildBaseUrl = () => {
-  if (!RAW_API_BASE_URL) {
-    return FALLBACK_BASE_PATH;
+const buildBaseCandidates = () => {
+  if (SHOULD_FORCE_MOCKS) {
+    return [FALLBACK_BASE_PATH];
   }
-  return RAW_API_BASE_URL;
+  const candidates: string[] = [];
+  if (RAW_API_BASE_URL) {
+    candidates.push(RAW_API_BASE_URL);
+  }
+  if (!candidates.includes(FALLBACK_BASE_PATH)) {
+    candidates.push(FALLBACK_BASE_PATH);
+  }
+  return candidates;
 };
 
-const API_BASE = buildBaseUrl();
+const API_BASES = buildBaseCandidates();
 
-type SearchParams = Record<string, string | number | boolean | undefined | null>;
+type SearchParams = Record<
+  string,
+  string | number | boolean | undefined | null
+>;
 
 interface RequestOptions<T> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -47,22 +66,17 @@ export class ApiError extends Error {
   }
 }
 
-const buildUrl = (path: string, searchParams?: SearchParams) => {
+const buildUrl = (base: string, path: string, searchParams?: SearchParams) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   let url: URL;
-  if (/^https?:\/\//i.test(API_BASE)) {
-    url = new URL(
-      normalizedPath.replace(/^\//, ""),
-      ensureTrailingSlash(API_BASE),
-    );
+  if (/^https?:\/\//i.test(base)) {
+    url = new URL(normalizedPath.replace(/^\//, ""), ensureTrailingSlash(base));
   } else {
     if (typeof window === "undefined" || !window.location?.origin) {
       throw new Error("Relative API base URL requires window.location");
     }
-    const prefix = API_BASE.startsWith("/")
-      ? API_BASE
-      : `/${API_BASE}`;
+    const prefix = base.startsWith("/") ? base : `/${base}`;
     url = new URL(
       `${prefix.replace(/\/$/, "")}${normalizedPath}`,
       window.location.origin,
@@ -95,11 +109,12 @@ const handleErrorRedirects = (status: number, code?: string) => {
   }
 };
 
-async function request<T = unknown>(
+async function doFetch<T>(
+  base: string,
   path: string,
-  options: RequestOptions<T> = {},
+  options: RequestOptions<T>,
 ): Promise<T> {
-  const url = buildUrl(path, options.searchParams);
+  const url = buildUrl(base, path, options.searchParams);
   const headers: Record<string, string> = {
     ...(options.headers ?? {}),
   };
@@ -153,6 +168,33 @@ async function request<T = unknown>(
   }
 
   return options.schema.parse(payload);
+}
+
+async function request<T = unknown>(
+  path: string,
+  options: RequestOptions<T> = {},
+): Promise<T> {
+  let lastError: unknown;
+  for (const base of API_BASES) {
+    try {
+      return await doFetch(base, path, options);
+    } catch (error) {
+      const isNetworkError = error instanceof TypeError;
+      const isLastCandidate = base === API_BASES[API_BASES.length - 1];
+
+      if (!isNetworkError || SHOULD_FORCE_MOCKS || isLastCandidate) {
+        throw error;
+      }
+
+      lastError = error;
+      console.warn(
+        `[babybook] Falha ao contactar ${base}. Tentando fallback local...`,
+        error,
+      );
+    }
+  }
+
+  throw lastError ?? new Error("API request failed");
 }
 
 export const apiClient = {

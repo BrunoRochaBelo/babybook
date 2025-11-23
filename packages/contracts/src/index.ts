@@ -32,12 +32,12 @@ const paginatedResponse = <Schema extends z.ZodTypeAny>(schema: Schema) =>
     next: z.string().nullable(),
   });
 
-export const paginatedChildrenSchema = paginatedResponse(rawChildSchema).transform(
-  ({ items, next }) => ({
-    items: items.map((child) => childSchema.parse(child)),
-    next,
-  }),
-);
+export const paginatedChildrenSchema = paginatedResponse(
+  rawChildSchema,
+).transform(({ items, next }) => ({
+  items: items.map((child) => childSchema.parse(child)),
+  next,
+}));
 
 const rawMomentMediaSchema = z.object({
   id: z.string(),
@@ -124,12 +124,12 @@ export const momentSchema = rawMomentSchema.transform((moment) => {
 
 export type Moment = z.infer<typeof momentSchema>;
 
-export const paginatedMomentsSchema = paginatedResponse(rawMomentSchema).transform(
-  ({ items, next }) => ({
-    items: items.map((moment) => momentSchema.parse(moment)),
-    next,
-  }),
-);
+export const paginatedMomentsSchema = paginatedResponse(
+  rawMomentSchema,
+).transform(({ items, next }) => ({
+  items: items.map((moment) => momentSchema.parse(moment)),
+  next,
+}));
 
 const rawGuestbookEntrySchema = z.object({
   id: z.string().uuid(),
@@ -141,15 +141,17 @@ const rawGuestbookEntrySchema = z.object({
   created_at: isoDateSchema,
 });
 
-export const guestbookEntrySchema = rawGuestbookEntrySchema.transform((entry) => ({
-  id: entry.id,
-  childId: entry.child_id,
-  authorName: entry.author_name,
-  authorEmail: entry.author_email ?? null,
-  message: entry.message,
-  status: entry.status,
-  createdAt: entry.created_at,
-}));
+export const guestbookEntrySchema = rawGuestbookEntrySchema.transform(
+  (entry) => ({
+    id: entry.id,
+    childId: entry.child_id,
+    authorName: entry.author_name,
+    authorEmail: entry.author_email ?? null,
+    message: entry.message,
+    status: entry.status,
+    createdAt: entry.created_at,
+  }),
+);
 
 export type GuestbookEntry = z.infer<typeof guestbookEntrySchema>;
 
@@ -232,7 +234,12 @@ export type PaginatedHealthVaccines = z.infer<
   typeof paginatedHealthVaccinesSchema
 >;
 
-const vaultDocumentKindSchema = z.enum(["certidao", "cpf_rg", "sus_plano", "outro"]);
+const vaultDocumentKindSchema = z.enum([
+  "certidao",
+  "cpf_rg",
+  "sus_plano",
+  "outro",
+]);
 export type VaultDocumentKind = z.infer<typeof vaultDocumentKindSchema>;
 
 const rawVaultDocumentSchema = z.object({
@@ -262,7 +269,9 @@ export const paginatedVaultDocumentsSchema = paginatedResponse(
   next,
 }));
 
-export type PaginatedVaultDocuments = z.infer<typeof paginatedVaultDocumentsSchema>;
+export type PaginatedVaultDocuments = z.infer<
+  typeof paginatedVaultDocumentsSchema
+>;
 
 const rawUsageSchema = z.object({
   bytes_used: z.number().nonnegative(),
@@ -288,6 +297,8 @@ const rawUserProfileSchema = z.object({
   name: z.string(),
   locale: z.string().nullable().optional(),
   role: userRoleSchema.optional(),
+  has_purchased: z.boolean().optional(),
+  onboarding_completed: z.boolean().optional(),
 });
 
 export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
@@ -296,6 +307,8 @@ export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
   name: profile.name,
   locale: profile.locale ?? "pt-BR",
   role: profile.role ?? "owner",
+  hasPurchased: profile.has_purchased ?? false,
+  onboardingCompleted: profile.onboarding_completed ?? false,
 }));
 
 export type UserProfile = z.infer<typeof userProfileSchema>;

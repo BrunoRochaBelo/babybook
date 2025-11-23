@@ -28,6 +28,8 @@ from .routes import (
     vault,
 )
 from .settings import settings
+from .deps import AsyncSessionLocal
+from .services.auth import bootstrap_dev_user
 
 
 def create_app() -> FastAPI:
@@ -65,6 +67,18 @@ def create_app() -> FastAPI:
     app.include_router(chapters.router, tags=["chapters"])
     app.include_router(vault.router, tags=["vault"])
     app.include_router(billing.router, tags=["billing"])
+
+    # Dev-only: ensure a dev user exists on startup so developers can login with known credentials
+    if settings.app_env == "local":
+        @app.on_event("startup")
+        async def _seed_dev_user():
+            try:
+                async with AsyncSessionLocal() as session:
+                    await bootstrap_dev_user(session, settings.dev_user_email, settings.dev_user_password, "Dev User")
+                    await session.commit()
+            except Exception as e:
+                # Do not break startup if DB is not ready or migrations not applied yet.
+                print(f"[babybook] warning: failed to seed dev user: {e}")
 
     return app
 

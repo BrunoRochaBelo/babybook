@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     session_ttl_hours: int = 72
     session_cookie_secure: bool = False
     public_base_url: str = "https://share.babybook.dev"
+    frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
     upload_part_bytes: int = 5 * 1024 * 1024
     upload_url_base: str = "https://uploads.dev.babybook"
     service_api_token: str = "service-token"
@@ -30,6 +31,8 @@ class Settings(BaseSettings):
     cloudflare_api_token: str | None = None
     cloudflare_api_base_url: str = "https://api.cloudflare.com/client/v4"
     inline_worker_enabled: bool = Field(default=True, alias="INLINE_WORKER_ENABLED")
+    dev_user_email: str = "bruno@example.com"
+    dev_user_password: str = "password"
 
 
 @lru_cache(maxsize=1)

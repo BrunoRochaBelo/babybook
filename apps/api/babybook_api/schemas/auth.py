@@ -11,3 +11,10 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     csrf_token: str
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    csrf_token: str
+    name: str | None = None

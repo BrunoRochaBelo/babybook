@@ -21,10 +21,10 @@ O arquivo `.env.local` contém:
 
 ```
 VITE_API_BASE_URL=http://localhost:8000/api
-VITE_ENABLE_MSW=false
+VITE_ENABLE_MSW=true
 ```
 
-Quando `VITE_ENABLE_MSW=true` os mocks do MSW são carregados; caso contrário a SPA falará com a API real.
+Quando `VITE_ENABLE_MSW=true` os mocks do MSW são carregados (valor padrão). Altere para `false` apenas quando quiser falar com a API real.
 
 ### 3. Rodar em modo desenvolvimento
 
@@ -36,7 +36,7 @@ A aplicação abrirá em `http://localhost:5173` (ou outra porta se 5173 estiver
 
 ## 📝 Dados Mock
 
-Quando `VITE_ENABLE_MSW=true` (em combinação com `pnpm dev` ou `pnpm test`), o MSW (Mock Service Worker) intercepta os requests e devolve os dados abaixo. Com o valor padrão (`false`) você conversa direto com a API.
+Quando `VITE_ENABLE_MSW=true` (em combinação com `pnpm dev` ou `pnpm test`), o MSW (Mock Service Worker) intercepta os requests e devolve os dados abaixo. Com o valor padrão (`true`) você conversa com os mocks; mude para `false` para falar direto com a API.
 
 Todos os endpoints retornam dados mockados:
 

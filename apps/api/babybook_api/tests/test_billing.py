@@ -57,3 +57,19 @@ def test_billing_webhook_sets_entitlement(client: TestClient, default_account_id
         headers={"X-Billing-Signature": signature, "Content-Type": "application/json"},
     )
     assert dedup_resp.status_code == 200
+
+
+def test_billing_mock_checkout_and_apply(client: TestClient, login, default_account_id: str) -> None:
+    # logged-in user can create a mock checkout
+    resp = client.post("/webhooks/checkout", json={"package_key": "unlimited_social"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "checkout_url" in data
+
+    # now simulate mock complete (dev only), apply entitlement
+    resp2 = client.post("/webhooks/mock-complete", json={"account_id": default_account_id, "package_key": "unlimited_social"})
+    assert resp2.status_code == 200
+
+    # verify entitlement applied
+    entitlements = asyncio.run(_fetch_entitlements(default_account_id))
+    assert entitlements[0] is True

@@ -8,6 +8,8 @@ class MeResponse(BaseModel):
     email: EmailStr
     name: str
     locale: str
+    has_purchased: bool = False
+    onboarding_completed: bool = False
 
 
 class MeUpdateRequest(BaseModel):

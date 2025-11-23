@@ -154,6 +154,118 @@ export const useCreateMoment = () => {
   });
 };
 
+export const useLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { email: string; password: string }) => {
+      const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+      await apiClient.post("/auth/login", {
+        email: payload.email,
+        password: payload.password,
+        csrf_token: csrf.csrf_token,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+  });
+};
+
+export const useRegister = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      email: string;
+      password: string;
+      name?: string;
+    }) => {
+      const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+      await apiClient.post("/auth/register", {
+        email: payload.email,
+        password: payload.password,
+        csrf_token: csrf.csrf_token,
+        name: payload.name,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+  });
+};
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        await apiClient.post("/auth/logout");
+      } catch (error) {
+        if (
+          error instanceof ApiError &&
+          (error.status === 401 || error.status === 405)
+        ) {
+          return;
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["user-profile"] });
+    },
+  });
+};
+
+export const useCreateCheckout = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { packageKey: string }) => {
+      return apiClient.post("/webhooks/checkout", {
+        package_key: payload.packageKey,
+      });
+    },
+  });
+};
+
+export const useMockComplete = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { accountId: string; packageKey: string }) => {
+      return apiClient.post("/webhooks/mock-complete", {
+        account_id: payload.accountId,
+        package_key: payload.packageKey,
+      });
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] }),
+  });
+};
+
+export const useForgotPassword = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      try {
+        const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+        return await apiClient.post("/auth/password/forgot", {
+          email: payload.email,
+          csrf_token: csrf.csrf_token,
+        });
+      } catch (error) {
+        // If endpoint doesn't exist (local dev without API), consider as success
+        if (
+          error instanceof ApiError &&
+          (error.status === 404 || error.status === 405)
+        ) {
+          return { status: "ok", mock: true };
+        }
+        throw error;
+      }
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] }),
+  });
+};
+
 export const useGuestbookEntries = (childId?: string) =>
   useQuery({
     queryKey: ["guestbook", childId],
@@ -204,12 +316,9 @@ export const useHealthMeasurements = (childId?: string) =>
         return [];
       }
       try {
-        return await apiClient.get(
-          `/children/${childId}/health/measurements`,
-          {
-            schema: z.array(healthMeasurementSchema),
-          },
-        );
+        return await apiClient.get(`/children/${childId}/health/measurements`, {
+          schema: z.array(healthMeasurementSchema),
+        });
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           return [];
@@ -226,11 +335,9 @@ export const useCreateHealthMeasurement = () => {
       measurement: CreateHealthMeasurementInput,
     ): Promise<HealthMeasurement> => {
       try {
-        return await apiClient.post(
-          "/health/measurements",
-          measurement,
-          { schema: healthMeasurementSchema },
-        );
+        return await apiClient.post("/health/measurements", measurement, {
+          schema: healthMeasurementSchema,
+        });
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           return {
@@ -275,7 +382,9 @@ export const useHealthVisits = (childId?: string) =>
 export const useCreateHealthVisit = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: CreateHealthVisitInput): Promise<HealthVisit> => {
+    mutationFn: async (
+      payload: CreateHealthVisitInput,
+    ): Promise<HealthVisit> => {
       try {
         return await apiClient.post(
           "/health/visits",
@@ -376,9 +485,10 @@ export const useCreateVaultDocument = () => {
   });
 };
 
-export const useUserProfile = () =>
+export const useUserProfile = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["user-profile"],
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<UserProfile> =>
       apiClient.get("/me", { schema: userProfileSchema }),
   });

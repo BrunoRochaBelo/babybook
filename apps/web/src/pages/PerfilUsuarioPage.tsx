@@ -1,12 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import { User, LogOut } from "lucide-react";
+import { useLogout } from "@/hooks/api";
+import { useAuthStore } from "@/store/auth";
 
 export const PerfilUsuarioPage = () => {
   const navigate = useNavigate();
+  const logoutMutation = useLogout();
+  const clearAuth = useAuthStore((state) => state.logout);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      clearAuth();
+      navigate("/login");
+    }
   };
 
   return (
@@ -72,7 +82,8 @@ export const PerfilUsuarioPage = () => {
         <div className="bg-white rounded-2xl p-6 border border-[#C76A6A]/30">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-[#C76A6A] font-semibold hover:bg-red-50 px-4 py-2 rounded-lg transition-colors"
+            disabled={logoutMutation.status === "pending"}
+            className="flex items-center gap-2 text-[#C76A6A] font-semibold hover:bg-red-50 px-4 py-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut className="w-5 h-5" />
             Sair da Conta

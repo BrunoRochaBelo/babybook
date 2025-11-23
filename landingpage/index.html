@@ -114,50 +114,63 @@
   </nav>
 
   <!-- 1. HERO -->
-  <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 pb-16">
-    <!-- Background Video -->
-    <div class="absolute inset-0 -z-10 overflow-hidden">
-      <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-30" poster="/assets/hero-poster.jpg">
-        <source src="/assets/video-hero.mp4" type="video/mp4">
-      </video>
-      <!-- Overlay para garantir contraste melhorado -->
-      <div class="absolute inset-0 bg-gradient-to-b from-cream/90 via-cream/70 to-cream"></div>
-    </div>
+  <section id="hero-stage" class="hero-stage">
+    <div class="hero-lock">
+      <div class="hero-section relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 pb-16">
+        <!-- Background Video -->
+        <div class="absolute inset-0 -z-10 overflow-hidden">
+          <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-30" poster="/assets/hero-poster.jpg">
+            <source src="/assets/video-hero.mp4" type="video/mp4">
+          </video>
+          <!-- Overlay para garantir contraste melhorado -->
+          <div class="absolute inset-0 bg-gradient-to-b from-cream/90 via-cream/70 to-cream"></div>
+        </div>
+        <div class="hero-ambient" aria-hidden="true">
+          <div class="hero-orb hero-orb--left"></div>
+          <div class="hero-orb hero-orb--right"></div>
+          <div class="hero-glare"></div>
+        </div>
 
-    <div class="max-w-4xl mx-auto text-center px-6 relative z-10">
-      <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-100 rounded-full border-2 border-indigo-200 scale-in shadow-sm">
-        Para sempre
-      </span>
+        <div class="max-w-4xl mx-auto text-center px-6 relative z-10">
+          <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-100 rounded-full border-2 border-indigo-200 scale-in shadow-sm">
+            Para sempre
+          </span>
 
-      <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] mb-8 tracking-tight text-ink fade-in-up stagger-1">
-        A história do seu filho merece mais do que intenções. <br />
-        <span class="text-indigo-600 italic">Ela merece um lugar.</span>
-      </h1>
+          <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] mb-8 tracking-tight text-ink fade-in-up stagger-1">
+            A história do seu filho merece mais do que intenções. <br />
+            <span class="text-indigo-600 italic">Ela merece um lugar.</span>
+          </h1>
 
-      <p class="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-12 leading-relaxed fade-in-up stagger-2">
-        O Baby Book é uma coleção de livros digitais que transforma momentos soltos em uma história organizada, íntima e feita para atravessar gerações.
-      </p>
+          <p class="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-12 leading-relaxed fade-in-up stagger-2">
+            O Baby Book é uma coleção de livros digitais que transforma momentos soltos em uma história organizada, íntima e feita para atravessar gerações.
+          </p>
 
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 scale-in stagger-3">
-        <a href="#pricing" class="cta-primary shine-effect w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-xl shadow-indigo-300 hover:shadow-2xl hover:shadow-indigo-400 hover:-translate-y-1 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2">
-          <span class="btn-text">Começar nossa história</span>
-        </a>
-        <a href="#pricing" class="cta-secondary w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-white border-2 border-gray-300 text-gray-800 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-gray-600 focus-visible:outline-offset-2 gap-2">
-          <span class="btn-text"><span role="img" aria-label="presente">🎁</span> Presentear</span>
-        </a>
-      </div>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 scale-in stagger-3">
+            <div class="magnetic w-full sm:w-auto" data-magnetic-strength="0.35">
+              <a href="#pricing" class="cta-primary shine-effect w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-xl shadow-indigo-300 hover:shadow-2xl hover:shadow-indigo-400 focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2">
+                <span class="btn-text">Começar nossa história</span>
+              </a>
+            </div>
+            <div class="magnetic w-full sm:w-auto" data-magnetic-strength="0.25">
+              <a href="#pricing" class="cta-secondary w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-white border-2 border-gray-300 text-gray-800 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all shadow-md hover:shadow-lg focus-visible:outline-2 focus-visible:outline-gray-600 focus-visible:outline-offset-2 gap-2">
+                <span class="btn-text"><span role="img" aria-label="presente">🎁</span> Presentear</span>
+              </a>
+            </div>
+          </div>
 
-      <div class="mt-8 text-sm text-gray-600 flex items-center justify-center gap-2 fade-in-up" style="transition-delay: 400ms;">
-        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span class="font-medium">Acesso vitalício · Pague uma vez, seu para sempre</span>
+          <div class="mt-8 text-sm text-gray-600 flex items-center justify-center gap-2 fade-in-up" style="transition-delay: 400ms;">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="font-medium">Acesso vitalício · Pague uma vez, seu para sempre</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- 2. O VAZIO (Caos vs Ordem Interativo) -->
-  <section class="chaos-container bg-paper border-t border-gray-100 relative z-20">
+  <section class="chaos-container relative z-20">
     <div class="chaos-sticky">
       <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center px-6">
 
@@ -290,7 +303,7 @@
       <!-- Fundo com Parallax -->
       <div class="timeline-background"></div>
 
-      <div class="max-w-4xl mx-auto px-6 relative z-10">
+      <div class="section-shell section-shell--padded relative z-10">
         <div class="text-center mb-20 md:mb-28 fade-in-up">
           <span class="text-indigo-700 font-bold tracking-widest text-xs uppercase">Como Funciona</span>
           <h2 class="font-serif text-3xl md:text-5xl mt-3 font-bold">Três minutos. Uma história.</h2>
@@ -341,8 +354,8 @@
   </section>
 
   <!-- 5. PARA QUEM É (Grid Desktop / Carrossel Mobile) -->
-  <section class="py-20 px-6 bg-white border-t border-gray-200">
-    <div class="max-w-6xl mx-auto">
+  <section class="section-surface families-section">
+    <div class="section-shell">
       <h2 class="font-serif text-3xl md:text-4xl font-bold mb-20 text-center fade-in-up">Feito para famílias reais.</h2>
 
       <!-- Carrossel Mobile (visível apenas em mobile) -->
@@ -436,64 +449,73 @@
     </div>
   </section>
 
-  <!-- 6. CONFIANÇA -->
-  <section class="py-20 px-6 bg-ink text-white border-b border-gray-800">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 text-center">
-      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors">
-        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
-        <h4 class="font-bold mb-2 text-lg">Acesso vitalício</h4>
-        <p class="text-sm text-gray-300 leading-relaxed">Pague uma vez. Use para sempre.</p>
-      </div>
-      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 100ms;">
-        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
-        <h4 class="font-bold mb-2 text-lg">100% Privado</h4>
-        <p class="text-sm text-gray-300 leading-relaxed">Suas memórias, suas regras (LGPD).</p>
-      </div>
-      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 200ms;">
-        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
-        <h4 class="font-bold mb-2 text-lg">Exportação</h4>
-        <p class="text-sm text-gray-300 leading-relaxed">Seus dados sempre saem com você.</p>
-      </div>
-      <div class="p-6 fade-in-up hover:bg-white/5 rounded-xl transition-colors" style="transition-delay: 300ms;">
-        <div class="text-indigo-400 text-3xl mb-3 font-bold">✓</div>
-        <h4 class="font-bold mb-2 text-lg">Suporte Humanizado</h4>
-        <p class="text-sm text-gray-300 leading-relaxed">Feito por pais para pais.</p>
-      </div>
-    </div>
-  </section>
+  <!-- 6. PREÇO -->
+  <section id="pricing" class="pricing-parallax text-cream" data-parallax-section>
+    <div class="pricing-layer pricing-grid" data-parallax-depth="0.08"></div>
+    <div class="pricing-layer pricing-orb pricing-orb--one" data-parallax-depth="0.2"></div>
+    <div class="pricing-layer pricing-orb pricing-orb--two" data-parallax-depth="0.35"></div>
 
-  <!-- 7. PREÇO -->
-  <section id="pricing" class="py-24 px-6 bg-ink text-cream relative overflow-hidden">
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 parallax-slow" data-speed="0.3"></div>
+    <div class="pricing-shell text-center">
+      <h2 class="font-serif text-3xl md:text-5xl mb-12 fade-in-up font-bold">Um pagamento.<br>Uma vida inteira.</h2>
 
-    <div class="max-w-xl mx-auto text-center relative z-10">
-      <h2 class="font-serif text-3xl md:text-5xl mb-16 fade-in-up font-bold">Um pagamento.<br>Uma vida inteira.</h2>
-
-      <div class="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-10 md:p-12 fade-in-up hover:bg-white/15 transition-all duration-300" style="transition-delay: 200ms;">
+      <div class="pricing-card-panel p-10 md:p-12 fade-in-up" style="transition-delay: 150ms;">
         <div class="flex items-baseline justify-center gap-2 mb-3">
-          <span class="text-2xl text-gray-300 font-semibold">R$</span>
+          <span class="text-2xl text-gray-200 font-semibold">R$</span>
           <span class="text-7xl font-bold text-white tracking-tighter">200</span>
         </div>
-        <p class="text-indigo-300 font-semibold mb-10 text-lg">Acesso vitalício completo</p>
+        <p class="text-indigo-200 font-semibold mb-10 text-lg">Acesso vitalício completo</p>
 
-        <ul class="space-y-4 text-left text-gray-100 mb-12 max-w-xs mx-auto text-base">
-          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>4 livros digitais completos</span></li>
-          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>40+ capítulos guiados</span></li>
-          <li class="flex gap-3 items-center"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>Atualizações inclusas</span></li>
-          <li class="flex gap-3 items-center text-white font-semibold"><span class="text-indigo-400 text-xl font-bold flex-shrink-0">✓</span> <span>Sem mensalidade. Nunca.</span></li>
+        <ul class="space-y-4 text-left text-slate-100 mb-12 max-w-xs mx-auto text-base">
+          <li class="flex gap-3 items-center"><span class="text-indigo-300 text-xl font-bold flex-shrink-0">✓</span> <span>4 livros digitais completos</span></li>
+          <li class="flex gap-3 items-center"><span class="text-indigo-300 text-xl font-bold flex-shrink-0">✓</span> <span>40+ capítulos guiados</span></li>
+          <li class="flex gap-3 items-center"><span class="text-indigo-300 text-xl font-bold flex-shrink-0">✓</span> <span>Atualizações inclusas</span></li>
+          <li class="flex gap-3 items-center text-white font-semibold"><span class="text-indigo-300 text-xl font-bold flex-shrink-0">✓</span> <span>Sem mensalidade. Nunca.</span></li>
         </ul>
 
-        <button class="cta-primary w-full min-h-[56px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-900/50 hover:shadow-2xl hover:shadow-indigo-800/50 transform hover:-translate-y-1 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2">
-          <span class="btn-text">Garantir acesso agora</span>
-        </button>
-        <p class="text-sm text-gray-400 mt-5">*Menos que um fotolivro impresso. Para toda a primeira infância.</p>
+        <div class="magnetic w-full" data-magnetic-strength="0.2">
+          <button class="cta-primary w-full min-h-[56px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-900/50 hover:shadow-2xl hover:shadow-indigo-800/50 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2">
+            <span class="btn-text">Garantir acesso agora</span>
+          </button>
+        </div>
+        <p class="text-sm text-slate-300 mt-5">*Menos que um fotolivro impresso. Para toda a primeira infância.</p>
+      </div>
+
+      <div class="mt-16 pt-12 border-t border-white/10">
+        <div class="trust-carousel">
+          <div class="trust-carousel-inner">
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Acesso vitalício • Pague uma vez. Use para sempre.</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">100% Privado • Suas memórias, suas regras (LGPD).</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Exportação • Seus dados sempre saem com você.</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Suporte Humanizado • Feito por pais para pais.</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Acesso vitalício • Pague uma vez. Use para sempre.</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">100% Privado • Suas memórias, suas regras (LGPD).</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Exportação • Seus dados sempre saem com você.</h4>
+            </div>
+            <div class="trust-carousel-item">
+              <h4 class="font-bold text-lg text-white">Suporte Humanizado • Feito por pais para pais.</h4>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- 8. FUTURO (Roadmap) -->
+  <!-- 7. FUTURO (Roadmap) -->
   <section class="py-20 px-6 bg-gradient-to-b from-paper to-white border-b border-gray-200">
-    <div class="max-w-5xl mx-auto text-center">
+    <div class="section-shell text-center">
       <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-50 rounded-full border border-indigo-200 fade-in-up">
         Em desenvolvimento
       </span>
@@ -535,70 +557,69 @@
     </div>
   </section>
 
-  <!-- 9. FAQ -->
-  <section class="py-24 px-6 bg-white">
+  <!-- 8. FAQ -->
+  <section class="section-surface faq-paper faq-section">
     <div class="max-w-3xl mx-auto">
       <h2 class="font-serif text-3xl md:text-4xl font-bold mb-16 text-center fade-in-up">Perguntas que importam.</h2>
 
-      <div class="space-y-3">
-        <!-- Item FAQ -->
-        <div class="border-b border-gray-100 pb-4 fade-in-up">
-          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
+      <div class="faq-lines">
+        <div class="faq-line-item fade-in-up">
+          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg transition-colors" aria-expanded="false">
             E se vocês fecharem?
-            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </button>
           <div class="accordion-content">
-            <p class="text-gray-600 pb-4 leading-relaxed">Suas memórias podem ser exportadas. A qualquer momento. A história é sua, não nossa.</p>
+            <p class="pb-4 leading-relaxed">Suas memórias podem ser exportadas. A qualquer momento. A história é sua, não nossa.</p>
           </div>
         </div>
 
-        <div class="border-b border-gray-100 pb-4 fade-in-up">
-          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
+        <div class="faq-line-item fade-in-up">
+          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg transition-colors" aria-expanded="false">
             Posso usar para mais de um filho?
-            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </button>
           <div class="accordion-content">
-            <p class="text-gray-600 pb-4 leading-relaxed">Sim. Um álbum completo para cada criança. Mesma conta.</p>
+            <p class="pb-4 leading-relaxed">Sim. Um álbum completo para cada criança. Mesma conta.</p>
           </div>
         </div>
 
-        <div class="border-b border-gray-100 pb-4 fade-in-up">
-          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
+        <div class="faq-line-item fade-in-up">
+          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg transition-colors" aria-expanded="false">
             Tem limite de fotos?
-            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </button>
           <div class="accordion-content">
-            <p class="text-gray-600 pb-4 leading-relaxed">Sim, e de propósito. Curadoria afetiva: você escolhe só o que importa. Isso torna a história mais bonita.</p>
+            <p class="pb-4 leading-relaxed">Sim, e de propósito. Curadoria afetiva: você escolhe só o que importa. Isso torna a história mais bonita.</p>
           </div>
         </div>
 
-        <div class="border-b border-gray-100 pb-4 fade-in-up">
-          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
+        <div class="faq-line-item fade-in-up">
+          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg transition-colors" aria-expanded="false">
             Minha família precisa baixar o app?
-            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </button>
           <div class="accordion-content">
-            <p class="text-gray-600 pb-4 leading-relaxed">Não. Você pode compartilhar por links privados. Eles veem no navegador.</p>
+            <p class="pb-4 leading-relaxed">Não. Você pode compartilhar por links privados. Eles veem no navegador.</p>
           </div>
         </div>
 
-        <div class="border-b border-gray-100 pb-4 fade-in-up">
-          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg text-ink hover:text-indigo-600 transition-colors" aria-expanded="false">
+        <div class="faq-line-item fade-in-up">
+          <button class="accordion-btn w-full flex justify-between items-center py-4 text-left font-semibold text-lg transition-colors" aria-expanded="false">
             Posso começar e completar aos poucos?
-            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </button>
           <div class="accordion-content">
-            <p class="text-gray-600 pb-4 leading-relaxed">Exatamente a ideia. Sem pressa, sem cobrança. No seu tempo.</p>
+            <p class="pb-4 leading-relaxed">Exatamente a ideia. Sem pressa, sem cobrança. No seu tempo.</p>
           </div>
         </div>
       </div>
@@ -609,7 +630,7 @@
   <footer class="bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden">
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px] opacity-30 pointer-events-none" style="background: radial-gradient(circle, #F7F3EF 0%, transparent 70%);"></div>
 
-    <div class="max-w-4xl mx-auto text-center relative z-10 mb-20 fade-in-up">
+    <div class="section-shell text-center relative z-10 mb-20 fade-in-up">
       <h2 class="font-serif text-4xl md:text-6xl font-bold mb-6">
         A infância <span class="text-indigo-400 inline-block animate-pulse-slow">não espera.</span>
       </h2>
@@ -618,12 +639,16 @@
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-        <a href="#pricing" class="cta-primary w-full sm:w-auto px-10 py-4 bg-white text-ink hover:bg-gray-100 rounded-xl font-bold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
-          <span class="btn-text">Começar nossa história</span>
-        </a>
-        <a href="#pricing" class="cta-secondary w-full sm:w-auto px-10 py-4 border-2 border-gray-600 hover:border-white text-white rounded-xl font-semibold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
-          <span class="btn-text">Presentear uma história</span>
-        </a>
+        <div class="magnetic w-full sm:w-auto" data-magnetic-strength="0.35">
+          <a href="#pricing" class="cta-primary w-full sm:w-auto px-10 py-4 bg-white text-ink hover:bg-gray-100 rounded-xl font-bold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
+            <span class="btn-text">Começar nossa história</span>
+          </a>
+        </div>
+        <div class="magnetic w-full sm:w-auto" data-magnetic-strength="0.25">
+          <a href="#pricing" class="cta-secondary w-full sm:w-auto px-10 py-4 border-2 border-gray-600 hover:border-white text-white rounded-xl font-semibold text-lg transition-colors min-h-[56px] inline-flex items-center justify-center">
+            <span class="btn-text">Presentear uma história</span>
+          </a>
+        </div>
       </div>
       <p class="text-sm text-gray-300">✓ Garantia de 30 dias · Se não for para você, devolvemos cada centavo</p>
     </div>
