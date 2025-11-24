@@ -6,9 +6,11 @@ const { colors, fonts, radii } = designTokens;
 
 export default {
   presets: [sharedConfig],
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  safelist: [
+    // Safelist mínimo para classes dinâmicas
+    "animate-pulse",
+    "animate-spin",
   ],
   theme: {
     extend: {
@@ -17,23 +19,23 @@ export default {
         serif: fonts.serif,
       },
       colors: {
-        'cream': colors.background,
-        'ink': colors.ink,
-        'indigo-baby': colors.accent, // Mapping requested indigo to our accent (orange)
-        'paper': colors.surfaceMuted,
+        cream: colors.background,
+        ink: colors.ink,
+        "indigo-baby": colors.accent, // Mapping requested indigo to our accent (orange)
+        paper: colors.surfaceMuted,
         // Add other mappings if necessary to support the user's class names
-        'indigo': {
-            50: colors.accentSoft,
-            100: colors.accentSoft,
-            500: colors.accent,
-            600: colors.accent, // Main action color
-            700: '#D97F45', // Darker accent for hover
-        }
+        indigo: {
+          50: colors.accentSoft,
+          100: colors.accentSoft,
+          500: colors.accent,
+          600: colors.accent, // Main action color
+          700: "#D97F45", // Darker accent for hover
+        },
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-      }
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+      },
     },
   },
   plugins: [],
-}
+};

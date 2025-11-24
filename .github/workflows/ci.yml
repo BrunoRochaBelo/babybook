@@ -24,6 +24,30 @@ jobs:
         run: pnpm lint:js
       - name: Typecheck
         run: pnpm typecheck
+      - name: Build landingpage
+        run: pnpm --filter @babybook/landingpage run build:ci
+      - name: Upload bundle stats
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: landingpage-stats
+          path: landingpage/dist/stats.html
+      - name: Comment bundle size on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const historyPath = path.join(process.cwd(), 'landingpage', 'dist', 'budget-history.json');
+            if (!fs.existsSync(historyPath)) return;
+            const data = JSON.parse(fs.readFileSync(historyPath, 'utf-8'));
+            const last = data[data.length - 1];
+            const body = `📦 **Bundle Size Report**\n\n- JS: ${last.js.total.toFixed(1)} KB\n- CSS: ${last.css.total.toFixed(1)} KB\n- HTML: ${(last.html?.index || 0).toFixed(1)} KB\n\nWarnings: ${last.warnings}, Violations: ${last.violations}`;
+            const pr = context.payload.pull_request;
+            if (!pr) return;
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

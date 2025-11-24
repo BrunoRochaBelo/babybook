@@ -1,0 +1,38 @@
+/* Board notice & sticky-note module */
+.boardNotice {
+  position: relative;
+  isolation: isolate;
+}
+.boardNoticeShell {
+  position: relative;
+  z-index: 1;
+}
+.stickyNote {
+  position: relative;
+  padding: clamp(1.75rem, 3.5vw, 2.25rem) clamp(1.5rem, 3vw, 2rem);
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  cursor: default;
+  isolation: isolate;
+}
+.stickyNotePin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.stickyNoteYellow {
+  /* color variant - minimal */
+}
+.stickyNoteBlue {
+  /* color variant - minimal */
+}
+.stickyNotePink {
+  /* color variant - minimal */
+}
+.stickyNoteGreen {
+  /* color variant - minimal */
+}

@@ -1,0 +1,30 @@
+/* Carousel styles module */
+.carouselSlide {
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carouselSlideNotActive {
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+.carouselSlideActive {
+  opacity: 1;
+  transform: scale(1);
+}
+.carouselDot {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carouselDotHover:hover {
+  background-color: #6366f1;
+  transform: scale(1.2);
+}
+.carouselDotSelected {
+  background-color: #4f46e5;
+  width: 2rem;
+  border-radius: 1rem;
+}
+.carouselNavBtn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

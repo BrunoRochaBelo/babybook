@@ -32,10 +32,10 @@
   <meta name="twitter:image" content="https://babybook.com.br/twitter-image.jpg">
 
   <!-- Favicons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon-32x32.svg">
+  <link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon-16x16.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.svg">
+  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#4f46e5">
 
   <!-- Preconnect para Performance -->
@@ -78,9 +78,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Baby Book" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <!-- Apple Startup Images -->
+  <link rel="apple-touch-startup-image" href="/apple-splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="/apple-splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="/apple-splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-icon" href="/icon-192.svg" />
   <meta name="msapplication-TileColor" content="#4f46e5" />
-  <meta name="msapplication-TileImage" content="/icon-192.png" />
+  <meta name="msapplication-TileImage" content="/icon-192.svg" />
 
 </head>
 
@@ -176,8 +180,8 @@
 
         <!-- Texto Fixo -->
         <div class="relative z-20 order-2 md:order-1 text-center md:text-left">
-          <span class="text-indigo-700 font-bold tracking-widest text-xs uppercase mb-3 block fade-in-left">O vazio que ninguém percebe</span>
-          <h2 class="font-serif text-3xl md:text-5xl font-bold mb-8 leading-tight fade-in-left stagger-1">
+          <span class="text-indigo-700 font-bold tracking-widest text-xs uppercase mb-3 block">O vazio que ninguém percebe</span>
+          <h2 class="font-serif text-3xl md:text-5xl font-bold mb-8 leading-tight">
             A tradição de registrar a infância nunca saiu de moda. <br>
             <span class="text-gray-500 transition-colors duration-500" id="chaos-highlight">Só precisava caber na vida real.</span>
           </h2>
@@ -197,22 +201,38 @@
         <div class="relative h-[300px] md:h-[400px] w-full flex items-center justify-center order-1 md:order-2 mb-8 md:mb-0">
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[10%] left-[10%] rotate-[-12deg]" style="--i:0">
             <div class="lazy-image loading w-full h-full">
-              <img data-src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              <picture>
+                <source type="image/avif" srcset="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80&fm=avif">
+                <source type="image/webp" srcset="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80&fm=webp">
+                <img data-src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              </picture>
             </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[50%] left-[60%] rotate-[15deg]" style="--i:1">
             <div class="lazy-image loading w-full h-full">
-              <img data-src="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              <picture>
+                <source type="image/avif" srcset="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80&fm=avif">
+                <source type="image/webp" srcset="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80&fm=webp">
+                <img data-src="https://images.unsplash.com/photo-1544126566-475d6cf0c11f?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              </picture>
             </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[20%] right-[10%] rotate-[8deg]" style="--i:2">
             <div class="lazy-image loading w-full h-full">
-              <img data-src="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              <picture>
+                <source type="image/avif" srcset="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80&fm=avif">
+                <source type="image/webp" srcset="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80&fm=webp">
+                <img data-src="https://images.unsplash.com/photo-1516627145497-ae6963375dd2?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              </picture>
             </div>
           </div>
           <div class="photo-scatter bg-white p-2 w-40 h-52 md:w-48 md:h-60 absolute top-[60%] left-[10%] rotate-[-6deg]" style="--i:3">
             <div class="lazy-image loading w-full h-full">
-              <img data-src="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              <picture>
+                <source type="image/avif" srcset="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80&fm=avif">
+                <source type="image/webp" srcset="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80&fm=webp">
+                <img data-src="https://images.unsplash.com/photo-1555252333-9f8e92e65df4?auto=format&fit=crop&w=400&q=80" alt="Bebê" class="w-full h-full object-cover grayscale opacity-80" loading="lazy">
+              </picture>
             </div>
           </div>
         </div>
@@ -354,7 +374,7 @@
   </section>
 
   <!-- 5. PARA QUEM É (Grid Desktop / Carrossel Mobile) -->
-  <section class="section-surface families-section">
+  <section class="section-surface families-section board-notice">
     <div class="section-shell">
       <h2 class="font-serif text-3xl md:text-4xl font-bold mb-20 text-center fade-in-up">Feito para famílias reais.</h2>
 
@@ -422,28 +442,32 @@
 
       <!-- Grid Desktop (visível apenas em desktop) -->
       <div class="hidden md:grid md:grid-cols-2 gap-6">
-        <div class="p-8 bg-paper rounded-2xl hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100 fade-in-up">
-          <div class="text-indigo-600 text-4xl font-serif mb-4">"</div>
-          <h3 class="text-xl font-bold mb-2 text-ink">Tenho mil fotos e nenhuma história</h3>
-          <p class="text-gray-600">Você registra tudo, mas nunca consegue organizar. O Baby Book faz isso por você.</p>
+        <div class="sticky-note sticky-note-yellow fade-in-up">
+          <div class="sticky-note-pin" aria-hidden="true"></div>
+          <div class="text-amber-600 text-2xl font-serif mb-2 leading-none">"</div>
+          <h3 class="text-base font-bold mb-2 text-amber-900 leading-snug">Tenho mil fotos e nenhuma história</h3>
+          <p class="text-amber-800/75 text-sm leading-relaxed">Você registra tudo, mas nunca consegue organizar. O Baby Book faz isso por você.</p>
         </div>
 
-        <div class="p-8 bg-paper rounded-2xl hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100 fade-in-up" style="transition-delay: 100ms;">
-          <div class="text-indigo-600 text-4xl font-serif mb-4">"</div>
-          <h3 class="text-xl font-bold mb-2 text-ink">Quero privacidade de verdade</h3>
-          <p class="text-gray-600">Sem feed público. Sem likes. Só quem você convidar vê a história.</p>
+        <div class="sticky-note sticky-note-blue fade-in-up" style="transition-delay: 100ms;">
+          <div class="sticky-note-pin" aria-hidden="true"></div>
+          <div class="text-indigo-600 text-2xl font-serif mb-2 leading-none">"</div>
+          <h3 class="text-base font-bold mb-2 text-indigo-900 leading-snug">Quero privacidade de verdade</h3>
+          <p class="text-indigo-800/75 text-sm leading-relaxed">Sem feed público. Sem likes. Só quem você convidar vê a história.</p>
         </div>
 
-        <div class="p-8 bg-paper rounded-2xl hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100 fade-in-up" style="transition-delay: 200ms;">
-          <div class="text-indigo-600 text-4xl font-serif mb-4">"</div>
-          <h3 class="text-xl font-bold mb-2 text-ink">Não sou de fazer essas coisas</h3>
-          <p class="text-gray-600">Por isso mesmo. A gente guia cada passo. Você só preenche com carinho.</p>
+        <div class="sticky-note sticky-note-pink fade-in-up" style="transition-delay: 200ms;">
+          <div class="sticky-note-pin" aria-hidden="true"></div>
+          <div class="text-rose-600 text-2xl font-serif mb-2 leading-none">"</div>
+          <h3 class="text-base font-bold mb-2 text-rose-900 leading-snug">Não sou de fazer essas coisas</h3>
+          <p class="text-rose-800/75 text-sm leading-relaxed">Por isso mesmo. A gente guia cada passo. Você só preenche com carinho.</p>
         </div>
 
-        <div class="p-8 bg-paper rounded-2xl hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100 fade-in-up" style="transition-delay: 300ms;">
-          <div class="text-indigo-600 text-4xl font-serif mb-4">"</div>
-          <h3 class="text-xl font-bold mb-2 text-ink">Quero presentear algo especial</h3>
-          <p class="text-gray-600">O presente que não vira doação. Vira legado.</p>
+        <div class="sticky-note sticky-note-green fade-in-up" style="transition-delay: 300ms;">
+          <div class="sticky-note-pin" aria-hidden="true"></div>
+          <div class="text-emerald-600 text-2xl font-serif mb-2 leading-none">"</div>
+          <h3 class="text-base font-bold mb-2 text-emerald-900 leading-snug">Quero presentear algo especial</h3>
+          <p class="text-emerald-800/75 text-sm leading-relaxed">O presente que não vira doação. Vira legado.</p>
         </div>
       </div>
     </div>
@@ -514,7 +538,12 @@
   </section>
 
   <!-- 7. FUTURO (Roadmap) -->
-  <section class="py-20 px-6 bg-gradient-to-b from-paper to-white border-b border-gray-200">
+  <section class="future-parallax py-20 px-6 bg-gradient-to-b from-paper to-white border-b border-gray-200" data-parallax-section>
+    <div class="future-parallax-layer future-parallax-gradient" data-parallax-depth="0.12" aria-hidden="true"></div>
+    <div class="future-parallax-layer future-parallax-grid" data-parallax-depth="0.22" aria-hidden="true"></div>
+    <div class="future-parallax-layer future-parallax-ribbon" data-parallax-depth="0.35" aria-hidden="true"></div>
+    <div class="future-parallax-layer future-parallax-orb future-parallax-orb--left" data-parallax-depth="0.52" aria-hidden="true"></div>
+    <div class="future-parallax-layer future-parallax-orb future-parallax-orb--right" data-parallax-depth="0.68" aria-hidden="true"></div>
     <div class="section-shell text-center">
       <span class="inline-block py-2 px-4 mb-6 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-50 rounded-full border border-indigo-200 fade-in-up">
         Em desenvolvimento

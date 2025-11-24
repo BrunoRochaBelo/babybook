@@ -1,66 +1,70 @@
-.hero-stage {
-  position: relative;
-  width: 100%;
-  min-height: 135vh;
-}
-
-.hero-lock {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-inline: calc(var(--hero-collapse-progress) * 2.5rem);
-  padding-top: calc(var(--hero-collapse-progress) * 4rem);
-  padding-bottom: calc(var(--hero-collapse-progress) * 4rem);
-}
-
-.hero-lock .hero-section {
-  position: relative;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  min-height: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: calc(var(--hero-collapse-progress) * 48px);
-  box-shadow:
-    0 45px 140px -40px rgba(15, 23, 42, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  padding: clamp(2rem, 5vw, 4.5rem);
-  transform-origin: center top;
-  transform: translate3d(0, calc(var(--hero-collapse-progress) * -7vh), 0)
-    scale(calc(1.08 - var(--hero-collapse-progress) * 0.08));
-  transition:
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, border-radius, box-shadow;
-}
-
-.hero-lock .hero-section::after {
-  display: none;
-}
-
-.hero-lock .hero-section .max-w-4xl {
-  max-width: min(1100px, 92vw);
-}
+/* Hero styles moved to CSS module: src/styles/hero.module.css - apply via JS helper */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* --- ESTILOS BASE & UTILITÁRIOS --- */
 :root {
-  --page-cream-100: #f8f1ea;
-  --page-cream-200: #f3e9df;
-  --page-cream-300: #eee2d7;
-  --surface-color: rgba(255, 255, 255, 0.92);
-  --surface-border: rgba(15, 23, 42, 0.08);
-  --surface-border-strong: rgba(79, 70, 229, 0.18);
-  --surface-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25);
+  /* Paleta refinada - tons mais profundos e elegantes */
+  --page-cream-100: #f5ede3;
+  --page-cream-200: #efe5d8;
+  --page-cream-300: #e8dcc9;
+  --surface-color: rgba(255, 255, 255, 0.95);
+  --surface-border: rgba(15, 23, 42, 0.06);
+  --surface-border-strong: rgba(79, 70, 229, 0.22);
+  /* Sombras coloridas e difusas para visual premium */
+  --surface-shadow:
+    0 25px 60px -15px rgba(79, 70, 229, 0.08),
+    0 15px 40px -20px rgba(15, 23, 42, 0.15);
   --pointer-x: 50;
   --pointer-y: 40;
   --hero-collapse-progress: 0;
+}
+
+/* === REFINAMENTOS TIPOGRÁFICOS === */
+/* Títulos grandes - tracking tight para elegância */
+h1,
+.font-serif {
+  letter-spacing: -0.02em;
+  font-feature-settings:
+    "liga" 1,
+    "calt" 1;
+  /* Títulos sempre visíveis sem animação */
+  opacity: 1;
+  transform: none;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  opacity: 1;
+  transform: none;
+}
+
+/* Overlines e labels - tracking wide para clareza */
+.tracking-widest {
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* Melhor legibilidade em parágrafos */
+p {
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Melhor contraste em textos secundários */
+.text-gray-600 {
+  color: #52525b; /* zinc-600 */
+}
+
+.text-gray-700 {
+  color: #3f3f46; /* zinc-700 */
 }
 
 body {
@@ -68,19 +72,21 @@ body {
   min-height: 100vh;
   position: relative;
   background-image:
+    /* Textura de grão para aspecto tátil de papel premium */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
     radial-gradient(
       circle at 15% 15%,
-      rgba(147, 197, 253, 0.35),
+      rgba(147, 197, 253, 0.28),
       transparent 50%
     ),
     radial-gradient(
       circle at 80% 5%,
-      rgba(224, 231, 255, 0.4),
+      rgba(224, 231, 255, 0.32),
       transparent 55%
     ),
     radial-gradient(
       circle at 80% 60%,
-      rgba(251, 207, 232, 0.35),
+      rgba(251, 207, 232, 0.28),
       transparent 55%
     ),
     linear-gradient(
@@ -131,7 +137,9 @@ body::after {
   border: 1px solid var(--surface-border);
   background: var(--surface-color);
   box-shadow: var(--surface-shadow);
-  backdrop-filter: blur(18px);
+  /* Glassmorphism refinado */
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   transition:
     transform 0.8s cubic-bezier(0.19, 1, 0.22, 1),
     box-shadow 0.8s cubic-bezier(0.19, 1, 0.22, 1),
@@ -162,9 +170,11 @@ body::after {
 .hero-section.surface-active {
   transform: translateY(-8px) scale(1.005);
   border-color: var(--surface-border-strong);
+  /* Sombras coloridas premium com glow sutil */
   box-shadow:
-    0 35px 90px -40px rgba(15, 23, 42, 0.55),
-    0 25px 65px -35px rgba(79, 70, 229, 0.35);
+    0 35px 90px -40px rgba(79, 70, 229, 0.25),
+    0 25px 65px -35px rgba(99, 102, 241, 0.15),
+    0 15px 35px -25px rgba(15, 23, 42, 0.2);
 }
 
 .section-surface.surface-active::after,
@@ -188,208 +198,162 @@ body::after {
   }
 }
 
-.hero-section {
-  width: min(1400px, calc(100% - 2rem));
-  margin-block: clamp(2rem, 5vw, 3.5rem);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow:
-    0 35px 120px -40px rgba(15, 23, 42, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-  overflow: hidden;
-  transition:
-    transform 0.8s cubic-bezier(0.19, 1, 0.22, 1),
-    box-shadow 0.8s cubic-bezier(0.19, 1, 0.22, 1),
-    border-color 0.6s ease,
-    background 0.6s ease,
-    border-radius 0.75s cubic-bezier(0.19, 1, 0.22, 1),
-    padding 0.6s cubic-bezier(0.19, 1, 0.22, 1),
-    margin 0.6s cubic-bezier(0.19, 1, 0.22, 1),
-    width 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+/* FAQ styles moved to CSS module: src/styles/faq.module.css */
+
+/* === EFEITO DE SCALE PROGRESSIVO NAS SEÇÕES === */
+/* Seções começam em escala reduzida e crescem durante o scroll */
+.scale-section {
+  --section-scale: 0.85;
+  --section-y: 60px;
+  transform: scale(var(--section-scale)) translateY(var(--section-y));
   transform-origin: center top;
+  transition:
+    transform 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 0.6s ease;
+  opacity: 0.3;
 }
 
-.hero-section::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 25% 20%,
-    rgba(255, 255, 255, 0.4),
-    transparent 45%
-  );
-  mix-blend-mode: screen;
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 1;
+.scale-section.scale-active {
+  --section-scale: 1;
+  --section-y: 0px;
+  opacity: 1;
 }
 
-.hero-ambient,
-.hero-glare {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
+/* Seções sticky mantêm o scale quando fixas */
+.scale-section.scale-sticky {
+  position: sticky;
+  top: 2rem;
 }
 
-.hero-orb {
-  position: absolute;
-  width: clamp(220px, 25vw, 380px);
-  height: clamp(220px, 25vw, 380px);
-  border-radius: 999px;
-  filter: blur(40px);
-  opacity: 0.65;
-  animation: hero-orb-float 16s ease-in-out infinite;
-  background: radial-gradient(
-    circle,
-    rgba(129, 140, 248, 0.35),
-    transparent 65%
-  );
-}
+/* Hero styles have been moved to a CSS module to reduce global CSS size.
+   See src/styles/hero.module.css and src/core/heroStyles.ts for the runtime binding. */
 
-.hero-orb--left {
-  top: 5%;
-  left: -5%;
-}
+/* Pricing styles moved to CSS module: src/styles/pricing.module.css */
 
-.hero-orb--right {
-  bottom: -10%;
-  right: -5%;
-  background: radial-gradient(
-    circle,
-    rgba(248, 113, 113, 0.4),
-    transparent 65%
-  );
-  animation-delay: 4s;
-}
+/* Future parallax styles moved to CSS module: src/styles/future-parallax.module.css */
 
-.hero-glare::after {
-  content: "";
-  position: absolute;
-  width: 65%;
-  height: 65%;
-  top: 0;
-  left: 0;
-  background: radial-gradient(
-    circle at calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%),
-    rgba(255, 255, 255, 0.45),
-    transparent 55%
-  );
-  transition: opacity 0.6s ease;
-  opacity: 0.8;
-  filter: blur(45px);
-}
+/* Board notice and sticky note styles moved to CSS module: src/styles/board.module.css */
 
-@keyframes hero-orb-float {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(0, -35px, 0) scale(1.05);
-  }
-}
-
-.pricing-parallax {
-  position: relative;
-  margin-block: clamp(4rem, 9vw, 8rem);
-  padding: clamp(3rem, 8vw, 7rem) clamp(1.5rem, 5vw, 4rem);
-  overflow: hidden;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at top, rgba(79, 70, 229, 0.2), transparent 45%),
-    linear-gradient(180deg, #040716 0%, #0f172a 65%, #111827 100%);
-  border-radius: clamp(32px, 4vw, 48px);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  box-shadow:
-    0 60px 120px -50px rgba(15, 23, 42, 0.8),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  width: min(1200px, calc(100% - 2.5rem));
-  margin-inline: auto;
-}
-
-.pricing-parallax::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 70% 20%,
-    rgba(99, 102, 241, 0.15),
-    transparent 55%
-  );
-  opacity: 0.8;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-.pricing-layer {
-  position: absolute;
-  inset: -15%;
-  pointer-events: none;
-  will-change: transform;
-  opacity: 0.6;
-}
-
-.pricing-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 120px 120px;
-  opacity: 0.35;
-}
-
-.pricing-orb {
-  border-radius: 999px;
-  filter: blur(80px);
-}
-
-.pricing-orb--one {
-  background: radial-gradient(
-    circle,
-    rgba(99, 102, 241, 0.45),
-    transparent 70%
-  );
-  width: clamp(220px, 30vw, 360px);
-  height: clamp(220px, 30vw, 360px);
-  top: -5%;
-  left: 5%;
-}
-
-.pricing-orb--two {
-  background: radial-gradient(
-    circle,
-    rgba(244, 114, 182, 0.4),
-    transparent 70%
-  );
-  width: clamp(260px, 32vw, 420px);
-  height: clamp(260px, 32vw, 420px);
-  bottom: -10%;
-  right: 0;
-}
-
-.pricing-shell {
+.sticky-note > * {
   position: relative;
   z-index: 2;
-  width: min(960px, 90vw);
-  margin-inline: auto;
-  padding: clamp(2rem, 5vw, 4rem);
-  border-radius: clamp(28px, 4vw, 40px);
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.sticky-note:hover {
+  transform: translateY(-4px) rotate(0deg);
+  filter: brightness(1.02);
+}
+
+/* Pin visual no topo do sticky note */
+.sticky-note-pin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 38% 32%, #cbd5e1, #94a3b8);
+  border-radius: 50%;
   box-shadow:
-    0 30px 60px -35px rgba(5, 5, 10, 0.85),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(18px);
+    0 3px 6px -2px rgba(0, 0, 0, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  z-index: 3;
 }
 
-.pricing-shell h2 {
-  color: #f8fafc;
+.sticky-note-pin::before {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 50%;
 }
 
-.pricing-card-panel {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: clamp(26px, 3vw, 34px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 20px 60px -30px rgba(15, 23, 42, 0.8);
+/* Variantes de cor dos sticky notes - mais suaves e harmoniosas */
+.sticky-note-yellow {
+  background: linear-gradient(140deg, #fef9c3 0%, #fef3c7 100%);
+  box-shadow:
+    0 6px 20px -6px rgba(202, 138, 4, 0.2),
+    0 3px 10px -3px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(202, 138, 4, 0.12);
+  transform: rotate(-1deg);
+}
+
+.sticky-note-yellow:hover {
+  transform: translateY(-4px) rotate(-0.3deg);
+  box-shadow:
+    0 10px 28px -8px rgba(202, 138, 4, 0.28),
+    0 5px 14px -4px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.sticky-note-blue {
+  background: linear-gradient(140deg, #dbeafe 0%, #bfdbfe 100%);
+  box-shadow:
+    0 6px 20px -6px rgba(59, 130, 246, 0.2),
+    0 3px 10px -3px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  transform: rotate(0.8deg);
+}
+
+.sticky-note-blue:hover {
+  transform: translateY(-4px) rotate(0.3deg);
+  box-shadow:
+    0 10px 28px -8px rgba(59, 130, 246, 0.28),
+    0 5px 14px -4px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.sticky-note-pink {
+  background: linear-gradient(140deg, #fce7f3 0%, #fbcfe8 100%);
+  box-shadow:
+    0 6px 20px -6px rgba(244, 63, 94, 0.2),
+    0 3px 10px -3px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(244, 63, 94, 0.12);
+  transform: rotate(-1.2deg);
+}
+
+.sticky-note-pink:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow:
+    0 10px 28px -8px rgba(244, 63, 94, 0.28),
+    0 5px 14px -4px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.sticky-note-green {
+  background: linear-gradient(140deg, #d1fae5 0%, #a7f3d0 100%);
+  box-shadow:
+    0 6px 20px -6px rgba(16, 185, 129, 0.2),
+    0 3px 10px -3px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  transform: rotate(1deg);
+}
+
+.sticky-note-green:hover {
+  transform: translateY(-4px) rotate(0.4deg);
+  box-shadow:
+    0 10px 28px -8px rgba(16, 185, 129, 0.28),
+    0 5px 14px -4px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 768px) {
+  .sticky-note {
+    padding: clamp(1.5rem, 4vw, 2rem) clamp(1.25rem, 3.5vw, 1.75rem);
+  }
+
+  .sticky-note-pin {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .faq-paper {
@@ -488,6 +452,20 @@ section:not(.chaos-container):not(.horizontal-scroll-section):not(
   overflow: hidden;
   isolation: isolate;
   cursor: pointer;
+  /* Transição suave com cubic-bezier refinado */
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Feedback tátil em botões */
+.cta-primary:active,
+.cta-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Transição suave universal para elementos interativos */
+a,
+button {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .magnetic {
@@ -536,8 +514,6 @@ a:focus-visible {
 /* Cursor pointer consistente */
 button,
 a,
-.book-card,
-.carousel-slide,
 .step-circle {
   cursor: pointer;
 }
@@ -581,6 +557,20 @@ a,
 .parallax-slow {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+}
+
+/* === OTIMIZAÇÕES DE PERFORMANCE === */
+/* Will-change apenas em elementos que realmente animam */
+.hero-section,
+.horizontal-track,
+.timeline-background {
+  will-change: transform;
+}
+
+/* Remover will-change após animação para economizar recursos */
+.fade-in-up.visible,
+.scale-in.visible {
+  will-change: auto;
 }
 
 /* Stagger delays para animações em grupo */
@@ -764,20 +754,6 @@ a,
   width: 0;
   height: 3px;
   background: linear-gradient(90deg, #4f46e5 0%, #818cf8 50%, #c7d2fe 100%);
-  z-index: 9999;
-  transition: width 0.1s linear;
-  box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
-}
-
-/* Animações de Entrada - Otimizadas */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(20px);
-  transition:
-    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.fade-in-up.visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -846,7 +822,31 @@ a,
   }
 }
 
-/* Efeito de brilho ao passar mouse */
+/* Service Worker update notification */
+#sw-update-prompt {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 9999;
+  background: rgba(79, 70, 229, 0.95);
+  color: white;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.5);
+}
+.sw-update-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: white;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+}
+
+/* Efeito de brilho premium - animado periodicamente */
 .shine-effect {
   position: relative;
   overflow: hidden;
@@ -860,17 +860,32 @@ a,
   width: 200%;
   height: 200%;
   background: linear-gradient(
-    45deg,
+    120deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.4) 48%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 52%,
     transparent 70%
   );
   transform: translateX(-100%);
   transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: shine-sweep 8s ease-in-out infinite;
 }
 
 .shine-effect:hover::after {
+  animation: none;
   transform: translateX(100%);
+}
+
+@keyframes shine-sweep {
+  0%,
+  90% {
+    transform: translateX(-100%);
+  }
+  95%,
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* --- INTERAÇÕES ESPECÍFICAS --- */
@@ -966,15 +981,40 @@ a,
 }
 
 /* Espiral de Livro nos Cards - Melhorado */
+/* Book Cards com efeito de spotlight */
 .book-card {
   --tilt-x: 0deg;
   --tilt-y: 0deg;
   --tilt-lift: 0px;
   --tilt-scale: 1;
+  --spotlight-x: 50%;
+  --spotlight-y: 50%;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, box-shadow;
   transform: perspective(1200px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y))
     translateY(var(--tilt-lift)) scale(var(--tilt-scale));
+  position: relative;
+}
+
+/* Spotlight effect que segue o mouse */
+.book-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 300px at var(--spotlight-x) var(--spotlight-y),
+    rgba(255, 255, 255, 0.08),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.book-card:hover::before {
+  opacity: 1;
 }
 
 .book-card:hover {
@@ -982,51 +1022,9 @@ a,
   --tilt-scale: 1.03;
 }
 
-.book-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 5%;
-  bottom: 5%;
-  width: 24px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 45%,
-    rgba(255, 255, 255, 0.2) 45%,
-    rgba(255, 255, 255, 0.2) 55%,
-    transparent 55%,
-    transparent 100%
-  );
-  background-size: 16px 30px;
-  background-repeat: repeat-y;
-  border-radius: 4px 0 0 4px;
-  z-index: 5;
-  transition: all 0.3s ease;
-}
-
-.book-card:hover::before {
-  width: 28px;
-  background-size: 18px 32px;
-}
-
-.book-card::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 5%;
-  bottom: 5%;
-  width: 4px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 4px 0 0 4px;
-  z-index: 6;
-  transition: all 0.3s ease;
-}
-
-.book-card:hover::after {
-  width: 5px;
-  background: rgba(0, 0, 0, 0.5);
-}
+/* Espiral do livro - movida para um wrapper interno */
+/* Nota: A espiral foi removida para evitar conflito com spotlight */
+/* Se necessário, adicione um elemento <div class="book-spine"></div> no HTML */
 
 /* --- COFRE INTERATIVO (Estilos Personalizados) --- */
 #vault-card .vault-locked {
@@ -1106,79 +1104,7 @@ a,
   z-index: 10;
 }
 
-/* --- CARROSSEL MOBILE (Seção Famílias) --- */
-/* Ocultar scrollbar mantendo funcionalidade */
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Transições suaves para os slides */
-.carousel-slide {
-  transition:
-    opacity 0.4s ease-in-out,
-    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Efeito de fade nos slides não ativos */
-.carousel-slide:not(.active) {
-  opacity: 0.6;
-  transform: scale(0.97);
-}
-.carousel-slide.active {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Indicadores (Dots) - Melhorados */
-.carousel-dot {
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.carousel-dot:hover {
-  background-color: #6366f1; /* indigo-500 */
-  transform: scale(1.2);
-}
-
-.carousel-dot[aria-selected="true"] {
-  background-color: #4f46e5; /* indigo-600 */
-  width: 2rem;
-  border-radius: 1rem;
-}
-
-/* Efeito pulse no dot ativo - Suavizado */
-@keyframes pulse-dot {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(79, 70, 229, 0);
-  }
-}
-
-.carousel-dot[aria-selected="true"] {
-  animation: pulse-dot 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Estilo dos botões de navegação */
-.carousel-nav-btn {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.carousel-nav-btn:hover {
-  background-color: #e0e7ff; /* indigo-100 */
-  transform: scale(1.05);
-}
-
-.carousel-nav-btn:active {
-  transform: scale(0.95);
-  background-color: #c7d2fe; /* indigo-200 */
-}
+/* Carousel styles moved to CSS module: src/styles/carousel.module.css */
 
 /* Classe utilitária para screen readers */
 .sr-only {

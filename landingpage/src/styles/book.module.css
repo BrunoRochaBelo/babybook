@@ -1,0 +1,18 @@
+/* Book card styles (module) */
+.bookCard {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.bookCardGroupHover:hover {
+  border-color: rgba(79, 70, 229, 0.32);
+}
+.bookCardWillChange {
+  will-change: transform;
+}

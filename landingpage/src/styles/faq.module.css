@@ -1,0 +1,28 @@
+/* FAQ styles module (lazy loaded) */
+.faqSection {
+  min-height: 300vh;
+  position: relative;
+  scroll-snap-align: none;
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+
+.faqSection .maxW3xl {
+  position: sticky;
+  top: 5vh;
+}
+
+.faqSectionSectionSurface {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.faqSectionSectionSurface::after {
+  display: none;
+}
+
+.surfaceActive {
+  box-shadow: none;
+  transform: none;
+}
