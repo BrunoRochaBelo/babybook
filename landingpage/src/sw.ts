@@ -6,7 +6,7 @@ import { precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
 
-const VERSION = "v1.0.0";
+const VERSION = "v1.1.0";
 const CACHE_PREFIX = "babybook-landing";
 const CACHES = {
   static: `${CACHE_PREFIX}-static-${VERSION}`,
@@ -20,23 +20,49 @@ const CACHES = {
 // @ts-ignore
 precacheAndRoute(
   (self.__WB_MANIFEST || []).concat([
+    { url: "/", revision: VERSION },
+    { url: "/index.html", revision: VERSION },
     { url: "/offline.html", revision: VERSION },
   ]),
 );
 
 // === Runtime caching ===
-// HTML - network first
+// HTML - Cache First com Network Fallback (para funcionamento offline)
 registerRoute(
   ({ request }) => request.destination === "document",
   async ({ request }) => {
-    try {
-      const response = await fetch(request);
-      if (response && response.ok) return response;
-    } catch (err) {
-      // network failed; fall back to offline page below
+    const cache = await caches.open(CACHES.static);
+    
+    // Tenta buscar do cache primeiro
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      // Atualiza o cache em background (stale-while-revalidate)
+      fetch(request)
+        .then((response) => {
+          if (response && response.ok) {
+            cache.put(request, response.clone());
+          }
+        })
+        .catch(() => {
+          // Silenciosamente ignora erros de rede em background
+        });
+      
+      return cachedResponse;
     }
 
-    const cache = await caches.open(CACHES.static);
+    // Se não houver cache, tenta buscar da rede
+    try {
+      const response = await fetch(request);
+      if (response && response.ok) {
+        // Cacheia a resposta para uso futuro
+        cache.put(request, response.clone());
+        return response;
+      }
+    } catch (err) {
+      // Rede falhou e não há cache
+    }
+
+    // Último recurso: página offline
     const fallback = await cache.match("/offline.html");
     return (
       fallback ||
@@ -45,20 +71,48 @@ registerRoute(
   },
 );
 
-// Fonts - cache first
+// Fonts - cache first (incluindo Google Fonts)
 registerRoute(
-  ({ request }) =>
+  ({ request, url }) =>
     request.destination === "font" ||
-    /\.(?:woff2?|ttf|otf|eot)$/i.test(request.url),
-  new CacheFirst({ cacheName: CACHES.fonts }),
+    /\.(?:woff2?|ttf|otf|eot)$/i.test(request.url) ||
+    url.origin === "https://fonts.gstatic.com",
+  new CacheFirst({ 
+    cacheName: CACHES.fonts,
+    plugins: [
+      {
+        cacheWillUpdate: async ({ response }) => {
+          // Apenas cacheia respostas bem-sucedidas
+          return response && response.status === 200 ? response : null;
+        },
+      },
+    ],
+  }),
+);
+
+// Google Fonts CSS - stale while revalidate
+registerRoute(
+  ({ url }) => url.origin === "https://fonts.googleapis.com",
+  new StaleWhileRevalidate({ 
+    cacheName: CACHES.fonts,
+  }),
 );
 
 // Images - stale while revalidate
 registerRoute(
   ({ request }) =>
     request.destination === "image" ||
-    /\.(?:jpg|jpeg|png|gif|webp|svg|ico)$/i.test(request.url),
-  new StaleWhileRevalidate({ cacheName: CACHES.images }),
+    /\.(?:jpg|jpeg|png|gif|webp|svg|ico|avif)$/i.test(request.url),
+  new StaleWhileRevalidate({ 
+    cacheName: CACHES.images,
+    plugins: [
+      {
+        cacheWillUpdate: async ({ response }) => {
+          return response && response.status === 200 ? response : null;
+        },
+      },
+    ],
+  }),
 );
 
 // CSS and JS - stale while revalidate
@@ -67,10 +121,19 @@ registerRoute(
     request.destination === "style" ||
     request.destination === "script" ||
     /\.(?:css|js)$/i.test(request.url),
-  new StaleWhileRevalidate({ cacheName: CACHES.assets }),
+  new StaleWhileRevalidate({ 
+    cacheName: CACHES.assets,
+    plugins: [
+      {
+        cacheWillUpdate: async ({ response }) => {
+          return response && response.status === 200 ? response : null;
+        },
+      },
+    ],
+  }),
 );
 
-// Video - network only
+// Video - network only (muito grande para cache)
 registerRoute(
   ({ request }) =>
     request.destination === "video" || /\.(?:mp4|webm|ogg)$/i.test(request.url),
@@ -176,4 +239,4 @@ self.addEventListener("activate", (event: any) => {
   );
 });
 
-console.log(`[SW ${VERSION}] Loaded (injectManifest)`);
+console.log(`[SW ${VERSION}] Loaded (injectManifest) - Offline-first enabled`);

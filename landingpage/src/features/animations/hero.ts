@@ -1,4 +1,4 @@
-import { easeInOutQuad, createScrollThrottle } from "../../utils/helpers";
+import { createScrollThrottle } from "../../utils/helpers";
 import { prefersReducedMotion } from "../../utils/helpers";
 import { logger } from "../../utils/logger";
 
@@ -20,11 +20,8 @@ export const setupHeroCollapseProgress = () => {
     const scrollY = window.scrollY;
     const clampedScroll = Math.min(Math.max(scrollY - stageTop, 0), range);
     const rawProgress = clampedScroll / range;
-    const easedProgress = easeInOutQuad(rawProgress);
-    root.style.setProperty(
-      "--hero-collapse-progress",
-      easedProgress.toFixed(4),
-    );
+    // Usando progresso linear para resposta mais direta ao scroll
+    root.style.setProperty("--hero-collapse-progress", rawProgress.toFixed(4));
   };
 
   const throttledUpdate = createScrollThrottle(updateProgress);
@@ -80,14 +77,26 @@ export const setupMagneticHover = () => {
     const strength = parseFloat(
       magnet.dataset.magneticStrength ||
         magnet.getAttribute("data-strength") ||
-        "0.25",
+        "0.15",
     );
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = magnet.getBoundingClientRect();
       const offsetX = event.clientX - (rect.left + rect.width / 2);
       const offsetY = event.clientY - (rect.top + rect.height / 2);
-      magnet.style.transform = `translate3d(${offsetX * strength}px, ${offsetY * strength}px, 0)`;
+
+      // Limitar o deslocamento máximo para evitar movimentos exagerados
+      const maxOffset = 12; // pixels
+      const moveX = Math.max(
+        -maxOffset,
+        Math.min(maxOffset, offsetX * strength),
+      );
+      const moveY = Math.max(
+        -maxOffset,
+        Math.min(maxOffset, offsetY * strength),
+      );
+
+      magnet.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
       magnet.classList.add("is-hovering");
     };
 

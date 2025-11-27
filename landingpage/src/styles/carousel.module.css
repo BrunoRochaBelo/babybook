@@ -17,11 +17,11 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .carouselDotHover:hover {
-  background-color: #6366f1;
+  background-color: #f7b88b;
   transform: scale(1.2);
 }
 .carouselDotSelected {
-  background-color: #4f46e5;
+  background-color: var(--brand-accent);
   width: 2rem;
   border-radius: 1rem;
 }

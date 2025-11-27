@@ -56,3 +56,115 @@ jobs:
         run: pip install -e apps/api[test]
       - name: Python lint
         run: pnpm lint:py
+      # Upload distribution artifacts (always upload so artifacts are available on failure)
+      - name: Upload landingpage dist (artifact)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: landingpage-dist
+          path: landingpage/dist
+      - name: Upload budget history
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: landingpage-budget-history
+          path: landingpage/dist/budget-history.json
+      - name: Comment budget report on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const historyPath = path.join(process.cwd(), 'landingpage', 'dist', 'budget-history.json');
+            if (!fs.existsSync(historyPath)) return;
+            const data = JSON.parse(fs.readFileSync(historyPath, 'utf-8'));
+            const last = data[data.length - 1];
+            const body = `Landingpage bundle report:\n\n- JS: ${last.js.total.toFixed(1)} KB\n- CSS: ${last.css.total.toFixed(1)} KB\n- Images: ${last.assets.images.toFixed(1)} KB\n- HTML (index): ${(last.html?.index || 0).toFixed(1)} KB\n\nWarnings: ${last.warnings}, Violations: ${last.violations}`;
+            const pr = context.payload.pull_request;
+            if (!pr) return;
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });
+      - name: Comment Lighthouse CI report on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const pr = context.payload.pull_request;
+            if (!pr) return;
+            // Tenta ler o manifest do Lighthouse CI
+            const manifestPath = path.join(process.cwd(), '.lighthouseci', 'manifest.json');
+            let commentBody = '## 🔍 Lighthouse CI Report\n\n';
+
+            if (fs.existsSync(manifestPath)) {
+              try {
+                const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+                const firstRun = manifest[0];
+                if (firstRun && firstRun.summary) {
+                  const { performance, accessibility, 'best-practices': bestPractices, seo, pwa } = firstRun.summary;
+                  
+                  const getEmoji = (score) => {
+                    if (score >= 0.9) return '✅';
+                    if (score >= 0.5) return '⚠️';
+                    return '❌';
+                  };
+                  
+                  const formatScore = (score) => Math.round(score * 100);
+                  
+                  commentBody += '### Scores\n\n';
+                  commentBody += `| Category | Score |\n`;
+                  commentBody += `| --- | --- |\n`;
+                  commentBody += `| ${getEmoji(performance)} Performance | ${formatScore(performance)} |\n`;
+                  commentBody += `| ${getEmoji(accessibility)} Accessibility | ${formatScore(accessibility)} |\n`;
+                  commentBody += `| ${getEmoji(bestPractices)} Best Practices | ${formatScore(bestPractices)} |\n`;
+                  commentBody += `| ${getEmoji(seo)} SEO | ${formatScore(seo)} |\n`;
+                  commentBody += `| ${getEmoji(pwa)} PWA | ${formatScore(pwa)} |\n\n`;
+                  
+                  if (firstRun.jsonPath) {
+                    const reportPath = path.join(process.cwd(), firstRun.jsonPath);
+                    if (fs.existsSync(reportPath)) {
+                      const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+                      const audits = report.audits;
+                      
+                      commentBody += '### Key Metrics\n\n';
+                      commentBody += `| Metric | Value |\n`;
+                      commentBody += `| --- | --- |\n`;
+                      
+                      if (audits['first-contentful-paint']) {
+                        commentBody += `| First Contentful Paint | ${audits['first-contentful-paint'].displayValue} |\n`;
+                      }
+                      if (audits['largest-contentful-paint']) {
+                        commentBody += `| Largest Contentful Paint | ${audits['largest-contentful-paint'].displayValue} |\n`;
+                      }
+                      if (audits['cumulative-layout-shift']) {
+                        commentBody += `| Cumulative Layout Shift | ${audits['cumulative-layout-shift'].displayValue} |\n`;
+                      }
+                      if (audits['total-blocking-time']) {
+                        commentBody += `| Total Blocking Time | ${audits['total-blocking-time'].displayValue} |\n`;
+                      }
+                      if (audits['speed-index']) {
+                        commentBody += `| Speed Index | ${audits['speed-index'].displayValue} |\n`;
+                      }
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Error parsing Lighthouse results:', error);
+                commentBody += '⚠️ Error parsing detailed results. Check artifacts for full report.\n\n';
+              }
+            } else {
+              commentBody += '⚠️ Lighthouse manifest not found. Check artifacts on the workflow run for details.\n\n';
+            }
+
+            commentBody += '\n📊 [View full Lighthouse report in artifacts](';
+            commentBody += `${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: commentBody,
+            });

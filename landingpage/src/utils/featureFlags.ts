@@ -48,7 +48,7 @@ const defaultFlags: FeatureFlags = {
 
   // Interactive
   carousel: true,
-  exitIntent: true,
+  exitIntent: false,
   lazyImages: true,
 
   // PWA & Advanced

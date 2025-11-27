@@ -1,5 +1,24 @@
 // === IMPORTS ===
 import "./styles/main.css";
+import "./styles/animations.css";
+
+// PREMIUM: Anti-FOUC mais robusto
+// Garante que o body fique oculto até os estilos carregarem
+if (!document.documentElement.classList.contains("styles-loaded")) {
+  document.body.style.visibility = "hidden";
+  document.body.style.opacity = "0";
+}
+
+// Marca que os estilos foram carregados (anti-FOUC)
+// Isso é executado APÓS o CSS ser importado e processado pelo Vite
+document.documentElement.classList.add("styles-loaded");
+
+// Revela o body com transição suave
+setTimeout(() => {
+  document.body.style.visibility = "visible";
+  document.body.style.opacity = "1";
+  document.body.style.transition = "opacity 0.3s ease-out";
+}, 50);
 
 // Core
 import { initSmoothScrolling, initScrollProgress } from "./core/scroll";
@@ -30,6 +49,7 @@ import { setupPerformanceBudget } from "./utils/performanceBudget";
 import {
   setupSectionScale,
   setupTimelineAnimation,
+  setupPricingListAnimation,
   setupSurfaceObserver,
   setupParallaxSections,
 } from "./features/animations/sections";
@@ -112,6 +132,36 @@ document.addEventListener("DOMContentLoaded", () => {
     safeInit("Lazy Images", () => setupLazyImages());
   }
 
+  // PREMIUM: Advanced Optimizations (executar cedo)
+  safeInit("Advanced Optimizations", async () => {
+    const {
+      preloadCriticalFonts,
+      optimizeHeroVideo,
+      setupSkeletonScreens,
+      // setupSectionTransitions, // DESABILITADO
+      setupMouseParallax,
+    } = await import("./features/advancedOptimizations");
+
+    // Preload de fontes (imediato)
+    preloadCriticalFonts();
+
+    // Otimização de vídeo (após DOM ready)
+    optimizeHeroVideo();
+
+    // Skeleton screens (imediato)
+    setupSkeletonScreens();
+
+    // Transições entre seções (DESABILITADO - estava atrapalhando)
+    // setTimeout(() => {
+    //   setupSectionTransitions();
+    // }, 500);
+
+    // Mouse parallax (desktop apenas)
+    if (window.innerWidth > 768) {
+      setupMouseParallax();
+    }
+  });
+
   // Hero styles module binding (lazy load CSS module)
   safeInit("Hero Styles", () => {
     import("./core/heroStyles")
@@ -132,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     safeInit("Section Scale", () => setupSectionScale());
   }
   safeInit("Timeline Animation", () => setupTimelineAnimation());
+  safeInit("Pricing List Animation", () => setupPricingListAnimation());
   safeInit("Surface Observer", () => setupSurfaceObserver());
 
   if (isFeatureEnabled("parallax")) {
@@ -142,6 +193,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (isFeatureEnabled("heroAnimations")) {
     safeInit("Hero Collapse", () => setupHeroCollapseProgress());
     safeInit("Hover Animations", () => initHoverAnimations());
+    // PREMIUM: Hero Particles
+    safeInit("Hero Particles", async () => {
+      const { initHeroParticles } = await import("./features/heroParticles");
+      initHeroParticles();
+    });
+    // PREMIUM: Scroll Enhancements
+    safeInit("Scroll Indicator & Animation Pauser", async () => {
+      const { initScrollIndicator, initAnimationPauser } = await import(
+        "./features/scrollEnhancements"
+      );
+      initScrollIndicator();
+      initAnimationPauser();
+    });
   }
 
   // Animations - Scroll Effects
@@ -163,6 +227,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   safeInit("Accordion", () => setupAccordion());
+
+  // PREMIUM: Smart Interactions
+  safeInit("Smart Prefetch & Haptic", async () => {
+    const { setupSmartPrefetch, setupHapticFeedback } = await import(
+      "./features/smartInteractions"
+    );
+    setupSmartPrefetch();
+    setupHapticFeedback();
+  });
 
   // Exit Intent - Lazy load após delay
   if (isFeatureEnabled("exitIntent")) {

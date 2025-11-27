@@ -26,17 +26,14 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: calc(var(--hero-collapse-progress) * 48px);
   box-shadow:
-    0 45px 140px -40px rgba(15, 23, 42, 0.5),
+    0 45px 140px -40px rgba(42, 32, 24, 0.55),
+    0 25px 80px -50px rgba(242, 153, 93, 0.35),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   padding: clamp(2rem, 5vw, 4.5rem);
   transform-origin: center top;
   transform: translate3d(0, calc(var(--hero-collapse-progress) * -7vh), 0)
-    scale(calc(1.08 - var(--hero-collapse-progress) * 0.08));
-  transition:
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, border-radius, box-shadow;
+    scale(calc(1 - var(--hero-collapse-progress) * 0.08));
+  will-change: transform;
 }
 
 .heroLock .heroSection::after {
@@ -52,19 +49,10 @@
   margin-block: clamp(2rem, 5vw, 3.5rem);
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow:
-    0 35px 120px -40px rgba(79, 70, 229, 0.15),
-    0 25px 80px -35px rgba(15, 23, 42, 0.25),
+    0 35px 120px -40px rgba(185, 101, 47, 0.28),
+    0 25px 80px -35px rgba(42, 42, 42, 0.25),
     inset 0 0 0 1px rgba(255, 255, 255, 0.45);
   overflow: hidden;
-  transition:
-    transform 0.8s cubic-bezier(0.19, 1, 0.22, 1),
-    box-shadow 0.8s cubic-bezier(0.19, 1, 0.22, 1),
-    border-color 0.6s ease,
-    background 0.6s ease,
-    border-radius 0.75s cubic-bezier(0.19, 1, 0.22, 1),
-    padding 0.6s cubic-bezier(0.19, 1, 0.22, 1),
-    margin 0.6s cubic-bezier(0.19, 1, 0.22, 1),
-    width 0.6s cubic-bezier(0.19, 1, 0.22, 1);
   transform-origin: center top;
 }
 
@@ -99,11 +87,7 @@
   filter: blur(40px);
   opacity: 0.65;
   animation: hero-orb-float 16s ease-in-out infinite;
-  background: radial-gradient(
-    circle,
-    rgba(129, 140, 248, 0.35),
-    transparent 65%
-  );
+  background: radial-gradient(circle, rgba(242, 153, 93, 0.4), transparent 65%);
 }
 
 .heroOrbLeft {
@@ -115,7 +99,7 @@
   right: -5%;
   background: radial-gradient(
     circle,
-    rgba(248, 113, 113, 0.4),
+    rgba(140, 155, 135, 0.4),
     transparent 65%
   );
   animation-delay: 4s;
@@ -145,5 +129,110 @@
   }
   50% {
     transform: translate3d(0, -35px, 0) scale(1.05);
+  }
+}
+
+/* === PREMIUM: Partículas Flutuantes Sutis === */
+.heroParticles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.heroParticle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(242, 153, 93, 0.6), transparent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particle-float var(--duration, 15s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Variações de partículas para movimento orgânico */
+.heroParticle:nth-child(1) {
+  left: 15%;
+  top: 20%;
+  --duration: 12s;
+  --delay: 0s;
+}
+
+.heroParticle:nth-child(2) {
+  left: 45%;
+  top: 35%;
+  --duration: 15s;
+  --delay: 2s;
+  width: 3px;
+  height: 3px;
+}
+
+.heroParticle:nth-child(3) {
+  left: 75%;
+  top: 15%;
+  --duration: 18s;
+  --delay: 4s;
+}
+
+.heroParticle:nth-child(4) {
+  left: 25%;
+  top: 65%;
+  --duration: 14s;
+  --delay: 1s;
+  width: 5px;
+  height: 5px;
+}
+
+.heroParticle:nth-child(5) {
+  left: 85%;
+  top: 55%;
+  --duration: 16s;
+  --delay: 3s;
+}
+
+.heroParticle:nth-child(6) {
+  left: 55%;
+  top: 75%;
+  --duration: 13s;
+  --delay: 5s;
+  width: 3px;
+  height: 3px;
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate3d(
+      calc(sin(var(--delay, 0) * 10) * 40px),
+      -60px,
+      0
+    );
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate3d(
+      calc(sin(var(--delay, 0) * 10) * -30px),
+      -120px,
+      0
+    );
+    opacity: 0;
+  }
+}
+
+/* Reduzir partículas em mobile para performance */
+@media (max-width: 768px) {
+  .heroParticle:nth-child(n+4) {
+    display: none;
   }
 }

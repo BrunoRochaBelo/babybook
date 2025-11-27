@@ -139,7 +139,7 @@ export default defineConfig({
         name: "Baby Book - Livro Digital do Bebê",
         start_url: "/",
         display: "standalone",
-        theme_color: "#4f46e5",
+        theme_color: "#F2995D",
         background_color: "#F7F3EF",
         icons: [
           { src: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },

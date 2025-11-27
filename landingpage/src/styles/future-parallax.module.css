@@ -1,8 +1,9 @@
-/* Future Parallax styles module (lazy loaded) */
+/* Future Parallax - Glassmorphism Futurista 3D */
 .futureParallax {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 50%, #fafbfc 100%);
 }
 
 .futureParallax .sectionShell {
@@ -19,112 +20,183 @@
   will-change: transform;
 }
 
+/* Camada base com gradiente suave */
 .futureParallaxGradient {
-  inset: -35% -15% -10%;
+  inset: 0;
   background:
     radial-gradient(
-      circle at 18% 22%,
-      rgba(253, 244, 236, 0.85),
-      transparent 58%
+      circle at 15% 20%,
+      rgba(242, 153, 93, 0.1) 0%,
+      transparent 45%
     ),
     radial-gradient(
-      circle at 78% 5%,
-      rgba(199, 210, 254, 0.55),
-      transparent 62%
+      circle at 85% 80%,
+      rgba(140, 155, 135, 0.08) 0%,
+      transparent 50%
     ),
-    linear-gradient(
-      185deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(248, 250, 252, 0.2) 55%,
-      rgba(248, 250, 252, 0) 100%
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(250, 213, 184, 0.35) 0%,
+      transparent 65%
     );
-  opacity: 0.95;
-  filter: blur(1px);
 }
 
-.futureParallaxGrid {
-  width: 160%;
-  height: 160%;
-  top: -35%;
-  left: -20%;
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 0),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 0);
-  background-size:
-    110px 110px,
-    110px 110px;
-  opacity: 0.6;
-  mix-blend-mode: multiply;
-  transform: rotate(-6deg);
-  border-radius: 48px;
-}
-
-.futureParallaxRibbon {
-  width: 75%;
-  height: 60%;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%) rotate(-4deg);
-  background: linear-gradient(
-    120deg,
-    rgba(251, 219, 213, 0.7),
-    rgba(99, 102, 241, 0)
-  );
-  filter: blur(12px);
-  opacity: 0.55;
-  border-radius: 999px;
-  mix-blend-mode: screen;
-}
-
+/* Orbes flutuantes com sombra neon */
 .futureParallaxOrb {
-  width: clamp(200px, 32vw, 360px);
+  width: clamp(280px, 35vw, 450px);
   aspect-ratio: 1 / 1;
-  border-radius: 999px;
+  border-radius: 50%;
   background: radial-gradient(
-    circle at 35% 35%,
-    rgba(248, 212, 186, 0.65),
-    rgba(236, 233, 255, 0.45) 55%,
-    transparent 70%
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(249, 250, 255, 0.7) 30%,
+    rgba(237, 242, 255, 0.4) 60%,
+    transparent 100%
   );
-  filter: blur(0px);
-  opacity: 0.65;
-  box-shadow: 0 45px 120px -60px rgba(79, 70, 229, 0.35);
+  backdrop-filter: blur(50px);
+  box-shadow:
+    0 8px 32px rgba(242, 153, 93, 0.2),
+    0 0 60px rgba(140, 155, 135, 0.18),
+    inset 0 -8px 32px rgba(255, 255, 255, 0.8),
+    inset 0 8px 32px rgba(242, 153, 93, 0.12);
+  animation: float-orb 8s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .futureParallaxOrbLeft {
-  top: -5%;
-  left: -5%;
-  background: radial-gradient(
-    circle at 40% 35%,
-    rgba(255, 237, 213, 0.75),
-    transparent 62%
-  );
+  top: -20%;
+  left: -15%;
+  animation-delay: 0s;
 }
 
 .futureParallaxOrbRight {
-  bottom: -10%;
-  right: -2%;
+  bottom: -25%;
+  right: -18%;
+  animation-delay: 4s;
   background: radial-gradient(
-    circle at 30% 35%,
-    rgba(199, 210, 254, 0.65),
-    transparent 65%
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(245, 247, 255, 0.65) 30%,
+    rgba(250, 213, 184, 0.35) 60%,
+    transparent 100%
   );
+  box-shadow:
+    0 8px 32px rgba(140, 155, 135, 0.18),
+    0 0 70px rgba(242, 153, 93, 0.18),
+    inset 0 -8px 32px rgba(255, 255, 255, 0.85),
+    inset 0 8px 32px rgba(140, 155, 135, 0.15);
 }
 
+/* Partículas flutuantes com glow neon */
+.futureParallaxGrid {
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle, rgba(242, 153, 93, 0.25) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(140, 155, 135, 0.18) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(250, 213, 184, 0.2) 1px, transparent 1px);
+  background-size:
+    80px 80px,
+    120px 120px,
+    60px 60px;
+  background-position:
+    0 0,
+    40px 40px,
+    20px 20px;
+  opacity: 0.3;
+  animation: particles-drift 20s linear infinite;
+  filter: blur(0.3px);
+}
+
+/* Faixas de luz neon */
+.futureParallaxRibbon {
+  width: 120%;
+  height: 200%;
+  top: -50%;
+  left: -10%;
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      transparent 45%,
+      rgba(242, 153, 93, 0.08) 48%,
+      rgba(140, 155, 135, 0.12) 50%,
+      rgba(250, 213, 184, 0.08) 52%,
+      transparent 55%,
+      transparent 100%
+    ),
+    linear-gradient(
+      -55deg,
+      transparent 0%,
+      transparent 60%,
+      rgba(250, 213, 184, 0.08) 63%,
+      rgba(201, 211, 197, 0.12) 65%,
+      rgba(250, 213, 184, 0.08) 67%,
+      transparent 70%,
+      transparent 100%
+    );
+  animation: ribbon-flow 15s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Animações */
+@keyframes float-orb {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes particles-drift {
+  0% {
+    background-position:
+      0 0,
+      40px 40px,
+      20px 20px;
+  }
+  100% {
+    background-position:
+      80px 80px,
+      120px 120px,
+      80px 80px;
+  }
+}
+
+@keyframes ribbon-flow {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(2deg) translateX(10px);
+    opacity: 0.7;
+  }
+}
+
+/* Responsivo */
 @media (max-width: 768px) {
+  .futureParallax Orb {
+    width: clamp(200px, 50vw, 320px);
+  }
+
+  .futureParallaxOrbLeft {
+    top: -15%;
+    left: -20%;
+  }
+
+  .futureParallaxOrbRight {
+    bottom: -20%;
+    right: -25%;
+  }
+
   .futureParallaxGrid {
-    width: 220%;
-    height: 220%;
-    top: -50%;
-  }
-
-  .futureParallaxRibbon {
-    width: 110%;
-    height: 55%;
-    top: 15%;
-  }
-
-  .futureParallaxOrb {
-    width: clamp(180px, 45vw, 260px);
+    background-size:
+      60px 60px,
+      90px 90px,
+      45px 45px;
   }
 }
