@@ -1,0 +1,1 @@
+Use this folder to add images for future section (e.g. future-bg-left.png) and reference them with data-layer-image="/assets/future-bg-left.png" in the markup.

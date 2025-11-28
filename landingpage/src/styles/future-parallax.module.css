@@ -1,9 +1,10 @@
-/* Future Parallax - Glassmorphism Futurista 3D */
+/* Future Parallax - Premium Glassmorphism */
 .futureParallax {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 50%, #fafbfc 100%);
+  background: linear-gradient(135deg, #fef9f5 0%, #f8f9fc 50%, #fef9f5 100%);
+  padding: clamp(60px, 10vw, 100px) 0;
 }
 
 .futureParallax .sectionShell {
@@ -26,18 +27,18 @@
   background:
     radial-gradient(
       circle at 15% 20%,
-      rgba(242, 153, 93, 0.1) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 85% 80%,
-      rgba(140, 155, 135, 0.08) 0%,
+      rgba(242, 153, 93, 0.12) 0%,
       transparent 50%
     ),
     radial-gradient(
+      circle at 85% 80%,
+      rgba(250, 213, 184, 0.10) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
       circle at 50% 50%,
-      rgba(250, 213, 184, 0.35) 0%,
-      transparent 65%
+      rgba(242, 153, 93, 0.08) 0%,
+      transparent 70%
     );
 }
 
@@ -46,33 +47,132 @@
   width: clamp(280px, 35vw, 450px);
   aspect-ratio: 1 / 1;
   border-radius: 50%;
+  position: absolute;
+  overflow: hidden;
+  display: inline-block;
+  filter: drop-shadow(0 0 60px rgba(242, 153, 93, 0.15));
+}
+
+/* Elemento interno que contém a aparência visual e a animação
+   Mantemos o transform da animação preso ao elemento interno para
+   que o wrapper externo possa receber transforms (parallax) sem
+   conflitos com a animação CSS. */
+/* Image overlay for orb to enhance readability */
+.futureParallaxOrbInner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: radial-gradient(
-    circle at 30% 30%,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(249, 250, 255, 0.7) 30%,
-    rgba(237, 242, 255, 0.4) 60%,
-    transparent 100%
+    circle at 50% 50%,
+    rgba(0, 0, 0, 0.08),
+    rgba(0, 0, 0, 0.25)
   );
-  backdrop-filter: blur(50px);
+  /* ensure overlay sits above the image and halo */
+  z-index: 2;
+  pointer-events: none;
+}
+
+.futureParallaxOrbInner {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center 33%;
+  /* Use CSS variables for neon accent. */
+  --orb-accent: var(--orb-accent, var(--brand-accent, #f2995d));
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.65) 22%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      color-mix(in srgb, var(--orb-accent) 50%, white 0%) 0%,
+      transparent 60%
+    );
+  backdrop-filter: blur(50px) saturate(1.2);
+  -webkit-backdrop-filter: blur(50px) saturate(1.2);
   box-shadow:
-    0 8px 32px rgba(242, 153, 93, 0.2),
-    0 0 60px rgba(140, 155, 135, 0.18),
-    inset 0 -8px 32px rgba(255, 255, 255, 0.8),
-    inset 0 8px 32px rgba(242, 153, 93, 0.12);
+    0 8px 40px color-mix(in srgb, var(--orb-accent) 28%, rgba(0, 0, 0, 0.12)),
+    0 0 60px color-mix(in srgb, var(--orb-accent) 40%, rgba(0, 0, 0, 0.1)),
+    inset 0 -8px 32px rgba(255, 255, 255, 0.7),
+    inset 0 8px 32px rgba(255, 255, 255, 0.08);
   animation: float-orb 8s ease-in-out infinite;
   border: 1px solid rgba(255, 255, 255, 0.6);
+  transform-origin: center center;
+  will-change: transform, filter;
+  pointer-events: none;
+  position: relative;
+}
+
+/* Subtle neon halo behind the orb */
+.futureParallaxOrbInner::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  border-radius: inherit;
+  filter: blur(45px);
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--orb-accent) 45%, rgba(255, 255, 255, 0.5)) 0%,
+    transparent 45%
+  );
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 1;
+  animation: halo-glow 6s ease-in-out infinite;
+}
+
+/* Orb image layer (child of .futureParallaxOrbInner) - positioned between inner background and overlays */
+.futureParallaxOrbImage {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  opacity: 0.42;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ribbon image layer (child of .futureParallaxRibbonInner) */
+.futureParallaxRibbonImage {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .futureParallaxOrbLeft {
-  top: -20%;
-  left: -15%;
+  top: 8%;
+  left: 5%;
+  animation-delay: 0s;
+}
+.futureParallaxOrbLeft .futureParallaxOrbInner {
   animation-delay: 0s;
 }
 
 .futureParallaxOrbRight {
-  bottom: -25%;
-  right: -18%;
+  bottom: 8%;
+  right: 5%;
   animation-delay: 4s;
+}
+.futureParallaxOrbRight .futureParallaxOrbInner {
+  animation-delay: 4s;
+}
+/* Ajuste visual específico para orb direito */
+.futureParallaxOrbRight .futureParallaxOrbInner {
   background: radial-gradient(
     circle at 30% 30%,
     rgba(255, 255, 255, 0.9) 0%,
@@ -92,9 +192,9 @@
   width: 100%;
   height: 100%;
   background-image:
-    radial-gradient(circle, rgba(242, 153, 93, 0.25) 1.5px, transparent 1.5px),
-    radial-gradient(circle, rgba(140, 155, 135, 0.18) 1.5px, transparent 1.5px),
-    radial-gradient(circle, rgba(250, 213, 184, 0.2) 1px, transparent 1px);
+    radial-gradient(circle, rgba(242, 153, 93, 0.12) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(140, 155, 135, 0.08) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(250, 213, 184, 0.1) 1px, transparent 1px);
   background-size:
     80px 80px,
     120px 120px,
@@ -103,17 +203,31 @@
     0 0,
     40px 40px,
     20px 20px;
-  opacity: 0.3;
+  opacity: 0.15;
+  /* expand grid so parallax transforms don't reveal whitespace */
+  inset: -6%;
   animation: particles-drift 20s linear infinite;
   filter: blur(0.3px);
 }
 
+/* Grid inner wrapper for image backgrounds or overlays */
+.futureParallaxGridInner {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
 /* Faixas de luz neon */
 .futureParallaxRibbon {
-  width: 120%;
-  height: 200%;
-  top: -50%;
-  left: -10%;
+  width: 125%;
+  height: 220%;
   background:
     linear-gradient(
       125deg,
@@ -135,18 +249,80 @@
       transparent 70%,
       transparent 100%
     );
+  left: -12%;
+  top: -10%;
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  overflow: visible;
+  display: inline-block;
+}
+
+/* Inner wrapper for ribbon visuals/animation */
+.futureParallaxRibbonInner {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      transparent 45%,
+      rgba(242, 153, 93, 0.04) 48%,
+      rgba(140, 155, 135, 0.06) 50%,
+      transparent 55%,
+      transparent 100%
+    ),
+    linear-gradient(
+      -55deg,
+      transparent 0%,
+      transparent 60%,
+      rgba(250, 213, 184, 0.04) 63%,
+      rgba(201, 211, 197, 0.06) 65%,
+      rgba(250, 213, 184, 0.04) 67%,
+      transparent 70%,
+      transparent 100%
+    );
   animation: ribbon-flow 15s ease-in-out infinite;
   transform-origin: center;
+  pointer-events: none;
+}
+
+.futureParallaxRibbonInner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  filter: blur(22px);
+  opacity: 0.35;
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.08),
+    rgba(236, 72, 153, 0.06),
+    rgba(59, 130, 246, 0.06)
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Animações */
 @keyframes float-orb {
   0%,
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    transform: translateY(-15px) scale(1.03) rotate(1deg);
+    filter: brightness(1.08);
   }
   50% {
-    transform: translateY(-20px) scale(1.05);
+    transform: translateY(-25px) scale(1.08) rotate(0deg);
+    filter: brightness(1.1);
+  }
+  75% {
+    transform: translateY(-15px) scale(1.03) rotate(-1deg);
+    filter: brightness(1.08);
   }
 }
 
@@ -177,20 +353,36 @@
   }
 }
 
+@keyframes halo-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+    filter: blur(45px) brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(45px) brightness(1.1);
+  }
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
-  .futureParallax Orb {
-    width: clamp(200px, 50vw, 320px);
+  .futureParallax {
+    padding: 60px 0;
+  }
+
+  .futureParallaxOrb {
+    width: clamp(180px, 45vw, 280px);
   }
 
   .futureParallaxOrbLeft {
-    top: -15%;
-    left: -20%;
+    top: 8%;
+    left: 5%;
   }
 
   .futureParallaxOrbRight {
-    bottom: -20%;
-    right: -25%;
+    bottom: 8%;
+    right: 5%;
   }
 
   .futureParallaxGrid {
@@ -198,5 +390,11 @@
       60px 60px,
       90px 90px,
       45px 45px;
+  }
+
+  .sectionShell {
+    position: relative;
+    z-index: 10;
+    padding: 0 16px;
   }
 }

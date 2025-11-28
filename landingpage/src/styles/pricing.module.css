@@ -26,15 +26,15 @@
   isolation: isolate;
   background:
     radial-gradient(
-      circle at var(--gradient-x, top) var(--gradient-y, center),
-      rgba(242, 153, 93, 0.28),
-      transparent 45%
+      circle at var(--gradient-x, 50%) var(--gradient-y, 50%),
+      rgba(242, 153, 93, 0.35),
+      transparent 50%
     ),
-    linear-gradient(180deg, #120d08 0%, #1f1a15 65%, #241f18 100%);
-  border: 1px solid rgba(227, 219, 207, 0.25);
+    linear-gradient(180deg, #1e1914 0%, #2a241e 65%, #302a23 100%);
+  border: 1px solid rgba(227, 219, 207, 0.2);
   box-shadow:
-    0 60px 120px -50px rgba(13, 8, 4, 0.85),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 50px 100px -40px rgba(13, 8, 4, 0.75),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .pricingShell::after {
@@ -68,7 +68,7 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-  max-width: 400px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
