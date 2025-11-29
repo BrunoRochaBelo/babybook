@@ -61,6 +61,208 @@ export const setupHorizontalScroll = () => {
   if (!scrollSection || !track || !vaultCard) return;
 
   let ticking2 = false;
+  let scrollEndTimeout: number | null = null;
+  let isSnapping = false;
+  const lockedMode = true; // forces discrete (card-by-card) mapping for the track
+  let currentCenteredIndex = 0;
+  let lastSnapTime = 0;
+  const SNAP_COOLDOWN = 800; // ms - slightly longer than transition duration for smoother feel
+  const WHEEL_THRESHOLD = 10; // deltaY threshold to trigger
+  const slides = Array.from(track.querySelectorAll('.book-card')) as HTMLElement[];
+  // Make track focusable for keyboard navigation
+  if (!track.hasAttribute('tabindex')) track.setAttribute('tabindex', '0');
+
+  const windowCenter = () => window.innerWidth / 2;
+
+  function updateSlidesScale() {
+    if (!slides.length) return;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    slides.forEach((slide, i) => {
+      const rect = slide.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const distance = Math.abs(center - windowCenter());
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
+    });
+
+    // Apply scale via CSS var --tilt-scale so we keep the tilt effect
+    slides.forEach((slide, i) => {
+      if (i === closestIndex) {
+        slide.style.setProperty('--tilt-scale', '1');
+        slide.classList.add('is-center');
+        slide.classList.remove('is-adjacent');
+        slide.setAttribute('aria-current', 'true');
+        slide.setAttribute('aria-hidden', 'false');
+        currentCenteredIndex = closestIndex;
+      } else if (Math.abs(i - closestIndex) === 1) {
+        slide.style.setProperty('--tilt-scale', '0.85');
+        slide.classList.add('is-adjacent');
+        slide.classList.remove('is-center');
+        slide.setAttribute('aria-current', 'false');
+        slide.setAttribute('aria-hidden', 'false');
+      } else {
+        slide.style.setProperty('--tilt-scale', '0.85');
+        slide.classList.remove('is-center');
+        slide.classList.remove('is-adjacent');
+        slide.setAttribute('aria-current', 'false');
+        slide.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+
+  function snapToNearest() {
+    if (!slides.length) return;
+    // Find nearest slide
+    let closestIndex = 0;
+    let minDistance = Infinity;
+    slides.forEach((slide, i) => {
+      const rect = slide.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const distance = Math.abs(center - windowCenter());
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
+    });
+
+    // Compute target move amount so center aligns
+    const targetSlide = slides[closestIndex];
+    const slideOffsetLeft = targetSlide.offsetLeft;
+    const slideCenter = slideOffsetLeft + targetSlide.offsetWidth / 2;
+    let targetMoveAmount = slideCenter - windowCenter();
+    const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
+    if (targetMoveAmount < 0) targetMoveAmount = 0;
+    if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
+
+    // Animate snapping
+    isSnapping = true;
+    track.style.transition = 'transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(-${targetMoveAmount}px)`;
+    // Remove transition after done
+    setTimeout(() => {
+      track.style.transition = '';
+      isSnapping = false;
+      updateSlidesScale();
+    }, 680);
+  }
+
+  function snapToOffsetDirection(direction: number) {
+    // direction: 1 -> next, -1 -> previous
+    const now = Date.now();
+    if (now - lastSnapTime < SNAP_COOLDOWN) return;
+    let nextIndex = currentCenteredIndex + direction;
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex > slides.length - 1) nextIndex = slides.length - 1;
+    if (nextIndex === currentCenteredIndex) return;
+    lastSnapTime = now;
+    snapToIndex(nextIndex);
+  }
+
+  function snapToIndex(index: number) {
+    if (!slides[index]) return;
+    const targetSlide = slides[index];
+    const slideOffsetLeft = targetSlide.offsetLeft;
+    const slideCenter = slideOffsetLeft + targetSlide.offsetWidth / 2;
+    let targetMoveAmount = slideCenter - windowCenter();
+    const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
+    if (targetMoveAmount < 0) targetMoveAmount = 0;
+    if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
+
+    isSnapping = true;
+    track.style.transition = 'transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(-${targetMoveAmount}px)`;
+    setTimeout(() => {
+      track.style.transition = '';
+      isSnapping = false;
+      updateSlidesScale();
+    }, 680);
+  }
+
+  // Initial alignment on load
+  updateSlidesScale();
+  // Ensure first slide starts centered
+  setTimeout(() => snapToNearest(), 50);
+
+  // Re-evaluate on resize
+  window.addEventListener('resize', () => {
+    if (scrollEndTimeout) window.clearTimeout(scrollEndTimeout);
+    updateSlidesScale();
+    // Ensure we snap after a resize
+    scrollEndTimeout = window.setTimeout(() => snapToNearest(), 300);
+  });
+
+  // Click to focus behavior per card
+  slides.forEach((slide, i) => {
+    slide.addEventListener('click', () => snapToIndex(i));
+    slide.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        snapToIndex(i);
+      }
+    });
+  });
+
+  // Wheel handling (desktop) - convert wheel direction to next/prev snap
+  let wheelHandler = (e: WheelEvent) => {
+    const rect = scrollSection.getBoundingClientRect();
+    const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
+    const rawPercentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
+    // Only respond when within the section (start visible to end)
+    if (rawPercentage <= 0 || rawPercentage >= 1) return;
+
+    if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
+    const direction = e.deltaY > 0 ? 1 : -1;
+    snapToOffsetDirection(direction);
+  };
+
+  // Attach wheel only when the page is within the section
+  window.addEventListener('wheel', wheelHandler, { passive: true });
+
+  // Touch handling (mobile)
+  let touchStartY: number | null = null;
+  let touchStartTime = 0;
+  scrollSection.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+    }
+  }, { passive: true });
+
+  scrollSection.addEventListener('touchend', (e) => {
+    if (touchStartY === null) return;
+    const touchEndTime = Date.now();
+    const duration = touchEndTime - touchStartTime;
+    // if changed, get last touch Y using changedTouches
+    const changed = (e.changedTouches && e.changedTouches[0]) || null;
+    if (!changed) {
+      touchStartY = null;
+      return;
+    }
+    const deltaY = touchStartY - changed.clientY;
+    // quick swipe or sufficient distance
+    const minDistance = 18; // px
+    const isSwipe = Math.abs(deltaY) > minDistance || duration < 350;
+    if (isSwipe) {
+      const direction = deltaY > 0 ? 1 : -1;
+      snapToOffsetDirection(direction);
+    }
+    touchStartY = null;
+  }, { passive: true });
+
+  // Keyboard navigation (left/right arrows) when track is focused
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      snapToOffsetDirection(1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      snapToOffsetDirection(-1);
+    }
+  });
   window.addEventListener("scroll", () => {
     if (!ticking2) {
       window.requestAnimationFrame(() => {
@@ -82,7 +284,32 @@ export const setupHorizontalScroll = () => {
     }
 
     const moveAmount = movePercentage * (track.scrollWidth - window.innerWidth);
-    track.style.transform = `translateX(-${moveAmount}px)`;
+    // Locked mode: when inside the section we avoid continuous mapping; rely on snaps only
+    if (!isSnapping) {
+      if (!lockedMode) {
+        track.style.transform = `translateX(-${moveAmount}px)`;
+      } else {
+        // Maintain current snapped index position while user scrolls
+        const currentSlide = slides[currentCenteredIndex];
+        if (currentSlide) {
+          const slideCenter = currentSlide.offsetLeft + currentSlide.offsetWidth / 2;
+          let targetMoveAmount = slideCenter - windowCenter();
+          const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
+          if (targetMoveAmount < 0) targetMoveAmount = 0;
+          if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
+          track.style.transform = `translateX(-${targetMoveAmount}px)`;
+        }
+      }
+    }
+
+    // Update scales while scrolling
+    updateSlidesScale();
+
+    // Snap on scroll end (debounce)
+    if (scrollEndTimeout) window.clearTimeout(scrollEndTimeout);
+    scrollEndTimeout = window.setTimeout(() => {
+      snapToNearest();
+    }, 260);
 
     const lockIcon = vaultCard.querySelector(
       ".vault-locked .text-5xl",

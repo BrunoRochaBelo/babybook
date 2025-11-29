@@ -7,10 +7,6 @@ export const preloadCriticalFonts = () => {
       name: "Inter",
       url: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2",
     },
-    {
-      name: "Lora",
-      url: "https://fonts.gstatic.com/s/lora/v32/0QI6MX1D_JOuGQbT0gvTJPa787weuxJBkq0.woff2",
-    },
   ];
 
   fonts.forEach((font) => {
