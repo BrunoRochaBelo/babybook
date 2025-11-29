@@ -1,0 +1,354 @@
+/* Book 3D Flip Animation Styles - PREMIUM VERSION */
+/* Sobrescreve estilos antigos para design limpo e profissional */
+
+/* RESET: Remover estilos antigos do book-card */
+.book-card {
+  /* Remover todos os estilos inline antigos */
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  position: relative;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+/* Remover elementos desnecessários do HTML original (EXCETO do cofre) */
+.book-card:not(#vault-card) > .absolute,
+.book-card:not(#vault-card) > div:not(.book-3d-container) {
+  display: none !important;
+}
+
+
+/* Container 3D ocupa 100% */
+.book-3d-container {
+  perspective: 2000px;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Wrapper do livro com flip */
+.book-3d-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transform-style: preserve-3d;
+  transform-origin: center center;
+}
+
+/* Estado aberto (flipped) */
+.book-3d-container.flipped .book-3d-wrapper {
+  transform: rotateY(-180deg);
+}
+
+/* Faces do livro (capa e interior) */
+.book-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+/* === CAPA DO LIVRO (PREMIUM DESIGN) === */
+.book-cover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Número grande e elegante */
+.book-cover-number {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 6rem;
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  opacity: 0.06;
+  line-height: 1;
+  pointer-events: none;
+  color: #ffffff;
+}
+
+/* Conteúdo centralizado */
+.book-cover-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.book-cover-emoji {
+  font-size: 4.5rem;
+  margin-bottom: 1.5rem;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.book-cover-title {
+  font-size: 2.75rem;
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  letter-spacing: -0.02em;
+}
+
+/* === INTERIOR DO LIVRO (PREMIUM DESIGN) === */
+.book-interior {
+  background: linear-gradient(
+    135deg,
+    rgba(250, 248, 246, 0.98) 0%,
+    rgba(247, 243, 239, 0.96) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 2.5rem;
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.4),
+    inset 0 0 80px rgba(0, 0, 0, 0.04);
+}
+
+/* Textura de papel premium */
+.book-interior::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1.8rem,
+      rgba(139, 92, 46, 0.02) 1.8rem,
+      rgba(139, 92, 46, 0.02) calc(1.8rem + 1px)
+    );
+  pointer-events: none;
+  border-radius: 1.5rem;
+}
+
+.book-interior-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 85%;
+}
+
+.book-interior-emoji {
+  font-size: 3rem;
+  margin-bottom: 1.25rem;
+  display: block;
+  opacity: 0.35;
+}
+
+.book-interior-title {
+  font-size: 2.25rem;
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+
+.book-interior-description {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #4a4a4a;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Lombada simulada */
+.book-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.25),
+    rgba(0, 0, 0, 0.08),
+    transparent
+  );
+  border-radius: 1.5rem 0 0 1.5rem;
+  pointer-events: none;
+}
+
+/* === HOVER STATES (PREMIUM) === */
+.book-3d-container:not(.flipped):hover .book-cover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 0 40px -5px rgba(255, 255, 255, 0.2),
+    0 15px 50px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.book-3d-container:not(.flipped):hover .book-cover-number {
+  opacity: 0.1;
+}
+
+.book-3d-container:not(.flipped):hover .book-cover-emoji {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* Indicador de interação */
+.book-interaction-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.book-3d-container:not(.flipped):hover .book-interaction-hint {
+  opacity: 1;
+}
+
+.book-interaction-hint::after {
+  content: '→';
+  animation: slideHint 1.5s ease-in-out infinite;
+}
+
+@keyframes slideHint {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(5px);
+    opacity: 0.5;
+  }
+}
+
+/* Botão de fechar premium */
+.book-close-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.08);
+  border: 2px solid rgba(79, 70, 229, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #4f46e5;
+  font-size: 1.5rem;
+  font-weight: 700;
+  z-index: 10;
+  line-height: 1;
+}
+
+.book-close-btn:hover {
+  background: rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.4);
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* === CORES ESPECÍFICAS POR LIVRO (PREMIUM) === */
+.book-3d-container[data-book="1"] .book-cover {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+}
+
+.book-3d-container[data-book="2"] .book-cover {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.book-3d-container[data-book="3"] .book-cover {
+  background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+}
+
+.book-3d-container[data-book="4"] .book-cover {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .book-cover-number {
+    font-size: 4rem;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .book-cover-emoji {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .book-cover-title {
+    font-size: 2.25rem;
+  }
+  
+  .book-interior-emoji {
+    font-size: 2.5rem;
+  }
+  
+  .book-interior-title {
+    font-size: 1.75rem;
+  }
+  
+  .book-interior-description {
+    font-size: 1rem;
+  }
+  
+  .book-interior {
+    padding: 2.5rem 2rem;
+  }
+  
+  .book-close-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+    top: 1.5rem;
+    right: 1.5rem;
+  }
+  
+  .book-interaction-hint {
+    bottom: 1.5rem;
+    font-size: 0.65rem;
+  }
+}

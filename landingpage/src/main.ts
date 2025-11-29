@@ -1,6 +1,10 @@
 // === IMPORTS ===
 import "./styles/main.css";
 import "./styles/animations.css";
+import "./styles/book-3d.css";
+import "./book-flip";
+
+
 
 // PREMIUM: Anti-FOUC mais robusto
 // Garante que o body fique oculto até os estilos carregarem
