@@ -18,7 +18,6 @@
   display: none !important;
 }
 
-
 /* Container 3D ocupa 100% */
 .book-3d-container {
   perspective: 2000px;
@@ -35,7 +34,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   transform-origin: center center;
 }
@@ -72,7 +71,7 @@
   justify-content: center;
   padding: 0;
   position: relative;
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -83,7 +82,7 @@
   top: 1.5rem;
   right: 1.5rem;
   font-size: 6rem;
-  font-family: 'Lora', serif;
+  font-family: "Lora", serif;
   font-weight: 700;
   opacity: 0.06;
   line-height: 1;
@@ -107,7 +106,7 @@
 
 .book-cover-title {
   font-size: 2.75rem;
-  font-family: 'Lora', serif;
+  font-family: "Lora", serif;
   font-weight: 700;
   margin: 0;
   color: #ffffff;
@@ -129,24 +128,23 @@
   justify-content: center;
   align-items: center;
   padding: 3rem 2.5rem;
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(0, 0, 0, 0.4),
     inset 0 0 80px rgba(0, 0, 0, 0.04);
 }
 
 /* Textura de papel premium */
 .book-interior::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 1.8rem,
-      rgba(139, 92, 46, 0.02) 1.8rem,
-      rgba(139, 92, 46, 0.02) calc(1.8rem + 1px)
-    );
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1.8rem,
+    rgba(139, 92, 46, 0.02) 1.8rem,
+    rgba(139, 92, 46, 0.02) calc(1.8rem + 1px)
+  );
   pointer-events: none;
   border-radius: 1.5rem;
 }
@@ -167,7 +165,7 @@
 
 .book-interior-title {
   font-size: 2.25rem;
-  font-family: 'Lora', serif;
+  font-family: "Lora", serif;
   font-weight: 700;
   margin-bottom: 1.5rem;
   color: #1a1a1a;
@@ -178,7 +176,7 @@
   font-size: 1.125rem;
   line-height: 1.75;
   color: #4a4a4a;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /* Lombada simulada */
@@ -199,27 +197,57 @@
 }
 
 /* === HOVER STATES (PREMIUM) === */
-.book-3d-container:not(.flipped):hover .book-cover {
+/* Hover: only stronger hover effects if card is the center focus. For non-centered cards, keep hover subtle to prevent perception of scale change. */
+.book-card.is-center .book-3d-container:not(.flipped):hover .book-cover {
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.45),
+    0 10px 28px -10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  /* stronger lift for centered card */
+  transform: translateY(-6px);
+}
+
+.book-card:not(.is-center) .book-3d-container:not(.flipped):hover .book-cover {
+  box-shadow:
+    0 8px 28px -10px rgba(0, 0, 0, 0.35),
+    0 6px 20px -8px rgba(0, 0, 0, 0.15);
+  /* minimal lift for non-centered card */
+  transform: translateY(-2px);
+}
+
+/* Overlay layer on book-cover for luminous sheen without modifying the base background */
+.book-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 100%
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.02) 100%
   );
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 
-    0 0 40px -5px rgba(255, 255, 255, 0.2),
-    0 15px 50px -10px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.book-3d-container:not(.flipped):hover .book-cover::after {
+  opacity: 1;
 }
 
 .book-3d-container:not(.flipped):hover .book-cover-number {
-  opacity: 0.1;
+  opacity: 0.08; /* slightly visible, not too bright */
 }
 
-.book-3d-container:not(.flipped):hover .book-cover-emoji {
+.book-card.is-center .book-3d-container:not(.flipped):hover .book-cover-emoji {
   transform: scale(1.05);
   transition: transform 0.3s ease;
+}
+
+.book-card:not(.is-center)
+  .book-3d-container:not(.flipped):hover
+  .book-cover-emoji {
+  transform: none;
 }
 
 /* Indicador de interação */
@@ -238,20 +266,22 @@
   gap: 0.5rem;
   opacity: 0;
   transition: opacity 0.3s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
-.book-3d-container:not(.flipped):hover .book-interaction-hint {
+.book-card.is-center .book-3d-container:not(.flipped) .book-interaction-hint {
+  /* Always show the hint only for the card currently in focus (and only when not flipped) */
   opacity: 1;
 }
 
 .book-interaction-hint::after {
-  content: '→';
+  content: "→";
   animation: slideHint 1.5s ease-in-out infinite;
 }
 
 @keyframes slideHint {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
     opacity: 1;
   }
@@ -306,6 +336,24 @@
   background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
 }
 
+/* Enhanced emphasis on card in focus */
+.book-card.is-center .book-cover {
+  box-shadow:
+    0 32px 80px -20px rgba(0, 0, 0, 0.6),
+    0 8px 30px -10px rgba(0, 0, 0, 0.35),
+    inset 0 1px rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-6px);
+}
+
+/* Ensure non-centered card hover doesn't reveal the hint */
+.book-card:not(.is-center)
+  .book-3d-container:not(.flipped):hover
+  .book-interaction-hint {
+  /* Ensure hover on a non-centered card does not show the hint */
+  opacity: 0 !important;
+}
+
 /* === RESPONSIVIDADE === */
 @media (max-width: 768px) {
   .book-cover-number {
@@ -313,32 +361,32 @@
     top: 1rem;
     right: 1rem;
   }
-  
+
   .book-cover-emoji {
     font-size: 3.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .book-cover-title {
     font-size: 2.25rem;
   }
-  
+
   .book-interior-emoji {
     font-size: 2.5rem;
   }
-  
+
   .book-interior-title {
     font-size: 1.75rem;
   }
-  
+
   .book-interior-description {
     font-size: 1rem;
   }
-  
+
   .book-interior {
     padding: 2.5rem 2rem;
   }
-  
+
   .book-close-btn {
     width: 2.5rem;
     height: 2.5rem;
@@ -346,7 +394,7 @@
     top: 1.5rem;
     right: 1.5rem;
   }
-  
+
   .book-interaction-hint {
     bottom: 1.5rem;
     font-size: 0.65rem;

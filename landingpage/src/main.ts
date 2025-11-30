@@ -4,8 +4,6 @@ import "./styles/animations.css";
 import "./styles/book-3d.css";
 import "./book-flip";
 
-
-
 // PREMIUM: Anti-FOUC mais robusto
 // Garante que o body fique oculto até os estilos carregarem
 if (!document.documentElement.classList.contains("styles-loaded")) {
@@ -57,6 +55,7 @@ import {
   setupSurfaceObserver,
   setupParallaxSections,
 } from "./features/animations/sections";
+import { setupFooterCTA } from "./features/animations/footerCTA";
 import {
   setupHeroCollapseProgress,
   initHoverAnimations,
@@ -188,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   safeInit("Timeline Animation", () => setupTimelineAnimation());
   safeInit("Pricing List Animation", () => setupPricingListAnimation());
   safeInit("Surface Observer", () => setupSurfaceObserver());
+  safeInit("CTA Final", () => setupFooterCTA());
 
   if (isFeatureEnabled("parallax")) {
     safeInit("Parallax Sections", () => setupParallaxSections());
