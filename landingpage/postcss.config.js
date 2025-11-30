@@ -37,9 +37,7 @@ export default {
               /futureParallaxGradient/,
               /futureParallaxGrid/,
               /futureParallaxRibbon/,
-              /futureParallaxOrb/,
-              /futureParallaxOrbLeft/,
-              /futureParallaxOrbRight/,
+              // orb safelist entries removed to keep CSS lean now orbs are removed
               /faqSection/,
               /faqSectionSectionSurface/,
               /maxW3xl/,
