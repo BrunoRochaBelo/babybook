@@ -72,7 +72,7 @@ export const setupHorizontalScroll = () => {
   const VAULT_UNLOCK_START = 0.55; // lower threshold so less scroll required
   const VAULT_OPEN_START = 0.82; // open at lower threshold to reduce amount of scroll
   // how close to the section edges (0..1) the user must be to allow exiting the horizontal section quickly
-  const SECTION_EXIT_BUFFER = 0.03;
+  const SECTION_EXIT_BUFFER = 0.06; // allow exiting when within 6% of top/bottom
 
   // Sensitivity presets (can be toggled by data-sensitivity attribute on the section)
   const SENSITIVITY_PRESETS = {

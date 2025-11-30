@@ -2300,7 +2300,8 @@ body.horizontal-scroll-lock {
   --tilt-x: 0deg;
   --tilt-y: 0deg;
   --tilt-lift: 0px;
-  --tilt-scale: 1;
+  /* default scale for slide: reduced so non-center appears smaller; centered is set explicitly */
+  --tilt-scale: 0.85;
   --spotlight-x: 50%;
   --spotlight-y: 50%;
   transition:
@@ -2321,6 +2322,8 @@ body.horizontal-scroll-lock {
 .book-card.is-center {
   z-index: 30;
   /* Keep tilt scale 1 via --tilt-scale, but enhance shadow to pop */
+  /* Explicitly enforce scale for center */
+  --tilt-scale: 1;
   box-shadow:
     0 28px 60px -14px rgba(0, 0, 0, 0.35),
     0 8px 20px -8px rgba(0, 0, 0, 0.25);
@@ -2331,6 +2334,8 @@ body.horizontal-scroll-lock {
   z-index: 20;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.18);
   opacity: 0.98;
+  /* Explicitly enforce reduced scale for adjacent slides */
+  --tilt-scale: 0.85;
 }
 
 /* Spotlight effect que segue o mouse */
@@ -2354,12 +2359,13 @@ body.horizontal-scroll-lock {
 
 .book-card.is-center:hover::before {
   opacity: 1;
-  transform: scale(1.02);
+  /* do not change the pseudo element scale on hover to avoid perceived element scaling */
+  transform: none;
 }
 
 .book-card:not(.is-center):hover::before {
   opacity: 0.65; /* more subtle */
-  transform: scale(1.01);
+  transform: none;
 }
 
 .book-card.is-center:hover {

@@ -16,14 +16,18 @@
 
 /* Hover state premium com lift e glow */
 .bookCard:hover {
-  transform: translateY(-4px);
+  /* Use CSS variable to adjust the tilt lift rather than overriding the full transform.
+     The global transform on `.book-card` already handles perspective, rotation and scale
+     via CSS variables (e.g. --tilt-scale). Overriding `transform` here removes that
+     and causes unintentional scale changes. */
+  --tilt-lift: -4px;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12) 0%,
     rgba(255, 255, 255, 0.06) 50%,
     rgba(255, 255, 255, 0.03) 100%
   );
-  box-shadow: 
+  box-shadow:
     0 0 30px -5px rgba(239, 138, 71, 0.3),
     0 12px 32px -8px rgba(0, 0, 0, 0.3);
 }

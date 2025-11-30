@@ -239,8 +239,9 @@
   opacity: 0.08; /* slightly visible, not too bright */
 }
 
+/* Avoid scaling emoji on hover to keep the scale consistent across interactions */
 .book-card.is-center .book-3d-container:not(.flipped):hover .book-cover-emoji {
-  transform: scale(1.05);
+  transform: none;
   transition: transform 0.3s ease;
 }
 
