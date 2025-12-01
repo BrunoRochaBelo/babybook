@@ -7,8 +7,7 @@
     "*.css",
     "*.scss",
     "*.sass",
-    "./src/main.ts",
-    "./public/sw.js"
+    "./src/main.ts"
   ],
   "scripts": {
     "dev": "vite",
