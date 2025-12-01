@@ -300,7 +300,7 @@ Importados de `@babybook/config` para consistência com o resto do projeto.
 
 Pequeno guia rápido (MIP) para desenvolvedores adicionarem novas features seguindo o padrão mount/dispose e garantindo checagem automática em pré-commit.
 
-1) Estruture a feature em `src/features/` adequada à categoria (animations / interactive / utils):
+1. Estruture a feature em `src/features/` adequada à categoria (animations / interactive / utils):
 
 ```bash
 # Exemplo: cria uma nova animação
@@ -308,22 +308,22 @@ mkdir -p src/features/animations
 touch src/features/animations/myNewEffect.ts
 ```
 
-2) Exporte uma função de setup (ou mount) que retorne um disposer (função de cleanup). Exemplo:
+2. Exporte uma função de setup (ou mount) que retorne um disposer (função de cleanup). Exemplo:
 
 ```ts
 // src/features/animations/myNewEffect.ts
 export const setupMyNewEffect = () => {
-  const el = document.querySelector('.my-new-effect');
+  const el = document.querySelector(".my-new-effect");
   if (!el) return null; // nada a fazer
 
   const onMouseMove = (ev: MouseEvent) => {
     // ... lógica da animação
   };
-  el.addEventListener('mousemove', onMouseMove, { passive: true });
+  el.addEventListener("mousemove", onMouseMove, { passive: true });
 
   // Retorne o disposer
   return () => {
-    el.removeEventListener('mousemove', onMouseMove);
+    el.removeEventListener("mousemove", onMouseMove);
   };
 };
 
@@ -331,18 +331,18 @@ export const setupMyNewEffect = () => {
 export const mountMyNewEffect = () => setupMyNewEffect();
 ```
 
-3) Registre seu mount em `src/main.ts` via `safeInit` (que registra disposers automaticamente):
+3. Registre seu mount em `src/main.ts` via `safeInit` (que registra disposers automaticamente):
 
 ```ts
-import { safeInit } from './core/safeInit';
-import { mountMyNewEffect } from './components/myNewEffect';
+import { safeInit } from "./core/safeInit";
+import { mountMyNewEffect } from "./components/myNewEffect";
 
-safeInit('MyNewEffect', () => mountMyNewEffect());
+safeInit("MyNewEffect", () => mountMyNewEffect());
 ```
 
-4) Escreva testes unitários (Vitest) e quaisquer verificações de comportamento esperado.
+4. Escreva testes unitários (Vitest) e quaisquer verificações de comportamento esperado.
 
-5) Checagem automática (pré-commit)
+5. Checagem automática (pré-commit)
 
 Para evitar que PRs subam sem seguir o padrão, existe um script utilitário de checagem no projeto:
 
@@ -364,6 +364,7 @@ pnpm --filter @babybook/landingpage dlx husky add .husky/pre-commit "pnpm --filt
 Assim, antes de cada commit local o Husky rodará a verificação `check:mount-dispose` seguida dos testes da landing page.
 
 Observações:
+
 - Se sua feature não precisar de `setup*` (por exemplo utilitários puramente exportados), `check:mount-dispose` pode ser ignorado via comentário nas linhas (comente explicando o motivo) ou usando um export nomeado que não siga o padrão.
 - Se precisar de exceção explícita (opt-out) adicione no topo do arquivo o comentário `// @no-check-mount-dispose` e documente o motivo da exceção.
 - Se desejar validar a presença de disposer (função retornada pelo setup), considere criar uma regra customizada do ESLint ou um analisador mais avançado (AST) para validar retornos; a heurística atual confirma apenas a presença de um `setup*`/`mount*` exportado.
@@ -373,22 +374,21 @@ Exemplo de template pronto para copiar/colar em `src/features/interactive`:
 ```ts
 // src/features/interactive/example.ts
 export const setupExample = () => {
-  const el = document.querySelector('.example');
+  const el = document.querySelector(".example");
   if (!el) return null;
 
   const onClick = (ev: MouseEvent) => {
     // TODO: implementação
   };
-  el.addEventListener('click', onClick);
+  el.addEventListener("click", onClick);
 
-  return () => el.removeEventListener('click', onClick);
+  return () => el.removeEventListener("click", onClick);
 };
 
 export const mountExample = () => setupExample();
 ```
 
 Se precisar de ajuda para criar uma rule customizada de lint (AST) que valide o padrão de retorno do `setup*`, abra uma PR adicionando `eslint-plugin` e eu posso te ajudar a implementar a regra.
-
 
 ## 🧩 Padrão mount / dispose (Componentização de Recursos)
 
