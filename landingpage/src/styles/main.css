@@ -292,13 +292,13 @@ body::before {
     linear-gradient(
       90deg,
       transparent 0%,
-      rgba(211, 194, 175, 0.3) 50%,
+      rgba(247, 243, 239, 0.3) 50%,
       transparent 100%
     ),
     linear-gradient(
       0deg,
       transparent 0%,
-      rgba(211, 194, 175, 0.3) 50%,
+      rgba(247, 243, 239, 0.8) 50%,
       transparent 100%
     ),
     linear-gradient(transparent calc(100% - 1px), rgba(42, 42, 42, 0.05)),
@@ -616,7 +616,7 @@ body::after {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(211, 194, 175, 0.85),
+    rgba(247, 243, 239, 0.85),
     transparent
   );
 }

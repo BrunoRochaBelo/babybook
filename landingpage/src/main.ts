@@ -55,7 +55,8 @@ import {
   setupSurfaceObserver,
   setupParallaxSections,
 } from "./features/animations/sections";
-import { setupFooterCTA } from "./features/animations/footerCTA";
+import { mountCtaFinal } from "./components/ctaFinalComponent";
+import { mountSiteFooter } from "./components/siteFooterComponent";
 import {
   setupHeroCollapseProgress,
   initHoverAnimations,
@@ -187,7 +188,11 @@ document.addEventListener("DOMContentLoaded", () => {
   safeInit("Timeline Animation", () => setupTimelineAnimation());
   safeInit("Pricing List Animation", () => setupPricingListAnimation());
   safeInit("Surface Observer", () => setupSurfaceObserver());
-  safeInit("CTA Final", () => setupFooterCTA());
+  safeInit("CTA Final", () => {
+    mountCtaFinal();
+  });
+
+  safeInit("Site Footer", () => mountSiteFooter());
 
   if (isFeatureEnabled("parallax")) {
     safeInit("Parallax Sections", () => setupParallaxSections());

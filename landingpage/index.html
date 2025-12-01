@@ -659,7 +659,8 @@
   </section>
 
   <!-- 10. CTA FINAL & RODAPÉ -->
-  <footer class="cta-final bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden" data-cta-section="true">
+  <!-- CTA: separado do footer, mantém estilos e classe .cta-final -->
+  <section class="cta-final bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden" data-cta-section="true" role="region" aria-labelledby="cta-final-title">
     <!-- Decorative Background Layers -->
     <div class="cta-bg-layers" aria-hidden="true">
       <div class="grid-background absolute inset-0 opacity-5"></div>
@@ -682,7 +683,7 @@
       <div class="accent-line-top mx-auto mb-8 opacity-0" data-animate="true"></div>
 
       <!-- Main Headline -->
-      <h2 class="font-serif text-4xl md:text-6xl font-bold mb-8 headline-gradient" data-text-animate="true">
+      <h2 id="cta-final-title" class="font-serif text-4xl md:text-6xl font-bold mb-8 headline-gradient" data-text-animate="true">
         A infância <span class="text-gradient-orange inline-block animate-pulse-slow">não espera.</span>
       </h2>
 
@@ -762,6 +763,10 @@
       <div class="accent-line-bottom mx-auto mt-8 opacity-0" data-animate="true"></div>
     </div>
 
+  </section>
+
+  <!-- FOOTER: conteúdo separado do CTA, mantém .footer-content -->
+  <footer class="site-footer bg-ink text-white pt-0 pb-12 px-6 relative overflow-hidden" role="contentinfo">
     <!-- Footer Info with Enhanced Styling -->
     <div class="footer-content max-w-6xl mx-auto border-t border-gray-700/50 pt-16">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-8">

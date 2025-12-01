@@ -5,36 +5,31 @@ import {
 import { logger, withElement } from "../../utils/logger";
 
 // === CTA FINAL: Animações e Interações Premium na seção do rodapé ===
-export const setupFooterCTA = () => {
+export const setupCtaFinal = () => {
   if (prefersReducedMotion()) {
-    logger.info("setupFooterCTA", "Skipped (prefers-reduced-motion)");
+    logger.info("setupCtaFinal", "Skipped (prefers-reduced-motion)");
     return;
   }
 
   withElement(
-    "footer.cta-final",
-    (footer) => {
-      logger.info("setupFooterCTA", "Initializing advanced animations");
+    ".cta-final",
+    (cta) => {
+      logger.info("setupCtaFinal", "Initializing advanced animations");
 
-      const sectionShell = footer.querySelector<HTMLElement>(".section-shell");
+      const sectionShell = cta.querySelector<HTMLElement>(".section-shell");
       const orbs = Array.from(
-        footer.querySelectorAll<HTMLElement>(".floating-orb"),
+        cta.querySelectorAll<HTMLElement>(".floating-orb"),
       );
-      const titleEl = footer.querySelector<HTMLElement>(".section-shell h2");
-      const pulseBg = footer.querySelector<HTMLElement>(
-        ".pulsating-background",
-      );
-      const counterEl = footer.querySelector<HTMLSpanElement>("#urgency-count");
-      const premiumButtons = footer.querySelectorAll<HTMLElement>(
+      const titleEl = cta.querySelector<HTMLElement>(".section-shell h2");
+      const pulseBg = cta.querySelector<HTMLElement>(".pulsating-background");
+      const counterEl = cta.querySelector<HTMLSpanElement>("#urgency-count");
+      const premiumButtons = cta.querySelectorAll<HTMLElement>(
         ".premium-button-container",
       );
-      const guaranteeBadge =
-        footer.querySelector<HTMLElement>(".guarantee-badge");
-      const accentLines = footer.querySelectorAll<HTMLElement>(
+      const guaranteeBadge = cta.querySelector<HTMLElement>(".guarantee-badge");
+      const accentLines = cta.querySelectorAll<HTMLElement>(
         ".accent-line-top, .accent-line-bottom",
       );
-      const footerLinks =
-        footer.querySelectorAll<HTMLAnchorElement>(".footer-section a");
 
       // ===== OBSERVER PARA A SEÇÃO ANTERIOR (FAQ): Detecta saída e prepara 'snap' da CTA =====
       const prevSection = document.querySelector<HTMLElement>(".faq-section");
@@ -49,7 +44,7 @@ export const setupFooterCTA = () => {
                 // Usuário saiu da FAQ — já podemos escutar o próximo scroll para 'snap'
                 prevSectionExited = true;
                 logger.debug(
-                  "setupFooterCTA",
+                  "setupCtaFinal",
                   "FAQ left — CTA will snap on next downward scroll",
                 );
               } else {
@@ -70,7 +65,7 @@ export const setupFooterCTA = () => {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              footer.classList.add("cta-final-active");
+              cta.classList.add("cta-final-active");
 
               // Stagger em cascata nos orbs com easing sofisticado
               orbs.forEach((orb, i) => {
@@ -111,7 +106,7 @@ export const setupFooterCTA = () => {
                 );
               });
             } else {
-              footer.classList.remove("cta-final-active");
+              cta.classList.remove("cta-final-active");
               orbs.forEach((orb) => {
                 orb.classList.remove("orb-active");
                 orb.style.transform = "";
@@ -134,13 +129,13 @@ export const setupFooterCTA = () => {
         { threshold: 0.25, rootMargin: "0px 0px -100px 0px" },
       );
 
-      observer.observe(footer);
+      observer.observe(cta);
 
       // ===== PARALLAX AVANÇADO: Movimento sofisticado dos orbs ao scrollar =====
       let scrollAnimationFrameId: number | null = null;
 
       const updateParallax = () => {
-        const rect = footer.getBoundingClientRect();
+        const rect = cta.getBoundingClientRect();
         const windowHeight = window.innerHeight;
         const isInViewport = rect.top < windowHeight && rect.bottom > 0;
 
@@ -197,7 +192,7 @@ export const setupFooterCTA = () => {
         }
 
         // Efeito de "breathing" no título quando ativo com animação suave
-        if (footer.classList.contains("cta-final-active") && titleEl) {
+        if (cta.classList.contains("cta-final-active") && titleEl) {
           const now = performance.now();
           const breathScale = 1 + Math.sin(now / 3000) * 0.02;
           titleEl.style.transform = `scale(${breathScale})`;
@@ -217,7 +212,7 @@ export const setupFooterCTA = () => {
       const shouldSnapCTAToTop = () => {
         if (!prevSectionExited || snappedCTA) return false;
         // If CTA is already at or near the top, don't snap
-        const rect = footer.getBoundingClientRect();
+        const rect = cta.getBoundingClientRect();
         if (rect.top <= 2) return false;
         return true;
       };
@@ -225,10 +220,10 @@ export const setupFooterCTA = () => {
       const doSnapCTA = () => {
         if (!shouldSnapCTAToTop()) return;
         // Smooth scroll CTA to top
-        footer.scrollIntoView({ behavior: "smooth", block: "start" });
+        cta.scrollIntoView({ behavior: "smooth", block: "start" });
         snappedCTA = true;
         prevSectionExited = false;
-        logger.info("setupFooterCTA", "CTA snapped to top after leaving FAQ");
+        logger.info("setupCtaFinal", "CTA snapped to top after leaving FAQ");
       };
 
       const wheelHandler = (e: WheelEvent) => {
@@ -267,6 +262,13 @@ export const setupFooterCTA = () => {
       window.addEventListener("keydown", keyDownHandler, { passive: true });
 
       // ===== EFEITO MAGNÉTICO NOS BOTÕES: Segue o cursor suavemente com otimização =====
+      // Keep handler pairs for cleanup later
+      const premiumButtonHandlers: Array<{
+        el: HTMLElement;
+        onMouseMove: (e: MouseEvent) => void;
+        onMouseLeave: () => void;
+      }> = [];
+
       premiumButtons.forEach((button) => {
         const magneticStrength = parseFloat(
           button.getAttribute("data-magnetic-strength") || "0.3",
@@ -285,29 +287,30 @@ export const setupFooterCTA = () => {
           button.style.transform = `translate(${distX * 0.98}px, ${distY * 0.98}px)`;
         };
 
-        button.addEventListener(
-          "mousemove",
-          (e: MouseEvent) => {
-            if (prefersReducedMotion()) return;
+        const onMouseMove = (e: MouseEvent) => {
+          if (prefersReducedMotion()) return;
 
-            if (mouseAnimationFrameId !== null) {
-              cancelAnimationFrame(mouseAnimationFrameId);
-            }
+          if (mouseAnimationFrameId !== null) {
+            cancelAnimationFrame(mouseAnimationFrameId);
+          }
 
-            mouseAnimationFrameId = requestAnimationFrame(() => {
-              updateMagneticPosition(e.clientX, e.clientY);
-              mouseAnimationFrameId = null;
-            });
-          },
-          { passive: true },
-        );
+          mouseAnimationFrameId = requestAnimationFrame(() => {
+            updateMagneticPosition(e.clientX, e.clientY);
+            mouseAnimationFrameId = null;
+          });
+        };
 
-        button.addEventListener("mouseleave", () => {
+        const onMouseLeave = () => {
           if (mouseAnimationFrameId !== null) {
             cancelAnimationFrame(mouseAnimationFrameId);
           }
           button.style.transform = "";
-        });
+        };
+
+        button.addEventListener("mousemove", onMouseMove, { passive: true });
+        button.addEventListener("mouseleave", onMouseLeave);
+
+        premiumButtonHandlers.push({ el: button, onMouseMove, onMouseLeave });
       });
 
       // ===== CONTADOR DE URGÊNCIA: Atualização determinística com animação suave =====
@@ -401,18 +404,7 @@ export const setupFooterCTA = () => {
         resizeTimeout = window.setTimeout(updatePulsePosition, 100);
       });
 
-      // ===== EFEITO HOVER NOS LINKS DO FOOTER =====
-      footerLinks.forEach((link, i) => {
-        link.style.animationDelay = `${0.5 + i * 0.05}s`;
-
-        link.addEventListener("mouseenter", () => {
-          link.style.transform = "translateY(-2px)";
-        });
-
-        link.addEventListener("mouseleave", () => {
-          link.style.transform = "";
-        });
-      });
+      // Footer link hover effects were moved to components/siteFooterComponent
 
       // ===== INICIALIZAÇÃO DE ESTILOS =====
       premiumButtons.forEach((btn) => {
@@ -475,23 +467,23 @@ export const setupFooterCTA = () => {
           prevObserver = null;
         }
 
-        premiumButtons.forEach((btn) => {
-          btn.removeEventListener("mousemove", () => {});
-          btn.removeEventListener("mouseleave", () => {});
+        premiumButtonHandlers.forEach(({ el, onMouseMove, onMouseLeave }) => {
+          el.removeEventListener("mousemove", onMouseMove as EventListener);
+          el.removeEventListener("mouseleave", onMouseLeave as EventListener);
         });
 
-        logger.info("setupFooterCTA", "Cleanup completed successfully");
+        logger.info("setupCtaFinal", "Cleanup completed successfully");
       };
 
       window.addEventListener("beforeunload", cleanup);
 
       logger.info(
-        "setupFooterCTA",
+        "setupCtaFinal",
         "Advanced animations initialized successfully",
       );
     },
-    "Footer CTA not found",
+    "CTA Final not found",
   );
 };
 
-export default setupFooterCTA;
+export default setupCtaFinal;
