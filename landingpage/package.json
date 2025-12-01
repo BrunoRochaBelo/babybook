@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check:mount-dispose": "node ./scripts/check-mount-dispose.js",
     "build:analyze": "tsc && vite build && open dist/stats.html",
     "build:monitor": "pnpm build && node scripts/bundle-monitor.js",
     "build:ci": "pnpm build && node scripts/bundle-monitor.js --ci",

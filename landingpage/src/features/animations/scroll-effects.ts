@@ -186,8 +186,11 @@ export const setupHorizontalScroll = () => {
   const lockIndicator = document.createElement("div");
   lockIndicator.className = "horizontal-lock-indicator";
   lockIndicator.setAttribute("aria-hidden", "true");
-  lockIndicator.innerHTML =
-    "Role para navegar <span class='arrow'>&rarr;</span>";
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  lockIndicator.innerHTML = isTouchDevice
+    ? "Deslize para navegar <span class='arrow'>&darr;</span>"
+    : "Role para navegar <span class='arrow'>&darr;</span>";
   const stickyWrapper = scrollSection.querySelector(".sticky-wrapper");
   if (stickyWrapper) stickyWrapper.appendChild(lockIndicator);
   else scrollSection.appendChild(lockIndicator);

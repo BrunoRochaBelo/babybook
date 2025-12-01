@@ -17,6 +17,18 @@ export const initScrollIndicator = () => {
 
       heroSection.appendChild(indicator);
 
+      // === Idle Scroll Indicator (global) ===
+      const idleIndicator = document.createElement("div");
+      idleIndicator.className = "idle-scroll-indicator";
+      idleIndicator.setAttribute("aria-hidden", "true");
+      // Decide message based on device (touch = mobile)
+      const isTouchDevice =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      idleIndicator.innerHTML = isTouchDevice
+        ? "Deslize para navegar <span class='arrow'>&darr;</span>"
+        : "Role para navegar <span class='arrow'>&darr;</span>";
+      document.body.appendChild(idleIndicator);
+
       // Esconde indicador após primeiro scroll
       let hasScrolled = false;
       const handleScroll = () => {
@@ -29,13 +41,93 @@ export const initScrollIndicator = () => {
 
       window.addEventListener("scroll", handleScroll, { passive: true });
 
+      // Idle behavior
+      let idleTimer: number | null = null;
+      const IDLE_TIMEOUT = 3500; // ms
+      let activeSection: HTMLElement | null = null;
+
+      // Observe sections to know which one is centered/active
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target as HTMLElement;
+            // only consider plain sections (avoid horizontal scroll section)
+            if (
+              (el.classList &&
+                el.classList.contains("horizontal-scroll-section")) ||
+              (el.classList && el.classList.contains("hero-section"))
+            ) {
+              // hide idle indicator when in horizontal scroll section
+              activeSection = null;
+              hideIdleIndicator();
+              return;
+            }
+            activeSection = el;
+            resetIdleTimer();
+          });
+        },
+        { threshold: 0.6 },
+      );
+      document
+        .querySelectorAll("section")
+        .forEach((s) => sectionObserver.observe(s));
+
+      function showIdleIndicator() {
+        if (!idleIndicator) return;
+        // only show if activeSection exists and the document is scrollable
+        if (!activeSection) return;
+        const docHeight =
+          document.documentElement.scrollHeight || document.body.scrollHeight;
+        if (docHeight <= window.innerHeight) return; // no scrolling possible
+        idleIndicator.classList.add("visible");
+      }
+      function hideIdleIndicator() {
+        if (!idleIndicator) return;
+        idleIndicator.classList.remove("visible");
+      }
+      function resetIdleTimer() {
+        if (idleTimer) {
+          window.clearTimeout(idleTimer);
+          idleTimer = null;
+        }
+        hideIdleIndicator();
+        idleTimer = window.setTimeout(() => {
+          showIdleIndicator();
+        }, IDLE_TIMEOUT);
+      }
+
+      // Reset timer on interactions
+      const interactionHandler = () => {
+        resetIdleTimer();
+        // immediate hide on interaction
+        hideIdleIndicator();
+      };
+      ["scroll", "wheel", "pointerdown", "touchstart", "keydown"].forEach(
+        (ev) => {
+          window.addEventListener(ev as any, interactionHandler, {
+            passive: true,
+          });
+        },
+      );
+
+      // Start idle timer after init
+      resetIdleTimer();
+
       logger.info("Scroll indicator initialized");
 
       // Return disposer
       return () => {
         try {
           indicator.remove();
+          if (idleIndicator.parentElement) idleIndicator.remove();
           window.removeEventListener("scroll", handleScroll);
+          if (idleTimer) window.clearTimeout(idleTimer);
+          sectionObserver.disconnect();
+          ["scroll", "wheel", "pointerdown", "touchstart", "keydown"].forEach(
+            (ev) =>
+              window.removeEventListener(ev as any, interactionHandler as any),
+          );
         } catch (err) {
           logger.warn("Failed to dispose scroll indicator", err);
         }
