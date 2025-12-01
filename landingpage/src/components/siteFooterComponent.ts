@@ -3,9 +3,14 @@ export const mountSiteFooter = () => {
   const footer = document.querySelector<HTMLElement>(".site-footer");
   if (!footer) return null;
 
-  const footerLinks = footer.querySelectorAll<HTMLAnchorElement>(".footer-section a");
+  const footerLinks =
+    footer.querySelectorAll<HTMLAnchorElement>(".footer-section a");
 
-  const handlers: Array<{ el: HTMLAnchorElement; onEnter: () => void; onLeave: () => void }> = [];
+  const handlers: Array<{
+    el: HTMLAnchorElement;
+    onEnter: () => void;
+    onLeave: () => void;
+  }> = [];
 
   footerLinks.forEach((link, i) => {
     link.style.animationDelay = `${0.5 + i * 0.05}s`;
