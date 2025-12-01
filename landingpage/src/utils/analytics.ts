@@ -30,7 +30,7 @@ export const setupScrollDepthTracking = () => {
   const milestones = [25, 50, 75, 100];
   const tracked = new Set<number>();
 
-  window.addEventListener("scroll", () => {
+  const onScroll = () => {
     const windowHeight =
       document.documentElement.scrollHeight - window.innerHeight;
     const scrolled = (window.pageYOffset / windowHeight) * 100;
@@ -46,7 +46,13 @@ export const setupScrollDepthTracking = () => {
         });
       }
     });
-  });
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  return () => {
+    window.removeEventListener("scroll", onScroll);
+  };
 };
 
 // === TRACK SEÇÃO VISUALIZADA ===
@@ -74,4 +80,8 @@ export const setupSectionViewTracking = () => {
   );
 
   sections.forEach((section) => sectionObserver.observe(section));
+
+  return () => {
+    sectionObserver.disconnect();
+  };
 };

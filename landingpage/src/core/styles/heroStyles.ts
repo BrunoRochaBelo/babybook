@@ -1,8 +1,11 @@
-export async function setupHeroStyles() {
+import { CssModule, loadCssModule } from "./utils";
+
+export async function setupHeroStyles(overrideStyles?: CssModule) {
   try {
-    // Load CSS module dynamically so the styles are only included when needed
-    const mod = await import("../styles/hero.module.css");
-    const styles = mod.default || mod;
+    const styles = await loadCssModule(
+      overrideStyles,
+      () => import("../../styles/hero.module.css"),
+    );
     // Map existing class names to CSS module classes
     document
       .querySelectorAll(".hero-stage")

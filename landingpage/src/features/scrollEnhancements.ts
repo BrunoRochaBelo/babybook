@@ -2,7 +2,7 @@ import { logger, withElement } from "../utils/logger";
 
 // === PREMIUM: Scroll Indicator ===
 export const initScrollIndicator = () => {
-  withElement(
+  return withElement(
     ".hero-section",
     (heroSection) => {
       // Cria indicador de scroll
@@ -30,8 +30,18 @@ export const initScrollIndicator = () => {
       window.addEventListener("scroll", handleScroll, { passive: true });
 
       logger.info("Scroll indicator initialized");
+
+      // Return disposer
+      return () => {
+        try {
+          indicator.remove();
+          window.removeEventListener("scroll", handleScroll);
+        } catch (err) {
+          logger.warn("Failed to dispose scroll indicator", err);
+        }
+      };
     },
-    "Scroll indicator: .hero-section not found"
+    "Scroll indicator: .hero-section not found",
   );
 };
 
@@ -39,7 +49,7 @@ export const initScrollIndicator = () => {
 export const initAnimationPauser = () => {
   // Elementos com animações pesadas que devem pausar fora do viewport
   const animatedElements = document.querySelectorAll<HTMLElement>(
-    ".hero-particles, .hero-orb, .sticky-note"
+    ".hero-particles, .hero-orb, .sticky-note",
   );
 
   if (animatedElements.length === 0) {
@@ -65,7 +75,7 @@ export const initAnimationPauser = () => {
       root: null,
       rootMargin: "50px", // Margem para começar a animar antes de entrar
       threshold: 0.1,
-    }
+    },
   );
 
   animatedElements.forEach((element) => {
@@ -73,4 +83,15 @@ export const initAnimationPauser = () => {
   });
 
   logger.info(`Animation pauser observing ${animatedElements.length} elements`);
+  // Return disposer to disconnect
+  return () => {
+    try {
+      observer.disconnect();
+      animatedElements.forEach((element) => {
+        element.style.animationPlayState = "running";
+      });
+    } catch (err) {
+      logger.warn("Failed to dispose animation pauser", err);
+    }
+  };
 };

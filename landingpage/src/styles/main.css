@@ -410,7 +410,7 @@ body::after {
 }
 
 /* Hero styles have been moved to a CSS module to reduce global CSS size.
-   See src/styles/hero.module.css and src/core/heroStyles.ts for the runtime binding. */
+  See src/styles/hero.module.css and src/core/styles/heroStyles.ts for the runtime binding. */
 
 /* Pricing styles moved to CSS module: src/styles/pricing.module.css */
 

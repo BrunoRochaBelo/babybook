@@ -55,6 +55,7 @@ Funcionalidades essenciais do sistema:
 - **navigation.ts**: Controla o comportamento do menu (hide/show no scroll)
 - **pwa.ts**: Gerencia PWA, Service Worker e prompt de instalação
 - **scroll.ts**: Smooth scrolling (Lenis) e barra de progresso
+- **styles/**: Módulos que aplicam classes de CSS modules dinamicamente para seções (hero, pricing, faq etc.). São carregados via lazy loading ao invés de sobrescrever o CSS global.
 
 ### Features (`/features`)
 
@@ -154,16 +155,17 @@ Funções utilitárias reutilizáveis:
 
 ### CSS Modules & Lazy Loading
 
-- As seções heavy (hero, pricing, future-parallax) foram movidas para CSS Modules e
-  são carregadas dinamicamente quando os elementos aparecem em viewport ou sob demanda.
-- Isso reduz o CSS inicial servido e mantém o design responsivo com menos payload.
+- As seções heavy (hero, pricing, future-parallax, faq, book cards, carrossel e board) foram movidas para CSS Modules, cada uma com um _binding_ em runtime localizado em `src/core/styles/`.
+- Esses módulos são carregados dinamicamente apenas quando os elementos estão próximos da viewport, reduzindo o CSS inicial e mantendo o design responsivo sem duplicar arquivos.
+- A estrutura atual concentra todo o mapeamento em `src/core/styles`, eliminando os arquivos duplicados que antes viviam na raiz de `src/core`.
 
 Novos arquivos / comportamentos:
 
-- `src/styles/hero.module.css` + `src/core/heroStyles.ts` — hero styles, loaded lazily.
-- `src/styles/pricing.module.css` + `src/core/pricingStyles.ts` — pricing styles, loaded when `.pricing-shell` is visible.
-- `src/styles/future-parallax.module.css` + `src/core/futureParallaxStyles.ts` — future-parallax styles, loaded lazily and gated behind `parallax` feature.
-- `src/styles/faq.module.css` + `src/core/faqStyles.ts` — FAQ section styles, loaded lazily and isolated.
+- `src/styles/hero.module.css` + `src/core/styles/heroStyles.ts` — hero e partículas carregam o binding lazily.
+- `src/styles/pricing.module.css` + `src/core/styles/pricingStyles.ts` — pricing styles são aplicados quando `.pricing-shell` torna-se visível.
+- `src/styles/future-parallax.module.css` + `src/core/styles/futureParallaxStyles.ts` — ativado sob demanda via feature flag `parallax`.
+- `src/styles/faq.module.css` + `src/core/styles/faqStyles.ts` — FAQ recebe classes específicas quando o bloco entra na viewport.
+- `src/styles/book.module.css`, `carousel.module.css`, `board.module.css` são associados a `src/core/styles/{book,carousel,board}Styles.ts`, que aplicam classes CSS Modules aos elementos existentes.
 
 Para desenvolvedores:
 
@@ -293,6 +295,51 @@ Importados de `@babybook/config` para consistência com o resto do projeto.
 - ✅ Performance monitoring com Web Vitals
 - ✅ Logger estruturado para debugging
 - ✅ CONFIG centralizado (zero magic numbers)
+
+## 🧩 Padrão mount / dispose (Componentização de Recursos)
+
+Este projeto adota o padrão mount/dispose para garantir que todos os recursos (event listeners, observers, requestAnimationFrame, intervals, nodes DOM criados, etc.) sejam limpos corretamente quando um componente é desmontado ou a página é navegada. Isso evita memory leaks e ajuda nas estratégias de lazy-loading e gerenciamento de ciclo de vida.
+
+Princípios:
+
+- Cada feature que cria efeitos colaterais no DOM deve exportar uma função `setupX()` ou `initX()` que retorna uma função de limpeza (disposer), ou `null` se a feature não for aplicada/executável.
+- Crie uma camada de montagem `mountX()` na pasta `src/components` que chame `setupX()` e retorne o disposer. As camadas de montagem são chamadas pelo `main.ts` via `safeInit()`.
+- `safeInit(name, () => mountX())` garante que, se a função retornar um disposer, ele será registrado globalmente e executado durante `unmountAll()` (chamado em `pagehide`/`beforeunload`).
+
+Exemplo mínimo:
+
+```ts
+// src/features/interactive/example.ts
+export const setupExample = () => {
+  const el = document.querySelector(".example");
+  if (!el) return null;
+
+  const onClick = () => {
+    /* ... */
+  };
+  el.addEventListener("click", onClick);
+
+  return () => {
+    el.removeEventListener("click", onClick);
+  };
+};
+
+// src/components/exampleComponent.ts
+import { setupExample } from "../features/interactive/example";
+
+export const mountExample = () => setupExample();
+
+// src/main.ts
+safeInit("Example feature", () => mountExample());
+```
+
+Boas práticas:
+
+- Use `withElement()` e `withElements()` do `logger` para verificar presença antes de operar no DOM.
+- Prefira adicionar um único listener global (ex: `document`) quando a lógica exige e use uma versão nomeada do handler para facilitar a remoção no cleanup.
+- Sempre remova observers (IntersectionObserver, PerformanceObserver), `requestAnimationFrame` loops, `setInterval`, `setTimeout` e listeners; use `cancelAnimationFrame`, `clearInterval` e `clearTimeout` quando aplicável.
+- Se o setup modifica o DOM (ex.: `innerHTML`), guarde o `innerHTML` anterior e restaure-o no cleanup (para evitar alterações persistentes quando o componente é desmontado).
+- Use `safeInit` em `main.ts` para registrar disposers automaticamente e garantir que `unmountAll` irá limpar recursos (ex.: `pagehide`/`beforeunload`).
 
 ## 🎛️ Feature Flags
 

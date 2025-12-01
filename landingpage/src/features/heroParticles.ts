@@ -2,7 +2,7 @@ import { logger, withElement } from "../utils/logger";
 
 // === PREMIUM: Hero Particles ===
 export const initHeroParticles = () => {
-  withElement(
+  return withElement(
     ".hero-section",
     (heroSection) => {
       // Cria container de partículas
@@ -21,6 +21,16 @@ export const initHeroParticles = () => {
       heroSection.insertBefore(particlesContainer, heroSection.firstChild);
 
       logger.info("Hero particles initialized");
+
+      // Retornar função de limpeza para remover as partículas quando desmontadas
+      return () => {
+        try {
+          particlesContainer.remove();
+          logger.debug("Hero particles removed");
+        } catch (err) {
+          logger.warn("Failed to remove hero particles", err);
+        }
+      };
     },
     "Hero particles: .hero-section not found",
   );

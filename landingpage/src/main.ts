@@ -2,7 +2,8 @@
 import "./styles/main.css";
 import "./styles/animations.css";
 import "./styles/book-3d.css";
-import "./book-flip";
+// Note: book-flip behaviour moved to a mountable component to allow safe cleanup
+// import "./book-flip"; // legacy - removed
 
 // PREMIUM: Anti-FOUC mais robusto
 // Garante que o body fique oculto até os estilos carregarem
@@ -29,7 +30,7 @@ import { registerServiceWorker, setupPWAInstall } from "./core/pwa";
 
 // Error Handling & Performance
 import { setupGlobalErrorHandling, measureInit } from "./utils/errorBoundary";
-import { safeInit } from "./utils/logger";
+import { safeInit, unmountAll } from "./utils/logger";
 import {
   setupPerformanceMonitoring,
   performanceMonitor,
@@ -60,6 +61,7 @@ import { mountChaosToOrder } from "./components/chaosToOrderComponent";
 import { mountHorizontalScroll } from "./components/horizontalScrollComponent";
 import { mountTimelineDraw } from "./components/timelineDrawComponent";
 import { mountScrollAnimations } from "./components/scrollAnimationsComponent";
+import { mountBookFlip } from "./components/bookFlipComponent";
 
 // Features - Interactive
 import {
@@ -87,7 +89,7 @@ if (isFeatureEnabled("performanceMonitoring")) {
 
 // Performance Monitoring - Primeira coisa (marca app-start)
 if (isFeatureEnabled("performanceMonitoring")) {
-  setupPerformanceMonitoring();
+  safeInit("Performance Monitoring", () => setupPerformanceMonitoring());
 }
 
 // Error Boundary
@@ -103,7 +105,7 @@ if (isFeatureEnabled("debugMode")) {
 // Smooth Scrolling
 if (isFeatureEnabled("smoothScrolling")) {
   measureInit("Smooth Scrolling", () => {
-    initSmoothScrolling();
+    safeInit("Smooth Scrolling", () => initSmoothScrolling());
   });
 }
 
@@ -153,15 +155,26 @@ document.addEventListener("DOMContentLoaded", () => {
     //   setupSectionTransitions();
     // }, 500);
 
-    // Mouse parallax (desktop apenas)
-    if (window.innerWidth > 768) {
-      setupMouseParallax();
-    }
+    // Mouse parallax (desktop apenas) — capture disposer if present
+    const d1 = optimizeHeroVideo && optimizeHeroVideo();
+    const d2 =
+      window.innerWidth > 768
+        ? setupMouseParallax && setupMouseParallax()
+        : undefined;
+
+    return () => {
+      try {
+        d1 && typeof d1 === "function" && d1();
+        d2 && typeof d2 === "function" && d2();
+      } catch (err) {
+        console.warn("Failed to cleanup advanced optimizations", err);
+      }
+    };
   });
 
   // Hero styles module binding (lazy load CSS module)
   safeInit("Hero Styles", () => {
-    import("./core/heroStyles")
+    import("./core/styles/heroStyles")
       .then(({ setupHeroStyles }) => setupHeroStyles())
       .catch((err) => {
         // Non-fatal: hero styles are optional
@@ -181,9 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   safeInit("Timeline Animation", () => mountTimelineAnimation());
   safeInit("Pricing List Animation", () => mountPricingListAnimation());
   safeInit("Surface Observer", () => setupSurfaceObserver());
-  safeInit("CTA Final", () => {
-    mountCtaFinal();
-  });
+  safeInit("CTA Final", () => mountCtaFinal());
 
   safeInit("Site Footer", () => mountSiteFooter());
 
@@ -197,15 +208,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // PREMIUM: Hero Particles
     safeInit("Hero Particles", async () => {
       const { initHeroParticles } = await import("./features/heroParticles");
-      initHeroParticles();
+      return initHeroParticles();
     });
     // PREMIUM: Scroll Enhancements
     safeInit("Scroll Indicator & Animation Pauser", async () => {
       const { initScrollIndicator, initAnimationPauser } = await import(
         "./features/scrollEnhancements"
       );
-      initScrollIndicator();
-      initAnimationPauser();
+      const r1 = initScrollIndicator();
+      const r2 = initAnimationPauser();
+      return () => {
+        try {
+          r1 && typeof r1 === "function" && r1();
+          r2 && typeof r2 === "function" && r2();
+        } catch (err) {
+          console.warn(
+            "Error disposing Scroll Indicator & Animation Pauser",
+            err,
+          );
+        }
+      };
     });
   }
 
@@ -216,6 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (isFeatureEnabled("horizontalScroll")) {
     safeInit("Horizontal Scroll", () => mountHorizontalScroll());
   }
+  // Book Flip: convert old top-level script to componentized mount
+  safeInit("Book Flip", () => mountBookFlip());
   safeInit("Timeline Draw", () => mountTimelineDraw());
   safeInit("Scroll Animations", () => mountScrollAnimations());
 
@@ -234,20 +258,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const { setupSmartPrefetch, setupHapticFeedback } = await import(
       "./features/smartInteractions"
     );
-    setupSmartPrefetch();
-    setupHapticFeedback();
+    const prefetchDisposer = setupSmartPrefetch();
+    const hapticDisposer = setupHapticFeedback();
+    const cleanupFns = [prefetchDisposer, hapticDisposer].filter(
+      (fn): fn is () => void => typeof fn === "function",
+    );
+    if (!cleanupFns.length) {
+      return null;
+    }
+    return () => {
+      cleanupFns.forEach((fn) => fn());
+    };
   });
 
   // Exit Intent - Lazy load após delay
   if (isFeatureEnabled("exitIntent")) {
     lazyLoader.register("exitIntent", async () => {
       const { setupExitIntent } = await import("./features/interactive/modals");
-      setupExitIntent();
-      return { setupExitIntent };
+      return setupExitIntent();
     });
 
-    setTimeout(() => {
-      lazyLoader.load("exitIntent");
+    setTimeout(async () => {
+      const disposer = await lazyLoader.load("exitIntent");
+      if (typeof disposer === "function") {
+        safeInit("Exit Intent (lazy)", () => disposer as () => void);
+      }
     }, 5000); // Carrega após 5s
   }
 
@@ -306,9 +341,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   performanceMonitor.report("Features Init Time", initDuration);
 
+  // Register automatic cleanup on page hide/unload
+  window.addEventListener("pagehide", unmountAll, { once: true });
+  window.addEventListener("beforeunload", unmountAll);
+
   // Pricing & Future-Parallax styles: register lazy loaders and lazy-init when visible
   lazyLoader.register("pricingStyles", async () => {
-    const mod = await import("./core/pricingStyles");
+    const mod = await import("./core/styles/pricingStyles");
     try {
       await mod.setupPricingStyles();
     } catch (err) {
@@ -324,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (isFeatureEnabled("parallax")) {
     lazyLoader.register("futureParallaxStyles", async () => {
-      const mod = await import("./core/futureParallaxStyles");
+      const mod = await import("./core/styles/futureParallaxStyles");
       try {
         await mod.setupFutureParallaxStyles();
       } catch (err) {
@@ -340,7 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // FAQ styles: lazy load when the FAQ section is in viewport
   lazyLoader.register("faqStyles", async () => {
-    const mod = await import("./core/faqStyles");
+    const mod = await import("./core/styles/faqStyles");
     try {
       await mod.setupFaqStyles();
     } catch (err) {
@@ -355,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Book card styles: lazy load when book cards are present
   lazyLoader.register("bookStyles", async () => {
-    const mod = await import("./core/bookStyles");
+    const mod = await import("./core/styles/bookStyles");
     try {
       await mod.setupBookStyles();
     } catch (err) {
@@ -369,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Carousel styles: lazy load for carousel slides
   lazyLoader.register("carouselStyles", async () => {
-    const mod = await import("./core/carouselStyles");
+    const mod = await import("./core/styles/carouselStyles");
     try {
       await mod.setupCarouselStyles();
     } catch (err) {
@@ -383,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Board/Sticky-note styles
   lazyLoader.register("boardStyles", async () => {
-    const mod = await import("./core/boardStyles");
+    const mod = await import("./core/styles/boardStyles");
     try {
       await mod.setupBoardStyles();
     } catch (err) {

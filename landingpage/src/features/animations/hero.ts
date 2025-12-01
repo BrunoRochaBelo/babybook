@@ -57,7 +57,8 @@ export const setupHeroPointerGlow = () => {
     root.style.setProperty("--pointer-y", y.toFixed(2));
   };
 
-  const onPointerMove = (event: Event) => updatePointerVars(event as PointerEvent);
+  const onPointerMove = (event: Event) =>
+    updatePointerVars(event as PointerEvent);
   const onPointerLeave = () => {
     root.style.setProperty("--pointer-x", "50");
     root.style.setProperty("--pointer-y", "40");
@@ -123,7 +124,7 @@ export const setupMagneticHover = () => {
       magnet.classList.remove("is-hovering");
     };
 
-      const onMove = (event: Event) => handlePointerMove(event as PointerEvent);
+    const onMove = (event: Event) => handlePointerMove(event as PointerEvent);
     const onLeave = () => reset();
     magnet.addEventListener("pointermove", onMove);
     magnet.addEventListener("pointerleave", onLeave);
@@ -149,7 +150,11 @@ export const setupBookCardTilt = () => {
   const maxTilt = 8;
   logger.info("setupBookCardTilt", `Initialized for ${cards.length} cards`);
 
-  const handlers: Array<{ el: HTMLElement; onMove: (e: PointerEvent) => void; onLeave: () => void }> = [];
+  const handlers: Array<{
+    el: HTMLElement;
+    onMove: (e: PointerEvent) => void;
+    onLeave: () => void;
+  }> = [];
 
   cards.forEach((card) => {
     const handlePointerMove = (event: PointerEvent) => {

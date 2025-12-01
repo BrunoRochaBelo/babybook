@@ -1,7 +1,7 @@
 import Lenis from "lenis";
 
 // === SMOOTH SCROLLING ===
-export const initSmoothScrolling = (): Lenis => {
+export const initSmoothScrolling = (): (() => void) => {
   const lenis = new Lenis({
     duration: 1.5,
     easing: (t: number) => {
@@ -16,14 +16,24 @@ export const initSmoothScrolling = (): Lenis => {
     syncTouchLerp: 0.075,
   });
 
+  let rafId = 0;
   function raf(time: number) {
     lenis.raf(time);
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
   }
 
-  requestAnimationFrame(raf);
+  rafId = requestAnimationFrame(raf);
 
-  return lenis;
+  // Return disposer
+  return () => {
+    try {
+      if (rafId) cancelAnimationFrame(rafId);
+      // If lenis exposes a destroy method, call it
+      (lenis as any).destroy?.();
+    } catch (err) {
+      // ignore errors
+    }
+  };
 };
 
 // === SCROLL PROGRESS INDICATOR ===
@@ -31,11 +41,22 @@ export const initScrollProgress = () => {
   const progressBar = document.createElement("div");
   progressBar.className = "scroll-progress";
   document.body.appendChild(progressBar);
-
-  window.addEventListener("scroll", () => {
+  const handleScroll = () => {
     const windowHeight =
       document.documentElement.scrollHeight - window.innerHeight;
     const scrolled = (window.pageYOffset / windowHeight) * 100;
     progressBar.style.width = scrolled + "%";
-  });
+  };
+
+  window.addEventListener("scroll", handleScroll, { passive: true });
+
+  // Return disposer
+  return () => {
+    try {
+      progressBar.remove();
+      window.removeEventListener("scroll", handleScroll);
+    } catch (err) {
+      // ignore
+    }
+  };
 };

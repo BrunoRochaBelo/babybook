@@ -1,7 +1,11 @@
-export async function setupBookStyles() {
+import { CssModule, loadCssModule } from "./utils";
+
+export async function setupBookStyles(overrideStyles?: CssModule) {
   try {
-    const mod = await import("../styles/book.module.css");
-    const styles = mod.default || mod;
+    const styles = await loadCssModule(
+      overrideStyles,
+      () => import("../../styles/book.module.css"),
+    );
     document
       .querySelectorAll(".book-card")
       .forEach((el) => el.classList.add(styles.bookCard));

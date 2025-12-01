@@ -25,9 +25,7 @@ export const preloadCriticalFonts = () => {
 
 // === PREMIUM: Otimização de Vídeo do Hero ===
 export const optimizeHeroVideo = () => {
-  const video = document.querySelector<HTMLVideoElement>(
-    ".hero-section video"
-  );
+  const video = document.querySelector<HTMLVideoElement>(".hero-section video");
 
   if (!video) {
     logger.warn("Hero video not found");
@@ -50,12 +48,22 @@ export const optimizeHeroVideo = () => {
         }
       });
     },
-    { threshold: 0.25 }
+    { threshold: 0.25 },
   );
 
   observer.observe(video);
 
   logger.info("Hero video optimized");
+
+  return () => {
+    try {
+      observer.disconnect();
+      // pause to avoid background play
+      video.pause();
+    } catch (err) {
+      logger.warn("Failed to cleanup hero video optimization", err);
+    }
+  };
 };
 
 // === PREMIUM: Skeleton Screens ===
@@ -99,7 +107,7 @@ export const setupSectionTransitions = () => {
     {
       threshold: 0.15,
       rootMargin: "-10% 0px -10% 0px",
-    }
+    },
   );
 
   sections.forEach((section) => {
@@ -107,13 +115,20 @@ export const setupSectionTransitions = () => {
   });
 
   logger.info(`Section transitions setup for ${sections.length} sections`);
+  return () => {
+    try {
+      observer.disconnect();
+    } catch (err) {
+      logger.warn("Failed to cleanup section transitions", err);
+    }
+  };
 };
 
 // === PREMIUM: Parallax no Mouse Expandido ===
 export const setupMouseParallax = () => {
   // Elementos que terão parallax
   const parallaxElements = document.querySelectorAll<HTMLElement>(
-    ".hero-orb, .hero-particles"
+    ".hero-orb, .hero-particles",
   );
 
   if (parallaxElements.length === 0) {
@@ -153,12 +168,23 @@ export const setupMouseParallax = () => {
   };
 
   // Apenas em desktop
+  let rafId = 0;
   if (window.innerWidth > 768) {
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    animate();
+    rafId = requestAnimationFrame(animate);
 
     logger.info(
-      `Mouse parallax enabled for ${parallaxElements.length} elements`
+      `Mouse parallax enabled for ${parallaxElements.length} elements`,
     );
   }
+
+  return () => {
+    try {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener("mousemove", handleMouseMove);
+      parallaxElements.forEach((el) => (el.style.transform = ""));
+    } catch (err) {
+      logger.warn("Failed to cleanup mouse parallax", err);
+    }
+  };
 };

@@ -140,8 +140,8 @@ export const performanceMonitor = new PerformanceMonitor();
 // === WEB VITALS BÁSICOS ===
 
 // Largest Contentful Paint (LCP)
-export const measureLCP = (): void => {
-  if (!("PerformanceObserver" in window)) return;
+export const measureLCP = (): (() => void) | null => {
+  if (!("PerformanceObserver" in window)) return null;
 
   try {
     const observer = new PerformanceObserver((list) => {
@@ -166,14 +166,23 @@ export const measureLCP = (): void => {
     });
 
     observer.observe({ type: "largest-contentful-paint", buffered: true });
+
+    return () => {
+      try {
+        observer.disconnect();
+      } catch (err) {
+        logger.warn("Failed to disconnect LCP observer", err);
+      }
+    };
   } catch (e) {
     logger.debug("LCP measurement not available");
+    return null;
   }
 };
 
 // First Input Delay (FID)
-export const measureFID = (): void => {
-  if (!("PerformanceObserver" in window)) return;
+export const measureFID = (): (() => void) | null => {
+  if (!("PerformanceObserver" in window)) return null;
 
   try {
     const observer = new PerformanceObserver((list) => {
@@ -194,14 +203,23 @@ export const measureFID = (): void => {
     });
 
     observer.observe({ type: "first-input", buffered: true });
+
+    return () => {
+      try {
+        observer.disconnect();
+      } catch (err) {
+        logger.warn("Failed to disconnect FID observer", err);
+      }
+    };
   } catch (e) {
     logger.debug("FID measurement not available");
+    return null;
   }
 };
 
 // Cumulative Layout Shift (CLS)
-export const measureCLS = (): void => {
-  if (!("PerformanceObserver" in window)) return;
+export const measureCLS = (): (() => void) | null => {
+  if (!("PerformanceObserver" in window)) return null;
 
   let clsScore = 0;
 
@@ -217,8 +235,7 @@ export const measureCLS = (): void => {
 
     observer.observe({ type: "layout-shift", buffered: true });
 
-    // Reporta CLS quando usuário sai da página
-    window.addEventListener("visibilitychange", () => {
+    const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
         performanceMonitor.report("CLS", clsScore, "");
         performanceMonitor.setMetric("cls", clsScore);
@@ -231,16 +248,27 @@ export const measureCLS = (): void => {
           logger.error("❌ CLS: Poor");
         }
       }
-    });
+    };
+
+    window.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      try {
+        observer.disconnect();
+        window.removeEventListener("visibilitychange", onVisibilityChange);
+      } catch (err) {
+        logger.warn("Failed to cleanup CLS observer", err);
+      }
+    };
   } catch (e) {
     logger.debug("CLS measurement not available");
+    return null;
   }
 };
 
 // Time to Interactive (aproximado)
-export const measureTTI = (): void => {
-  window.addEventListener("load", () => {
-    // Aguarda um pouco para garantir que tudo foi processado
+export const measureTTI = (): (() => void) | null => {
+  const onLoad = () => {
     setTimeout(() => {
       const tti = performance.now();
       performanceMonitor.report("TTI (approx)", tti);
@@ -254,31 +282,57 @@ export const measureTTI = (): void => {
         logger.error("❌ TTI: Poor");
       }
     }, 0);
-  });
+  };
+
+  window.addEventListener("load", onLoad);
+
+  return () => {
+    try {
+      window.removeEventListener("load", onLoad);
+    } catch (err) {
+      logger.warn("Failed to cleanup TTI onload listener", err);
+    }
+  };
 };
 
 // === INICIALIZAÇÃO ===
-export const setupPerformanceMonitoring = (): void => {
+export const setupPerformanceMonitoring = (): (() => void) | null => {
   // Marca o início
   performanceMonitor.mark("app-start");
 
   // Mede tempo de DOMContentLoaded
-  document.addEventListener("DOMContentLoaded", () => {
+  const onDomReady = () => {
     const duration = performanceMonitor.measure("dom-ready", "app-start");
     performanceMonitor.report("DOM Ready", duration);
-  });
+  };
+  document.addEventListener("DOMContentLoaded", onDomReady);
 
   // Mede tempo total de carregamento
-  window.addEventListener("load", () => {
+  const onWindowLoad = () => {
     const duration = performanceMonitor.measure("page-load", "app-start");
     performanceMonitor.report("Page Load", duration);
-  });
+  };
+  window.addEventListener("load", onWindowLoad);
 
   // Web Vitals
-  measureLCP();
-  measureFID();
-  measureCLS();
-  measureTTI();
+  const d1 = measureLCP();
+  const d2 = measureFID();
+  const d3 = measureCLS();
+  const d4 = measureTTI();
 
   logger.info("Performance monitoring initialized");
+
+  // Return disposer to cleanup event listeners & observers
+  return () => {
+    try {
+      document.removeEventListener("DOMContentLoaded", onDomReady);
+      window.removeEventListener("load", onWindowLoad);
+      d1 && typeof d1 === "function" && d1();
+      d2 && typeof d2 === "function" && d2();
+      d3 && typeof d3 === "function" && d3();
+      d4 && typeof d4 === "function" && d4();
+    } catch (err) {
+      logger.warn("Failed to cleanup performance monitoring", err);
+    }
+  };
 };

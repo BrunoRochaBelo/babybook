@@ -1,7 +1,11 @@
-export async function setupBoardStyles() {
+import { CssModule, loadCssModule } from "./utils";
+
+export async function setupBoardStyles(overrideStyles?: CssModule) {
   try {
-    const mod = await import("../styles/board.module.css");
-    const styles = mod.default || mod;
+    const styles = await loadCssModule(
+      overrideStyles,
+      () => import("../../styles/board.module.css"),
+    );
     document
       .querySelectorAll(".board-notice")
       .forEach((el) => el.classList.add(styles.boardNotice));

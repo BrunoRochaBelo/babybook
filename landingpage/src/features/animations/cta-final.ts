@@ -11,7 +11,7 @@ export const setupCtaFinal = () => {
     return;
   }
 
-  withElement(
+  return withElement(
     ".cta-final",
     (cta) => {
       logger.info("setupCtaFinal", "Initializing advanced animations");
@@ -481,6 +481,7 @@ export const setupCtaFinal = () => {
         "setupCtaFinal",
         "Advanced animations initialized successfully",
       );
+      return cleanup;
     },
     "CTA Final not found",
   );

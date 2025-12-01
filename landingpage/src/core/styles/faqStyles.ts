@@ -1,7 +1,11 @@
-export async function setupFaqStyles() {
+import { CssModule, loadCssModule } from "./utils";
+
+export async function setupFaqStyles(overrideStyles?: CssModule) {
   try {
-    const mod = await import("../styles/faq.module.css");
-    const styles = mod.default || mod;
+    const styles = await loadCssModule(
+      overrideStyles,
+      () => import("../../styles/faq.module.css"),
+    );
 
     document
       .querySelectorAll(".faq-section")

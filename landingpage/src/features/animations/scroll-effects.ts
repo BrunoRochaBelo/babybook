@@ -455,84 +455,81 @@ export const setupHorizontalScroll = () => {
 
   // Use a touchmove handler (non-passive) so we can prevent default while locked (avoid page scroll)
   const onTouchMove = (e: TouchEvent) => {
-      if (e.touches && e.touches.length > 0 && touchStartY !== null) {
-        const touchY = e.touches[0].clientY;
-        const deltaY = touchStartY - touchY;
-        const direction = deltaY > 0 ? 1 : -1;
-        const rect = scrollSection.getBoundingClientRect();
-        const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
-        const rawPercentage = Math.max(
-          0,
-          Math.min(1, -rect.top / sectionHeight),
-        );
+    if (e.touches && e.touches.length > 0 && touchStartY !== null) {
+      const touchY = e.touches[0].clientY;
+      const deltaY = touchStartY - touchY;
+      const direction = deltaY > 0 ? 1 : -1;
+      const rect = scrollSection.getBoundingClientRect();
+      const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
+      const rawPercentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
 
-        if (!scrollLocked && rawPercentage > 0 && rawPercentage < 1) {
-          scrollLocked = true;
-          enteredFromDirection = direction === 1 ? 1 : -1;
-          document.documentElement.classList.add("horizontal-scroll-lock");
-          lockIndicator.classList.add("visible");
+      if (!scrollLocked && rawPercentage > 0 && rawPercentage < 1) {
+        scrollLocked = true;
+        enteredFromDirection = direction === 1 ? 1 : -1;
+        document.documentElement.classList.add("horizontal-scroll-lock");
+        lockIndicator.classList.add("visible");
+      }
+
+      if (scrollLocked) {
+        if (e.cancelable) e.preventDefault();
+
+        if (
+          enteredFromDirection === 1 &&
+          currentCenteredIndex === slides.length - 1 &&
+          direction === 1
+        ) {
+          unlockScroll();
+          return;
+        }
+        if (
+          enteredFromDirection === -1 &&
+          currentCenteredIndex === 0 &&
+          direction === -1
+        ) {
+          unlockScroll();
+          return;
         }
 
-        if (scrollLocked) {
-          if (e.cancelable) e.preventDefault();
+        // allow touch to exit the section early if near the edges
+        if (direction === -1 && rawPercentage <= SECTION_EXIT_BUFFER) {
+          unlockScroll();
+          return;
+        }
+        if (direction === 1 && rawPercentage >= 1 - SECTION_EXIT_BUFFER) {
+          unlockScroll();
+          return;
+        }
 
-          if (
-            enteredFromDirection === 1 &&
-            currentCenteredIndex === slides.length - 1 &&
-            direction === 1
-          ) {
-            unlockScroll();
-            return;
-          }
-          if (
-            enteredFromDirection === -1 &&
-            currentCenteredIndex === 0 &&
-            direction === -1
-          ) {
-            unlockScroll();
-            return;
-          }
-
-          // allow touch to exit the section early if near the edges
-          if (direction === -1 && rawPercentage <= SECTION_EXIT_BUFFER) {
-            unlockScroll();
-            return;
-          }
-          if (direction === 1 && rawPercentage >= 1 - SECTION_EXIT_BUFFER) {
-            unlockScroll();
-            return;
-          }
-
-          const minDistance = 18;
-          if (Math.abs(deltaY) > minDistance) {
-            snapToOffsetDirection(direction);
-            // reset a minimal buffer so we don't trigger repeatedly
-            touchStartY = touchY; // reset baseline so user can swipe another direction
-          }
+        const minDistance = 18;
+        if (Math.abs(deltaY) > minDistance) {
+          snapToOffsetDirection(direction);
+          // reset a minimal buffer so we don't trigger repeatedly
+          touchStartY = touchY; // reset baseline so user can swipe another direction
         }
       }
+    }
   };
   scrollSection.addEventListener("touchmove", onTouchMove, { passive: false });
 
   const onTouchEnd = (e: TouchEvent) => {
-      if (touchStartY === null) return;
-      const touchEndTime = Date.now();
-      const duration = touchEndTime - touchStartTime;
-      // if changed, get last touch Y using changedTouches
-      const changed = (e.changedTouches && e.changedTouches[0]) || null;
-      if (!changed) {
-        touchStartY = null;
-        return;
-      }
-      const deltaY = touchStartY - changed.clientY;
-      // quick swipe or sufficient distance
-      const minDistance = 18; // px
-      const isSwipe = Math.abs(deltaY) > minDistance || duration < 350;
-      if (isSwipe) {
-        const direction = deltaY > 0 ? 1 : -1;
-        snapToOffsetDirection(direction);
-      }
+    if (touchStartY === null) return;
+    const touchEndTime = Date.now();
+    const duration = touchEndTime - touchStartTime;
+    // if changed, get last touch Y using changedTouches
+    const changed = (e.changedTouches && e.changedTouches[0]) || null;
+    if (!changed) {
       touchStartY = null;
+      return;
+    }
+    const deltaY = touchStartY - changed.clientY;
+    // quick swipe or sufficient distance
+    const minDistance = 18; // px
+    const isSwipe = Math.abs(deltaY) > minDistance || duration < 350;
+    if (isSwipe) {
+      const direction = deltaY > 0 ? 1 : -1;
+      snapToOffsetDirection(direction);
+    }
+    touchStartY = null;
   };
   scrollSection.addEventListener("touchend", onTouchEnd, { passive: true });
 
@@ -572,184 +569,187 @@ export const setupHorizontalScroll = () => {
   }
 
   const onPointerDown = (e: PointerEvent) => {
-      // Ignore if started on buttons or interactive elements
-      const target = e.target as HTMLElement;
-      if (
-        target.closest(
-          "button, a, input, textarea, select, .book-cover, .book-close-btn",
-        )
-      ) {
-        return;
-      }
-      isPointerDown = true;
-      pointerStartX = e.clientX;
-      pointerStartY = e.clientY;
-      pointerStartTime = performance.now();
-      pointerDeviceType = e.pointerType;
-      isDragging = false;
-      dragBase = getMoveAmountForIndex(currentCenteredIndex);
-      (e.target as Element).setPointerCapture?.(e.pointerId);
+    // Ignore if started on buttons or interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest(
+        "button, a, input, textarea, select, .book-cover, .book-close-btn",
+      )
+    ) {
+      return;
+    }
+    isPointerDown = true;
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+    pointerStartTime = performance.now();
+    pointerDeviceType = e.pointerType;
+    isDragging = false;
+    dragBase = getMoveAmountForIndex(currentCenteredIndex);
+    (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   track.addEventListener("pointerdown", onPointerDown, { passive: true });
 
   const onPointerMove = (e: PointerEvent) => {
-      if (!isPointerDown) return;
-      const dx = e.clientX - pointerStartX;
-      const dy = e.clientY - pointerStartY;
-      // measure time if needed in future
-      // start horizontal drag only if movement is mostly horizontal and exceeds threshold
-      // For touch on smaller screens, require a larger threshold so small vertical scrolls
-      const effectiveDragThreshold =
-        pointerDeviceType === "touch" && window.innerWidth < 768
-          ? DRAG_THRESHOLD_TOUCH_SMALL
-          : DRAG_THRESHOLD;
+    if (!isPointerDown) return;
+    const dx = e.clientX - pointerStartX;
+    const dy = e.clientY - pointerStartY;
+    // measure time if needed in future
+    // start horizontal drag only if movement is mostly horizontal and exceeds threshold
+    // For touch on smaller screens, require a larger threshold so small vertical scrolls
+    const effectiveDragThreshold =
+      pointerDeviceType === "touch" && window.innerWidth < 768
+        ? DRAG_THRESHOLD_TOUCH_SMALL
+        : DRAG_THRESHOLD;
 
+    if (
+      !isDragging &&
+      Math.abs(dx) > Math.abs(dy) &&
+      Math.abs(dx) > effectiveDragThreshold
+    ) {
+      isDragging = true;
+      // visual cue for dragging
+      track.classList.add("dragging");
+      // lock scroll when we start dragging inside the section
+      if (!scrollLocked) {
+        scrollLocked = true;
+        enteredFromDirection = dx < 0 ? 1 : -1; // if dragging left, we're going forward
+        document.documentElement.classList.add("horizontal-scroll-lock");
+        lockIndicator.classList.add("visible");
+      }
+    }
+
+    if (isDragging) {
+      // prevent default page scroll / selection
+      if (e.cancelable) e.preventDefault();
+      // compute temporary transform to reflect drag visually
+      const move = dragBase - (e.clientX - pointerStartX);
+      const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
+      let clamped = Math.min(Math.max(0, move), maxMove);
+      track.style.transform = `translateX(-${clamped}px)`;
+      // Provide resistance feedback for the vault when dragging on the last book
       if (
-        !isDragging &&
-        Math.abs(dx) > Math.abs(dy) &&
-        Math.abs(dx) > effectiveDragThreshold
+        currentCenteredIndex === slides.length - 1 &&
+        scrollLocked &&
+        enteredFromDirection === 1 &&
+        lockIcon &&
+        !reduceMotion
       ) {
-        isDragging = true;
-        // visual cue for dragging
-        track.classList.add("dragging");
-        // lock scroll when we start dragging inside the section
-        if (!scrollLocked) {
-          scrollLocked = true;
-          enteredFromDirection = dx < 0 ? 1 : -1; // if dragging left, we're going forward
-          document.documentElement.classList.add("horizontal-scroll-lock");
-          lockIndicator.classList.add("visible");
-        }
+        lockIcon.classList.add("is-resisting");
+        // compute a tension from dx relative to slide width
+        const curSlideWidth = slides[currentCenteredIndex]?.offsetWidth || 300;
+        const tensionDrag = Math.max(
+          0,
+          Math.min(1, Math.abs(dx) / (curSlideWidth * 0.7)),
+        );
+        setVaultResistance(tensionDrag);
+      } else if (lockIcon) {
+        lockIcon.classList.remove("is-resisting");
+        setVaultResistance(0);
+        if (reduceMotion) setLockInlineTransform("");
       }
-
-      if (isDragging) {
-        // prevent default page scroll / selection
-        if (e.cancelable) e.preventDefault();
-        // compute temporary transform to reflect drag visually
-        const move = dragBase - (e.clientX - pointerStartX);
-        const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
-        let clamped = Math.min(Math.max(0, move), maxMove);
-        track.style.transform = `translateX(-${clamped}px)`;
-        // Provide resistance feedback for the vault when dragging on the last book
-        if (
-          currentCenteredIndex === slides.length - 1 &&
-          scrollLocked &&
-          enteredFromDirection === 1 &&
-          lockIcon &&
-          !reduceMotion
-        ) {
-          lockIcon.classList.add("is-resisting");
-          // compute a tension from dx relative to slide width
-          const curSlideWidth =
-            slides[currentCenteredIndex]?.offsetWidth || 300;
-          const tensionDrag = Math.max(
-            0,
-            Math.min(1, Math.abs(dx) / (curSlideWidth * 0.7)),
-          );
-          setVaultResistance(tensionDrag);
-        } else if (lockIcon) {
-          lockIcon.classList.remove("is-resisting");
-          setVaultResistance(0);
-          if (reduceMotion) setLockInlineTransform("");
-        }
-        // compute raw percentage and allow early unlock if near page edges (dragging out)
-        const rect2 = scrollSection.getBoundingClientRect();
-        const sectionHeight2 = scrollSection.offsetHeight - window.innerHeight;
-        const rawPct2 = Math.max(0, Math.min(1, -rect2.top / sectionHeight2));
-        const moveDirection = dx < 0 ? 1 : -1;
-        if (moveDirection === -1 && rawPct2 <= SECTION_EXIT_BUFFER) {
-          unlockScroll();
-          return;
-        }
-        if (moveDirection === 1 && rawPct2 >= 1 - SECTION_EXIT_BUFFER) {
-          unlockScroll();
-          return;
-        }
+      // compute raw percentage and allow early unlock if near page edges (dragging out)
+      const rect2 = scrollSection.getBoundingClientRect();
+      const sectionHeight2 = scrollSection.offsetHeight - window.innerHeight;
+      const rawPct2 = Math.max(0, Math.min(1, -rect2.top / sectionHeight2));
+      const moveDirection = dx < 0 ? 1 : -1;
+      if (moveDirection === -1 && rawPct2 <= SECTION_EXIT_BUFFER) {
+        unlockScroll();
+        return;
       }
-      // pointerLastX not used; no-op
+      if (moveDirection === 1 && rawPct2 >= 1 - SECTION_EXIT_BUFFER) {
+        unlockScroll();
+        return;
+      }
+    }
+    // pointerLastX not used; no-op
   };
-  track.addEventListener("pointermove", onPointerMove as any, { passive: false });
+  track.addEventListener("pointermove", onPointerMove as any, {
+    passive: false,
+  });
 
   const onPointerUp = (e: PointerEvent) => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-      try {
-        (e.target as Element).releasePointerCapture?.(e.pointerId);
-      } catch (err) {
-        // ignore if not captured
-      }
+    if (!isPointerDown) return;
+    isPointerDown = false;
+    try {
+      (e.target as Element).releasePointerCapture?.(e.pointerId);
+    } catch (err) {
+      // ignore if not captured
+    }
 
-      if (!isDragging) {
-        // This was a tap or no meaningful drag; ignore
-        return;
-      }
-      isDragging = false;
-      track.classList.remove("dragging");
-      const dx = e.clientX - pointerStartX;
-      const upTime = performance.now();
-      const totalDt = Math.max(1, upTime - pointerStartTime);
-      const avgVel = dx / totalDt; // px/ms
-      const direction = dx < 0 ? 1 : -1; // dx < 0 means user dragged left -> go next
-      // If user attempted to drag past boundary, it should unlock scroll
-      if (
-        enteredFromDirection === 1 &&
-        currentCenteredIndex === slides.length - 1 &&
-        direction === 1
-      ) {
-        unlockScroll();
-        if (lockIcon) {
-          lockIcon.classList.remove("is-resisting");
-          setVaultResistance(0);
-        }
-        return;
-      }
-      if (
-        enteredFromDirection === -1 &&
-        currentCenteredIndex === 0 &&
-        direction === -1
-      ) {
-        unlockScroll();
-        if (lockIcon) {
-          lockIcon.classList.remove("is-resisting");
-          setVaultResistance(0);
-        }
-        return;
-      }
-      // Determine slide width to compute necessary distance threshold
-      const slideWidth = slides[currentCenteredIndex]?.offsetWidth || 300;
-      const distanceThreshold = slideWidth * 0.25; // 25% of width
-
-      // If velocity or distance threshold met -> change slide
-      if (
-        Math.abs(dx) > distanceThreshold ||
-        Math.abs(avgVel) > VELOCITY_THRESHOLD
-      ) {
-        snapToOffsetDirection(direction);
-      } else {
-        // small drag: snap back to nearest
-        snapToNearest();
-        if (lockIcon) {
-          lockIcon.classList.remove("is-resisting");
-          setVaultResistance(0);
-        }
-      }
-      // Always clear any resistance on pointer up
+    if (!isDragging) {
+      // This was a tap or no meaningful drag; ignore
+      return;
+    }
+    isDragging = false;
+    track.classList.remove("dragging");
+    const dx = e.clientX - pointerStartX;
+    const upTime = performance.now();
+    const totalDt = Math.max(1, upTime - pointerStartTime);
+    const avgVel = dx / totalDt; // px/ms
+    const direction = dx < 0 ? 1 : -1; // dx < 0 means user dragged left -> go next
+    // If user attempted to drag past boundary, it should unlock scroll
+    if (
+      enteredFromDirection === 1 &&
+      currentCenteredIndex === slides.length - 1 &&
+      direction === 1
+    ) {
+      unlockScroll();
       if (lockIcon) {
         lockIcon.classList.remove("is-resisting");
         setVaultResistance(0);
       }
-  };
-  track.addEventListener("pointerup", onPointerUp as any, { passive: true });
+      return;
+    }
+    if (
+      enteredFromDirection === -1 &&
+      currentCenteredIndex === 0 &&
+      direction === -1
+    ) {
+      unlockScroll();
+      if (lockIcon) {
+        lockIcon.classList.remove("is-resisting");
+        setVaultResistance(0);
+      }
+      return;
+    }
+    // Determine slide width to compute necessary distance threshold
+    const slideWidth = slides[currentCenteredIndex]?.offsetWidth || 300;
+    const distanceThreshold = slideWidth * 0.25; // 25% of width
 
-  const onPointerCancel = () => {
-      isPointerDown = false;
-      isDragging = false;
+    // If velocity or distance threshold met -> change slide
+    if (
+      Math.abs(dx) > distanceThreshold ||
+      Math.abs(avgVel) > VELOCITY_THRESHOLD
+    ) {
+      snapToOffsetDirection(direction);
+    } else {
+      // small drag: snap back to nearest
       snapToNearest();
       if (lockIcon) {
         lockIcon.classList.remove("is-resisting");
         setVaultResistance(0);
       }
+    }
+    // Always clear any resistance on pointer up
+    if (lockIcon) {
+      lockIcon.classList.remove("is-resisting");
+      setVaultResistance(0);
+    }
   };
-  track.addEventListener("pointercancel", onPointerCancel as any, { passive: true });
+  track.addEventListener("pointerup", onPointerUp as any, { passive: true });
+
+  const onPointerCancel = () => {
+    isPointerDown = false;
+    isDragging = false;
+    snapToNearest();
+    if (lockIcon) {
+      lockIcon.classList.remove("is-resisting");
+      setVaultResistance(0);
+    }
+  };
+  track.addEventListener("pointercancel", onPointerCancel as any, {
+    passive: true,
+  });
   const onScroll2 = () => {
     if (!ticking2) {
       window.requestAnimationFrame(() => {
@@ -1081,7 +1081,7 @@ export const setupScrollAnimations = () => {
       .querySelectorAll(
         ".fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .rotate-in",
       )
-        .forEach((el) => el.classList.add("visible"));
-      }
-      return () => observer.disconnect();
+      .forEach((el) => el.classList.add("visible"));
+  }
+  return () => observer.disconnect();
 };

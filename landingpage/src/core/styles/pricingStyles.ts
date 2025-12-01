@@ -1,7 +1,11 @@
-export async function setupPricingStyles() {
+import { CssModule, loadCssModule } from "./utils";
+
+export async function setupPricingStyles(overrideStyles?: CssModule) {
   try {
-    const mod = await import("../styles/pricing.module.css");
-    const styles = mod.default || mod;
+    const styles = await loadCssModule(
+      overrideStyles,
+      () => import("../../styles/pricing.module.css"),
+    );
 
     document
       .querySelectorAll(".pricing-parallax")

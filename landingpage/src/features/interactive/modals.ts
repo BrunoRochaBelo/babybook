@@ -11,17 +11,20 @@ export const setupExitIntent = () => {
       let hasScrolledPast50 = false;
       let hasViewedPricing = false;
       let timeOnSite = 0;
+      let intervalId: number | null = null;
+      let showTimeoutId: number | null = null;
+      let pricingObserver: IntersectionObserver | null = null;
       const exitPopupClose = exitPopup.querySelector(".exit-popup-close");
       const exitPopupOverlay = exitPopup.querySelector(".exit-popup-overlay");
       const exitPopupForm = document.getElementById(
         "exit-popup-form",
       ) as HTMLFormElement;
 
-      setInterval(() => {
+      intervalId = window.setInterval(() => {
         timeOnSite += 1;
       }, 1000);
 
-      window.addEventListener("scroll", () => {
+      const handleScroll = () => {
         const scrollPercent =
           (window.pageYOffset /
             (document.documentElement.scrollHeight - window.innerHeight)) *
@@ -29,11 +32,12 @@ export const setupExitIntent = () => {
         if (scrollPercent > CONFIG.exitIntent.scrollThreshold) {
           hasScrolledPast50 = true;
         }
-      });
+      };
+      window.addEventListener("scroll", handleScroll, { passive: true });
 
       const pricingSection = document.getElementById("pricing");
       if (pricingSection) {
-        const pricingObserver = new IntersectionObserver(
+        pricingObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
@@ -54,13 +58,14 @@ export const setupExitIntent = () => {
         );
       };
 
-      document.addEventListener("mouseleave", (e) => {
+      const handleMouseLeave = (e: MouseEvent) => {
         if (e.clientY <= 0 && shouldShowPopup() && exitPopup) {
           showExitPopup();
         }
-      });
+      };
+      document.addEventListener("mouseleave", handleMouseLeave);
 
-      setTimeout(() => {
+      showTimeoutId = window.setTimeout(() => {
         if (shouldShowPopup() && exitPopup) {
           showExitPopup();
         }
@@ -83,15 +88,17 @@ export const setupExitIntent = () => {
         document.body.style.overflow = "";
       }
 
-      exitPopupClose?.addEventListener("click", () => {
+      const handlePopupClose = () => {
         hideExitPopup();
         trackEvent({ category: "Exit Intent", action: "popup_closed" });
-      });
+      };
+      exitPopupClose?.addEventListener("click", handlePopupClose);
 
-      exitPopupOverlay?.addEventListener("click", () => {
+      const handleOverlayClick = () => {
         hideExitPopup();
         trackEvent({ category: "Exit Intent", action: "popup_closed_overlay" });
-      });
+      };
+      exitPopupOverlay?.addEventListener("click", handleOverlayClick);
 
       exitPopupForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -136,14 +143,31 @@ export const setupExitIntent = () => {
         }
       });
 
-      document.addEventListener("keydown", (e) => {
+      const handleKeydown = (e: KeyboardEvent) => {
         if (e.key === "Escape" && !exitPopup.classList.contains("hidden")) {
           hideExitPopup();
           trackEvent({ category: "Exit Intent", action: "popup_closed_esc" });
         }
-      });
+      };
+      document.addEventListener("keydown", handleKeydown);
 
       logger.info("Exit Intent initialized");
+
+      // Return disposer function to allow cleanup
+      return () => {
+        try {
+          if (intervalId !== null) clearInterval(intervalId);
+          if (showTimeoutId !== null) clearTimeout(showTimeoutId);
+          if (pricingObserver) pricingObserver.disconnect();
+          window.removeEventListener("scroll", handleScroll);
+          document.removeEventListener("mouseleave", handleMouseLeave);
+          exitPopupClose?.removeEventListener("click", handlePopupClose);
+          exitPopupOverlay?.removeEventListener("click", handleOverlayClick);
+          document.removeEventListener("keydown", handleKeydown);
+        } catch (err) {
+          logger.warn("Exit Intent cleanup failed", err);
+        }
+      };
     },
     "Exit Intent: #exit-popup not found",
   );

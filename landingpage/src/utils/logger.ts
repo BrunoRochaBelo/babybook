@@ -62,18 +62,48 @@ class Logger {
 export const logger = new Logger();
 
 // Error Handler wrapper para features
+// Registry for disposers returned by initializers
+const __disposers: Array<() => void> = [];
+
+// Error Handler wrapper para features
 export const safeInit = (
   name: string,
-  initFn: () => void,
+  initFn: () => void | Promise<any> | (() => void) | null | undefined,
   required: boolean = false,
 ): void => {
   try {
-    initFn();
+    const ret = initFn();
+    if (typeof ret === "function") {
+      __disposers.push(ret as () => void);
+    } else if (ret && typeof (ret as Promise<any>).then === "function") {
+      (ret as Promise<any>)
+        .then((resolved) => {
+          if (typeof resolved === "function") {
+            __disposers.push(resolved as () => void);
+          }
+        })
+        .catch((err) => {
+          logger.error(`Failed to initialize ${name}`, err);
+          if (required) throw err;
+        });
+    }
     logger.debug(`✓ ${name} initialized`);
   } catch (error) {
     logger.error(`Failed to initialize ${name}`, error);
     if (required) {
       throw error;
+    }
+  }
+};
+
+// Unmount all registered disposers (reverse order)
+export const unmountAll = () => {
+  while (__disposers.length) {
+    const fn = __disposers.pop();
+    try {
+      fn && fn();
+    } catch (err) {
+      logger.warn("unmountAll", `disposer threw: ${err}`);
     }
   }
 };

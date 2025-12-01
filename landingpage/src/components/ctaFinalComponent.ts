@@ -9,8 +9,13 @@ export const mountCtaFinal = () => {
     return null;
   }
   // Initialize animations only when element exists
-  setupCtaFinal();
-  return el;
+  const disposer = setupCtaFinal();
+  if (typeof disposer === "function") {
+    return () => {
+      disposer();
+    };
+  }
+  return null;
 };
 
 export default mountCtaFinal;

@@ -29,6 +29,8 @@ export const setupCarousel = () => {
         return;
       }
 
+      const cleanupFns: Array<() => void> = [];
+
       let currentIndex = 0;
       let autoplayInterval: number | null = null;
       let isPressing = false;
@@ -46,6 +48,7 @@ export const setupCarousel = () => {
         const slideWidth = slides[0].offsetWidth;
         const gap = CONFIG.carousel.slideGap;
         const scrollPosition = (slideWidth + gap) * index;
+
         track.scrollTo({
           left: scrollPosition,
           behavior: CONFIG.carousel.scrollBehavior,
@@ -105,54 +108,25 @@ export const setupCarousel = () => {
         }
       }
 
-      if (prevBtn) prevBtn.addEventListener("click", goPrev);
-      if (nextBtn) nextBtn.addEventListener("click", goNext);
+      if (prevBtn) {
+        prevBtn.addEventListener("click", goPrev);
+        cleanupFns.push(() => prevBtn.removeEventListener("click", goPrev));
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener("click", goNext);
+        cleanupFns.push(() => nextBtn.removeEventListener("click", goNext));
+      }
 
       dots.forEach((dot) => {
-        dot.addEventListener("click", () => {
+        const onDotClick = () => {
           const index = parseInt(dot.getAttribute("data-index") || "0", 10);
           goToSlide(index);
           resetAutoplay();
-        });
-      });
+        };
+        dot.addEventListener("click", onDotClick);
+        cleanupFns.push(() => dot.removeEventListener("click", onDotClick));
 
-      slides.forEach((slide) => {
-        slide.addEventListener("touchstart", () => {
-          isPressing = true;
-          pauseAutoplay();
-        });
-
-        slide.addEventListener("touchend", () => {
-          isPressing = false;
-          if (!prefersReducedMotion()) {
-            startAutoplay();
-          }
-        });
-
-        slide.addEventListener("mousedown", () => {
-          isPressing = true;
-          pauseAutoplay();
-        });
-
-        slide.addEventListener("mouseup", () => {
-          isPressing = false;
-          if (!prefersReducedMotion()) {
-            startAutoplay();
-          }
-        });
-
-        slide.addEventListener("mouseleave", () => {
-          if (isPressing) {
-            isPressing = false;
-            if (!prefersReducedMotion()) {
-              startAutoplay();
-            }
-          }
-        });
-      });
-
-      dots.forEach((dot) => {
-        dot.addEventListener("keydown", (e) => {
+        const onDotKeydown = (e: KeyboardEvent) => {
           let newIndex = currentIndex;
 
           if (e.key === "ArrowLeft") {
@@ -174,24 +148,83 @@ export const setupCarousel = () => {
             dots[newIndex]?.focus();
             resetAutoplay();
           }
-        });
+        };
+        dot.addEventListener("keydown", onDotKeydown);
+        cleanupFns.push(() => dot.removeEventListener("keydown", onDotKeydown));
       });
 
-      if (track) {
-        track.addEventListener("keydown", (e) => {
-          if (e.key === "ArrowLeft") {
-            e.preventDefault();
-            goPrev();
-          } else if (e.key === "ArrowRight") {
-            e.preventDefault();
-            goNext();
-          }
-        });
-      }
+      slides.forEach((slide) => {
+        const onTouchStart = () => {
+          isPressing = true;
+          pauseAutoplay();
+        };
+        slide.addEventListener("touchstart", onTouchStart, { passive: true });
+        cleanupFns.push(() =>
+          slide.removeEventListener("touchstart", onTouchStart),
+        );
 
-      let scrollTimeout: number;
-      track.addEventListener("scroll", () => {
-        clearTimeout(scrollTimeout);
+        const onTouchEnd = () => {
+          isPressing = false;
+          if (!prefersReducedMotion()) {
+            startAutoplay();
+          }
+        };
+        slide.addEventListener("touchend", onTouchEnd, { passive: true });
+        cleanupFns.push(() =>
+          slide.removeEventListener("touchend", onTouchEnd),
+        );
+
+        const onMouseDown = () => {
+          isPressing = true;
+          pauseAutoplay();
+        };
+        slide.addEventListener("mousedown", onMouseDown);
+        cleanupFns.push(() =>
+          slide.removeEventListener("mousedown", onMouseDown),
+        );
+
+        const onMouseUp = () => {
+          isPressing = false;
+          if (!prefersReducedMotion()) {
+            startAutoplay();
+          }
+        };
+        slide.addEventListener("mouseup", onMouseUp);
+        cleanupFns.push(() => slide.removeEventListener("mouseup", onMouseUp));
+
+        const onMouseLeave = () => {
+          if (isPressing) {
+            isPressing = false;
+            if (!prefersReducedMotion()) {
+              startAutoplay();
+            }
+          }
+        };
+        slide.addEventListener("mouseleave", onMouseLeave);
+        cleanupFns.push(() =>
+          slide.removeEventListener("mouseleave", onMouseLeave),
+        );
+      });
+
+      const trackKeydownHandler = (e: KeyboardEvent) => {
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          goPrev();
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          goNext();
+        }
+      };
+      track.addEventListener("keydown", trackKeydownHandler);
+      cleanupFns.push(() =>
+        track.removeEventListener("keydown", trackKeydownHandler),
+      );
+
+      let scrollTimeout: number | null = null;
+      const trackScrollHandler = () => {
+        if (scrollTimeout !== null) {
+          window.clearTimeout(scrollTimeout);
+        }
         scrollTimeout = window.setTimeout(() => {
           const scrollLeft = track.scrollLeft;
           const slideWidth = slides[0].offsetWidth;
@@ -210,7 +243,11 @@ export const setupCarousel = () => {
             });
           }
         }, 150);
-      });
+      };
+      track.addEventListener("scroll", trackScrollHandler);
+      cleanupFns.push(() =>
+        track.removeEventListener("scroll", trackScrollHandler),
+      );
 
       goToSlide(0, false);
 
@@ -219,6 +256,15 @@ export const setupCarousel = () => {
       }
 
       logger.info("Carousel initialized", { slidesCount: slides.length });
+
+      return () => {
+        pauseAutoplay();
+        if (scrollTimeout !== null) {
+          window.clearTimeout(scrollTimeout);
+          scrollTimeout = null;
+        }
+        cleanupFns.forEach((fn) => fn());
+      };
     },
     "Carousel: #families-carousel not found",
   );

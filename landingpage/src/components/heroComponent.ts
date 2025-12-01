@@ -6,7 +6,9 @@ import {
 // Mounts the hero-related features. Returns a cleanup function that removes event
 // listeners and intervals if the hero was present. If hero isn't present, returns null.
 export const mountHero = () => {
-  const hero = document.querySelector(".hero-section") || document.getElementById("hero-stage");
+  const hero =
+    document.querySelector(".hero-section") ||
+    document.getElementById("hero-stage");
   if (!hero) return null;
 
   const disposers: Array<() => void> = [];
