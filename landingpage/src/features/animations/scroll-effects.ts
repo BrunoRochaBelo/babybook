@@ -189,8 +189,8 @@ export const setupHorizontalScroll = () => {
   const isTouchDevice =
     "ontouchstart" in window || navigator.maxTouchPoints > 0;
   lockIndicator.innerHTML = isTouchDevice
-    ? "Deslize para navegar <span class='arrow'>&darr;</span>"
-    : "Role para navegar <span class='arrow'>&darr;</span>";
+    ? "Deslize para navegar <span class='arrow'>&rarr;</span>"
+    : "Role para navegar <span class='arrow'>&rarr;</span>";
   const stickyWrapper = scrollSection.querySelector(".sticky-wrapper");
   if (stickyWrapper) stickyWrapper.appendChild(lockIndicator);
   else scrollSection.appendChild(lockIndicator);

@@ -2158,6 +2158,21 @@ a,
   transform: translateY(0);
 }
 
+/* Attention animation when idle for 10+ seconds */
+@keyframes indicator-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
+.idle-scroll-indicator.attention {
+  animation: indicator-pulse 0.8s ease-in-out 3; /* Play 3 times, then stop */
+}
+
 @media (max-width: 767px) {
   .idle-scroll-indicator {
     font-size: 0.875rem;

@@ -43,7 +43,9 @@ export const initScrollIndicator = () => {
 
       // Idle behavior
       let idleTimer: number | null = null;
-      const IDLE_TIMEOUT = 3500; // ms
+      let animationTimer: number | null = null;
+      const IDLE_TIMEOUT = 6000; // ms - time before indicator appears
+      const ANIMATION_TRIGGER_TIME = 10000; // ms - time before animation starts (after indicator appears)
       let activeSection: HTMLElement | null = null;
 
       // Observe sections to know which one is centered/active
@@ -81,10 +83,28 @@ export const initScrollIndicator = () => {
           document.documentElement.scrollHeight || document.body.scrollHeight;
         if (docHeight <= window.innerHeight) return; // no scrolling possible
         idleIndicator.classList.add("visible");
+        idleIndicator.classList.remove("attention");
+        // Schedule animation trigger after 10s of indicator being visible
+        if (animationTimer) window.clearTimeout(animationTimer);
+        animationTimer = window.setTimeout(() => {
+          if (idleIndicator && idleIndicator.classList.contains("visible")) {
+            idleIndicator.classList.add("attention");
+            // Remove attention class after animation plays (one cycle only)
+            setTimeout(() => {
+              if (idleIndicator) {
+                idleIndicator.classList.remove("attention");
+              }
+            }, 2400); // 3 cycles × 0.8s = 2.4s
+          }
+        }, ANIMATION_TRIGGER_TIME - IDLE_TIMEOUT);
       }
       function hideIdleIndicator() {
         if (!idleIndicator) return;
-        idleIndicator.classList.remove("visible");
+        idleIndicator.classList.remove("visible", "attention");
+        if (animationTimer) {
+          window.clearTimeout(animationTimer);
+          animationTimer = null;
+        }
       }
       function resetIdleTimer() {
         if (idleTimer) {
@@ -123,6 +143,7 @@ export const initScrollIndicator = () => {
           if (idleIndicator.parentElement) idleIndicator.remove();
           window.removeEventListener("scroll", handleScroll);
           if (idleTimer) window.clearTimeout(idleTimer);
+          if (animationTimer) window.clearTimeout(animationTimer);
           sectionObserver.disconnect();
           ["scroll", "wheel", "pointerdown", "touchstart", "keydown"].forEach(
             (ev) =>
