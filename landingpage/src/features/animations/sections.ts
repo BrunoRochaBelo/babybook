@@ -91,6 +91,22 @@ export const setupSectionScale = () => {
   updateSectionScale();
   window.addEventListener("scroll", throttledUpdate, { passive: true });
   window.addEventListener("resize", updateSectionScale);
+
+  return () => {
+    window.removeEventListener("scroll", throttledUpdate);
+    window.removeEventListener("resize", updateSectionScale);
+    // reset style state
+    allSections.forEach((section) => {
+      section.style.transform = "";
+      section.style.opacity = "";
+      section.style.transformOrigin = "";
+      section.style.transition = "";
+      section.classList.remove("section-ready", "scale-sticky");
+      if (section.classList.contains("future-parallax")) {
+        section.style.borderRadius = "";
+      }
+    });
+  };
 };
 
 // === ANIMAÇÃO DA TIMELINE ===
@@ -123,6 +139,7 @@ export const setupTimelineAnimation = () => {
 
   let animationStarted = false;
   let currentStep = 0;
+  const timers: number[] = [];
 
   const activateStep = (index: number) => {
     if (index >= steps.length) return;
@@ -131,12 +148,13 @@ export const setupTimelineAnimation = () => {
     step.classList.add("active");
     logger.debug("setupTimelineAnimation", `Activated step ${index + 1}`);
 
-    setTimeout(() => {
+    const timerId = window.setTimeout(() => {
       currentStep++;
       if (currentStep < steps.length) {
         activateStep(currentStep);
       }
     }, CONFIG.animations.timeline.stepDelay);
+    timers.push(timerId);
   };
 
   const checkSectionReady = () => {
@@ -144,9 +162,10 @@ export const setupTimelineAnimation = () => {
 
     if (timelineSection.classList.contains("section-ready")) {
       animationStarted = true;
-      setTimeout(() => {
+      const timerId = window.setTimeout(() => {
         activateStep(0);
       }, CONFIG.animations.timeline.initialDelay);
+      timers.push(timerId);
     }
   };
 
@@ -157,10 +176,20 @@ export const setupTimelineAnimation = () => {
     }
   }, CONFIG.animations.timeline.checkInterval);
 
-  setTimeout(
+  const extraTimeout = setTimeout(
     () => clearInterval(intervalId),
     CONFIG.animations.timeline.maxWait,
   );
+
+  return () => {
+    clearInterval(intervalId);
+    clearTimeout(extraTimeout as unknown as number);
+    timers.forEach((t) => clearTimeout(t));
+    // Also clear active classes
+    steps.forEach((s) => s.classList.remove("active"));
+    animationStarted = false;
+    currentStep = 0;
+  };
 };
 
 // === SURFACE OBSERVER ===
@@ -235,6 +264,20 @@ export const setupParallaxSections = () => {
   updateLayers();
   window.addEventListener("scroll", throttledUpdate, { passive: true });
   window.addEventListener("resize", updateLayers);
+
+  return () => {
+    window.removeEventListener("scroll", throttledUpdate);
+    window.removeEventListener("resize", updateLayers);
+    // Reset transforms to avoid leaving artifacts
+    sections.forEach((section) => {
+      const layers = section.querySelectorAll<HTMLElement>(
+        "[data-parallax-depth]",
+      );
+      layers.forEach((layer) => {
+        layer.style.transform = "";
+      });
+    });
+  };
 };
 
 // === ANIMAÇÃO DA LISTA DE PREÇOS ===
@@ -333,4 +376,18 @@ export const setupPricingListAnimation = () => {
 
   window.addEventListener("scroll", throttledUpdate, { passive: true });
   window.addEventListener("resize", updateVisibility);
+
+  return () => {
+    window.removeEventListener("scroll", throttledUpdate);
+    window.removeEventListener("resize", updateVisibility);
+    // Reset state and restore classes
+    listItems.forEach((item) => {
+      item.classList.remove("opacity-100", "translate-y-0");
+      item.classList.remove("opacity-0", "translate-y-4");
+      item.classList.remove("opacity-100", "translate-y-0");
+      item.classList.add("opacity-100");
+    });
+    pricingSection.style.removeProperty("--gradient-x");
+    pricingSection.style.removeProperty("--gradient-y");
+  };
 };

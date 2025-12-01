@@ -48,25 +48,18 @@ import { deferCSS, extractAndInlineCriticalCSS } from "./utils/criticalCSS";
 import { setupPerformanceBudget } from "./utils/performanceBudget";
 
 // Features - Animations
-import {
-  setupSectionScale,
-  setupTimelineAnimation,
-  setupPricingListAnimation,
-  setupSurfaceObserver,
-  setupParallaxSections,
-} from "./features/animations/sections";
+import { setupSurfaceObserver } from "./features/animations/sections";
+import { mountSectionScale } from "./components/sectionScaleComponent";
+import { mountTimelineAnimation } from "./components/timelineComponent";
+import { mountPricingListAnimation } from "./components/pricingComponent";
+import { mountParallaxSections } from "./components/parallaxComponent";
 import { mountCtaFinal } from "./components/ctaFinalComponent";
 import { mountSiteFooter } from "./components/siteFooterComponent";
-import {
-  setupHeroCollapseProgress,
-  initHoverAnimations,
-} from "./features/animations/hero";
-import {
-  setupChaosToOrder,
-  setupHorizontalScroll,
-  setupTimelineDraw,
-  setupScrollAnimations,
-} from "./features/animations/scroll-effects";
+import { mountHero } from "./components/heroComponent";
+import { mountChaosToOrder } from "./components/chaosToOrderComponent";
+import { mountHorizontalScroll } from "./components/horizontalScrollComponent";
+import { mountTimelineDraw } from "./components/timelineDrawComponent";
+import { mountScrollAnimations } from "./components/scrollAnimationsComponent";
 
 // Features - Interactive
 import {
@@ -183,10 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Animations - Sections
   if (isFeatureEnabled("sectionScale")) {
-    safeInit("Section Scale", () => setupSectionScale());
+    safeInit("Section Scale", () => mountSectionScale());
   }
-  safeInit("Timeline Animation", () => setupTimelineAnimation());
-  safeInit("Pricing List Animation", () => setupPricingListAnimation());
+  safeInit("Timeline Animation", () => mountTimelineAnimation());
+  safeInit("Pricing List Animation", () => mountPricingListAnimation());
   safeInit("Surface Observer", () => setupSurfaceObserver());
   safeInit("CTA Final", () => {
     mountCtaFinal();
@@ -195,13 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
   safeInit("Site Footer", () => mountSiteFooter());
 
   if (isFeatureEnabled("parallax")) {
-    safeInit("Parallax Sections", () => setupParallaxSections());
+    safeInit("Parallax Sections", () => mountParallaxSections());
   }
 
   // Animations - Hero
   if (isFeatureEnabled("heroAnimations")) {
-    safeInit("Hero Collapse", () => setupHeroCollapseProgress());
-    safeInit("Hover Animations", () => initHoverAnimations());
+    safeInit("Hero", () => mountHero());
     // PREMIUM: Hero Particles
     safeInit("Hero Particles", async () => {
       const { initHeroParticles } = await import("./features/heroParticles");
@@ -219,13 +211,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Animations - Scroll Effects
   if (isFeatureEnabled("chaosToOrder")) {
-    safeInit("Chaos to Order", () => setupChaosToOrder());
+    safeInit("Chaos to Order", () => mountChaosToOrder());
   }
   if (isFeatureEnabled("horizontalScroll")) {
-    safeInit("Horizontal Scroll", () => setupHorizontalScroll());
+    safeInit("Horizontal Scroll", () => mountHorizontalScroll());
   }
-  safeInit("Timeline Draw", () => setupTimelineDraw());
-  safeInit("Scroll Animations", () => setupScrollAnimations());
+  safeInit("Timeline Draw", () => mountTimelineDraw());
+  safeInit("Scroll Animations", () => mountScrollAnimations());
 
   // Interactive Components
   safeInit("Button Loading", () => setupButtonLoading());

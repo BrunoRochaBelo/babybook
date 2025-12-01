@@ -455,6 +455,7 @@ export const setupHorizontalScroll = () => {
 
   // Use a touchmove handler (non-passive) so we can prevent default while locked (avoid page scroll)
   const onTouchMove = (e: TouchEvent) => {
+    if (e.touches && e.touches.length > 0 && touchStartY !== null) {
       if (e.touches && e.touches.length > 0 && touchStartY !== null) {
         const touchY = e.touches[0].clientY;
         const deltaY = touchStartY - touchY;
@@ -883,8 +884,8 @@ export const setupHorizontalScroll = () => {
   };
   window.addEventListener("scroll", onScroll2, { passive: true });
 
-  // Cleanup: remove listeners and reset UI state
   return () => {
+    // Remove event listeners
     window.removeEventListener("resize", onResize);
     slideHandlers.forEach(({ el, onClick, onKeydown }) => {
       el.removeEventListener("click", onClick);
@@ -901,10 +902,12 @@ export const setupHorizontalScroll = () => {
     track.removeEventListener("pointercancel", onPointerCancel as any);
     window.removeEventListener("scroll", onScroll2 as any);
 
+    // Clear timeouts and rAFs
     if (scrollEndTimeout) window.clearTimeout(scrollEndTimeout);
     if (rafId !== null) cancelAnimationFrame(rafId);
     if (rafTransformId !== null) cancelAnimationFrame(rafTransformId);
 
+    // Reset UI state
     track.style.transform = "";
     track.style.transition = "";
     slides.forEach((s) => {
@@ -1016,9 +1019,9 @@ export const setupTimelineDraw = () => {
   };
   window.addEventListener("scroll", onTimelineDrawScroll, { passive: true });
 
-  // Return cleanup for timeline draw
   return () => {
     window.removeEventListener("scroll", onTimelineDrawScroll);
+    // Reset UI to initial state
     progressBar.style.height = "";
     stepItems.forEach((item) => item.classList.remove("active"));
     if (timelineBackground) timelineBackground.style.transform = "";
@@ -1081,7 +1084,7 @@ export const setupScrollAnimations = () => {
       .querySelectorAll(
         ".fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .rotate-in",
       )
-        .forEach((el) => el.classList.add("visible"));
-      }
-      return () => observer.disconnect();
+      .forEach((el) => el.classList.add("visible"));
+  }
+    return () => observer.disconnect();
 };

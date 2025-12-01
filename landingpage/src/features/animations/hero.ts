@@ -7,7 +7,7 @@ export const setupHeroCollapseProgress = () => {
   const heroStage = document.getElementById("hero-stage");
   if (!heroStage) {
     logger.warn("setupHeroCollapseProgress", "Hero stage not found");
-    return;
+    return () => {};
   }
 
   const root = document.documentElement;
@@ -29,6 +29,12 @@ export const setupHeroCollapseProgress = () => {
   updateProgress();
   window.addEventListener("scroll", throttledUpdate, { passive: true });
   window.addEventListener("resize", updateProgress);
+
+  // Return cleanup
+  return () => {
+    window.removeEventListener("scroll", throttledUpdate);
+    window.removeEventListener("resize", updateProgress);
+  };
 };
 
 // === HERO POINTER GLOW ===
@@ -36,7 +42,7 @@ export const setupHeroPointerGlow = () => {
   const hero = document.querySelector(".hero-section");
   if (!hero) {
     logger.warn("setupHeroPointerGlow", "Hero section not found");
-    return;
+    return () => {};
   }
 
   const root = document.documentElement;
@@ -51,13 +57,19 @@ export const setupHeroPointerGlow = () => {
     root.style.setProperty("--pointer-y", y.toFixed(2));
   };
 
-  hero.addEventListener("pointermove", (event) =>
-    updatePointerVars(event as PointerEvent),
-  );
-  hero.addEventListener("pointerleave", () => {
+  const onPointerMove = (event: Event) => updatePointerVars(event as PointerEvent);
+  const onPointerLeave = () => {
     root.style.setProperty("--pointer-x", "50");
     root.style.setProperty("--pointer-y", "40");
-  });
+  };
+
+  hero.addEventListener("pointermove", onPointerMove);
+  hero.addEventListener("pointerleave", onPointerLeave);
+
+  return () => {
+    hero.removeEventListener("pointermove", onPointerMove);
+    hero.removeEventListener("pointerleave", onPointerLeave);
+  };
 };
 
 // === MAGNETIC HOVER ===
@@ -65,13 +77,19 @@ export const setupMagneticHover = () => {
   const magnets = document.querySelectorAll<HTMLElement>(".magnetic");
   if (!magnets.length) {
     logger.warn("setupMagneticHover", "No magnetic elements found");
-    return;
+    return () => {};
   }
 
   logger.info(
     "setupMagneticHover",
     `Initialized for ${magnets.length} elements`,
   );
+
+  const handlers: Array<{
+    el: HTMLElement;
+    onMove: (e: PointerEvent) => void;
+    onLeave: () => void;
+  }> = [];
 
   magnets.forEach((magnet) => {
     const strength = parseFloat(
@@ -105,11 +123,19 @@ export const setupMagneticHover = () => {
       magnet.classList.remove("is-hovering");
     };
 
-    magnet.addEventListener("pointermove", (event) =>
-      handlePointerMove(event as PointerEvent),
-    );
-    magnet.addEventListener("pointerleave", reset);
+      const onMove = (event: Event) => handlePointerMove(event as PointerEvent);
+    const onLeave = () => reset();
+    magnet.addEventListener("pointermove", onMove);
+    magnet.addEventListener("pointerleave", onLeave);
+    handlers.push({ el: magnet, onMove, onLeave });
   });
+
+  return () => {
+    handlers.forEach(({ el, onMove, onLeave }) => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    });
+  };
 };
 
 // === BOOK CARD TILT ===
@@ -117,11 +143,13 @@ export const setupBookCardTilt = () => {
   const cards = document.querySelectorAll<HTMLElement>(".book-card");
   if (!cards.length) {
     logger.warn("setupBookCardTilt", "No book cards found");
-    return;
+    return () => {};
   }
 
   const maxTilt = 8;
   logger.info("setupBookCardTilt", `Initialized for ${cards.length} cards`);
+
+  const handlers: Array<{ el: HTMLElement; onMove: (e: PointerEvent) => void; onLeave: () => void }> = [];
 
   cards.forEach((card) => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -147,18 +175,36 @@ export const setupBookCardTilt = () => {
       card.style.removeProperty("--spotlight-y");
     };
 
-    card.addEventListener("pointermove", (event) =>
-      handlePointerMove(event as PointerEvent),
-    );
-    card.addEventListener("pointerleave", resetTilt);
+    const onMove = (event: Event) => handlePointerMove(event as PointerEvent);
+    const onLeave = () => resetTilt();
+    card.addEventListener("pointermove", onMove);
+    card.addEventListener("pointerleave", onLeave);
+    handlers.push({ el: card, onMove, onLeave });
   });
+
+  return () => {
+    handlers.forEach(({ el, onMove, onLeave }) => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    });
+  };
 };
 
 // === INICIALIZAR ANIMAÇÕES DE HOVER ===
 export const initHoverAnimations = () => {
-  if (!prefersReducedMotion()) {
-    setupHeroPointerGlow();
-    setupMagneticHover();
-    setupBookCardTilt();
+  if (prefersReducedMotion()) {
+    return () => {};
   }
+
+  const tearDowns: Array<() => void> = [];
+  const t1 = setupHeroPointerGlow();
+  if (t1) tearDowns.push(t1);
+  const t2 = setupMagneticHover();
+  if (t2) tearDowns.push(t2);
+  const t3 = setupBookCardTilt();
+  if (t3) tearDowns.push(t3);
+
+  return () => {
+    tearDowns.forEach((fn) => fn && fn());
+  };
 };
