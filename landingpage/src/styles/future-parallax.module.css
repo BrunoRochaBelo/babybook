@@ -73,13 +73,18 @@
 }
 
 /* Tweak default card look inside the Future section to feel warmer and premium */
-.futureParallax .group {
-  background-color: var(
-    --brand-surface-muted
-  ); /* subtle warm off-white from design tokens */
+.futureParallax .group,
+.futureCard {
+  /* Force a solid background to avoid overlay transparency / blending
+     When the parallax layers use blending or filters, ensure cards stay solid
+     and visually above the overlay. */
+  background-color: var(--brand-surface-muted) !important;
   border-color: var(--brand-border);
+  position: relative; /* create stacking context for z-index */
+  z-index: 3; /* ensure cards sit above the parallax layers */
 }
-.futureParallax .group:hover {
+.futureParallax .group:hover,
+.futureCard:hover {
   box-shadow: var(
     --surface-shadow
   ); /* use design's surface shadow token for premium feel */
