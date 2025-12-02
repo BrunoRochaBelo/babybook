@@ -2187,6 +2187,29 @@ body.horizontal-scroll-lock {
   touch-action: none !important;
 }
 
+/* Pricing Hold - segura a seção após "Sem mensalidade" aparecer */
+html.pricing-hold-active,
+body.pricing-hold-active {
+  overscroll-behavior: none !important;
+}
+
+.pricing-list-item.pricing-hold-complete {
+  animation: pricing-pulse 0.6s ease-out;
+}
+
+@keyframes pricing-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .horizontal-track {
   display: flex;
   gap: 3vw; /* Mobile: menos espaço entre cards */
@@ -2780,6 +2803,72 @@ body.horizontal-scroll-lock {
 .step-item.active > div:last-child {
   transform: scale(1) translateX(0);
   opacity: 1;
+}
+
+/* Animação do Emoji na Timeline */
+.step-emoji {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-item.active .emoji-calendar {
+  animation: shake 1s ease-in-out;
+}
+
+.step-item.active .emoji-camera {
+  animation: emoji-bounce 1s ease-in-out;
+}
+
+.step-item.active .emoji-cloud {
+  animation: cloud-sway 1s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-8deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes emoji-bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-8px) scale(1.1);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cloud-sway {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
 }
 
 /* Exit Intent Popup */

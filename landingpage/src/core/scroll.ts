@@ -3,15 +3,15 @@ import Lenis from "lenis";
 // === SMOOTH SCROLLING ===
 export const initSmoothScrolling = (): (() => void) => {
   const lenis = new Lenis({
-    duration: 1.5,
+    duration: 1.9,
     easing: (t: number) => {
       return 1 - Math.pow(1 - t, 3);
     },
     orientation: "vertical",
     gestureOrientation: "vertical",
     smoothWheel: true,
-    wheelMultiplier: 0.85,
-    touchMultiplier: 1.8,
+    wheelMultiplier: 0.6,
+    touchMultiplier: 1.6,
     syncTouch: true,
     syncTouchLerp: 0.075,
   });

@@ -52,7 +52,10 @@ import { setupPerformanceBudget } from "./utils/performanceBudget";
 import { setupSurfaceObserver } from "./features/animations/sections";
 import { mountSectionScale } from "./components/sectionScaleComponent";
 import { mountTimelineAnimation } from "./components/timelineComponent";
-import { mountPricingListAnimation } from "./components/pricingComponent";
+import {
+  mountPricingListAnimation,
+  mountPricingHold,
+} from "./components/pricingComponent";
 import { mountParallaxSections } from "./components/parallaxComponent";
 import { mountCtaFinal } from "./components/ctaFinalComponent";
 import { mountSiteFooter } from "./components/siteFooterComponent";
@@ -193,6 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   safeInit("Timeline Animation", () => mountTimelineAnimation());
   safeInit("Pricing List Animation", () => mountPricingListAnimation());
+  safeInit("Pricing Hold Effect", () => mountPricingHold());
   safeInit("Surface Observer", () => setupSurfaceObserver());
   safeInit("CTA Final", () => mountCtaFinal());
 

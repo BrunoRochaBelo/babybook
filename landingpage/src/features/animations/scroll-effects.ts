@@ -2,7 +2,9 @@ import { prefersReducedMotion } from "../../utils/helpers";
 
 // === CHAOS TO ORDER ===
 export const setupChaosToOrder = () => {
-  const chaosSection = document.querySelector(".chaos-container");
+  const chaosSection = document.querySelector(
+    ".chaos-container",
+  ) as HTMLElement | null;
   const photos = document.querySelectorAll(".photo-scatter");
   const text1 = document.getElementById("chaos-text-1");
   const text2 = document.getElementById("chaos-text-2");
@@ -10,7 +12,37 @@ export const setupChaosToOrder = () => {
 
   if (!chaosSection) return;
 
+  const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
+  const TEXT_PHASE_POINT = 0.32;
+  const PHOTO_PHASE_POINT = 0.62;
   let ticking = false;
+
+  const applyTextPhase = (active: boolean) => {
+    if (text1) text1.classList.toggle("opacity-30", active);
+    if (text2) text2.classList.toggle("opacity-30", !active);
+    if (highlight) {
+      highlight.style.color = active ? "#F59E0B" : "#6B7280";
+      highlight.innerText = "Só precisava caber na vida real.";
+    }
+  };
+
+  const applyPhotoPhase = (active: boolean) => {
+    photos.forEach((photo) => photo.classList.toggle("organized", active));
+  };
+
+  const updateChaosState = () => {
+    const rect = chaosSection.getBoundingClientRect();
+    const sectionHeight = Math.max(
+      1,
+      chaosSection.offsetHeight - window.innerHeight,
+    );
+    const rawProgress = -rect.top / sectionHeight;
+    const progress = clampProgress(rawProgress);
+
+    applyTextPhase(progress > TEXT_PHASE_POINT);
+    applyPhotoPhase(progress > PHOTO_PHASE_POINT);
+  };
+
   const onScroll = () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
@@ -18,37 +50,11 @@ export const setupChaosToOrder = () => {
       });
       ticking = true;
     }
-    const rect = chaosSection.getBoundingClientRect();
-    const progress = Math.max(
-      0,
-      Math.min(1, -rect.top / (rect.height - window.innerHeight)),
-    );
-
-    // FASE 1: Texto (0.32)
-    if (progress > 0.32) {
-      if (highlight) {
-        highlight.style.color = "#F59E0B";
-        highlight.innerText = "Só precisava caber na vida real.";
-      }
-      if (text1) text1.classList.add("opacity-30");
-      if (text2) text2.classList.remove("opacity-30");
-    } else {
-      if (highlight) {
-        highlight.style.color = "#6B7280";
-        highlight.innerText = "Só precisava caber na vida real.";
-      }
-      if (text1) text1.classList.remove("opacity-30");
-      if (text2) text2.classList.add("opacity-30");
-    }
-
-    // FASE 2: Fotos (0.62)
-    if (progress > 0.62) {
-      photos.forEach((p) => p.classList.add("organized"));
-    } else {
-      photos.forEach((p) => p.classList.remove("organized"));
-    }
+    updateChaosState();
   };
+
   window.addEventListener("scroll", onScroll, { passive: true });
+  updateChaosState();
 
   return () => {
     window.removeEventListener("scroll", onScroll);
@@ -75,33 +81,51 @@ export const setupHorizontalScroll = () => {
   const lockedMode = true; // forces discrete (card-by-card) mapping for the track
   let currentCenteredIndex = 0;
   let lastSnapTime = 0;
-  const SNAP_COOLDOWN = 800; // ms - slightly longer than transition duration for smoother feel
+  const SNAP_COOLDOWN = 650; // ms - cooldown between snaps
+
+  // === ADVANCED WHEEL SENSITIVITY CONTROL ===
+  // Wheel delta accumulator with velocity-aware processing
+  let wheelDeltaAccumulator = 0;
+  let wheelDebounceTimer: number | null = null;
+  let lastWheelTime = 0;
+  let consecutiveWheelEvents = 0;
+
+  // Base thresholds (adjusted dynamically based on scroll velocity)
+  const WHEEL_BASE_THRESHOLD = 60; // base accumulated deltaY before triggering snap
+  const WHEEL_FAST_THRESHOLD = 40; // lower threshold for fast scrolling (more responsive)
+  const WHEEL_DEBOUNCE_MS = 100; // ms to wait before processing accumulated delta
+  const WHEEL_MIN_DELTA = 4; // ignore very small wheel movements (noise filter)
+  const WHEEL_VELOCITY_WINDOW = 150; // ms - window to calculate scroll velocity
+  const WHEEL_FAST_VELOCITY = 3; // deltaY per ms considered "fast scrolling"
+
+  // Dead zone to prevent micro-movements and trembling
+  const DEADZONE_THRESHOLD = 15; // accumulated delta below this is ignored after debounce
 
   // Vault thresholds - how much of the section needs to be scrolled to start unlock and to open
-  const VAULT_UNLOCK_START = 0.55; // lower threshold so less scroll required
-  const VAULT_OPEN_START = 0.82; // open at lower threshold to reduce amount of scroll
+  const VAULT_UNLOCK_START = 0.55;
+  const VAULT_OPEN_START = 0.82;
   // how close to the section edges (0..1) the user must be to allow exiting the horizontal section quickly
-  const SECTION_EXIT_BUFFER = 0.06; // allow exiting when within 6% of top/bottom
+  const SECTION_EXIT_BUFFER = 0.09; // buffer maior para dar margem antes de liberar
 
   // Sensitivity presets (can be toggled by data-sensitivity attribute on the section)
   const SENSITIVITY_PRESETS = {
     default: {
-      WHEEL_THRESHOLD: 10,
-      DRAG_THRESHOLD: 20,
-      DRAG_THRESHOLD_TOUCH_SMALL: 28,
-      VELOCITY_THRESHOLD: 0.5,
+      WHEEL_THRESHOLD: 18,
+      DRAG_THRESHOLD: 32,
+      DRAG_THRESHOLD_TOUCH_SMALL: 40,
+      VELOCITY_THRESHOLD: 0.6,
     },
     aggressive: {
-      WHEEL_THRESHOLD: 6,
-      DRAG_THRESHOLD: 12,
-      DRAG_THRESHOLD_TOUCH_SMALL: 20,
-      VELOCITY_THRESHOLD: 0.35,
+      WHEEL_THRESHOLD: 14,
+      DRAG_THRESHOLD: 22,
+      DRAG_THRESHOLD_TOUCH_SMALL: 30,
+      VELOCITY_THRESHOLD: 0.45,
     },
     permissive: {
-      WHEEL_THRESHOLD: 16,
-      DRAG_THRESHOLD: 28,
-      DRAG_THRESHOLD_TOUCH_SMALL: 36,
-      VELOCITY_THRESHOLD: 0.8,
+      WHEEL_THRESHOLD: 22,
+      DRAG_THRESHOLD: 38,
+      DRAG_THRESHOLD_TOUCH_SMALL: 48,
+      VELOCITY_THRESHOLD: 0.85,
     },
   } as const;
 
@@ -111,7 +135,6 @@ export const setupHorizontalScroll = () => {
     ) as keyof typeof SENSITIVITY_PRESETS) ||
     (window.innerWidth >= 1024 ? "aggressive" : "default");
   const thresholds = SENSITIVITY_PRESETS[detectedMode];
-  let WHEEL_THRESHOLD = thresholds.WHEEL_THRESHOLD; // deltaY threshold to trigger
   const slides = Array.from(
     track.querySelectorAll(".book-card"),
   ) as HTMLElement[];
@@ -202,6 +225,88 @@ export const setupHorizontalScroll = () => {
   if (!track.hasAttribute("tabindex")) track.setAttribute("tabindex", "0");
 
   const windowCenter = () => window.innerWidth / 2;
+
+  type SectionState = "before" | "inside" | "after";
+  let sectionState: SectionState = "before";
+  let entryAlignmentDirection: 1 | -1 | null = null;
+
+  const getTargetMoveAmount = (index: number) => {
+    const targetSlide = slides[index];
+    if (!targetSlide) return 0;
+    const slideOffsetLeft = targetSlide.offsetLeft;
+    const slideCenter = slideOffsetLeft + targetSlide.offsetWidth / 2;
+    const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
+    let targetMoveAmount = slideCenter - windowCenter();
+    if (targetMoveAmount < 0) targetMoveAmount = 0;
+    if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
+    return targetMoveAmount;
+  };
+
+  const jumpToIndex = (index: number) => {
+    if (!slides[index]) return;
+    const moveAmount = getTargetMoveAmount(index);
+    track.style.transition = "";
+    track.style.transform = `translateX(-${moveAmount}px)`;
+    isSnapping = false;
+    updateSlidesScale();
+  };
+
+  const markEntryDirection = (direction: 1 | -1) => {
+    if (entryAlignmentDirection !== null) return;
+    entryAlignmentDirection = direction;
+  };
+
+  const alignEntryIfNeeded = () => {
+    if (entryAlignmentDirection === null) return;
+    const targetIndex = entryAlignmentDirection === 1 ? 0 : slides.length - 1;
+    if (targetIndex < 0 || targetIndex >= slides.length) {
+      entryAlignmentDirection = null;
+      return;
+    }
+    if (
+      (entryAlignmentDirection === 1 && currentCenteredIndex === 0) ||
+      (entryAlignmentDirection === -1 &&
+        currentCenteredIndex === slides.length - 1)
+    ) {
+      entryAlignmentDirection = null;
+      return;
+    }
+    jumpToIndex(targetIndex);
+    entryAlignmentDirection = null;
+  };
+
+  const maybeMarkEntryDirectionForWheel = (
+    direction: 1 | -1,
+    rawPercentage: number,
+  ) => {
+    if (entryAlignmentDirection !== null) return;
+    if (direction === 1 && rawPercentage <= 0.15) {
+      markEntryDirection(1);
+    } else if (direction === -1 && rawPercentage >= 0.85) {
+      markEntryDirection(-1);
+    }
+  };
+
+  const updateSectionState = (rawPercentage: number) => {
+    const prevState = sectionState;
+    let nextState: SectionState;
+    if (rawPercentage <= 0) {
+      nextState = "before";
+    } else if (rawPercentage >= 1) {
+      nextState = "after";
+    } else {
+      nextState = "inside";
+    }
+
+    if (nextState === "inside" && prevState !== "inside") {
+      const inferredDirection = prevState === "after" ? -1 : 1;
+      markEntryDirection(inferredDirection);
+    } else if (nextState !== "inside") {
+      entryAlignmentDirection = null;
+    }
+
+    sectionState = nextState;
+  };
 
   function updateSlidesScale() {
     if (!slides.length) return;
@@ -308,6 +413,8 @@ export const setupHorizontalScroll = () => {
 
   function snapToIndex(index: number) {
     if (!slides[index]) return;
+    // Update current index immediately to prevent re-triggering
+    currentCenteredIndex = index;
     const targetSlide = slides[index];
     const slideOffsetLeft = targetSlide.offsetLeft;
     const slideCenter = slideOffsetLeft + targetSlide.offsetWidth / 2;
@@ -317,13 +424,14 @@ export const setupHorizontalScroll = () => {
     if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
 
     isSnapping = true;
-    track.style.transition = "transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1)";
+    track.style.transition =
+      "transform 550ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
     track.style.transform = `translateX(-${targetMoveAmount}px)`;
     setTimeout(() => {
       track.style.transition = "";
       isSnapping = false;
       updateSlidesScale();
-    }, 680);
+    }, 580);
   }
 
   // Initial alignment on load
@@ -359,21 +467,78 @@ export const setupHorizontalScroll = () => {
     slideHandlers.push({ el: slide, onClick, onKeydown });
   });
 
-  // Wheel handling (desktop) - convert wheel direction to next/prev snap
+  // Calculate dynamic threshold based on scroll velocity
+  const getDynamicThreshold = (): number => {
+    const now = performance.now();
+    const timeSinceLastWheel = now - lastWheelTime;
+
+    // If scrolling fast (multiple events in quick succession), use lower threshold
+    if (
+      timeSinceLastWheel < WHEEL_VELOCITY_WINDOW &&
+      consecutiveWheelEvents > 2
+    ) {
+      const velocity =
+        Math.abs(wheelDeltaAccumulator) / Math.max(1, timeSinceLastWheel);
+      if (velocity >= WHEEL_FAST_VELOCITY) {
+        return WHEEL_FAST_THRESHOLD;
+      }
+    }
+    return WHEEL_BASE_THRESHOLD;
+  };
+
+  // Process accumulated wheel delta and snap accordingly
+  const processWheelAccumulator = () => {
+    if (wheelDeltaAccumulator === 0) return;
+
+    // Apply dead zone - ignore very small accumulated movements (prevents trembling)
+    if (Math.abs(wheelDeltaAccumulator) < DEADZONE_THRESHOLD) {
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
+      return;
+    }
+
+    const direction = wheelDeltaAccumulator > 0 ? 1 : -1;
+    // Only snap once per accumulation cycle
+    snapToOffsetDirection(direction);
+    wheelDeltaAccumulator = 0;
+    consecutiveWheelEvents = 0;
+  };
+
+  // Wheel handling (desktop) - accumulate delta with velocity-aware snapping
   let wheelHandler = (e: WheelEvent) => {
+    const now = performance.now();
     const rect = scrollSection.getBoundingClientRect();
-    const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
+    const sectionHeight = Math.max(
+      1,
+      scrollSection.offsetHeight - window.innerHeight,
+    );
     const rawPercentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
+
     // Only respond when within the section (start visible to end)
     if (rawPercentage <= 0 || rawPercentage >= 1) {
       if (scrollLocked) {
         unlockScroll();
       }
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
       return;
     }
 
-    if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
+    // Ignore very small wheel movements (noise filter)
+    if (Math.abs(e.deltaY) < WHEEL_MIN_DELTA) return;
+
+    // Track consecutive wheel events for velocity calculation
+    if (now - lastWheelTime < WHEEL_VELOCITY_WINDOW) {
+      consecutiveWheelEvents++;
+    } else {
+      consecutiveWheelEvents = 1;
+    }
+    lastWheelTime = now;
+
     const direction = e.deltaY > 0 ? 1 : -1;
+
+    maybeMarkEntryDirectionForWheel(direction, rawPercentage);
+    alignEntryIfNeeded();
 
     // Enter locked (scroll jacking) mode when we detect a scroll into the section
     if (!scrollLocked) {
@@ -382,6 +547,7 @@ export const setupHorizontalScroll = () => {
       document.documentElement.classList.add("horizontal-scroll-lock");
       lockIndicator.classList.add("visible");
       if (e.cancelable) e.preventDefault();
+      // First snap on entry
       snapToOffsetDirection(direction);
       return;
     }
@@ -396,6 +562,8 @@ export const setupHorizontalScroll = () => {
       direction === 1
     ) {
       unlockScroll();
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
       return;
     }
     if (
@@ -404,17 +572,20 @@ export const setupHorizontalScroll = () => {
       direction === -1
     ) {
       unlockScroll();
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
       return;
     }
 
-    // Also allow releasing the lock early if user is near the top/bottom edges and is scrolling out of the
-    // section (small buffer to not require 100% reach)
+    // Also allow releasing the lock early if user is near the top/bottom edges
     if (
       scrollLocked &&
       direction === -1 &&
       rawPercentage <= SECTION_EXIT_BUFFER
     ) {
       unlockScroll();
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
       return;
     }
     if (
@@ -423,10 +594,32 @@ export const setupHorizontalScroll = () => {
       rawPercentage >= 1 - SECTION_EXIT_BUFFER
     ) {
       unlockScroll();
+      wheelDeltaAccumulator = 0;
+      consecutiveWheelEvents = 0;
       return;
     }
 
-    snapToOffsetDirection(direction);
+    // Accumulate wheel delta
+    wheelDeltaAccumulator += e.deltaY;
+
+    // Clear previous debounce timer
+    if (wheelDebounceTimer !== null) {
+      window.clearTimeout(wheelDebounceTimer);
+    }
+
+    // Get dynamic threshold based on scroll velocity
+    const threshold = getDynamicThreshold();
+
+    // If accumulated delta exceeds threshold, process immediately
+    if (Math.abs(wheelDeltaAccumulator) >= threshold) {
+      processWheelAccumulator();
+    } else {
+      // Otherwise, wait for debounce period before processing
+      wheelDebounceTimer = window.setTimeout(() => {
+        processWheelAccumulator();
+        wheelDebounceTimer = null;
+      }, WHEEL_DEBOUNCE_MS);
+    }
   };
 
   // Attach wheel only when the page is within the section
@@ -560,17 +753,6 @@ export const setupHorizontalScroll = () => {
   let DRAG_THRESHOLD_TOUCH_SMALL = thresholds.DRAG_THRESHOLD_TOUCH_SMALL; // px for touch on small screens
   let VELOCITY_THRESHOLD = thresholds.VELOCITY_THRESHOLD; // px per ms (≈ 500 px/s)
 
-  function getMoveAmountForIndex(index: number) {
-    const targetSlide = slides[index];
-    const slideOffsetLeft = targetSlide.offsetLeft;
-    const slideCenter = slideOffsetLeft + targetSlide.offsetWidth / 2;
-    let targetMoveAmount = slideCenter - windowCenter();
-    const maxMove = Math.max(0, track.scrollWidth - window.innerWidth);
-    if (targetMoveAmount < 0) targetMoveAmount = 0;
-    if (targetMoveAmount > maxMove) targetMoveAmount = maxMove;
-    return targetMoveAmount;
-  }
-
   const onPointerDown = (e: PointerEvent) => {
     // Ignore if started on buttons or interactive elements
     const target = e.target as HTMLElement;
@@ -587,7 +769,7 @@ export const setupHorizontalScroll = () => {
     pointerStartTime = performance.now();
     pointerDeviceType = e.pointerType;
     isDragging = false;
-    dragBase = getMoveAmountForIndex(currentCenteredIndex);
+    dragBase = getTargetMoveAmount(currentCenteredIndex);
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   track.addEventListener("pointerdown", onPointerDown, { passive: true });
@@ -764,6 +946,9 @@ export const setupHorizontalScroll = () => {
     const sectionHeight = scrollSection.offsetHeight - window.innerHeight;
     const rawPercentage = Math.max(0, Math.min(1, -rect.top / sectionHeight));
 
+    updateSectionState(rawPercentage);
+    alignEntryIfNeeded();
+
     let movePercentage = 0;
 
     if (rawPercentage < VAULT_UNLOCK_START) {
@@ -885,6 +1070,7 @@ export const setupHorizontalScroll = () => {
     }
   };
   window.addEventListener("scroll", onScroll2, { passive: true });
+  onScroll2();
 
   // Cleanup: remove listeners and reset UI state
   return () => {
@@ -905,6 +1091,7 @@ export const setupHorizontalScroll = () => {
     window.removeEventListener("scroll", onScroll2 as any);
 
     if (scrollEndTimeout) window.clearTimeout(scrollEndTimeout);
+    if (wheelDebounceTimer !== null) window.clearTimeout(wheelDebounceTimer);
     if (rafId !== null) cancelAnimationFrame(rafId);
     if (rafTransformId !== null) cancelAnimationFrame(rafTransformId);
 
@@ -936,14 +1123,61 @@ export const setupTimelineDraw = () => {
   const timelineSection = document.getElementById("how-it-works-section");
   const timelineContainer = document.getElementById("timeline-container");
   const progressBar = document.getElementById("timeline-progress");
-  const stepItems = document.querySelectorAll(".step-item");
+  const stepItems = Array.from(
+    document.querySelectorAll(".step-item"),
+  ) as HTMLElement[];
   const timelineBackground = document.querySelector(
     ".timeline-background",
   ) as HTMLElement;
 
   if (!timelineSection || !timelineContainer || !progressBar) return;
 
+  const activateStep = (item: Element) => {
+    item.classList.add("active");
+    const circle = item.querySelector(".step-circle");
+    if (circle) {
+      circle.classList.remove("border-gray-300", "text-gray-500");
+      circle.classList.add("border-indigo-600", "text-ink");
+    }
+    const textContainer = item.querySelector("div:last-child");
+    if (textContainer) {
+      const title = textContainer.querySelector("h3");
+      const description = textContainer.querySelector("p");
+      if (title) {
+        title.classList.remove("text-gray-500");
+        title.classList.add("text-ink");
+      }
+      if (description) {
+        description.classList.remove("text-gray-500");
+        description.classList.add("text-gray-700");
+      }
+    }
+  };
+
+  const deactivateStep = (item: Element) => {
+    item.classList.remove("active");
+    const circle = item.querySelector(".step-circle");
+    if (circle) {
+      circle.classList.remove("border-indigo-600", "text-ink");
+      circle.classList.add("border-gray-300", "text-gray-500");
+    }
+    const textContainer = item.querySelector("div:last-child");
+    if (textContainer) {
+      const title = textContainer.querySelector("h3");
+      const description = textContainer.querySelector("p");
+      if (title) {
+        title.classList.remove("text-ink");
+        title.classList.add("text-gray-500");
+      }
+      if (description) {
+        description.classList.remove("text-gray-700");
+        description.classList.add("text-gray-500");
+      }
+    }
+  };
+
   let ticking3 = false;
+  let prevActiveIndex = -1; // keep track of last active step index
   const onTimelineDrawScroll = () => {
     if (!ticking3) {
       window.requestAnimationFrame(() => {
@@ -952,71 +1186,80 @@ export const setupTimelineDraw = () => {
       ticking3 = true;
     }
     const sectionRect = timelineSection.getBoundingClientRect();
-    const sectionHeight = timelineSection.offsetHeight - window.innerHeight;
-
-    const sectionProgress = Math.max(
-      0,
-      Math.min(1, -sectionRect.top / sectionHeight),
+    const sectionHeight = Math.max(
+      1,
+      timelineSection.offsetHeight - window.innerHeight,
     );
+    const rawProgress = -sectionRect.top / sectionHeight;
+    const sectionProgress = Math.max(0, Math.min(1, rawProgress));
 
     if (timelineBackground) {
       const parallaxY = sectionProgress * 100;
       timelineBackground.style.transform = `translateY(${parallaxY}px) scale(${1 + sectionProgress * 0.1})`;
     }
 
-    let timelinePercentage = Math.min(100, (sectionProgress / 0.86) * 100);
+    const timelinePercentage = Math.max(
+      0,
+      Math.min(100, (sectionProgress / 0.86) * 100),
+    );
     progressBar.style.height = `${timelinePercentage}%`;
 
-    const containerHeight = timelineContainer.offsetHeight;
-    stepItems.forEach((item, index) => {
-      const itemTop = (item as HTMLElement).offsetTop;
-      const currentLineHeight = (timelinePercentage / 100) * containerHeight;
+    const containerHeight = Math.max(1, timelineContainer.offsetHeight);
+    const normalizedLineValue = timelinePercentage / 100;
+    const isSectionVisible =
+      sectionRect.bottom > 0 && sectionRect.top < window.innerHeight;
+    const shouldResetBeforeView = !isSectionVisible && sectionProgress <= 0;
 
-      if (currentLineHeight >= itemTop - 50) {
-        item.classList.add("active");
-        const circle = item.querySelector(".step-circle");
-        if (circle) {
-          circle.classList.remove("border-gray-300", "text-gray-500");
-          circle.classList.add("border-indigo-600", "text-ink");
-        }
-        const textContainer = item.querySelector("div:last-child");
-        if (textContainer) {
-          const title = textContainer.querySelector("h3");
-          const description = textContainer.querySelector("p");
-          if (title) {
-            title.classList.remove("text-gray-500");
-            title.classList.add("text-ink");
-          }
-          if (description) {
-            description.classList.remove("text-gray-500");
-            description.classList.add("text-gray-700");
-          }
-        }
+    if (shouldResetBeforeView) {
+      stepItems.forEach((item) => {
+        deactivateStep(item);
+      });
+      return;
+    }
+
+    let currentActiveIndex = -1;
+    stepItems.forEach((item, idx) => {
+      const itemTop = Math.max(0, item.offsetTop);
+      const activationThreshold = Math.min(1, itemTop / containerHeight);
+      const isActive = normalizedLineValue >= activationThreshold - 0.05;
+      if (isActive) {
+        activateStep(item);
+        currentActiveIndex = idx;
       } else {
-        if (index > 0) {
-          item.classList.remove("active");
-          const circle = item.querySelector(".step-circle");
-          if (circle) {
-            circle.classList.remove("border-indigo-600", "text-ink");
-            circle.classList.add("border-gray-300", "text-gray-500");
-          }
-          const textContainer = item.querySelector("div:last-child");
-          if (textContainer) {
-            const title = textContainer.querySelector("h3");
-            const description = textContainer.querySelector("p");
-            if (title) {
-              title.classList.remove("text-ink");
-              title.classList.add("text-gray-500");
-            }
-            if (description) {
-              description.classList.remove("text-gray-700");
-              description.classList.add("text-gray-500");
-            }
-          }
-        }
+        deactivateStep(item);
       }
     });
+
+    // If active item changed and we scrolled back to step 0 (calendar) from a later step,
+    // restart the calendar animation explicitly. This will re-run even if the element
+    // already has the 'active' class (useful when going up from step 2 -> step 1).
+    if (currentActiveIndex !== prevActiveIndex) {
+      // Only replay when we moved up to the first step (index 0) from another step
+      if (
+        currentActiveIndex === 0 &&
+        prevActiveIndex > 0 &&
+        !prefersReducedMotion()
+      ) {
+        const calendarEmoji = stepItems[0].querySelector(
+          ".emoji-calendar",
+        ) as HTMLElement | null;
+        if (calendarEmoji && calendarEmoji.animate) {
+          // Use Web Animations API to replay the shake animation reliably
+          calendarEmoji.animate(
+            [
+              { transform: "rotate(0deg)" },
+              { transform: "rotate(-8deg)" },
+              { transform: "rotate(8deg)" },
+              { transform: "rotate(0deg)" },
+            ],
+            { duration: 1000, easing: "ease-in-out" },
+          );
+        }
+      }
+      prevActiveIndex = currentActiveIndex;
+    }
   };
+
   window.addEventListener("scroll", onTimelineDrawScroll, { passive: true });
 
   // Return cleanup for timeline draw
@@ -1025,6 +1268,253 @@ export const setupTimelineDraw = () => {
     progressBar.style.height = "";
     stepItems.forEach((item) => item.classList.remove("active"));
     if (timelineBackground) timelineBackground.style.transform = "";
+  };
+};
+
+// === PRICING SECTION HOLD (Segura após "Sem mensalidade" aparecer) ===
+export const setupPricingHold = () => {
+  if (prefersReducedMotion()) return;
+
+  const pricingSection = document.querySelector("#pricing") as HTMLElement;
+  if (!pricingSection) return;
+
+  const listItems = Array.from(
+    pricingSection.querySelectorAll(".pricing-list-item"),
+  ) as HTMLElement[];
+  if (listItems.length === 0) return;
+
+  // O último item é o "Sem mensalidade. Nunca."
+  const lastItem = listItems[listItems.length - 1];
+
+  // State management
+  let isHolding = false;
+  let holdTriggered = false;
+  let holdCompleted = false;
+  let holdProgress = 0;
+  const HOLD_SCROLL_BUFFER = 100; // px de scroll que acumula durante o hold
+
+  // Visual indicator for hold state
+  const createHoldIndicator = () => {
+    const indicator = document.createElement("div");
+    indicator.className = "pricing-hold-indicator";
+    indicator.style.cssText = `
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      border: 2px solid rgba(99, 102, 241, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 100;
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    `;
+    indicator.innerHTML = `
+      <svg class="pricing-hold-progress" width="32" height="32" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+        <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(99, 102, 241, 1)" stroke-width="2" 
+          stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round"
+          style="transform: rotate(-90deg); transform-origin: center;"/>
+      </svg>
+    `;
+    document.body.appendChild(indicator);
+    return indicator;
+  };
+
+  const holdIndicator = createHoldIndicator();
+  const progressCircle = holdIndicator.querySelector(
+    "circle:last-child",
+  ) as SVGCircleElement;
+
+  // Check if last item is visible (animation completed)
+  const isLastItemVisible = () => {
+    return (
+      lastItem.classList.contains("opacity-100") &&
+      !lastItem.classList.contains("opacity-0")
+    );
+  };
+
+  // Check if section is in the right position for hold
+  const shouldTriggerHold = () => {
+    const rect = pricingSection.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Seção está bem posicionada na viewport (centro visível)
+    const sectionCenterVisible =
+      rect.top < viewportHeight * 0.4 && rect.bottom > viewportHeight * 0.6;
+
+    return sectionCenterVisible && isLastItemVisible() && !holdCompleted;
+  };
+
+  // Update hold progress visuals
+  const updateHoldVisuals = (progress: number) => {
+    const dashOffset = 88 * (1 - progress);
+    progressCircle.style.strokeDashoffset = String(dashOffset);
+
+    if (progress > 0 && progress < 1) {
+      holdIndicator.style.transform = "translateX(-50%) scale(1)";
+      holdIndicator.style.opacity = "1";
+    } else {
+      holdIndicator.style.transform = "translateX(-50%) scale(0)";
+      holdIndicator.style.opacity = "0";
+    }
+  };
+
+  // Wheel handler for hold behavior
+  let accumulatedScroll = 0;
+
+  const onWheel = (e: WheelEvent) => {
+    // Only intercept when holding
+    if (!isHolding && shouldTriggerHold() && !holdTriggered && e.deltaY > 0) {
+      // Start hold
+      isHolding = true;
+      holdTriggered = true;
+      holdProgress = 0;
+      accumulatedScroll = 0;
+      document.documentElement.classList.add("pricing-hold-active");
+    }
+
+    if (isHolding) {
+      if (e.cancelable) e.preventDefault();
+
+      // Allow scrolling up to cancel hold
+      if (e.deltaY < 0) {
+        isHolding = false;
+        holdTriggered = false;
+        holdProgress = 0;
+        accumulatedScroll = 0;
+        document.documentElement.classList.remove("pricing-hold-active");
+        updateHoldVisuals(0);
+        return;
+      }
+
+      // Accumulate scroll during hold
+      accumulatedScroll += e.deltaY;
+
+      // Calculate progress based on accumulated scroll
+      holdProgress = Math.min(1, accumulatedScroll / HOLD_SCROLL_BUFFER);
+      updateHoldVisuals(holdProgress);
+
+      // Check if hold is complete
+      if (holdProgress >= 1) {
+        isHolding = false;
+        holdCompleted = true;
+        document.documentElement.classList.remove("pricing-hold-active");
+        updateHoldVisuals(0);
+
+        // Pulse animation on last item
+        lastItem.classList.add("pricing-hold-complete");
+        setTimeout(() => {
+          lastItem.classList.remove("pricing-hold-complete");
+        }, 600);
+      }
+    }
+  };
+
+  window.addEventListener("wheel", onWheel, { passive: false });
+
+  // Touch handling for mobile
+  let touchStartY = 0;
+  let touchAccumulated = 0;
+
+  const onTouchStart = (e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
+    }
+  };
+
+  const onTouchMove = (e: TouchEvent) => {
+    if (e.touches.length === 0) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = touchStartY - currentY; // positive = scrolling down
+
+    if (!isHolding && shouldTriggerHold() && !holdTriggered && deltaY > 20) {
+      isHolding = true;
+      holdTriggered = true;
+      holdProgress = 0;
+      touchAccumulated = 0;
+      document.documentElement.classList.add("pricing-hold-active");
+    }
+
+    if (isHolding) {
+      if (e.cancelable) e.preventDefault();
+
+      if (deltaY < -20) {
+        // Scrolling up - cancel
+        isHolding = false;
+        holdTriggered = false;
+        holdProgress = 0;
+        touchAccumulated = 0;
+        document.documentElement.classList.remove("pricing-hold-active");
+        updateHoldVisuals(0);
+        return;
+      }
+
+      touchAccumulated = Math.max(0, deltaY);
+      holdProgress = Math.min(1, touchAccumulated / (HOLD_SCROLL_BUFFER * 0.8));
+      updateHoldVisuals(holdProgress);
+
+      if (holdProgress >= 1) {
+        isHolding = false;
+        holdCompleted = true;
+        document.documentElement.classList.remove("pricing-hold-active");
+        updateHoldVisuals(0);
+
+        lastItem.classList.add("pricing-hold-complete");
+        setTimeout(() => {
+          lastItem.classList.remove("pricing-hold-complete");
+        }, 600);
+      }
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (isHolding && holdProgress < 1) {
+      // Didn't complete - reset
+      isHolding = false;
+      holdTriggered = false;
+      holdProgress = 0;
+      touchAccumulated = 0;
+      document.documentElement.classList.remove("pricing-hold-active");
+      updateHoldVisuals(0);
+    }
+    touchStartY = 0;
+  };
+
+  pricingSection.addEventListener("touchstart", onTouchStart, {
+    passive: true,
+  });
+  pricingSection.addEventListener("touchmove", onTouchMove, { passive: false });
+  pricingSection.addEventListener("touchend", onTouchEnd, { passive: true });
+
+  // Reset when scrolling back up past the section
+  const onScroll = () => {
+    const rect = pricingSection.getBoundingClientRect();
+    if (rect.top > window.innerHeight * 0.8) {
+      // Section is below viewport - reset state
+      holdCompleted = false;
+      holdTriggered = false;
+      isHolding = false;
+      holdProgress = 0;
+    }
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  return () => {
+    window.removeEventListener("wheel", onWheel);
+    window.removeEventListener("scroll", onScroll);
+    pricingSection.removeEventListener("touchstart", onTouchStart);
+    pricingSection.removeEventListener("touchmove", onTouchMove);
+    pricingSection.removeEventListener("touchend", onTouchEnd);
+    holdIndicator.remove();
+    document.documentElement.classList.remove("pricing-hold-active");
   };
 };
 
