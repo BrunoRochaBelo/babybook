@@ -2170,7 +2170,10 @@ a,
 }
 
 .idle-scroll-indicator.attention {
-  animation: indicator-pulse 0.8s ease-in-out 3; /* Play 3 times, then stop */
+  animation: var(
+    --idle-animation,
+    indicator-pulse 0.8s ease-in-out 3
+  ); /* Play configured cycles */
 }
 
 @media (max-width: 767px) {
@@ -2178,6 +2181,22 @@ a,
     font-size: 0.875rem;
     bottom: 1.8rem;
   }
+}
+
+/* Arrow SVG visuals */
+.idle-scroll-indicator .arrow svg,
+.horizontal-lock-indicator .arrow svg {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+
+/* Slight spacing / alignment */
+.idle-scroll-indicator .idle-label {
+  margin-right: 0.5rem;
+}
+.horizontal-lock-indicator .lock-label {
+  margin-right: 0.4rem;
 }
 
 /* Behavior while scroll-jacking is active: prevent overscroll and native touch gestures */
