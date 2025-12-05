@@ -73,6 +73,8 @@ import {
 } from "./features/interactive/buttons";
 import { setupCarousel } from "./features/interactive/carousel";
 import { setupAccordion } from "./features/interactive/accordion";
+import { initCtaFinalBehavior } from "./features/ctaFinalBehavior";
+import { initFooterBehavior } from "./features/footerBehavior";
 
 // Utils
 import {
@@ -201,6 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
   safeInit("CTA Final", () => mountCtaFinal());
 
   safeInit("Site Footer", () => mountSiteFooter());
+
+  // CTA Final Scroll Behavior (escala e pinagem)
+  safeInit("CTA Final Behavior", () => initCtaFinalBehavior());
+
+  // Footer Drawer Behavior (aparece após CTA Final pinado)
+  safeInit("Footer Behavior", () => initFooterBehavior());
 
   if (isFeatureEnabled("parallax")) {
     safeInit("Parallax Sections", () => mountParallaxSections());

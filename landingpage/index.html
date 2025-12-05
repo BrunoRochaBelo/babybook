@@ -659,113 +659,96 @@
   </section>
 
   <!-- 10. CTA FINAL & RODAPÉ -->
-  <!-- CTA: separado do footer, mantém estilos e classe .cta-final -->
-  <section class="cta-final bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden" data-cta-section="true" role="region" aria-labelledby="cta-final-title">
-    <!-- Decorative Background Layers -->
-    <div class="cta-bg-layers" aria-hidden="true">
-      <div class="grid-background absolute inset-0 opacity-5"></div>
-      <div class="noise-overlay absolute inset-0 opacity-[0.015]"></div>
+  <!-- CTA FINAL: wrapper .cta-final-stage e .cta-final-lock para comportamento de scroll -->
+  <div class="cta-final-stage" data-cta-variant="hero">
+    <div class="cta-final-lock">
+      <section class="cta-final section-shell section-surface section-surface--cta bg-ink text-white pt-24 pb-12 px-6 relative overflow-hidden" data-cta-section="true" role="region" aria-labelledby="cta-final-title">
+        <!-- Premium Background Effects - Centralizado atrás do texto -->
+        <div class="pulsating-background absolute rounded-full opacity-28 pointer-events-none z-0"></div>
+        <div class="cta-content-wrapper max-w-5xl mx-auto">
+          <!-- Accent Lines (top) -->
+          <div class="accent-line-top mx-auto mb-8 opacity-0" data-animate="true"></div>
+
+          <!-- Main Headline -->
+          <header class="cta-header mb-12">
+            <!-- Pílula destacada -->
+            <span class="inline-block py-2 px-4 mb-8 text-xs font-bold tracking-widest text-indigo-700 uppercase bg-indigo-100 rounded-full border-2 border-indigo-200 fade-in-up shadow-sm">
+              Comece hoje!
+            </span>
+            <h2 id="cta-final-title" class="font-serif text-display-sm font-bold mb-8 headline-gradient" data-text-animate="true">
+              A infância <span class="text-gradient-orange inline-block animate-pulse-slow">não espera.</span>
+            </h2>
+
+            <!-- Subheadline -->
+            <p class="text-gray-200 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed subheading-text mb-4" data-fade-in="true">
+              A história pode ser preservada.
+            </p>
+          </header>
+
+          <!-- CTA Actions -->
+          <div class="cta-actions mb-16">
+            <!-- CTA Buttons with Magnetic Effect -->
+            <div class="cta-buttons-container flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6" data-stagger-children="true">
+              <div class="magnetic w-full sm:w-auto premium-button-container" data-magnetic-strength="0.35" data-button-index="0">
+                <a href="#pricing" aria-label="Começar nossa história - conhecer planos" class="cta-primary shine-effect w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-gradient-to-r from-orange-500 via-orange-450 to-orange-400 text-white rounded-xl font-semibold text-base hover:from-orange-400 hover:via-orange-380 hover:to-orange-300 active:from-orange-500 transition-all shadow-xl shadow-orange-300 hover:shadow-2xl hover:shadow-orange-400 focus-visible:outline-2 focus-visible:outline-orange-600 focus-visible:outline-offset-2" data-btn-primary="true">
+                  <span class="btn-text">Começar nossa história</span>
+                </a>
+              </div>
+              <div class="magnetic w-full sm:w-auto premium-button-container" data-magnetic-strength="0.25" data-button-index="1">
+                <a href="#pricing" aria-label="Presentear - ver opções e comprar" class="cta-secondary w-full sm:w-auto inline-flex items-center justify-center min-h-[56px] px-10 py-4 bg-white border-2 border-gray-300 text-gray-800 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all shadow-md hover:shadow-lg focus-visible:outline-2 focus-visible:outline-gray-600 focus-visible:outline-offset-2 gap-2" data-btn-secondary="true">
+                  <span class="btn-text">🎁 Presentear</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Proof & Trust -->
+          <div class="cta-social-proof">
+            <!-- Urgency & Trust Indicators -->
+            <div class="urgency-and-trust flex flex-col sm:flex-row items-center justify-center gap-5 flex-wrap max-w-4xl mx-auto mb-8">
+              <!-- Urgency Counter -->
+              <div class="urgency-counter-box flex items-center gap-3 backdrop-blur-md bg-gradient-to-r from-orange-500/12 to-orange-600/8 border border-orange-400/40 px-5 py-3 rounded-full shadow-lg shadow-orange-900/20" aria-live="polite" aria-label="Contador de pessoas comprando agora">
+                <svg class="w-5 h-5 text-orange-300 animate-pulse flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                  <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 100 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V6a1 1 0 00-1-1 1 1 0 100-2 2 2 0 00-2 2v1h2a1 1 0 100-2H4z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-xs md:text-sm font-semibold text-white">Há <span id="urgency-count" class="text-orange-300 font-bold text-sm md:text-base" data-counter="true">17</span> pessoas convertendo agora</span>
+              </div>
+
+              <!-- Trust Badges -->
+              <div class="trust-badges flex items-center gap-3 text-xs md:text-sm text-gray-300 flex-wrap justify-center sm:justify-start">
+                <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-green-500/8 to-emerald-500/5 border border-green-400/30 hover:border-green-400/60 transition-all">
+                  <svg class="w-4 h-4 text-green-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                  Pagamento Seguro
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-blue-500/8 to-cyan-500/5 border border-blue-400/30 hover:border-blue-400/60 transition-all">
+                  <svg class="w-4 h-4 text-blue-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"></path>
+                  </svg>
+                  Garantia de 7 dias
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-purple-500/8 to-pink-500/5 border border-purple-400/30 hover:border-purple-400/60 transition-all">
+                  <svg class="w-4 h-4 text-purple-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.293-4.707a1 1 0 011.414 0l2 2a1 1 0 01-1.414 1.414L13 2.414 11.707 3.707a1 1 0 01-1.414-1.414l2-2z"></path>
+                  </svg>
+                  Privacidade Garantida
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accent Lines (bottom) -->
+        <div class="accent-line-bottom mx-auto mt-8 opacity-0" data-animate="true"></div>
     </div>
 
-    <!-- Main CTA Content -->
-    <div class="section-shell text-center relative z-10 mb-16 fade-in-up">
-      <!-- Premium Background Effects -->
-      <div class="pulsating-background absolute left-1/2 -translate-x-1/2 rounded-full opacity-28 pointer-events-none z-0"></div>
+    </section>
+  </div>
+  </div>
 
-      <!-- Floating Orbs with Enhanced Positioning -->
-      <div class="floating-orbs pointer-events-none z-10" aria-hidden="true">
-        <span class="floating-orb orb-1 absolute w-40 h-40 rounded-full blur-3xl" style="left:-5%; top:15%;" data-parallax-depth="1"></span>
-        <span class="floating-orb orb-2 absolute w-32 h-32 rounded-full blur-3xl" style="right:-8%; top:10%;" data-parallax-depth="2"></span>
-        <span class="floating-orb orb-3 absolute w-48 h-48 rounded-full blur-3xl" style="left:50%; top:-15%; transform:translateX(-50%);" data-parallax-depth="3"></span>
-      </div>
-
-      <!-- Accent Lines (top) -->
-      <div class="accent-line-top mx-auto mb-8 opacity-0" data-animate="true"></div>
-
-      <!-- Main Headline -->
-      <h2 id="cta-final-title" class="font-serif text-4xl md:text-6xl font-bold mb-8 headline-gradient" data-text-animate="true">
-        A infância <span class="text-gradient-orange inline-block animate-pulse-slow">não espera.</span>
-      </h2>
-
-      <!-- Subheadline -->
-      <p class="text-gray-200 text-lg md:text-xl mb-16 max-w-2xl mx-auto leading-relaxed subheading-text" data-fade-in="true">
-        A história pode ser preservada. <span class="text-white font-semibold">Comece hoje!</span>
-      </p>
-
-      <!-- CTA Buttons with Magnetic Effect -->
-      <div class="cta-buttons-container flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-20" data-stagger-children="true">
-        <div class="magnetic w-full sm:w-auto premium-button-container" data-magnetic-strength="0.35" data-button-index="0">
-          <a href="#pricing" aria-label="Começar nossa história - conhecer planos" class="cta-button cta-primary premium-cta-glow w-full sm:w-auto px-12 py-4 bg-gradient-to-r from-orange-500 via-orange-450 to-orange-400 hover:from-orange-400 hover:via-orange-380 hover:to-orange-300 text-white rounded-full font-bold text-base md:text-lg transition-all duration-300 min-h-[54px] inline-flex items-center justify-center button-shine shadow-xl" data-btn-primary="true">
-            <span class="btn-text">Começar nossa história</span>
-            <svg class="w-5 h-5 ml-3 btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="magnetic w-full sm:w-auto premium-button-container" data-magnetic-strength="0.25" data-button-index="1">
-          <a href="#pricing" aria-label="Presentear uma história - ver opções e comprar" class="cta-button cta-secondary premium-secondary-glow w-full sm:w-auto px-12 py-4 border-2 border-orange-400/50 hover:border-orange-300 text-white rounded-full font-semibold text-base md:text-lg transition-all duration-300 min-h-[54px] inline-flex items-center justify-center backdrop-blur-sm" data-btn-secondary="true">
-            <span class="btn-text">Presentear uma história</span>
-            <svg class="w-5 h-5 ml-3 btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v13m0-13L7 9m5-1l5 1"></path>
-            </svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- Meta Information & Social Proof -->
-      <div class="cta-meta-section" data-fade-in="true">
-        <div class="flex flex-wrap items-center justify-center gap-4 mb-16 max-w-4xl mx-auto">
-          <!-- Guarantee Badge -->
-          <div class="guarantee-badge flex items-center gap-3 px-5 py-3">
-            <svg class="w-6 h-6 text-orange-300 flex-shrink-0 drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-            <p class="text-xs md:text-sm text-gray-200"><span class="font-bold text-white">Garantia de 30 dias</span> · Devolvemos 100% se não gostar</p>
-          </div>
-        </div>
-
-        <!-- Urgency & Trust Indicators -->
-        <div class="urgency-and-trust flex flex-col sm:flex-row items-center justify-center gap-5 flex-wrap max-w-4xl mx-auto mb-20">
-          <!-- Urgency Counter -->
-          <div class="urgency-counter-box flex items-center gap-3 backdrop-blur-md bg-gradient-to-r from-orange-500/12 to-orange-600/8 border border-orange-400/40 px-5 py-3 rounded-full shadow-lg shadow-orange-900/20" aria-live="polite" aria-label="Contador de pessoas comprando agora">
-            <svg class="w-5 h-5 text-orange-300 animate-pulse flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 100 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V6a1 1 0 00-1-1 1 1 0 100-2 2 2 0 00-2 2v1h2a1 1 0 100-2H4z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-xs md:text-sm font-semibold text-white">Há <span id="urgency-count" class="text-orange-300 font-bold text-sm md:text-base" data-counter="true">17</span> pessoas convertendo agora</span>
-          </div>
-
-          <!-- Trust Badges -->
-          <div class="trust-badges flex items-center gap-3 text-xs md:text-sm text-gray-300 flex-wrap justify-center sm:justify-start">
-            <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-green-500/8 to-emerald-500/5 border border-green-400/30 hover:border-green-400/60 transition-all">
-              <svg class="w-4 h-4 text-green-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              Pagamento Seguro
-            </span>
-            <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-blue-500/8 to-cyan-500/5 border border-blue-400/30 hover:border-blue-400/60 transition-all">
-              <svg class="w-4 h-4 text-blue-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"></path>
-              </svg>
-              Pronto em 7 dias
-            </span>
-            <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-purple-500/8 to-pink-500/5 border border-purple-400/30 hover:border-purple-400/60 transition-all">
-              <svg class="w-4 h-4 text-purple-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.293-4.707a1 1 0 011.414 0l2 2a1 1 0 01-1.414 1.414L13 2.414 11.707 3.707a1 1 0 01-1.414-1.414l2-2z"></path>
-              </svg>
-              Privacidade Garantida
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Accent Lines (bottom) -->
-      <div class="accent-line-bottom mx-auto mt-8 opacity-0" data-animate="true"></div>
-    </div>
-
-  </section>
-
-  <!-- FOOTER: conteúdo separado do CTA, mantém .footer-content -->
+  <!-- FOOTER: conteúdo separado do CTA, inicialmente oculto e aparece como gaveta após CTA FINAL pinado -->
   <footer class="site-footer bg-ink text-white pt-0 pb-12 px-6 relative overflow-hidden" role="contentinfo">
     <!-- Footer Info with Enhanced Styling -->
     <div class="footer-content max-w-6xl mx-auto border-t border-gray-700/50 pt-16">

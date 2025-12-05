@@ -824,7 +824,8 @@ a,
   --cta-accent: var(--brand-accent);
   /* Premium layered background */
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 50%, #1a1a1a 100%);
-  background-attachment: fixed;
+  /* Prefer scroll attachment to avoid inconsistent vsync and clipping across devices */
+  background-attachment: scroll;
   position: relative;
 }
 
@@ -846,71 +847,146 @@ a,
     );
   pointer-events: none;
   z-index: 1;
+  border-radius: inherit;
 }
 
 /* Grid background texture */
-.cta-bg-layers {
-  z-index: 0;
-}
-
-.grid-background {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-.noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
-}
-
-.cta-final .floating-orbs,
-.cta-final .section-shell .floating-orbs,
-.cta-final .section-shell .floating-orbs *,
-.cta-final .floating-orbs * {
+/* Decorative subtle grid/noise overlay — using pseudo-element on the surface to reduce DOM nodes */
+.section-surface--cta::before {
+  content: "";
   position: absolute;
   inset: 0;
-  z-index: 1; /* above the pulsating background */
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
+  background-size:
+    50px 50px,
+    50px 50px,
+    cover;
+  opacity: 0.05;
+}
+
+.cta-final.section-shell {
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+/* Variant of the shared section surface but adapted for the premium dark CTA */
+.section-surface--cta {
+  /* Reuse the surface sizing and spacing while keeping a dark visual core */
+  width: min(1200px, calc(100% - 2.5rem));
+  margin-inline: auto;
+  padding: clamp(2.5rem, 5vw, 5rem);
+  border-radius: clamp(32px, 4vw, 56px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.96),
+    rgba(18, 18, 18, 0.96)
+  );
+  box-shadow:
+    0 35px 90px -40px rgba(0, 0, 0, 0.7),
+    0 25px 65px -35px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.section-surface--cta::after {
+  /* dashed inset line similar to hero but subtle and complementary to dark palette */
+  content: "";
+  position: absolute;
+  inset: clamp(0.65rem, 1.6vw, 1.5rem);
+  border-radius: inherit;
+  border: 1px dashed rgba(249, 115, 22, 0.09);
   pointer-events: none;
 }
 
-.floating-orb {
-  opacity: 0.36;
-  transform: translate3d(0, 0, 0);
-  transition:
-    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.6s ease,
-    filter 0.35s ease;
-  will-change: transform, opacity;
+/* CTA FINAL - Overrides para botões quando em fundo escuro */
+.cta-final .cta-primary {
+  /* Use gradiente laranja para contraste no fundo escuro */
+  background: linear-gradient(135deg, #f97316 0%, #f2995d 50%, #f97316 100%);
+  color: #fff;
+  box-shadow:
+    0 12px 36px -16px rgba(249, 115, 22, 0.45),
+    0 8px 28px -10px rgba(242, 153, 93, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.floating-orb.orb-1 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 197, 141, 0.42),
-    rgba(255, 160, 64, 0.28)
-  );
-  box-shadow: 0 14px 48px rgba(255, 160, 64, 0.16);
-}
-.floating-orb.orb-2 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 229, 204, 0.42),
-    rgba(255, 204, 128, 0.28)
-  );
-  box-shadow: 0 14px 48px rgba(255, 180, 80, 0.12);
-}
-.floating-orb.orb-3 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 160, 64, 0.26),
-    rgba(245, 90, 0, 0.2)
-  );
-  box-shadow: 0 14px 48px rgba(245, 90, 0, 0.16);
+.cta-final .cta-primary:hover {
+  /* Slightly brighter gradient on hover */
+  filter: brightness(1.06);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow:
+    0 18px 48px -18px rgba(249, 115, 22, 0.5),
+    0 12px 36px -12px rgba(242, 153, 93, 0.38);
 }
 
-.cta-final .section-shell {
-  z-index: 10;
+.cta-final .cta-secondary {
+  /* White button with dark text for contrast on dark background */
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  color: #111827;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.cta-final .cta-secondary:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #111827; /* darker text over brighter white hover */
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.36);
+}
+
+/* Ensure the shine effect for CTA primary is visible over dark bg */
+.cta-final .cta-primary::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+}
+
+/* Interpolate the border radius of the CTA surface to match the visual collapse behaviour */
+.cta-final-lock .section-surface--cta {
+  --cta-surface-radius-start: clamp(32px, 4vw, 56px);
+  --cta-surface-radius-end: 0px;
+  border-radius: calc(
+    (1 - var(--cta-collapse-progress, 0)) * var(--cta-surface-radius-start) +
+      var(--cta-collapse-progress, 0) * var(--cta-surface-radius-end)
+  );
+  transition: border-radius 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cta-final-lock.cta-final-pinned .section-surface--cta {
+  border-radius: 0;
+}
+
+@media (max-width: 640px) {
+  .section-surface--cta {
+    padding: 2rem 1.25rem;
+    border-radius: clamp(22px, 3.5vw, 28px);
+  }
+  .section-surface--cta::after {
+    inset: 0.85rem;
+    border-radius: calc(clamp(22px, 3.5vw, 28px) - 6px);
+  }
 }
 
 .premium-button-container {
@@ -933,9 +1009,6 @@ a,
 .cta-final-active .premium-cta-glow {
   animation: glow-pulse 4s ease-in-out infinite;
 }
-.cta-final-active .floating-orb {
-  opacity: 0.65;
-}
 .cta-final-active .pulsating-background {
   opacity: 0.85;
   transform: scale(1.06) translateZ(0);
@@ -955,13 +1028,7 @@ a,
     0 6px 16px -10px rgba(0, 0, 0, 0.22);
 }
 
-.floating-orb.orb-active {
-  transform: translate3d(0, -10px, 0) scale(1.04);
-  filter: saturate(1.08);
-  opacity: 0.9;
-}
-
-.cta-final .section-shell .pulsating-background {
+.cta-final.section-shell .pulsating-background {
   filter: saturate(1.16) blur(30px) contrast(1.08);
   z-index: 0;
   transform: translate(-50%, -50%);
@@ -972,38 +1039,36 @@ a,
     var(--brand-accent-strong) 62%,
     transparent 100%
   );
-  width: 760px;
-  height: 540px;
-  top: 34%;
-  left: 50%;
 }
 
-/* Responsive adjustments for pulsating background and orbs */
+/* Base positioning for pulsating background */
+.cta-final.section-shell .pulsating-background {
+  width: 400px;
+  height: 300px;
+  left: 50%;
+  top: 35%;
+  transform: translate(-50%, -50%);
+}
+
+/* Responsive adjustments for pulsating background */
 @media (max-width: 640px) {
-  .cta-final .pulsating-background {
-    width: 420px;
-    height: 340px;
+  .cta-final.section-shell .pulsating-background {
+    width: 350px;
+    height: 250px;
+    left: 50%;
+    top: 25%;
+    transform: translate(-50%, -50%);
     filter: saturate(1.05);
-  }
-  .floating-orb.orb-1 {
-    width: 120px;
-    height: 120px;
-  }
-  .floating-orb.orb-2 {
-    width: 88px;
-    height: 88px;
-  }
-  .floating-orb.orb-3 {
-    width: 160px;
-    height: 160px;
-    left: 42% !important;
   }
 }
 
 @media (min-width: 1024px) {
-  .cta-final .pulsating-background {
-    width: 920px;
-    height: 650px;
+  .cta-final.section-shell .pulsating-background {
+    width: 600px;
+    height: 400px;
+    left: 50%;
+    top: 30%;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -1038,10 +1103,106 @@ a,
   color: transparent;
 }
 
-/* Enhanced button styling */
+/* CTA Content Layout Improvements */
+.cta-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0;
+}
+
+.cta-header {
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.cta-social-proof {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Improved spacing hierarchy */
+.cta-final .cta-content-wrapper > * + * {
+  margin-top: 0;
+}
+
+.cta-header + .cta-actions {
+  margin-top: 1rem;
+}
+
+.cta-actions + .cta-social-proof {
+  margin-top: 1rem;
+}
+
+/* Better button container centering */
 .cta-buttons-container {
-  gap: 1.5rem;
-  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+/* Trust badges improved layout */
+.trust-badges {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .cta-content-wrapper {
+    gap: 0.5rem;
+  }
+
+  .cta-header {
+    margin-bottom: 1rem;
+  }
+
+  .cta-actions {
+    margin-top: 1.5rem;
+  }
+
+  .cta-social-proof {
+    margin-top: 2rem;
+  }
+
+  .cta-buttons-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .trust-badges {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .urgency-and-trust {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .urgency-and-trust {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .cta-button {
@@ -1235,6 +1396,7 @@ a,
 }
 
 /* Accent lines decorativa */
+/* Accent lines decorativa (CTA/HERO) - animated smoothly on scroll */
 .accent-line-top,
 .accent-line-bottom {
   width: 140px;
@@ -1248,6 +1410,7 @@ a,
     transparent 100%
   );
   border-radius: 3px;
+  /* Keep initial entry animation but ensure subsequent updates use smooth transition tied to --cta-collapse-progress */
   animation: fadeInDown 0.8s ease-out backwards;
   box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
 }
@@ -1259,6 +1422,41 @@ a,
 .accent-line-bottom {
   animation-delay: 0.2s;
   margin-top: 2rem;
+}
+
+/* CTA-specific accent line behavior: interpolate position, size and opacity with --cta-collapse-progress (0..1) */
+.cta-final .accent-line-top,
+.cta-final .accent-line-bottom {
+  /* define width interpolation between small start -> larger end on pin */
+  --accent-width-start: 140px;
+  --accent-width-end: 220px;
+  width: calc(
+    (1 - var(--cta-collapse-progress)) * var(--accent-width-start) +
+      var(--cta-collapse-progress) * var(--accent-width-end)
+  );
+
+  /* vertical movement: lines slide in from outside towards final position as scroll progresses */
+  transform: translateY(calc((1 - var(--cta-collapse-progress)) * -12px));
+  opacity: calc(0.6 + var(--cta-collapse-progress) * 0.4);
+
+  /* smoother transitions w/ same easing as container */
+  transition:
+    width 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Slight variation for bottom accent: slide from below instead of above */
+.cta-final .accent-line-bottom {
+  transform: translateY(calc((1 - var(--cta-collapse-progress)) * 12px));
+}
+
+/* When CTA is pinned, slightly increase line width for visual emphasis */
+.cta-final-lock.cta-final-pinned .accent-line-top,
+.cta-final-lock.cta-final-pinned .accent-line-bottom {
+  width: var(--accent-width-end);
+  opacity: 0.95;
+  transform: translateY(0) scale(1.02);
 }
 
 /* Enhanced headline animation */
@@ -1289,53 +1487,8 @@ a,
   animation: fadeInUp 0.8s ease-out 0.1s backwards;
 }
 
-/* Floating orbs - Enhanced */
-.floating-orb {
-  opacity: 0.36;
-  transform: translate3d(0, 0, 0);
-  transition:
-    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.6s ease,
-    filter 0.35s ease;
-  will-change: transform, opacity;
-  filter: saturate(1.1);
-}
-
-.floating-orb.orb-1 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 197, 141, 0.42),
-    rgba(255, 160, 64, 0.28)
-  );
-  box-shadow:
-    0 14px 48px rgba(255, 160, 64, 0.16),
-    0 0 60px rgba(249, 115, 22, 0.08);
-}
-
-.floating-orb.orb-2 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 229, 204, 0.42),
-    rgba(255, 204, 128, 0.28)
-  );
-  box-shadow:
-    0 14px 48px rgba(255, 180, 80, 0.12),
-    0 0 60px rgba(250, 130, 45, 0.06);
-}
-
-.floating-orb.orb-3 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 160, 64, 0.26),
-    rgba(245, 90, 0, 0.2)
-  );
-  box-shadow:
-    0 14px 48px rgba(245, 90, 0, 0.16),
-    0 0 60px rgba(217, 127, 69, 0.08);
-}
-
 /* Pulsating background - More enhanced */
-.cta-final .section-shell .pulsating-background {
+.cta-final.section-shell .pulsating-background {
   filter: saturate(1.25) blur(40px) contrast(1.12)
     drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
   z-index: 0;
@@ -1405,16 +1558,6 @@ a,
   animation: glow-pulse 4s ease-in-out infinite;
 }
 
-.cta-final-active .floating-orb {
-  opacity: 0.65;
-}
-
-.floating-orb.orb-active {
-  transform: translate3d(0, -10px, 0) scale(1.04);
-  filter: saturate(1.15);
-  opacity: 0.9;
-}
-
 .cta-final-active h2 {
   transform: translateY(-6px) scale(1.02);
   filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
@@ -1481,22 +1624,6 @@ a,
     filter: saturate(1.15) blur(30px) contrast(1.08);
   }
 
-  .floating-orb.orb-1 {
-    width: 120px;
-    height: 120px;
-  }
-
-  .floating-orb.orb-2 {
-    width: 88px;
-    height: 88px;
-  }
-
-  .floating-orb.orb-3 {
-    width: 160px;
-    height: 160px;
-    left: 42% !important;
-  }
-
   .cta-buttons-container {
     gap: 1rem;
   }
@@ -1530,7 +1657,7 @@ a,
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -1541,11 +1668,233 @@ a,
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* === CTA FINAL BEHAVIOR STYLES === */
+/* Wrapper para comportamento sticky similar ao HERO */
+.cta-final-stage {
+  position: relative;
+  width: 100%;
+  /* Use a similar min-height to HERO to create a similar feel and allow enough scroll for footer reveal */
+  min-height: 180vh;
+  will-change: transform;
+}
+
+.cta-final-lock {
+  --cta-collapse-progress: 0;
+
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  /* Aplicar padding baseado no progresso de collapse, invertendo para começar maior e diminuir */
+  --cta-lock-pad-inline-start: 1.5rem;
+  --cta-lock-pad-inline-end: 0rem;
+  --cta-lock-pad-vertical-start: 2rem;
+  --cta-lock-pad-vertical-end: 0.5rem;
+  padding-inline: calc(
+    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-inline-start) +
+      var(--cta-collapse-progress) * var(--cta-lock-pad-inline-end)
+  );
+  padding-top: calc(
+    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
+      var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
+  );
+  padding-bottom: calc(
+    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
+      var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
+  );
+
+  will-change: padding;
+}
+
+.cta-final-lock .cta-final {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 100%;
+
+  /* Transformações de escala e posição durante scroll */
+  /* Bordas começam bem arredondadas e diminuem com o progresso, como no HERO */
+  --cta-outer-radius-start: clamp(32px, 4vw, 56px);
+  --cta-outer-radius-end: 0px;
+  border-radius: calc(
+    (1 - var(--cta-collapse-progress)) * var(--cta-outer-radius-start) +
+      var(--cta-collapse-progress) * var(--cta-outer-radius-end)
+  );
+  box-shadow:
+    0 45px 140px -40px rgba(42, 32, 24, 0.55),
+    0 25px 80px -50px rgba(242, 153, 93, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  /* Padding interpolates from start -> end for better fitting while scaling
+      We use a formula mixing 1 and 0 using the --cta-collapse-progress variable */
+  --cta-pad-start: 3rem;
+  --cta-pad-end: 0rem;
+  padding: calc(
+    (1 - var(--cta-collapse-progress)) * var(--cta-pad-start) +
+      var(--cta-collapse-progress) * var(--cta-pad-end)
+  );
+
+  /* Transformar: escalar de 0.6 até 1.0, mover para cima, inspirado no HERO */
+  transform-origin: center calc(50% + var(--cta-collapse-progress) * 10%);
+  transform: translate3d(0, calc(var(--cta-collapse-progress) * -9vh), 0)
+    scale(calc(0.6 + var(--cta-collapse-progress) * 0.4));
+
+  will-change: transform, border-radius, box-shadow;
+  transition:
+    border-radius 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    padding 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 480ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Estado pinado do CTA FINAL */
+.cta-final-lock.cta-final-pinned .cta-final {
+  border-radius: 0;
+  box-shadow: none;
+  /* reduzemos o padding pra 'encaixar' melhor a seção quando 100% */
+  padding: var(--cta-pad-end);
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-final-lock.cta-final-pinned .cta-final.section-shell {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 2rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-final-lock.cta-final-pinned {
+  padding-inline: var(--cta-lock-pad-inline-end);
+  padding-top: var(--cta-lock-pad-vertical-end);
+  padding-bottom: var(--cta-lock-pad-vertical-end);
+}
+
+.cta-final-lock .pulsating-background {
+  opacity: calc(0.28 + var(--cta-collapse-progress) * 0.6);
+  transform: scale(calc(1 + var(--cta-collapse-progress) * 0.06));
+}
+.cta-final-pinned .pulsating-background {
+  animation: pulse-intensity 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0.95;
+  transform: scale(1.06);
+}
+
+/* Animações para elementos quando pinado */
+@keyframes float-up {
+  from {
+    opacity: 0.36;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.65;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse-intensity {
+  from {
+    opacity: 0.28;
+    filter: blur(30px);
+  }
+  to {
+    opacity: 0.45;
+    filter: blur(30px);
+  }
+}
+
+/* === FOOTER BEHAVIOR STYLES === */
+.site-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 70vh;
+  z-index: 40;
+
+  /* Inicialmente oculto */
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+
+  /* Transição suave para aparecer */
+  transition:
+    opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  will-change: transform, opacity;
+}
+
+/* Quando footer é revelado */
+.site-footer.footer-revealed {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0%);
+}
+
+/* Garantir que o conteúdo do footer está visível quando revelado */
+.footer-content {
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .cta-final-lock {
+    /* Use smaller start values on narrow viewports and shrink towards the end value */
+    --cta-lock-pad-inline-start: 1rem;
+    --cta-lock-pad-inline-end: 0rem;
+    --cta-lock-pad-vertical-start: 1.25rem;
+    --cta-lock-pad-vertical-end: 0.5rem;
+    padding-inline: calc(
+      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-inline-start) +
+        var(--cta-collapse-progress) * var(--cta-lock-pad-inline-end)
+    );
+    padding-top: calc(
+      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
+        var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
+    );
+    padding-bottom: calc(
+      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
+        var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
+    );
+  }
+
+  .cta-final-lock .cta-final {
+    /* On smaller screens, keep an initial rounded feel but smaller than desktop */
+    border-radius: calc((1 - var(--cta-collapse-progress)) * 24px);
+  }
+
+  .site-footer {
+    max-height: 85vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .cta-final-stage {
+    min-height: 160vh;
+  }
+
+  .cta-final-lock .cta-final {
+    transform: translate3d(0, calc(var(--cta-collapse-progress) * -6vh), 0)
+      scale(calc(0.93 + var(--cta-collapse-progress) * 0.07));
   }
 }
 
@@ -1578,7 +1927,6 @@ a,
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .floating-orb,
   .premium-cta-glow,
   .cta-button,
   .pulsating-background,
@@ -1637,7 +1985,6 @@ a,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floating-orb,
   .premium-cta-glow {
     animation: none !important;
     transition: none !important;
