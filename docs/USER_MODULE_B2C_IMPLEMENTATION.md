@@ -2,6 +2,8 @@
 
 ## Visão Geral
 
+Nota: Esta implementação segue as decisões do [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Em caso de dúvida sobre pricing, fluxo de unboxing ou regras de voucher, consulte o dossiê canônico.
+
 Este documento descreve a implementação completa do **Módulo do Usuário (B2C)** do Babybook, focando no "Fluxo da Família: Aquisição, Consumo Emocional e Compartilhamento Viral" conforme especificado no DOSSIÊ TÉCNICO.
 
 ## Status: ✅ IMPLEMENTAÇÃO COMPLETA

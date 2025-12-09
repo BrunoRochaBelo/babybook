@@ -1,5 +1,7 @@
 # Observability Dashboard Configuration
 
+Nota: metas, SLIs e thresholds aqui definidos foram alinhados ao [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md). Ajustes em targets de custo e God SLO devem ser refletidos primeiramente no dossiê.
+
 Este documento define as métricas, dashboards e alertas para monitoramento do Baby Book.
 
 ## Arquitetura de Observabilidade

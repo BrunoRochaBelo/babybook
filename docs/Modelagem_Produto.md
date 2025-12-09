@@ -1,5 +1,7 @@
 # Modelagem de Produto — Baby Book
 
+Nota: este documento foi alinhado ao [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). O dossiê é a fonte canônica para decisões financeiras, de pricing e de arquitetura — use-o como referência para disputas de versão.
+
 Este documento é a "fonte da verdade" para o time de Produto, UX e UI. Ele traduz a tese de negócio (definida na Visão & Viabilidade) e as capacidades técnicas (definidas na Arquitetura) em uma experiência de usuário coesa.
 
 ## Sumário
@@ -108,7 +110,7 @@ O design do produto deve servir ao modelo financeiro (Visão & Viabilidade). Nos
 
 ### O Produto Principal: "Acesso Perpétuo" (O Cofre)
 
-- **O que é (Finanças):** O pagamento único de ticket (R$ 279 PIX / R$ 297 cartão). Conforme a Visão & Viabilidade (Seção 5.3), cada venda provisiona R$ 30,60 (o PCE) para cobrir 20 anos de Custo de Estoque (R$ 1,53/ano). Este é o pilar que torna nosso negócio anti-frágil.
+- **O que é (Finanças):** O pagamento único de ticket (R$ 279 PIX / R$ 297 cartão). Conforme a Visão & Viabilidade (Seção 5.3), cada venda provisiona R$ 25,00 (o PCE) para cobrir 20 anos de Custo de Estoque (estimativa anual ≈ R$ 1,5/ano). Este é o pilar que torna nosso negócio anti-frágil.
 - **O que é (Produto/UX):** É o nosso maior diferencial. Não somos uma assinatura (MRR).
 - **Implicação de Design (Confiança):** A mensagem de marketing e checkout deve ser clara: "Pague uma vez. É seu para sempre." Isso constrói confiança.
   **A Psicologia do Preço (ticket — R$ 279 PIX / R$ 297 cartão):** A ancoragem e o desconto por PIX são decisões intencionais para incentivar liquidez imediata e reduzir fees.
@@ -231,7 +233,7 @@ Tão importante quanto saber o que fazer, é saber o que não fazer.
 
 - **O Anti-Padrão:** Oferecer um trial de 14 dias ou um plano "Grátis" (ex: 3 momentos).
 - **Por que é uma Armadilha:**
-  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o ticket no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 30,60). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (B2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
+  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o ticket no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 25,00). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (B2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
   - Conflito com o Produto (Compromisso): O "Atrito Positivo" (Seção 6.1) é uma feature. Ele seleciona clientes (Anas) que estão comprometidos a usar o app. Um trial atrai usuários não-comprometidos.
 
 ### A Armadilha da "Ferramenta" (Ser o Google Photos)

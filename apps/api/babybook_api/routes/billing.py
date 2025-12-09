@@ -62,8 +62,13 @@ async def payment_webhook(
     metadata = payload.get("data", {}).get("object", {}).get("metadata", {})
     account_id = metadata.get("account_id")
     package_key = metadata.get("package_key")
-    amount = payload.get("data", {}).get("object", {}).get("amount")
-    currency = payload.get("data", {}).get("object", {}).get("currency")
+    obj = payload.get("data", {}).get("object", {})
+    amount = obj.get("amount") or obj.get("amount_total")
+    currency = obj.get("currency")
+    amount_gross = obj.get("amount_gross") or amount
+    gateway_fee = obj.get("fee") or obj.get("application_fee_amount")
+    pce_reserved = obj.get("metadata", {}).get("pce_reserved") if isinstance(obj.get("metadata"), dict) else None
+    tax_effective = obj.get("metadata", {}).get("tax_effective") if isinstance(obj.get("metadata"), dict) else None
 
     if not event_id or not account_id or not package_key:
         raise AppError(status_code=400, code="billing.payload.missing", message="Campos obrigatorios ausentes.")
@@ -82,6 +87,10 @@ async def payment_webhook(
             event_id=event_id,
             package_key=package_key,
             amount=amount,
+            amount_gross=amount_gross,
+            gateway_fee=gateway_fee,
+            pce_reserved=pce_reserved,
+            tax_effective=tax_effective,
             currency=currency,
             payload=payload,
         )
@@ -121,7 +130,20 @@ async def mock_complete(payload: MockCompleteRequest, db: AsyncSession = Depends
     account_uuid = uuid.UUID(payload.account_id)
     account = await _get_account(db, account_uuid)
     _apply_entitlement(account, payload.package_key)
-    db.add(BillingEvent(account_id=account_uuid, event_id=f"mock-{payload.package_key}", package_key=payload.package_key, amount=None, currency=None, payload={}))
+    db.add(
+        BillingEvent(
+            account_id=account_uuid,
+            event_id=f"mock-{payload.package_key}",
+            package_key=payload.package_key,
+            amount=None,
+            amount_gross=None,
+            gateway_fee=None,
+            pce_reserved=None,
+            tax_effective=None,
+            currency=None,
+            payload={},
+        )
+    )
     await db.flush()
     await db.commit()
     return {"status": "ok"}

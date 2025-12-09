@@ -229,3 +229,42 @@ pnpm build
 ## 📄 Licença
 
 MIT
+
+---
+
+## Guia para Agentes de IA — Como contribuir automaticamente
+
+Este projeto possui convenções explícitas para facilitar contribuições programáticas por agentes de IA (scripts geradores de PR, bots de refactor). Siga estas regras ao automatizar mudanças:
+
+- Cada feature deve residir em `src/features/<category>/` e expor hooks/serviços coesos; quando houver efeitos DOM siga o padrão mount/dispose do landingpage.
+- Componentes reutilizáveis vão em `src/components/` e devem ser isolados (prop-driven) sem dependências globais ou singletons implícitos.
+- Estado global: priorize Zustand stores em `src/features/<domain>/store.ts`; para server state use React Query com chaves estáveis.
+
+- Ao modificar contract endpoints, atualizar handlers MSW em `src/mocks/` e garantir que os mocks reflitam o OpenAPI do `apps/api` (ver `packages/contracts`).
+- Adicione testes Vitest em `src/features/**/__tests__/` cobrindo fluxo feliz e erros; use `@testing-library/react` + `user-event` para comportamento.
+- Para UI, prefira snapshots pequenos por componente e asserts semânticos; evite snapshots enormes.
+- Se criar rotas ou fluxo end-to-end relevante, inclua teste de integração com MSW/Router ou um teste E2E leve (Playwright) quando indicado.
+
+- Rode `pnpm lint` e `pnpm format` antes de abrir PRs automatizadas.
+- Prefira regras auto-fix quando possível para bots (ex: `pnpm lint --fix`).
+
+- Se uma mudança requer criar/alterar um endpoint (payload), alinhe com `apps/api` e atualize `packages/contracts` (ou tipos gerados) antes de mexer em MSW.
+- Não copiar tipos manualmente; importe dos contratos gerados ou declare adaptadores claros.
+
+Performance, acessibilidade e bundling:
+
+- Respeite budget de bundle: evite adicionar libs pesadas; prefira import dinâmico ou reutilizar utilitários existentes em `packages/utils`.
+- Verifique `pnpm build && pnpm preview` e, se a mudança impactar bundle, rode análise (`pnpm build --report` ou equivalente) e registre no PR.
+- Garanta AA de contraste e use aria-label/role em componentes novos; valide com `@testing-library/jest-dom` (ex.: `toHaveAccessibleName`).
+- Mensagens automáticas de PR:
+  Mensagens automáticas de PR:
+  - Título: `chore(web): automated change — <short desc>` ou `feat(web): <short desc>` quando adicionar funcionalidade.
+  - Body deve conter: resumo da mudança, arquivos alterados, como testar localmente, e lista de testes adicionados/atualizados.
+  - Use branch `auto/web-<slug>-<yyyymmdd>` para automações.
+  - Título: `chore(web): automated change — <short desc>` ou `feat(web): <short desc>` quando adicionar funcionalidade.
+
+  - Mudanças de schema/contratos ou impacto em billing devem ter label `needs-human-review`.
+  - Não atualize secrets/variáveis de ambiente.
+  - Migration/schema changes devem ser aprovadas por um humano (adicionar label `needs-human-review`).
+
+Seguindo essas diretrizes, agentes de IA poderão gerar PRs úteis e de baixa fricção, integrando-se ao fluxo de trabalho humano do projeto.

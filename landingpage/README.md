@@ -398,6 +398,58 @@ Princípios:
 
 - Cada feature que cria efeitos colaterais no DOM deve exportar uma função `setupX()` ou `initX()` que retorna uma função de limpeza (disposer), ou `null` se a feature não for aplicada/executável.
 - Crie uma camada de montagem `mountX()` na pasta `src/components` que chame `setupX()` e retorne o disposer. As camadas de montagem são chamadas pelo `main.ts` via `safeInit()`.
+
+---
+
+## Guia para Agentes de IA — Automação e Padrões
+
+Este documento fornece orientações explícitas para agentes de IA que irão contribuir automaticamente para a landing page (ex.: gerar componentes, otimizar imagens, adicionar testes). As regras visam segurança, previsibilidade e facilidade de revisão humana.
+
+- Scope permitido para agentes:
+  - Gerar novos componentes estáticos que sigam `src/features/*` e exportem `setup*`/`mount*`.
+  - Otimizar imagens via `pnpm generate:images` e atualizar `public/images` com variantes AVIF/WebP.
+  - Adicionar entradas de documentação (IMPROVEMENTS.md) com mudanças não-code (textos, design tokens).
+
+- Scope proibido sem revisão humana:
+  - Alterações que envolvam secrets, deploy pipeline, CI config, ou migrations de banco.
+  - Mudanças que alterem políticas de pricing, PCE, ou comportamento fiscal (ver `docs/Dossie_Execucao.md`).
+
+- Padrões de contribuição automática:
+  - Crie branch `auto/<short-desc>-<timestamp>`; commits `chore(landingpage): ...` ou `feat(landingpage): ...`.
+  - Inclua no PR: comandos executados (`pnpm lint`, `pnpm test`, `pnpm build:critical` se imagens/CSS), resultado resumido e impactos em bundle/perf.
+  - Checklist obrigatório: lint, tests, `pnpm run check:mount-dispose`, e se mexer em imagens rodar `pnpm run generate:images` + `pnpm run build:critical`.
+  - Não aplique `--force`; mantenha histórico linear.
+
+- Testes e verificação:
+  - Gerar testes Vitest em `tests/` cobrindo mount/dispose (presence de disposer) e comportamento mínimo do módulo.
+  - Se a modificação afeta performance (imagem, bundle), rodar `pnpm run build:analyze` e anexar delta de tamanho no PR.
+  - Para novos feature flags, adicionar casos de on/off no teste.
+
+- Mensagens de commit e PR automáticas:
+  - Commit: `chore(landingpage): auto-generate <what>`
+  - PR title: `Automated: <short desc>`
+  - PR body: descrever entradas geradas, arquivos, e resultado de `pnpm build:analyze` (se aplicável).
+
+- Padrão mount/dispose (governança):
+  - Toda feature DOM deve exportar `setupX` retornando um disposer; `mountX` deve apenas delegar.
+  - `check:mount-dispose` precisa passar; se houver exceção use `// @no-check-mount-dispose` com justificativa no topo do arquivo.
+  - Sempre remova listeners, observers, RAF/interval/timeouts e restaure DOM alterado no cleanup.
+
+- Performance e imagens:
+  - Respeite budgets atuais (ver seção Performance); evite libs adicionais.
+  - Para novas imagens, use `pnpm --filter @babybook/landingpage run generate:images` para gerar AVIF/WebP; preferir `<picture>` com fallback JPG.
+  - Se alterar crítico acima da dobra, rode `pnpm --filter @babybook/landingpage run build:critical` e anexe resultado.
+
+- Feature flags:
+  - Novas flags devem ser declaradas em `featureFlags.ts`, documentadas na seção de flags e cobertas por testes on/off.
+  - Evite defaults que alterem UX existente; mantenha default anterior e habilite via flag.
+
+- Limites e segurança:
+  - Não alterar `wrangler.toml`, deploy/pipelines ou variáveis secretas.
+  - Alterações em pricing/experimentos sensíveis exigem label `needs-human-review`.
+
+Seguindo essas regras, agentes de IA poderão contribuir com melhorias seguras e audíveis que aceleram o trabalho da equipe sem comprometer governança.
+
 - `safeInit(name, () => mountX())` garante que, se a função retornar um disposer, ele será registrado globalmente e executado durante `unmountAll()` (chamado em `pagehide`/`beforeunload`).
 
 Exemplo mínimo:

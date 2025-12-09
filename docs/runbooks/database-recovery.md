@@ -1,5 +1,7 @@
 # Runbook: Recuperação de Banco de Dados (Neon)
 
+Nota: antes de executar recoveries que afetem esquema ou migrações, consulte o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md) para validar impactos em PCE, tabelas novas (partners/deliveries/vouchers) e políticas de retenção.
+
 **Severidade:** Sev1  
 **Tempo Estimado:** 15-45 minutos  
 **Última Atualização:** Janeiro 2025

@@ -1,5 +1,7 @@
 # Modelagem de UI/UX — Baby Book
 
+Nota: A modelagem de UI/UX aqui descrita foi alinhada ao [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Para decisões de produto que impactem microcopy, termos (ex: "Acesso Perpétuo"), e fluxo de unboxing, consulte o dossiê.
+
 ## Sumário
 
 - [Filosofia de design & identidade](#1-filosofia-de-design--identidade)
@@ -14,7 +16,7 @@
   - [2.2 Navegação base (Os 3 Livros)](#22-navegação-base-os-3-livros)
   - [2.3 Arquitetura de conteúdos](#23-arquitetura-de-conteúdos)
 - [Fluxos principais (user flows)](#3-fluxos-principais-user-flows)
-  - [3.1 Onboarding (Foco em Valor) → Compra (LTD)](#31-onboarding-foco-em-valor--compra-ltd)
+  - [3.1 Onboarding (Foco em Valor) → Compra (Acesso Perpétuo)](#31-onboarding-foco-em-valor--compra-acesso-perpétuo)
   - [3.2 Fluxo de "Momento Guiado" (Rascunho)](#32-fluxo-de-momento-guiado-rascunho)
   - [3.3 Fluxo de "Momento Avulso" (FAB)](#33-fluxo-de-momento-avulso-fab)
   - [3.4 Compartilhar (público) e Guardião](#34-compartilhar-público-e-guardião)
@@ -187,7 +189,7 @@ Complementos:
 
 ## 3. Fluxos principais (user flows)
 
-### 3.1 Onboarding (Foco em Valor) → Compra (LTD)
+### 3.1 Onboarding (Foco em Valor) → Compra (Acesso Perpétuo)
 
 ```mermaid
 flowchart TD
@@ -196,7 +198,7 @@ flowchart TD
     C --> D[Criação da Criança/Álbum]
     D --> E[Dashboard (Aba Jornada c/ Paywall + HUD)]
     E -- CTA: "Registre: A Descoberta" --> M1(Formulário Template /jornada/moment/draft/descoberta)
-    M1 -- Tenta Salvar --> F(Apresenta Paywall LTD)
+    M1 -- Tenta Salvar --> F(Apresenta Paywall de Acesso Perpétuo)
     F -- "Desbloquear seu álbum" --> G[Checkout]
     G -->|Aprovado| K[Timeline completa (Funcional)]
 ```
@@ -206,7 +208,7 @@ Critérios de aceite:
 Até 2 cliques no login social (Google/Apple).
 Happy path < 90 s até visualizar o paywall. O usuário já investiu tempo, nomeou o álbum e está engajado.
 O usuário vê a UI principal (Dashboard) antes de pagar, confirmando a qualidade do produto.
-O paywall é uma tela modal clara explicando o valor do pagamento único (LTD). Microcopy: "Desbloqueie seu álbum para sempre. Pagamento único — R$ 297 (cartão) / R$ 279 (PIX) para seu álbum de 2GB."
+O paywall é uma tela modal clara explicando o valor do pagamento único (Acesso Perpétuo). Microcopy: "Desbloqueie seu álbum para sempre. Pagamento único — R$ 297 (cartão) / R$ 279 (PIX) para seu álbum de 2GB."
 Wizard aceita data futura (gestantes), adaptando a UI para "Semanas de gestação".
 Se o pagamento falhar, o usuário retorna ao Dashboard (E), e o rascunhos (M1) são salvos localmente para não perder dados.
 
@@ -509,7 +511,7 @@ capsule_letter_created, capsule_letter_sealed, capsule_letter_opened
 tab_viewed (Prop: tab_name $$"Jornada", "Saúde", "Visitas"$$
 )
 
-KPIs de UX:Taxa de Conversão: paywall_presented → ltd_checkout_completed.
+KPIs de UX:Taxa de Conversão: paywall_presented → ltd_checkout_completed (Acesso Perpétuo).
 Engajamento (Jornada): % de usuários que completam a "Jornada do Primeiro Ano".
 Engajamento (Avulso): Relação moment_guided_saved vs. moment_avulso_saved.
 Engajamento (Tabs): Distribuição de tab_viewed. (Quantos "Owners" acessam a aba "Saúde"?).
@@ -523,7 +525,7 @@ Confiabilidade: Taxa de falha de upload (uploads failed / started).
 ### 10.1 Onboarding
 
 Duas opções de login social; campos mínimos.
-Paywall LTD apresentado apenas após o usuário criar a criança/álbum.
+Paywall de Acesso Perpétuo apresentado apenas após o usuário criar a criança/álbum.
 Validação de e-mail (formato e duplicidade) com feedback claro.
 Se o pagamento falhar, o estado do usuário é mantido e os rascunhos são salvos localmente.
 

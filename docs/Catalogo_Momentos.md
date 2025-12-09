@@ -1,5 +1,7 @@
 # Catálogo de Momentos
 
+Nota: Este catálogo foi atualizado para refletir as decisões do [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Considere o dossiê como a versão canônica para políticas de pricing, tipos de momento (ex: "Galeria Profissional") e regras de voucher.
+
 Este documento é a "fonte da verdade" para o time de Produto e Engenharia sobre a estrutura de dados, regras de negócio e experiência do usuário (UX) de cada "Momento" do Baby Book. Ele serve como o blueprint para o Modelo de Dados (tabela `moment_template`) e a Modelagem de UI/UX.
 
 ## Rationale de Arquitetura de Informação (IA) - A Navegação dos 3 Livros
@@ -52,6 +54,17 @@ Estes são os momentos que compõem a "Jornada do Primeiro Ano" (nosso guia de m
 > Conforme a Visão & Viabilidade (Seção 3.1), o Plano Base (ticket — R$ 297 cartão / R$ 279 PIX) inclui 5 entradas gratuitas para cada momento de tipologia "Recorrente" (ex: "Visitas Especiais", "Galeria de Arte"). Ao tentar criar a 6ª entrada, a API (API Reference, Seção 4.4) retorna um erro `402 Payment Required`.
 
 > **Implicação de Engenharia (Link DDL → API)**: Para que a API saiba qual upsell acionar, este Catálogo define a Categoria de Upsell de cada momento recorrente. Este Metadado (ex: `tracking`, `social`, `creative`) é armazenado na tabela `moment_template` (conforme Modelo de Dados 4.4) e é a chave que a API usa para retornar o erro `402` com o payload correto (ex: `details: { package_key: 'unlimited_tracking' }`).
+
+## Momentos Premium (Galeria Profissional)
+
+Alguns envios são realizados por parceiros (fotógrafos) e consistem em entregas volumosas (20-100 fotos). Esses "Momentos Premium" têm regras diferentes:
+
+- Tipologia: não-criável pelo usuário; somente resgate via voucher fornecido por parceiro.
+- Nome técnico: `professional_gallery` (ou `PROFESSIONAL_GALLERY` no domínio).
+- Mídia: grid/mosaico com 20-100 fotos; não conta contra as quotas de criação de momentos do usuário (mas pode afetar storage/derivados enquanto estiver em estoque de parceiro).
+- Fluxo: Parceiro faz upload para `partners/{partner_uuid}/deliveries/{delivery_uuid}/` → sistema gera `delivery` + `voucher` → usuário resgata via `/redeem` → backend realiza cópia server-side para `u/{user_uuid}/m/{moment_uuid}/` em uma transação atômica e cria um momento do tipo `professional_gallery` visível na timeline como evento especial.
+
+Implicação de UX: Estes momentos aparecem como eventos destacados na timeline (banner "Galeria Profissional"), com opções de visualização em grid e download por página/PoD. Só podem ser criados via resgate (voucher) para preservar controle de qualidade e prevenir uploads massivos diretos pelo usuário.
 
 ---
 

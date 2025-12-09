@@ -30,6 +30,23 @@ O foco estratégico é duplo: (1) converter a emoção da paternidade em uma com
 
 **Eficiência de Capital:** Atingir um Custo de Estoque (sangramento) real por conta ≤ R$ 2,00/ano. O break-even mensal deve permanecer baixo (target: < 20 contas/mês).
 
+## DOSSIÊ DE EXECUÇÃO — Atualizações Principais
+
+Nota canônica: este resumo sintetiza as decisões definidas no documento principal do projeto — [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Consulte-o para a versão canônica e o roteiro de implementação.
+
+Resumo das decisões tomadas no "Dossiê de Execução" (financeiro, produto e técnico) e que devem ser refletidas em todo o repositório:
+
+- PCE (Provisão de Custo de Existência): provisionar R$ 25,00 por venda no D0 para formar o fundo de perpetuidade. Isso substitui versões anteriores do valor e altera unit economics e políticas de preço.
+- Gateway & Liquidez: considerar custo real de cartão (projeção R$ 16,33 por venda para B2C parcelado) e taxa PIX fixa ≈ R$ 1,00; estratégia de preço: R$ 297 (cartão) / R$ 279 (PIX) com incentivo explícito ao PIX.
+- Regime Tributário (Fator R): risco de enquadramento no Anexo V (~15,5%). Estratégia: estruturar pró-labore ≥ 28% do faturamento bruto para manter Anexo III (alíquota efetiva menor). Manter 10% de margem de segurança nas projeções fiscais.
+- Infra D0 e Mídia: mover processamento pesado para o cliente (FFmpeg.wasm) quando possível; fallback server-side para dispositivos fracos (~R$ 0,20 por conta). Isso reduz drasticamente o custo de entrada por usuário.
+- Pivot de GTM: priorizar canal B2B2C (fotógrafos de parto como parceiros) para CAC quase zero e receita pré-paga; manter vendas diretas B2C como canal complementar com CAC estimado em R$ 80.
+- Qualidade de mídia pronta para impressão e presets (fotógrafos: QHD 2560px JPEG85; upload mobile 2048px JPEG80; vídeos H.265 720p) — atualizar regras de derived assets e presets no catálogo de momentos.
+- Fluxo de Unboxing: fotógrafos sobem arquivos antes; mãe resgata com voucher; sistema cria conta e transfere posse — endpoint transacional /redeem deve garantir atomicidade.
+- KPIs e Roadmap: foco em Taxa de Sucesso de Upload >95%, Tempo Médio de Compressão <2min (100MB), Taxa de uso de Fallback <10%, Margem líquida B2B >60%.
+
+Essas decisões atualizam e substituem trechos anteriores dos documentos. Verifique os arquivos `Modelagem_Produto.md`, `Arquitetura_do_Sistema.md`, `Modelo_de_Dados_Lógico.md`, `DevOps_Observabilidade.md` e `Catalogo_Momentos.md` para ver as atualizações alinhadas.
+
 ## 2. O Modelo de Negócio (Racional Técno-Financeiro)
 
 Esta seção detalha a amarração entre as decisões de produto, engenharia e finanças que tornam o modelo de Acesso Perpétuo viável.
@@ -150,7 +167,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 | **CAC (R$)**                  | 81–100 (B2B2C falha)                | 80 (A1)                     | 50–79 (B2B2C escala)       | Principal alavanca de lucro. Depende do GTM B2B2C (3.4).     |
 | Attach (%)                    | 10%–19% (CRM falha)                 | 20% (A1)                    | 25%–45% (CRM otimizado)    | Alavanca de lucro incremental. Não mais de sobrevivência.    |
 | Upsell médio (R$)             | -                                   | 49                          | -                          | Alavanca secundária de LTV. (Simplificado para pacote único) |
-| Infra variável (R$/conta/ano) | 1,80–2,20                           | 1,53                        | 1,20–1,52                  | Já auditado e otimizado.                                     |
+| Infra variável (R$/conta/ano) | 1,80–2,20                           | 1,25                        | 1,20–1,52                  | Já auditado e otimizado.                                     |
 
 ## Anexo C — Glossário rápido
 
@@ -168,7 +185,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **Cold Storage:** "Armazenamento Frio". Mover dados de contas inativas (>12 meses) para uma camada de storage mais barata (e lenta) para reduzir o Custo de Estoque.
 
-**Custo de Estoque:** Nosso "sangramento" anual. O custo de infra pay-per-use (R$ 1,53/ano) para manter uma conta inativa "em prateleira" (B2 + I/O mínimo).
+**Custo de Estoque:** Nosso "sangramento" anual. O custo de infra pay-per-use (estimativa ≈ R$ 1,25/ano) para manter uma conta inativa "em prateleira" (B2 + I/O mínimo). Esta estimativa deriva da provisão do PCE (R$ 25,00 dividido ao longo de 20 anos) e deve ser revisada periodicamente.
 
 **Custo de Setup:** Custo único de compute (R$ 0,44) incorrido no D0 para processar (transcodificar) os 60 momentos iniciais do cliente.
 
@@ -186,7 +203,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **Pacotes de Repetição:** Nosso produto de upsell. Venda de entradas ilimitadas para capítulos recorrentes (ex: "Pacote Social").
 
-**PCE (Provisão de Custo de Estoque):** Reserva financeira criada no D0 (R$ 30,60) para cobrir o Custo de Estoque vitalício (20 anos) da conta. Garante a sobrevivência com 0% de upsell.
+**PCE (Provisão de Custo de Existência):** Reserva financeira criada no D0 (R$ 25,00 por venda) para cobrir o Custo de Estoque vitalício (20 anos) da conta. Garante a sobrevivência com 0% de upsell. (equivalente a uma provisão anual estimada de ~R$ 1,5/ano dependendo do mix de custos operacionais)
 
 **SLO (Service Level Objective):** "Objetivo de Nível de Serviço". Metas mensuráveis (ex: Custo de Estoque ≤ R$ 2,00/ano).
 

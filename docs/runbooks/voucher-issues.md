@@ -1,5 +1,7 @@
 # Runbook: Problemas com Vouchers
 
+Nota: consulte o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md) para as políticas de pagamento, pricing e fluxo de resgate que impactam este runbook.
+
 **Severidade:** Sev3  
 **Tempo Estimado:** 10-20 minutos  
 **Última Atualização:** Janeiro 2025
@@ -24,7 +26,7 @@
 
 ```sql
 -- Buscar voucher pelo código
-SELECT 
+SELECT
     v.code,
     v.status,
     v.partner_id,
@@ -45,7 +47,7 @@ WHERE v.code = 'VOUCHER-CODE';
 
 ```sql
 -- Ver assets da delivery
-SELECT 
+SELECT
     d.id,
     d.status,
     d.assets_payload,
@@ -107,7 +109,7 @@ WHERE code = 'VOUCHER-CODE'
 
 ```sql
 -- Verificar se momento foi criado
-SELECT 
+SELECT
     v.code,
     v.redeemed_by_user_id,
     m.id as moment_id,
@@ -174,7 +176,7 @@ WHERE code ILIKE '%ABC123%'  -- parte do código
 
 ```sql
 -- Verificar se parceiro fez upload
-SELECT 
+SELECT
     d.id,
     d.assets_payload,
     d.status
@@ -205,7 +207,7 @@ alerts:
   - name: voucher-redemption-failures
     condition: rate(voucher_redemption_errors_total[1h]) > 5
     severity: warning
-    
+
   - name: partner-low-balance
     condition: partner_voucher_balance < 2
     severity: info
@@ -217,17 +219,20 @@ alerts:
 ### Templates de Resposta
 
 **Voucher Inválido:**
-> Olá! Verificamos o código informado e ele não está em nosso sistema. 
-> Por favor, verifique se digitou corretamente. O código deve ter 
-> exatamente X caracteres. Se o problema persistir, entre em contato 
+
+> Olá! Verificamos o código informado e ele não está em nosso sistema.
+> Por favor, verifique se digitou corretamente. O código deve ter
+> exatamente X caracteres. Se o problema persistir, entre em contato
 > com o fotógrafo que forneceu o código.
 
 **Voucher Já Usado:**
-> Este código já foi utilizado em {data}. Se você não fez o resgate, 
+
+> Este código já foi utilizado em {data}. Se você não fez o resgate,
 > por favor entre em contato conosco para investigarmos.
 
 **Arquivos Não Aparecem:**
-> Identificamos o problema e seus arquivos estão sendo processados. 
+
+> Identificamos o problema e seus arquivos estão sendo processados.
 > Eles devem aparecer em sua conta em até 15 minutos.
 
 ## Métricas de Sucesso

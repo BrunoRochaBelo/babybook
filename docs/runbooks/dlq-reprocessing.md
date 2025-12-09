@@ -1,5 +1,7 @@
 # Runbook: Reprocessamento da DLQ (Dead Letter Queue)
 
+Nota: procedimentos de reprocessamento devem respeitar quotas e SLOs definidos no [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md). Consulte o dossiê para impacto financeiro e políticas de retry.
+
 **Severidade:** Sev2  
 **Tempo Estimado:** 15-30 minutos  
 **Última Atualização:** Janeiro 2025
@@ -43,12 +45,12 @@ modal logs --app babybook-workers --tail 100
 
 ### 3. Identificar causa comum
 
-| Erro | Causa Provável | Ação |
-|------|----------------|------|
-| `timeout` | Worker lento, arquivo grande | Aumentar timeout |
-| `memory_error` | Arquivo muito grande | Fallback ou skip |
-| `storage_error` | B2/R2 indisponível | Verificar status |
-| `invalid_payload` | Mensagem corrompida | Descartar |
+| Erro              | Causa Provável               | Ação             |
+| ----------------- | ---------------------------- | ---------------- |
+| `timeout`         | Worker lento, arquivo grande | Aumentar timeout |
+| `memory_error`    | Arquivo muito grande         | Fallback ou skip |
+| `storage_error`   | B2/R2 indisponível           | Verificar status |
+| `invalid_payload` | Mensagem corrompida          | Descartar        |
 
 ## Procedimento de Reprocessamento
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import secrets
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, select
@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.db.models import Account, Partner, Voucher, Delivery, Moment
+from babybook_api.db.models import Account, Child, Partner, Voucher, Delivery, Moment
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.schemas.vouchers import (
@@ -231,87 +231,116 @@ async def redeem_voucher(
     storage: PartnerStorageService = Depends(get_partner_storage),
 ) -> VoucherRedeemResponse:
     """
-    Resgata um voucher para a conta do usuário autenticado.
-    O voucher será marcado como resgatado e associado à conta.
-    
-    Se o voucher tem uma entrega associada, os arquivos são copiados
-    via server-side copy de partners/{partner_id}/{delivery_id}/ para
-    u/{user_id}/m/{moment_id}/.
+    Resgata um voucher de forma transacional e idempotente.
+
+    - Trava o voucher com SELECT FOR UPDATE
+    - Valida status/expiração/limite de uso
+    - Cria (ou reusa) uma criança placeholder para associar o momento
+    - Copia assets server-side; falha aborta a transação
+    - Persiste metadados de idempotência
     """
-    voucher = await _get_voucher_by_code(db, body.code)
-
-    if not voucher:
-        raise AppError(status_code=404, code="voucher.not_found", message="Voucher não encontrado.")
-
-    # Validações
-    if voucher.status != "available":
-        raise AppError(
-            status_code=400,
-            code="voucher.not_available",
-            message=f"Voucher não está disponível. Status atual: {voucher.status}",
-        )
-
-    if voucher.expires_at and voucher.expires_at < datetime.utcnow():
-        voucher.status = "expired"
-        await db.commit()
-        raise AppError(status_code=400, code="voucher.expired", message="Voucher expirado.")
-
-    if voucher.uses_count >= voucher.uses_limit:
-        raise AppError(status_code=400, code="voucher.uses_exceeded", message="Limite de usos do voucher excedido.")
-
-    # Resgatar voucher
     account_id = uuid.UUID(current_user.account_id)
-    voucher.beneficiary_id = account_id
-    voucher.uses_count += 1
-    voucher.redeemed_at = datetime.utcnow()
+    now = datetime.utcnow()
 
-    if voucher.uses_count >= voucher.uses_limit:
-        voucher.status = "redeemed"
-
-    # Se tem entrega associada, copiar arquivos para o usuário
-    moment_id: str | None = None
-    if voucher.delivery_id:
-        # Buscar delivery com partner
-        delivery_result = await db.execute(
-            select(Delivery)
-            .options(selectinload(Delivery.partner))
-            .where(Delivery.id == voucher.delivery_id)
+    async with db.begin():
+        voucher: Voucher | None = await db.scalar(
+            select(Voucher).where(Voucher.code == body.code).with_for_update()
         )
-        delivery = delivery_result.scalar_one_or_none()
-        
-        if delivery and delivery.partner:
-            # Criar momento para o usuário
+
+        if not voucher:
+            raise AppError(status_code=404, code="voucher.not_found", message="Voucher não encontrado.")
+
+        # Idempotência: se mesma key já usada, retorna resultado anterior
+        if body.idempotency_key and voucher.metadata:
+            if voucher.metadata.get("idempotency_key") == body.idempotency_key:
+                return VoucherRedeemResponse(
+                    voucher_id=str(voucher.id),
+                    discount_cents=voucher.discount_cents,
+                    delivery_id=str(voucher.delivery_id) if voucher.delivery_id else None,
+                    moment_id=voucher.metadata.get("moment_id"),
+                    message=voucher.metadata.get("redeem_message", "Voucher já resgatado."),
+                )
+
+        if voucher.status != "available":
+            raise AppError(
+                status_code=400,
+                code="voucher.not_available",
+                message=f"Voucher não está disponível. Status atual: {voucher.status}",
+            )
+
+        if voucher.expires_at and voucher.expires_at < now:
+            voucher.status = "expired"
+            raise AppError(status_code=400, code="voucher.expired", message="Voucher expirado.")
+
+        if voucher.uses_count >= voucher.uses_limit:
+            raise AppError(status_code=400, code="voucher.uses_exceeded", message="Limite de usos do voucher excedido.")
+
+        if voucher.beneficiary_id and voucher.beneficiary_id != account_id:
+            raise AppError(status_code=409, code="voucher.already_claimed", message="Voucher já usado por outro usuário.")
+
+        child_id = await _ensure_child_for_account(db, account_id, current_user.name)
+
+        voucher.beneficiary_id = account_id
+        voucher.uses_count += 1
+        voucher.redeemed_at = now
+
+        if voucher.uses_count >= voucher.uses_limit:
+            voucher.status = "redeemed"
+
+        moment_id: str | None = None
+        delivery_message = ""
+
+        if voucher.delivery_id:
+            delivery: Delivery | None = await db.scalar(
+                select(Delivery)
+                .options(selectinload(Delivery.partner))
+                .where(Delivery.id == voucher.delivery_id)
+                .with_for_update()
+            )
+
+            if not delivery:
+                raise AppError(status_code=404, code="delivery.not_found", message="Entrega não encontrada para este voucher.")
+
             new_moment = Moment(
                 id=uuid.uuid4(),
                 account_id=account_id,
-                title=delivery.title or f"Fotos de {delivery.client_name}",
+                child_id=child_id,
+                title=delivery.title or f"Entrega de {delivery.client_name or 'parceiro'}",
                 description=delivery.description,
-                event_date=delivery.event_date,
+                occurred_at=delivery.event_date,
+                status="published",
             )
             db.add(new_moment)
             moment_id = str(new_moment.id)
-            
-            # Copiar arquivos via server-side copy (B2 b2_copy_file)
-            # Isso é instantâneo e não consome banda
-            await storage.copy_delivery_to_user(
+
+            copy_results = await storage.copy_delivery_to_user(
                 partner_id=str(delivery.partner_id),
                 delivery_id=str(delivery.id),
                 target_user_id=str(account_id),
                 target_moment_id=moment_id,
             )
-            
-            # Atualizar delivery como entregue
-            delivery.status = "delivered"
-            delivery.assets_transferred_at = datetime.utcnow()
+
+            if any(not r.success for r in copy_results):
+                errors = [r.error for r in copy_results if not r.success and r.error]
+                raise AppError(status_code=500, code="delivery.copy_failed", message=f"Falha ao copiar arquivos: {'; '.join(errors)}")
+
+            delivery.status = "completed"
+            delivery.assets_transferred_at = now
             delivery.beneficiary_email = current_user.email
+            delivery_message = " Suas fotos foram importadas para sua galeria!"
 
-    await db.commit()
+        message = "Voucher resgatado com sucesso!"
+        if voucher.discount_cents > 0:
+            message += f" Você recebeu um desconto de R${voucher.discount_cents / 100:.2f}."
+        message += delivery_message
 
-    message = "Voucher resgatado com sucesso!"
-    if voucher.discount_cents > 0:
-        message += f" Você recebeu um desconto de R${voucher.discount_cents / 100:.2f}."
-    if voucher.delivery_id:
-        message += " Suas fotos foram importadas para sua galeria!"
+        meta: dict[str, Any] = voucher.metadata or {}
+        if body.idempotency_key:
+            meta["idempotency_key"] = body.idempotency_key
+        if moment_id:
+            meta["moment_id"] = moment_id
+        meta["redeem_message"] = message
+        voucher.metadata = meta
 
     return VoucherRedeemResponse(
         voucher_id=str(voucher.id),
@@ -320,6 +349,28 @@ async def redeem_voucher(
         moment_id=moment_id,
         message=message,
     )
+
+
+async def _ensure_child_for_account(db: AsyncSession, account_id: uuid.UUID, default_name: str | None) -> uuid.UUID:
+    """Recupera ou cria uma criança placeholder para associar momentos do resgate."""
+    child = await db.scalar(
+        select(Child)
+        .where(Child.account_id == account_id)
+        .order_by(Child.created_at.asc())
+        .limit(1)
+        .with_for_update()
+    )
+    if child:
+        return child.id
+
+    new_child = Child(
+        id=uuid.uuid4(),
+        account_id=account_id,
+        name=default_name or "Seu bebê",
+    )
+    db.add(new_child)
+    await db.flush()
+    return new_child.id
 
 
 @router.get(

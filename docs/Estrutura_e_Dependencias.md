@@ -1,5 +1,7 @@
 # Estrutura e Engenharia do Projeto - Baby Book
 
+Nota: Este documento está alinhado ao [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). O dossiê contém as decisões financeiras e de produto que governam convenções, quotas e premissas de custo aqui descritas.
+
 Este documento é o manual de engenharia e a fonte canônica de arquitetura para o projeto Baby Book. Ele define as fronteiras, responsabilidades, convenções e o "como" executar e evoluir o sistema, alinhado ao Visão & Viabilidade (Acesso Perpétuo + PCE).
 
 ## Sumário
@@ -916,8 +918,8 @@ Decisões: Ex: "Por que o estado do formulário usa Zustand (para persistir rasc
 - Cápsula: Coleção selável para abrir no futuro.
 - Cofre (Vault): Documentos privados sensíveis (RBAC owner-only).
 - Guestbook: Mural com moderação e mídia opcional.
-- PCE (Provisão de Custo de Estoque): A reserva financeira (do Visão & Viabilidade) que cobre o custo vitalício.
-- Custo de Estoque: O "sangramento" anual (R$ 1,53) para manter uma conta.
+- PCE (Provisão de Custo de Existência): A reserva financeira (do Visão & Viabilidade) que cobre o custo vitalício (R$ 25,00 por venda).
+- Custo de Estoque: O "sangramento" anual estimado (≈ R$ 1,25/ano) para manter uma conta, derivado da provisão do PCE distribuída ao longo de 20 anos.
 
 ### 16.3. Diagramas Mermaid
 

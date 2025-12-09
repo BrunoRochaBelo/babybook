@@ -1,5 +1,7 @@
 # DevOps, Observabilidade & Operação - Baby Book
 
+Nota: Políticas operacionais e SLOs descritos aqui foram definidos em consonância com o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Ajustes em presign TTL, custos de fallback e runbooks devem sempre referenciar o dossiê.
+
 ## Sumário
 
 - [Objetivo, Escopo e o "God SLO"](#objetivo-escopo-e-o-god-slo)
@@ -143,8 +145,8 @@ Arquitetura híbrida de storage:
 
 Buckets: bb-media (originais/derivados), bb-exports (ZIPs temporários) — com regras de lifecycle aplicadas por prefixo.
 Lifecycle: Derivados com TTL curto (30d); exports 72h; reaper diário para órfãos (conforme Modelo de Dados 10.4).
-Assinaturas (Presign): A API gera URLs PUT pré-assinadas ou fornece pontos de entrada TUS dependendo do caso de uso.
-Segurança: Presigns restritos (key exata, content-length-range, TTL curto). Criptografia em repouso e políticas por prefixo.
+Assinaturas (Presign): A API gera URLs PUT pré-assinadas ou fornece pontos de entrada TUS dependendo do caso de uso. Padrão operacional: TTL das presigned URLs = 15 minutos; clients devem suportar renovar presigns em caso de upload longa (multipart resumable) e lógica de recheck de partes.
+Segurança: Presigns restritos (key exata, content-length-range, TTL curto — padrão 15 min). Criptografia em repouso e políticas por prefixo. Monitorar taxa de falha de presign (>2%) como alerta operacional (Sev-3).
 Egress (Custo): A estratégia híbrida visa reduzir risco de custo dependente de acordos. O R2 reduz egress para arquivos hot; o B2 mantém custo baixo para armazenamento frio. Configurar o CDN (media.babybook.com) para privilegiar o R2 quando possível e só cair no B2 para originais sob demanda.
 
 ### 2.6. Workers (Modal) & Fila (Cloudflare Queues)

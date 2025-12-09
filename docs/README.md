@@ -1,5 +1,7 @@
 # Baby Book 📖
 
+Nota: para decisões canônicas de estratégia, pricing e roteiro técnico, consulte o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Este dossiê atualiza e substitui versões anteriores de "Visão & Viabilidade" e documentos correlatos.
+
 Este repositório contém o stack completo (monorepo) do projeto Baby Book.
 
 ## 1. O que é o Baby Book?
@@ -11,7 +13,7 @@ O Baby Book é um álbum vivo, digital e privado, focado em curadoria guiada par
 Este README.md é apenas a porta de entrada. Antes de codar, todo desenvolvedor (novo ou antigo) deve ler nossa "Bússola" de documentos (localizados em /docs) para entender a estratégia por trás do código. Cada documento responde a uma pergunta-chave:
 
 - **Visão & Viabilidade (O "Porquê" Financeiro")**:  
-  Pergunta que responde: O negócio é lucrativo? Como o Custo de Estoque (PCE) de R$ 1,53/ano é coberto no D0? Qual é a nossa estratégia Go-to-Market (B2B2C) e qual o CAC (R$ 80) esperado?  
+  Pergunta que responde: O negócio é lucrativo? Como a Provisão de Custo de Existência (PCE) de R$ 25,00 por venda (provisionada no D0, equivalente a uma provisão anual estimada ≈ R$ 1,25/ano) é coberta no D0? Qual é a nossa estratégia Go-to-Market (B2B2C) e qual o CAC (R$ 80) esperado?  
   Implicação para o Dev: Este é o documento mais importante. Nossas escolhas de stack (ex: Cloudflare Queues, Neon) são decisões de negócio para manter o Custo de Estoque baixo. Leia para entender o "porquê" financeiro por trás das nossas escolhas técnicas.
 
 - **Modelagem de Produto (A "Alma")**:  
@@ -187,11 +189,11 @@ pnpm --filter e2e test:headed
 
 ### Modos do front-end
 
-`ash
+```bash
 pnpm dev:web      # SPA (auto-detecta MSW, padrão mock)
 pnpm dev:web:mock # Força MSW/dados seedados
 pnpm dev:web:real # Desativa MSW (aponta para a API real)
-`
+```
 
 No modo real, configure `VITE_ENABLE_MSW=false` (por padrão mantemos `true` para rodar 100% mockado) e `VITE_MEDIA_BASE_URL` no `.env.local` para apontar para o host dos derivados. Use `pnpm dev:web:mock` para voltar ao modo totalmente local.
 
@@ -215,10 +217,10 @@ python -m babybook_admin.cli worker-jobs replay <job_id>
 
 #### SPA em contêiner
 
-`ash
+```bash
 docker compose --profile web-prod up web-prod
-`
+```
 
-Esse profile usa pps/web/Dockerfile para gerar o bundle estático em http://localhost:4173, apontando para a API/storage do compose.
+Esse profile usa `apps/web/Dockerfile` para gerar o bundle estático em http://localhost:4173, apontando para a API/storage do compose.
 
 > Dica: defina `VITE_MEDIA_BASE_URL` (por exemplo, `http://localhost:9000`) para que a SPA gere as URLs dos derivados ao usar o bucket local.

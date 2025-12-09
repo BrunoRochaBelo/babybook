@@ -35,9 +35,30 @@ asset_status_enum = Enum("queued", "processing", "ready", "failed", name="asset_
 vault_kind_enum = Enum("certidao", "cpf_rg", "sus_plano", "outro", name="vault_kind_enum")
 
 # B2B2C / Voucher enums
-partner_status_enum = Enum("active", "inactive", "suspended", name="partner_status_enum")
+partner_status_enum = Enum(
+    "pending_approval",
+    "active",
+    "inactive",
+    "suspended",
+    name="partner_status_enum",
+)
 voucher_status_enum = Enum("available", "redeemed", "expired", "revoked", name="voucher_status_enum")
-delivery_status_enum = Enum("pending", "processing", "completed", "failed", name="delivery_status_enum")
+delivery_status_enum = Enum(
+    "draft",
+    "pending_upload",
+    "ready",
+    "pending",
+    "processing",
+    "completed",
+    "failed",
+    name="delivery_status_enum",
+)
+media_processing_status_enum = Enum(
+    "ready",
+    "processing",
+    "failed",
+    name="media_processing_status_enum",
+)
 
 
 class Base(DeclarativeBase):
@@ -114,6 +135,7 @@ class User(TimestampMixin, Base):
 
     account: Mapped[Account] = relationship(back_populates="users")
     sessions: Mapped[list["Session"]] = relationship(back_populates="user", cascade="all,delete")
+    media_assets: Mapped[list["MediaAsset"]] = relationship(back_populates="user", cascade="all,delete")
 
 
 class Session(TimestampMixin, Base):
@@ -250,6 +272,19 @@ class AssetVariant(TimestampMixin, Base):
     asset: Mapped[Asset] = relationship(back_populates="variants")
 
 
+class MediaAsset(TimestampMixin, Base):
+    __tablename__ = "media_assets"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    storage_path_original: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    storage_path_optimized: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    storage_path_thumb: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    processing_status: Mapped[str] = mapped_column(media_processing_status_enum, default="ready")
+
+    user: Mapped[User | None] = relationship(back_populates="media_assets")
+
+
 class UploadSession(TimestampMixin, Base):
     __tablename__ = "upload_sessions"
 
@@ -384,6 +419,10 @@ class BillingEvent(TimestampMixin, Base):
     event_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     package_key: Mapped[str] = mapped_column(String(64))
     amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    amount_gross: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    gateway_fee: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    pce_reserved: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tax_effective: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str | None] = mapped_column(String(16), nullable=True)
     payload: Mapped[dict[str, Any]] = mapped_column(JSON)
 

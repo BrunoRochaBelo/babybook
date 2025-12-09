@@ -1,5 +1,7 @@
 # Arquitetura & Domínio - Baby Book
 
+Nota: este documento foi harmonizado com o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). O dossiê contém as decisões de negócio e financeiras que impactam arquitetura e SLOs — consulte-o antes de alterar políticas de custo.
+
 Documento de referência técnica. Cobre stack, fluxos críticos, segurança, governança, SLOs e políticas de custo para sustentar o modelo de "Acesso Perpétuo", garantindo lucratividade no D0 através da Provisão de Custo de Estoque (PCE).
 
 ## Sumário
@@ -107,7 +109,7 @@ Princípios:
 
 - **SLO de Custo de Estoque (Médio) ≤ R$ 2,00 /conta/ano:**
 
-  **Implicação (Engenharia):** Alinhado com a Viabilidade (visao_viabilidade_babybook.md, Seção 2.3). Este é o "God SLO" (o SLO principal). O custo auditado é R$ 1,53/ano. O SLO de R$ 2,00 dá à engenharia uma margem de ~30% para flutuações de câmbio ou preço de provedor antes que o modelo financeiro precise ser revisto. Todos os outros SLOs (performance, disponibilidade) são balanceados contra este.
+  **Implicação (Engenharia):** Alinhado com a Viabilidade (visao_viabilidade_babybook.md, Seção 2.3). Este é o "God SLO" (o SLO principal). A estimativa de custo anual por conta é ≈ R$ 1,25/ano (derivada da provisão do PCE de R$ 25,00 distribuída ao longo de 20 anos). O SLO de R$ 2,00 dá à engenharia uma margem de segurança para flutuações de câmbio ou preço de provedor antes que o modelo financeiro precise ser revisto. Todos os outros SLOs (performance, disponibilidade) são balanceados contra este.
 
 ### 1.2 Metas Mensuráveis de Produto (KPIs) (Alinhado)
 
@@ -358,6 +360,17 @@ Exemplo 2: Pacote "Saúde" (R$ 29) → Define Account.entitlements.features.unli
 
 **Comunicação:** A API consome webhooks assinados (HMAC) do provedor para provisionar entitlements (ver 4.10).
 
+### 3.7.1 Política de Pricing & Fees (Atualização do Dossiê)
+
+Notas operacionais (deve constar na implementação do checkout e nos cálculos de Unit Economics):
+
+- Precificação dual: R$ 297 (cartão, B2C varejo) / R$ 279 (PIX). Incentivo explícito ao PIX para reduzir taxas.
+- Taxas de gateway projetadas: cartão B2C (parcelamento realístico) ≈ R$ 16,33 por venda; PIX ≈ R$ 1,00 por venda. Esses números devem ser usados nos cálculos de fechamento de pedido e relatórios financeiros.
+- Canais B2B: preços e descontos para fotógrafos/partners — ex.: R$ 120 (lote 10), R$ 100 (lote 50+). O checkout parceiro deve processar pagamento B2B e gerar vouchers em lote.
+- Tributação/Regime (Fator R): risco de enquadramento no Anexo V (alíquota ≈ 15,5%). Estratégia adotada: estruturar pró-labore >= 28% do faturamento bruto para manter Anexo III (alíquota efetiva mais favorável). Implementar checagens mensais (financeiro/contábil) e alertas se a razão pró-labore/faturamento cair abaixo do threshold.
+
+Implicação técnica: O serviço de faturamento (ou webhook handler) deve calcular e armazenar (no Purchase/order) os valores líquidos (amount_gross, tax_effective, gateway_fee, pce_reserved) para futura reconciliação e relatórios.
+
 ### 3.8 Entidades de Faturamento (Alinhado com "Pacotes de Repetição")
 
 - **Plan:** (Definição no Stripe, ex: price\_...) Ex: "Acesso Perpétuo Base", "Pacote Repetição Social".
@@ -580,7 +593,7 @@ Novos Códigos de Domínio (Revisados):
 | Risco                                     | Mitigação (Alinhada com Viabilidade visao_viabilidade_babybook.md)                                                                                                                                                                                                                                                             |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1. Custo de Longo Prazo (Acesso Perpétuo) | O maior risco. Mitigado por: (1) Hedge Mandatório (créditos USD). (2) Cold Storage Agressivo (5.4) após 12 meses. (3) Cláusula de "Taxa de Manutenção" (Termos de Uso) para contas inativas > 36 meses. Detalhe: Legalmente, "Acesso Perpétuo" deve ser definido como "perpétuo enquanto o serviço for comercialmente viável". |
-| 2. Câmbio (USD/BRL)                       | Risco financeiro que impacta o Custo de Estoque (R$ 1,53). Mitigado pela Política de Hedge Mandatório (compra de créditos USD pré-pagos no B2/Modal/Fly quando o câmbio estiver favorável).                                                                                                                                    |
+| 2. Câmbio (USD/BRL)                       | Risco financeiro que impacta o Custo de Estoque (estimativa ≈ R$ 1,25/ano). Mitigado pela Política de Hedge Mandatório (compra de créditos USD pré-pagos no B2/Modal/Fly quando o câmbio estiver favorável).                                                                                                                   |
 | 3. Cold Start (DB/Workers)                | Aceitar em p99. Manter pool warm (Modal) e instâncias mínimas (Fly.io) em picos sazonais. A UI deve sempre mostrar um spinner otimista para mascarar o cold start do Neon.                                                                                                                                                     |
 | 4. Fim da "Bandwidth Alliance"            | Risco de plataforma que quebraria o Custo de Estoque (aumentando o egress). Mitigação de Longo Prazo: Migrar o storage do B2 para o Cloudflare R2, que tem zero custo de egress por padrão, eliminando a dependência da aliança.                                                                                               |
 | 5. Risco de Upsell Baixo                  | Rebaixado de Risco de Sobrevivência para Risco de Lucro. O modelo (visao_viabilidade_babybook.md, Seção 5.3) sobrevive com 0% de attach rate (graças ao PCE). Mitigação (Produto): O upsell é agora 100% "gravy". A mitigação é o Plano de Engajamento (CRM, Highlight Reels) para maximizar este lucro extra.                 |

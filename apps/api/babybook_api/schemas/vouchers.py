@@ -58,6 +58,12 @@ class VoucherResponse(VoucherBase):
 class VoucherRedeemRequest(BaseModel):
     """Request para resgatar um voucher"""
     code: str = Field(..., min_length=1, max_length=32)
+    idempotency_key: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        description="Chave idempotente para evitar resgates duplicados",
+    )
 
 
 class VoucherRedeemResponse(BaseModel):

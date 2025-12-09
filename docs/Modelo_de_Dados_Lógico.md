@@ -1,5 +1,7 @@
 # Modelo de Dados - Baby Book
 
+Nota: O modelo de dados foi atualizado para refletir as decisões do [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Use o dossiê como fonte canônica ao propor alterações de schema que afetem custos, contratos ou políticas fiscais.
+
 ## Sumário
 
 - [Princípios e Escopo](#princípios-e-escopo)
@@ -435,6 +437,67 @@ CREATE TABLE IF NOT EXISTS app.moment_asset (
   PRIMARY KEY (moment_id, asset_id)
 );
 CREATE INDEX IF NOT EXISTS idx_masset_moment_slot ON app.moment_asset(moment_id, slot);
+
+-- Tabelas para suporte a parceiros, entregas e vouchers (Fluxo B2B2C / Unboxing)
+-- Conforme Dossiê de Execução: parceiros fazem upload em 'partners/' e vouchers são resgatados pelo endpoint /redeem
+CREATE TABLE IF NOT EXISTS app.partners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    email citext UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    voucher_balance INT DEFAULT 0 CHECK (voucher_balance >= 0),
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS app.deliveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    partner_id UUID NOT NULL REFERENCES app.partners(id) ON DELETE CASCADE,
+    client_name VARCHAR(255),
+    assets_payload JSONB NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING'
+      CHECK (status IN ('PENDING', 'CLAIMED', 'EXPIRED')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS app.vouchers (
+    code VARCHAR(20) PRIMARY KEY,
+    partner_id UUID NOT NULL REFERENCES app.partners(id) ON DELETE CASCADE,
+    delivery_id UUID REFERENCES app.deliveries(id),
+    redeemed_by_user_id UUID REFERENCES app.app_user(id),
+    redeemed_at TIMESTAMPTZ,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    CONSTRAINT unique_active_code UNIQUE (code)
+);
+
+CREATE TABLE IF NOT EXISTS app.media_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES app.app_user(id),
+    storage_path_original VARCHAR(500),
+    storage_path_optimized VARCHAR(500),
+    storage_path_thumb VARCHAR(500),
+    processing_status VARCHAR(20) DEFAULT 'READY'
+      CHECK (processing_status IN ('READY', 'PROCESSING', 'FAILED')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes de suporte para consultas de resgate e processamento
+CREATE INDEX IF NOT EXISTS idx_deliveries_partner ON app.deliveries(partner_id);
+CREATE INDEX IF NOT EXISTS idx_vouchers_lookup ON app.vouchers(code) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_assets_processing ON app.media_assets(processing_status) WHERE processing_status = 'PROCESSING';
+
+-- Transação atômica de resgate (endpoint POST /redeem)
+-- Pseudocódigo SQL / lógica transacional para implementação segura:
+-- BEGIN TRANSACTION
+--   -- 1. Validar voucher (status = 'ACTIVE')
+--   SELECT * FROM app.vouchers WHERE code = $1 AND status = 'ACTIVE' FOR UPDATE;
+--   -- 2. Criar ou recuperar usuário (get_or_create_user)
+--   -- 3. Copiar arquivos server-side do prefix partners/... para u/{user}/m/{moment}/ (b2_copy_file) e inserir registros em app.asset/app.asset_variant
+--   -- 4. Inserir momento (type = 'PROFESSIONAL_GALLERY') e relacionar assets via app.moment_asset
+--   -- 5. Atualizar vouchers.status = 'REDEEMED', vouchers.redeemed_by_user_id = {user.id}, vouchers.redeemed_at = now()
+--   -- 6. Atualizar deliveries.status = 'CLAIMED' (se aplicável)
+-- COMMIT TRANSACTION
+-- Em caso de falha, rollback e auditoria (audit_event) com motivo do erro.
 ```
 
 ## DDL — Features (Séries, Compart., Saúde, etc.)

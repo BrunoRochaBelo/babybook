@@ -1,5 +1,7 @@
 # Runbook: Falhas no Edge Worker
 
+Nota: regras de autorização e TTL de presigned URLs descritas no [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md) são a referência para este runbook. Confirme configurações do Worker antes de alterar assumptos de segurança.
+
 **Severidade:** Sev1  
 **Tempo Estimado:** 5-15 minutos  
 **Última Atualização:** Janeiro 2025

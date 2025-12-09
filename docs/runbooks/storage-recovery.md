@@ -1,5 +1,7 @@
 # Runbook: Recuperação de Storage (R2/B2)
 
+Nota: políticas de lifecycle e paths de buckets devem ser compatíveis com o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md). Verifique prefixes (partners/, tmp/, u/) e regras de expiração antes de qualquer cópia em massa.
+
 **Severidade:** Sev2  
 **Tempo Estimado:** 30-60 minutos  
 **Última Atualização:** Janeiro 2025
@@ -73,8 +75,8 @@ wrangler tail babybook-edge --format json | grep -i "error"
 
 ```python
 # 1. Verificar se o arquivo existe no banco
-SELECT id, original_key, status, derivs 
-FROM assets 
+SELECT id, original_key, status, derivs
+FROM assets
 WHERE id = 'asset-uuid';
 
 # 2. Verificar se existe no storage
@@ -99,8 +101,8 @@ curl -X POST "https://api.babybook.com/v1/assets/{asset_id}/regenerate" \
   -d '{"targets": ["thumb", "preview"]}'
 
 # Ou via SQL + Worker
-UPDATE assets 
-SET status = 'queued', 
+UPDATE assets
+SET status = 'queued',
     derivs = '{}'
 WHERE id = 'asset-uuid';
 
@@ -123,7 +125,7 @@ from babybook_api.storage.partner_service import PartnerStorageService
 service = PartnerStorageService()
 await service.copy_delivery_to_user(
     partner_id="partner-uuid",
-    delivery_id="delivery-uuid", 
+    delivery_id="delivery-uuid",
     user_id="user-uuid",
     moment_id="moment-uuid"
 )
@@ -204,7 +206,7 @@ alerts:
   - name: storage-errors-high
     condition: rate(storage_errors_total[5m]) > 10
     severity: warning
-    
+
   - name: edge-worker-5xx
     condition: rate(edge_worker_5xx_total[5m]) > 5
     severity: critical
