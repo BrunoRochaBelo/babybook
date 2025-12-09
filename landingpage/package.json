@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "dev": "vite",
+    "dev:pro": "vite --open /pro.html",
     "build": "tsc && vite build",
     "check:mount-dispose": "node ./scripts/check-mount-dispose.js",
     "build:analyze": "tsc && vite build && open dist/stats.html",

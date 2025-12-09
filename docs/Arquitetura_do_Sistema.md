@@ -140,17 +140,17 @@ Princípios:
 
 ### 2.1 Stack, escolhas e racional (Alinhado)
 
-| Componente     | Escolha                    | Racional (Alinhado com a Viabilidade)                                                                                                                               |
-| -------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Entrega/Edge   | Cloudflare Pages           | CDN global, SSL/WAF nativos, deploy via Git. Custo zero para estáticos. Simplicidade operacional.                                                                   |
-| SSR Público    | Cloudflare Workers         | Renderiza links públicos de share (share.babybook.com). Mantém a stack unificada na Cloudflare, custo fixo zero.                                                    |
-| Backend (API)  | FastAPI (Python) @ Fly.io  | Async nativo, performance de I/O, ecossistema Python (conecta ao Modal). Fly nos dá uma micro-VM "quente" e barata.                                                 |
-| Banco de Dados | Neon (PostgreSQL)          | O pilar da elasticidade econômica. Autosuspend (escala-a-zero) em ociosidade. Vital para o modelo de Acesso Perpétuo.                                               |
-| Armazenamento  | Backblaze B2               | Melhor TCO (Custo Total) para S3. Bandwidth Alliance com Cloudflare zera custos de egress (o maior risco de custo). Esta aliança é uma premissa de negócio crítica. |
-| Processamento  | Modal (Python Workers)     | "Serverless de verdade" para compute pesado (ffmpeg). Paga-se por segundo de CPU usado. Custo zero em ociosidade.                                                   |
-| Fila (Queue)   | Cloudflare Queues          | Desacopla a API dos workers. Absorve picos (Dia das Mães) e garante retries. Custo zero na camada gratuita.                                                         |
-| Sessão/Auth    | Cookies \_\_Host- + CSRF   | Abordagem B-F-F (Backend-for-Frontend) clássica. Simples e segura.                                                                                                  |
-| IaC / CI/CD    | Terraform + GitHub Actions | Padrão de indústria para infra declarativa e pipelines de automação.                                                                                                |
+| Componente     | Escolha                                                      | Racional (Alinhado com a Viabilidade)                                                                                                                                                            |
+| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Entrega/Edge   | Cloudflare Pages                                             | CDN global, SSL/WAF nativos, deploy via Git. Custo zero para estáticos. Simplicidade operacional.                                                                                                |
+| SSR Público    | Cloudflare Workers                                           | Renderiza links públicos de share (share.babybook.com). Mantém a stack unificada na Cloudflare, custo fixo zero.                                                                                 |
+| Backend (API)  | FastAPI (Python) @ Fly.io                                    | Async nativo, performance de I/O, ecossistema Python (conecta ao Modal). Fly nos dá uma micro-VM "quente" e barata.                                                                              |
+| Banco de Dados | Neon (PostgreSQL)                                            | O pilar da elasticidade econômica. Autosuspend (escala-a-zero) em ociosidade. Vital para o modelo de Acesso Perpétuo.                                                                            |
+| Armazenamento  | Cloudflare R2 (hot) + Backblaze B2 (cold)                    | Hot (R2) para thumbnails, previews e assets frequentemente acessados; Cold (B2) para originais e vídeos. Estratégia híbrida protege contra mudança de acordos comerciais e otimiza egress/custo. |
+| Processamento  | Client-side (ffmpeg.wasm / mobile native) + Modal (fallback) | Compressão preferencial no cliente (ffmpeg.wasm em Web Worker; ffmpeg-kit / react-native-compressor no mobile). Modal mantém fallback server-side apenas para dispositivos fracos ou exceções.   |
+| Fila (Queue)   | Cloudflare Queues                                            | Desacopla a API dos workers. Absorve picos (Dia das Mães) e garante retries. Custo zero na camada gratuita.                                                                                      |
+| Sessão/Auth    | Cookies \_\_Host- + CSRF                                     | Abordagem B-F-F (Backend-for-Frontend) clássica. Simples e segura.                                                                                                                               |
+| IaC / CI/CD    | Terraform + GitHub Actions                                   | Padrão de indústria para infra declarativa e pipelines de automação.                                                                                                                             |
 
 ### 2.2 Mapa de comunicações
 
@@ -163,34 +163,132 @@ Princípios:
 - Workers (Modal) → API: HTTPS (PATCH /assets/{id}) - Para atualizar status. Autenticado via Authorization: Bearer <MODAL_SERVICE_TOKEN>.
 - Gateway (Pagamento) → API: HTTPS (Webhook) - POST /webhooks/payment (protegido por HMAC).
 
-### 2.5 Padrões de chaves S3 e lifecycle (Alinhado)
+### 2.5 Padrões de chaves S3 e lifecycle (Alinhado) — **ATUALIZADO Jan/2025**
 
-Chaves:
+> ⚠️ **Implementação Concluída:** A estrutura de pastas abaixo está implementada em `apps/api/babybook_api/storage/paths.py`
 
-- media/u/{account_id}/{asset_id}/original.{ext}
-- media/u/{account_id}/{asset_id}/deriv/{preset}.{ext} (ex: 720p.mp4)
-- exports/{account_id}/{export_id}.zip
-- tmp/uploads/{uuid}
+#### Estrutura de Prefixos (Bucket: `bb-production-v1`)
 
-Racional da Estrutura:
+| Prefixo                                               | Descrição                           | Lifecycle               | Acesso                  |
+| ----------------------------------------------------- | ----------------------------------- | ----------------------- | ----------------------- |
+| `tmp/{uuid}/`                                         | Uploads temporários em progresso    | **1 dia** (auto-delete) | Bloqueado               |
+| `partners/{partner_uuid}/deliveries/{delivery_uuid}/` | Assets de parceiros para entrega    | **365 dias**            | JWT + role=photographer |
+| `u/{user_uuid}/m/{moment_uuid}/`                      | Momentos do usuário                 | **Permanente**          | JWT + UUID match        |
+| `sys/`                                                | Assets do sistema (logos, defaults) | **Permanente**          | Público                 |
 
-- u/{account_id}/: Este prefixo é o limite do tenant. Essencial para: (1) Políticas de segurança, (2) Regras de Lifecycle (aplicar cold storage por conta, 5.4), e (3) Exclusão de dados (LGPD).
-- .../original vs .../deriv: Separa o dado imutável (fonte da verdade) dos caches descartáveis. deriv pode ter um TTL curto (90 dias) para economizar custos.
+#### Padrões de Chaves Detalhados
 
-Lifecycle (B2) - Alinhado com Risco de Custo:
+**Uploads Temporários:**
 
-- tmp/uploads/\*: Delete em 3 dias (limpeza de órfãos).
-- exports/\*: Delete em 72 horas (segurança).
-- .../deriv/\*: Delete em 90 dias (economia de custo, são recriáveis).
+```
+tmp/{upload_uuid}/{filename}
+```
 
-Política de Cold Storage (Definida): Esta é uma mitigação de custo não opcional. Após 12 meses de inatividade da conta (sem login), um job agendado (ver 5.4) deve mover todos os assets .../original.{ext} para a classe de armazenamento fria (ex: B2 Glacier, R2 Infrequent Access). Ver Seção 10 para o impacto no Risco #1.
+**Arquivos de Parceiros:**
+
+```
+partners/{partner_uuid}/deliveries/{delivery_uuid}/{filename}
+partners/{partner_uuid}/deliveries/{delivery_uuid}/thumbs/{filename}
+```
+
+**Arquivos do Usuário:**
+
+```
+u/{user_uuid}/m/{moment_uuid}/original/{filename}
+u/{user_uuid}/m/{moment_uuid}/preview/{filename}
+u/{user_uuid}/m/{moment_uuid}/thumb/{filename}
+```
+
+**Arquivos do Sistema:**
+
+```
+sys/defaults/{filename}
+sys/logos/{filename}
+```
+
+#### Racional da Estrutura:
+
+- **UUID como isolamento:** `u/{user_uuid}/` garante isolamento por tenant. Impossível enumerar ou adivinhar paths de outros usuários.
+- **`tmp/` como incinerador:** Lifecycle de 1 dia limpa uploads abandonados automaticamente.
+- **`partners/` como quarentena:** Assets ficam em quarentena até resgate do voucher, quando são copiados para `u/`.
+- **Separação original/preview/thumb:** Permite lifecycle diferenciado (previews recriáveis podem ter TTL).
+
+#### Lifecycle Rules (B2)
+
+```yaml
+rules:
+  - prefix: "tmp/"
+    action: delete
+    days: 1
+
+  - prefix: "partners/"
+    action: delete
+    days: 365
+
+  - prefix: "u/"
+    action: cold_storage
+    days: 365 # Após 1 ano sem acesso
+```
+
+#### Implementação
+
+- **Módulo:** `apps/api/babybook_api/storage/paths.py`
+- **Funções:** `tmp_upload_path()`, `partner_delivery_path()`, `user_moment_path()`, `secure_filename()`, `validate_user_access()`
+- **Integração:** `hybrid_service.py`, `partner_service.py`, rotas de upload
+
+### 2.6 Edge Worker "Porteiro Digital" — **NOVO Jan/2025**
+
+> O bucket B2 é 100% privado. Todo acesso passa pelo Edge Worker que valida JWT e aplica ACL.
+
+#### Arquitetura
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Cliente   │────▶│ Cloudflare Edge  │────▶│ B2 Bucket       │
+│  (Browser)  │     │    Worker        │     │  (Privado)      │
+└─────────────┘     └──────────────────┘     └─────────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │ 1. Extract JWT
+                    │ 2. Verify Signature
+                    │ 3. Check ACL
+                    │ 4. Sign Request (aws4fetch)
+                    │ 5. Stream Response + Cache
+                    └─────────────┘
+```
+
+#### Regras de ACL
+
+| Path Pattern | Validação                   | Descrição                                |
+| ------------ | --------------------------- | ---------------------------------------- |
+| `u/{uuid}/*` | JWT.sub === path.uuid       | Usuário só acessa seus próprios arquivos |
+| `partners/*` | JWT.role === "photographer" | Parceiros acessam suas entregas          |
+| `sys/*`      | Nenhuma (público)           | Assets do sistema                        |
+| `tmp/*`      | **Sempre 403**              | Nunca exposto externamente               |
+
+#### Benefícios
+
+- **Segurança:** Bucket permanece privado, sem URLs públicas vazadas
+- **Custo Zero de Egress:** Bandwidth Alliance (Cloudflare ↔ B2 = grátis)
+- **Cache na Edge:** Vídeo assistido 10x = 9 do cache
+- **Baixa Latência:** Executa em 200+ POPs globais
+
+#### Implementação
+
+- **Localização:** `apps/edge/`
+- **Arquivos:** `src/lib/auth.ts`, `src/lib/storage.ts`, `src/routes/files.ts`
+- **Config:** `wrangler.toml`
+- **Testes:** 24/24 passando
+
+### 2.7 Presets de mídia e derivados
+
+(Ver seção de Catalogo_Momentos.md para detalhes de presets de imagem e vídeo)
 
 ## 3. Domínio de produto
 
 ### 3.1 Entidades principais (Campos-chave)
 
 - **Account:**
-
   - id (uuid, pk)
   - email (text, unique, lower)
   - hashed_password (text)
@@ -200,15 +298,12 @@ Política de Cold Storage (Definida): Esta é uma mitigação de custo não opci
   - last_login_at (timestptz)
 
 - **Child:**
-
   - id (uuid, pk), account_id (fk), name (text), dob (date), timezone (text) (ex: 'America/Sao_Paulo').
 
 - **ChildAccess (Guardião/Convidado):**
-
   - id (uuid, pk), account_id (fk) (Ref: Account, o usuário que recebe o acesso), child_id (fk) (Ref: Child, o recurso sendo acessado), role (enum: owner, guardian, viewer). (Nota: Renomeado de 'Person' para 'ChildAccess' para clareza, alinhado à Matriz RBAC. A entidade 'Person' será usada futuramente para tagging.)
 
 - **Moment:**
-
   - id (uuid, pk)
   - child_id (fk)
   - chapter_id (fk, nullable)
@@ -217,7 +312,6 @@ Política de Cold Storage (Definida): Esta é uma mitigação de custo não opci
   - occurred_at (timestptz) - Data em que o momento ocorreu (definida pelo usuário).
 
 - **Asset:**
-
   - id (uuid, pk)
   - account_id (fk) - (Nota: moment_id (fk) foi removido. Assets pertencem à conta e são vinculados a momentos via MomentAsset.)
   - status (enum: uploading, queued, processing, ready, error, archived)
@@ -292,30 +386,67 @@ Exemplo 2: Pacote "Saúde" (R$ 29) → Define Account.entitlements.features.unli
 
 ## 4. Fluxos críticos (com contratos)
 
-### 4.5 Upload multipart direto ao B2 (Fluxo de Erro Detalhado)
+### 4.5 Upload resiliente (Web & Mobile)
 
-Este é o fluxo mais crítico, agora desacoplado pela fila.
+No modelo PWA/Edge, o upload precisa tolerar aba fechada, troca de app e redes móveis instáveis. A abordagem preferencial é:
 
-- **C (Cliente) → API:** POST /uploads/init {filename, size, mime}
-- **API:** Checa quota (3.2).
+- Compressão no cliente:
+  - Web: ffmpeg.wasm em um Web Worker (multithread sempre que possível) para transcodificar 4K → 720p H.265 antes do envio.
+  - Mobile: bibliotecas nativas (ffmpeg-kit, react-native-compressor) para usar aceleradores do dispositivo.
 
-  **Caminho de Erro (Quota Física):** Retorna 413 Payload Too Large (code: quota.bytes.exceeded). A UI deve interceptar este código e informar ao usuário que ele atingiu o limite físico de 2GiB da conta, sugerindo a remoção de mídias antigas ou entrando em contato com o suporte (este não é um gatilho de upsell).
+- Upload resumable & chunking:
+  - Usar Uppy + plugin Tus (ou multipart S3 resumable) para divisão em chunks (ex: 5MB) e retomada automática.
+  - Registrar Background Sync quando suportado para permitir reenvio silencioso quando a conexão retornar.
 
-- **API:** Cria Asset (status=uploading), gera Presigned URLs (multipart).
-- **API → C:** 200 OK { upload_id, presigned_urls[...] }
-- **C → B2:** PUT (partes do arquivo) para as URLs pré-assinadas.
-- **C → API:** POST /uploads/complete { upload_id, etags[...] } (com Idempotency-Key).
-- **API:** Valida ETags, marca Asset (status=queued).
-- **API → Cloudflare Queues:** Publica job (mensagem: { "trace_id": "...", "asset_id": "..." }).
-- **API → C:** 202 Accepted { asset_id, status: "queued" } (UX é "fire-and-forget").
-- **W (Worker Modal):** Consome job da Cloudflare Queues.
-- **W → B2:** GET original.
-- **W → B2:** PUT derivados (thumbs, 720p).
-- **W → API:** PATCH /assets/{id} { status: "ready" } (com Service-Token).
+- Fluxo simplificado:
+  1. Cliente solicita /api/uploads/init com metadados.
+  2. API valida quota, cria Asset (status=uploading) e retorna instruções de upload (presigned URLs ou dados TUS).
+  3. Cliente realiza compressão local e envia os chunks resumable diretamente ao storage (R2/B2) sem atravessar a API.
+  4. Ao completar, o cliente chama /api/uploads/complete com prova (ETags ou metadata). API valida e marca Asset como queued/ready conforme webhooks de storage.
 
-  **Caminho de Erro (API Offline):** Se a API estiver offline, o Worker falha. A Fila (CF Queues) deve re-tentar o job automaticamente (ver 9.3).
+- Fallback server-side:
+  - Se o dispositivo for incapaz de transcodificar (ex: aparelhos muito fracos), o cliente pode enviar o bruto e a API/Modal processam o job server-side. Esse caminho deve ser raríssimo e controlado via feature-flag.
 
-  **Caminho de Erro (Processamento):** Se o ffmpeg falhar, o Worker deve fazer PATCH /assets/{id} { status: "error", error_message: "..." } e não re-tentar (enviar para DLQ, 9.3).
+Erros e reentrega:
+
+- Em caso de falha de rede, o Uppy/Tus garante retomada do chunk. Em caso de falha de processamento server-side, o job entra na DLQ conforme política (9.3).
+
+### Apêndice F: SQL — Partners, Deliveries e Vouchers
+
+-- Extensão para gerar UUIDs randômicos (Segurança contra enumeração)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. TABELA DE PARCEIROS (A Força de Vendas)
+CREATE TABLE partners (
+id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+name VARCHAR(255) NOT NULL,
+email VARCHAR(255) UNIQUE NOT NULL,
+voucher_balance INT DEFAULT 0 CHECK (voucher_balance >= 0),
+created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. TABELA DE ENTREGAS (O "Pacote" fechado)
+CREATE TABLE deliveries (
+id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+partner_id UUID NOT NULL REFERENCES partners(id),
+client_name VARCHAR(255),
+assets_payload JSONB NOT NULL,
+status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CLAIMED', 'EXPIRED')),
+created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. TABELA DE VOUCHERS (A Chave do Cofre)
+CREATE TABLE vouchers (
+code VARCHAR(20) PRIMARY KEY,
+partner_id UUID NOT NULL REFERENCES partners(id),
+delivery_id UUID REFERENCES deliveries(id),
+redeemed_by_user_id UUID REFERENCES users(id),
+redeemed_at TIMESTAMP WITH TIME ZONE,
+status VARCHAR(20) DEFAULT 'ACTIVE'
+);
+
+CREATE INDEX idx_deliveries_partner ON deliveries(partner_id);
+CREATE INDEX idx_vouchers_lookup ON vouchers(code) WHERE status = 'ACTIVE';
 
 ### 4.10 Fluxo de Compra (Webhook) (Alinhado com "Pacotes de Repetição")
 
@@ -332,7 +463,6 @@ Substitui o "Ciclo de Vida da Assinatura" por "Confirmação de Compra Única".
 
 - **API:** Processa o evento (ex: payment_intent.succeeded).
 - **API → DB:** (Em transação)
-
   - Localiza Account (via customer_id).
   - Localiza o Plan comprado (ex: "Pacote Repetição Social").
   - Atualiza Entitlements (Nova Lógica):
@@ -458,7 +588,6 @@ Novos Códigos de Domínio (Revisados):
 ## 11. Roadmap técnico (Simplificado)
 
 - **MVP (Core Loop):**
-
   - Identidade (Onboarding, Auth, Reset).
   - Upload (4.5) com Fila (Cloudflare Queues) e Worker (Modal 720p).
   - Share SSR (4.6), Export (4.7).
@@ -467,7 +596,6 @@ Novos Códigos de Domínio (Revisados):
   - Fluxo de Compra (4.10) do "Acesso Perpétuo" Base.
 
 - **v1.0 (Lançamento):**
-
   - Billing (4.10) Completo: Checkout de "Pacotes de Repetição" (Upsell).
   - i18n completo, Guestbook (4.8), RBAC (Apêndice A).
   - Implementação da Política de Cold Storage (5.4) e UX de restauração (vital para o custo de longo prazo).

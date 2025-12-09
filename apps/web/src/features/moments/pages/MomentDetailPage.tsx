@@ -1,7 +1,16 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMoment } from "@/hooks/api";
 import { getMediaUrl } from "@/lib/media";
-import { ChevronLeft, Share2, Edit, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  Share2,
+  Edit,
+  Trash2,
+  Play,
+  Maximize2,
+} from "lucide-react";
+import { FullscreenMediaViewer } from "@/components/FullscreenMediaViewer";
 
 const MomentDetailSkeleton = () => (
   <div className="max-w-3xl mx-auto animate-pulse">
@@ -23,6 +32,13 @@ export const MomentDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: moment, isLoading } = useMoment(id || "");
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const openMediaViewer = (index: number) => {
+    setViewerIndex(index);
+    setViewerOpen(true);
+  };
 
   if (isLoading) {
     return <MomentDetailSkeleton />;
@@ -31,9 +47,16 @@ export const MomentDetailPage = () => {
   if (!moment) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-xl font-semibold text-gray-600">Momento não encontrado</h2>
-        <p className="text-gray-400 mt-2">O momento que você está procurando não existe ou foi removido.</p>
-        <button onClick={() => navigate("/momentos")} className="mt-6 bg-primary text-white px-4 py-2 rounded-lg">
+        <h2 className="text-xl font-semibold text-gray-600">
+          Momento não encontrado
+        </h2>
+        <p className="text-gray-400 mt-2">
+          O momento que você está procurando não existe ou foi removido.
+        </p>
+        <button
+          onClick={() => navigate("/momentos")}
+          className="mt-6 bg-primary text-white px-4 py-2 rounded-lg"
+        >
           Voltar para Momentos
         </button>
       </div>
@@ -93,10 +116,12 @@ export const MomentDetailPage = () => {
         {/* Media */}
         {moment.media.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-            {moment.media.map((media) => (
-              <div
+            {moment.media.map((media, index) => (
+              <button
+                type="button"
                 key={media.id}
-                className="rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center aspect-w-4 aspect-h-3"
+                onClick={() => openMediaViewer(index)}
+                className="rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center aspect-w-4 aspect-h-3 relative group cursor-pointer hover:ring-2 hover:ring-primary transition-all"
               >
                 {media.kind === "photo" && (
                   <img
@@ -106,19 +131,46 @@ export const MomentDetailPage = () => {
                   />
                 )}
                 {media.kind === "video" && (
-                  <video
-                    src={getMediaUrl(media) ?? ""}
-                    controls
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <video
+                      src={getMediaUrl(media) ?? ""}
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-gray-800 ml-1" />
+                      </div>
+                    </div>
+                  </>
                 )}
                 {media.kind === "audio" && (
-                  <audio src={getMediaUrl(media) ?? ""} controls className="w-full" />
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 p-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center mb-2">
+                      <Play className="w-8 h-8 text-white ml-1" />
+                    </div>
+                    <span className="text-sm text-indigo-600">Ouvir áudio</span>
+                  </div>
                 )}
-              </div>
+                {/* Fullscreen indicator */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="p-1.5 rounded-full bg-black/50">
+                    <Maximize2 className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              </button>
             ))}
           </div>
         )}
+
+        {/* Fullscreen Media Viewer */}
+        <FullscreenMediaViewer
+          media={moment.media}
+          initialIndex={viewerIndex}
+          isOpen={viewerOpen}
+          onClose={() => setViewerOpen(false)}
+          title={moment.title}
+        />
 
         {/* Text */}
         <div className="p-6">
@@ -126,9 +178,7 @@ export const MomentDetailPage = () => {
             <p className="text-sm text-gray-500 mb-1">
               {formatDate(moment.occurredAt ?? moment.createdAt)}
             </p>
-            <h1 className="text-3xl font-bold text-gray-800">
-              {moment.title}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-800">{moment.title}</h1>
           </div>
 
           {moment.summary && (

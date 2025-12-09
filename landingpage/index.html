@@ -7,7 +7,7 @@
 
   <!-- SEO Primário -->
   <title>Baby Book - Transforme Momentos em História para Sempre</title>
-  <meta name="description" content="Coleção de livros digitais para organizar a história do seu filho. Jornada, Saúde, Visitas e Cofre. Acesso vitalício por R$200. Privacidade garantida e exportação livre.">
+  <meta name="description" content="Coleção de livros digitais para organizar a história do seu filho. Jornada, Saúde, Visitas e Cofre. Acesso vitalício por R$297 (cartão) / R$279 (PIX). Privacidade garantida e exportação livre.">
   <meta name="keywords" content="baby book, livro do bebê digital, diário do bebê, álbum de fotos bebê, registro infância, memórias bebê, livro personalizado bebê">
   <meta name="author" content="Baby Book">
   <meta name="robots" content="index, follow">
@@ -28,7 +28,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://babybook.com.br">
   <meta name="twitter:title" content="Baby Book - A História do Seu Filho Para Sempre">
-  <meta name="twitter:description" content="Transforme momentos soltos em história organizada. 4 livros digitais, acesso vitalício por R$200.">
+  <meta name="twitter:description" content="Transforme momentos soltos em história organizada. 4 livros digitais, acesso vitalício por R$297 (cartão) / R$279 (PIX).">
   <meta name="twitter:image" content="https://babybook.com.br/twitter-image.jpg">
 
   <!-- Favicons -->
@@ -59,10 +59,11 @@
     },
     "offers": {
       "@type": "Offer",
-      "price": "200.00",
+      "price": "297.00",
       "priceCurrency": "BRL",
       "availability": "https://schema.org/InStock",
-      "url": "https://babybook.com.br/#pricing"
+      "url": "https://babybook.com.br/#pricing",
+      "description": "Ticket: R$297 (cartão) — R$279 (PIX)"
     },
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -483,9 +484,12 @@
       <h2 class="font-serif text-3xl md:text-5xl mb-12 fade-in-up font-bold">Um pagamento.<br>Uma vida inteira.</h2>
 
       <div class="pricing-card-panel p-10 md:p-12 fade-in-up" style="transition-delay: 150ms;">
-        <div class="flex items-baseline justify-center gap-2 mb-3">
-          <span class="text-2xl text-gray-200 font-semibold">R$</span>
-          <span class="text-7xl font-bold text-white tracking-tighter">200</span>
+        <div class="flex flex-col items-center justify-center gap-1 mb-3">
+          <div class="flex items-baseline justify-center gap-2">
+            <span class="text-2xl text-gray-200 font-semibold">R$</span>
+            <span class="text-7xl font-bold text-white tracking-tighter">297</span>
+          </div>
+          <div class="text-sm text-indigo-200/80">ou R$279 via PIX (desconto à vista)</div>
         </div>
         <p class="text-indigo-200 font-semibold mb-10 text-lg">Acesso vitalício completo</p>
 
@@ -496,10 +500,28 @@
         </ul>
 
         <div class="magnetic w-full" data-magnetic-strength="0.2">
-          <button class="cta-primary w-full min-h-[56px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-900/50 hover:shadow-2xl hover:shadow-indigo-800/50 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2">
+          <button class="cta-primary w-full min-h-[56px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-900/50 hover:shadow-2xl hover:shadow-indigo-800/50 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2" id="pricing-cta-btn">
             <span class="btn-text">Garantir acesso agora</span>
           </button>
         </div>
+
+        <!-- Links secundários -->
+        <div class="flex items-center justify-center gap-4 mt-6">
+          <button type="button" class="text-indigo-300 hover:text-white font-medium text-sm transition-colors flex items-center gap-1.5" data-checkout-voucher>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            </svg>
+            Já tenho um código
+          </button>
+          <span class="text-slate-500">|</span>
+          <button type="button" class="text-rose-300 hover:text-white font-medium text-sm transition-colors flex items-center gap-1.5" data-checkout-gift>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
+            Quero presentear
+          </button>
+        </div>
+
         <p class="text-sm text-slate-300 mt-5">*Menos que um fotolivro impresso. Para toda a primeira infância.</p>
       </div>
 

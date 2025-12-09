@@ -160,7 +160,7 @@ Complementos:
 ### 2.3 Arquitetura de conteúdos
 
 - **Aba Jornada (Memorial guiado)**: combina HUD + seletor de modo.
-  - `MomentsTimeline` alterna entre *Timeline* (feed com `MomentCard`, placeholders clicáveis e estados vazios animados) e *Capítulos* (list/grid com progresso por capítulo e call-to-action para `/jornada/capitulos/:chapterId`).
+  - `MomentsTimeline` alterna entre _Timeline_ (feed com `MomentCard`, placeholders clicáveis e estados vazios animados) e _Capítulos_ (list/grid com progresso por capítulo e call-to-action para `/jornada/capitulos/:chapterId`).
   - HUD varia conforme estado: ausência de criança selecionada, ausência de aniversário, jornada completa ou sugerindo o próximo template (`NextMomentSuggestion`).
   - FAB cria momentos avulsos e há atalhos visíveis para `/momentos`, `/jornada/moment/draft/*`, `/jornada/moment/avulso` e `/jornada/capitulos`.
   - O `ChapterMomentsPage` garante rastreabilidade do catálogo oficial (`apps/web/src/data/momentCatalog.ts`) e respeita estados draft/published.
@@ -206,7 +206,7 @@ Critérios de aceite:
 Até 2 cliques no login social (Google/Apple).
 Happy path < 90 s até visualizar o paywall. O usuário já investiu tempo, nomeou o álbum e está engajado.
 O usuário vê a UI principal (Dashboard) antes de pagar, confirmando a qualidade do produto.
-O paywall é uma tela modal clara explicando o valor do pagamento único (LTD). Microcopy: "Desbloqueie seu álbum para sempre. Um pagamento único de R$ 200 para seu álbum de 2GB."
+O paywall é uma tela modal clara explicando o valor do pagamento único (LTD). Microcopy: "Desbloqueie seu álbum para sempre. Pagamento único — R$ 297 (cartão) / R$ 279 (PIX) para seu álbum de 2GB."
 Wizard aceita data futura (gestantes), adaptando a UI para "Semanas de gestação".
 Se o pagamento falhar, o usuário retorna ao Dashboard (E), e o rascunhos (M1) são salvos localmente para não perder dados.
 

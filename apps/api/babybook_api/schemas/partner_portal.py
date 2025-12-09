@@ -1,0 +1,205 @@
+"""
+Partner Portal Schemas
+
+Pydantic models for Partner Portal API requests and responses.
+"""
+
+from datetime import datetime
+from typing import Optional, Any
+from pydantic import BaseModel, Field, EmailStr
+
+
+# =============================================================================
+# Onboarding
+# =============================================================================
+
+class PartnerOnboardingRequest(BaseModel):
+    """Request para cadastro de novo parceiro."""
+    name: str = Field(..., min_length=2, max_length=200, description="Nome do fotógrafo")
+    email: EmailStr = Field(..., description="E-mail para login")
+    password: str = Field(..., min_length=8, description="Senha de acesso")
+    studio_name: Optional[str] = Field(None, max_length=200, description="Nome do estúdio")
+    phone: Optional[str] = Field(None, max_length=32, description="Telefone para contato")
+
+
+class PartnerOnboardingResponse(BaseModel):
+    """Response do cadastro de parceiro."""
+    success: bool
+    message: str
+    partner_id: str
+    status: str
+
+
+# =============================================================================
+# Profile & Dashboard
+# =============================================================================
+
+class PartnerProfileResponse(BaseModel):
+    """Perfil do parceiro."""
+    id: str
+    name: str
+    email: str
+    studio_name: Optional[str] = None
+    phone: Optional[str] = None
+    logo_url: Optional[str] = None
+    voucher_balance: int
+    status: str
+    created_at: datetime
+
+
+class PartnerProfileUpdateRequest(BaseModel):
+    """Request para atualizar perfil do parceiro."""
+    name: Optional[str] = Field(None, min_length=2, max_length=200, description="Nome do fotógrafo")
+    studio_name: Optional[str] = Field(None, max_length=200, description="Nome do estúdio")
+    phone: Optional[str] = Field(None, max_length=32, description="Telefone para contato")
+    logo_url: Optional[str] = Field(None, description="URL do logo do estúdio")
+
+
+class PartnerDashboardStatsResponse(BaseModel):
+    """Estatísticas do dashboard do parceiro."""
+    voucher_balance: int = Field(..., description="Créditos disponíveis")
+    total_deliveries: int = Field(..., description="Total de entregas")
+    ready_deliveries: int = Field(..., description="Entregas prontas para resgate")
+    delivered_deliveries: int = Field(..., description="Entregas resgatadas")
+    total_vouchers: int = Field(..., description="Total de vouchers gerados")
+    redeemed_vouchers: int = Field(..., description="Vouchers resgatados")
+    pending_vouchers: int = Field(..., description="Vouchers pendentes")
+    total_assets: int = Field(..., description="Total de arquivos enviados")
+
+
+# =============================================================================
+# Credit Packages
+# =============================================================================
+
+class CreditPackage(BaseModel):
+    """Pacote de créditos para compra."""
+    id: str
+    name: str
+    voucher_count: int = Field(..., description="Quantidade de vouchers")
+    price_cents: int = Field(..., description="Preço em centavos (BRL)")
+    unit_price_cents: int = Field(..., description="Preço por unidade em centavos")
+    savings_percent: int = Field(0, description="Percentual de economia")
+    is_popular: bool = Field(False, description="Destaque como mais popular")
+
+
+class PurchaseCreditsRequest(BaseModel):
+    """Request para compra de créditos."""
+    package_id: str = Field(..., description="ID do pacote a comprar")
+
+
+class PurchaseCreditsResponse(BaseModel):
+    """Response da compra de créditos."""
+    checkout_id: str
+    checkout_url: str
+    package: CreditPackage
+    expires_at: datetime
+
+
+# =============================================================================
+# Deliveries
+# =============================================================================
+
+class CreateDeliveryRequest(BaseModel):
+    """Request para criar nova entrega."""
+    client_name: str = Field(..., min_length=2, max_length=200, description="Nome do cliente")
+    title: Optional[str] = Field(None, max_length=200, description="Título da entrega")
+    description: Optional[str] = Field(None, description="Descrição opcional")
+    event_date: Optional[datetime] = Field(None, description="Data do evento (parto, ensaio, etc)")
+
+
+class DeliveryResponse(BaseModel):
+    """Response de uma entrega."""
+    id: str
+    title: str
+    client_name: Optional[str] = None
+    status: str
+    assets_count: int
+    voucher_code: Optional[str] = None
+    created_at: datetime
+    redeemed_at: Optional[datetime] = None
+    redeemed_by: Optional[str] = None
+
+
+class DeliveryListResponse(BaseModel):
+    """Lista de entregas."""
+    deliveries: list[DeliveryResponse]
+    total: int
+
+
+class DeliveryAssetInfo(BaseModel):
+    """Informações de um arquivo na entrega."""
+    upload_id: str
+    key: str
+    filename: str
+    content_type: str
+    size_bytes: int
+    uploaded_at: str
+
+
+class DeliveryDetailResponse(BaseModel):
+    """Detalhes completos de uma entrega."""
+    id: str
+    title: str
+    client_name: Optional[str] = None
+    description: Optional[str] = None
+    event_date: Optional[datetime] = None
+    status: str
+    assets_count: int
+    assets: list[dict] = Field(default_factory=list)
+    voucher_code: Optional[str] = None
+    created_at: datetime
+    redeemed_at: Optional[datetime] = None
+    redeemed_by: Optional[str] = None
+
+
+# =============================================================================
+# Upload
+# =============================================================================
+
+class UploadInitRequest(BaseModel):
+    """Request para iniciar upload de arquivo."""
+    filename: str = Field(..., description="Nome do arquivo")
+    content_type: str = Field(..., description="MIME type do arquivo")
+    size_bytes: int = Field(..., description="Tamanho em bytes")
+
+
+class UploadInitResponse(BaseModel):
+    """Response com URL para upload direto."""
+    upload_id: str
+    upload_url: str = Field(..., description="URL presigned para PUT do arquivo")
+    key: str = Field(..., description="Key do arquivo no storage")
+    expires_at: datetime
+
+
+class UploadCompleteRequest(BaseModel):
+    """Request para confirmar upload concluído."""
+    upload_id: str
+    key: str
+    filename: str
+    content_type: str
+    size_bytes: int
+
+
+# =============================================================================
+# Voucher Card
+# =============================================================================
+
+class GenerateVoucherCardRequest(BaseModel):
+    """Request para finalizar entrega e gerar voucher."""
+    beneficiary_name: Optional[str] = Field(None, description="Nome do beneficiário para o cartão")
+    message: Optional[str] = Field(None, max_length=500, description="Mensagem personalizada")
+    voucher_prefix: Optional[str] = Field(None, max_length=8, description="Prefixo do código")
+    expires_days: Optional[int] = Field(365, ge=30, le=730, description="Dias até expirar")
+
+
+class VoucherCardResponse(BaseModel):
+    """Dados para gerar o cartão digital no frontend."""
+    voucher_code: str
+    redeem_url: str
+    qr_data: str = Field(..., description="Dados para gerar QR Code")
+    studio_name: str
+    studio_logo_url: Optional[str] = None
+    beneficiary_name: Optional[str] = None
+    message: str
+    assets_count: int
+    expires_at: Optional[datetime] = None

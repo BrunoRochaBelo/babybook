@@ -17,15 +17,21 @@ from .routes import (
     billing,
     chapters,
     children,
+    deliveries,
     guestbook,
     health,
     me,
+    media_processing,
     moments,
+    partner_portal,
+    partners,
     people,
+    resumable_uploads,
     series,
     shares,
     uploads,
     vault,
+    vouchers,
 )
 from .settings import settings
 from .deps import AsyncSessionLocal
@@ -62,11 +68,19 @@ def create_app() -> FastAPI:
     app.include_router(guestbook.router, prefix="/guestbook", tags=["guestbook"])
     app.include_router(shares.router, tags=["shares"])
     app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
+    app.include_router(resumable_uploads.router, prefix="/uploads/resumable", tags=["uploads"])
+    app.include_router(media_processing.router, prefix="/media/processing", tags=["media"])
     app.include_router(assets.router, tags=["assets"])
     app.include_router(series.router, tags=["series"])
     app.include_router(chapters.router, tags=["chapters"])
     app.include_router(vault.router, tags=["vault"])
     app.include_router(billing.router, tags=["billing"])
+    # B2B2C: Partners, Vouchers, Deliveries
+    app.include_router(partners.router, prefix="/partners", tags=["partners"])
+    app.include_router(vouchers.router, tags=["vouchers"])
+    app.include_router(deliveries.router, tags=["deliveries"])
+    # Partner Portal: Self-service para fotógrafos (role PHOTOGRAPHER)
+    app.include_router(partner_portal.router, prefix="/partner", tags=["partner-portal"])
 
     # Dev-only: ensure a dev user exists on startup so developers can login with known credentials
     if settings.app_env == "local":

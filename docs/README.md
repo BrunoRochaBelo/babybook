@@ -91,7 +91,7 @@ docker-compose up -d
 Isso irá iniciar (em background):
 
 - db (PostgreSQL 15) na porta 5432 (simulando o Neon).
-- storage (Minio S3) na porta 9000 (Endpoint da API) e 9001 (Console Web) (simulando o B2).
+- storage (Minio S3) na porta 9000 (Endpoint da API) e 9001 (Console Web) (simulando o B2 — cold storage). Observação: Cloudflare R2 (hot layer) não é simulado localmente; o MinIO atua como mock S3 para testes de upload/download.
 
 ### 3.4. Migração do Banco (Setup Inicial)
 

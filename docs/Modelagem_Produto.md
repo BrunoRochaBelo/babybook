@@ -108,12 +108,12 @@ O design do produto deve servir ao modelo financeiro (Visão & Viabilidade). Nos
 
 ### O Produto Principal: "Acesso Perpétuo" (O Cofre)
 
-- **O que é (Finanças):** O pagamento único de R$ 200. Conforme a Visão & Viabilidade (Seção 5.3), cada venda provisiona R$ 30,60 (o PCE) para cobrir 20 anos de Custo de Estoque (R$ 1,53/ano). Este é o pilar que torna nosso negócio anti-frágil.
+- **O que é (Finanças):** O pagamento único de ticket (R$ 279 PIX / R$ 297 cartão). Conforme a Visão & Viabilidade (Seção 5.3), cada venda provisiona R$ 30,60 (o PCE) para cobrir 20 anos de Custo de Estoque (R$ 1,53/ano). Este é o pilar que torna nosso negócio anti-frágil.
 - **O que é (Produto/UX):** É o nosso maior diferencial. Não somos uma assinatura (MRR).
 - **Implicação de Design (Confiança):** A mensagem de marketing e checkout deve ser clara: "Pague uma vez. É seu para sempre." Isso constrói confiança.
-- **A Psicologia do Preço (R$ 200):** O preço de R$ 200 é intencional.
+  **A Psicologia do Preço (ticket — R$ 279 PIX / R$ 297 cartão):** A ancoragem e o desconto por PIX são decisões intencionais para incentivar liquidez imediata e reduzir fees.
   - Sinaliza Premium: Não somos um app de R$ 1,99. Somos um produto premium, um "bem durável".
-  - Alinha com "Aninhamento": Ele se encaixa no mindset de "preparação do ninho" dos pais, alinhado a outras compras de alto valor percebido (ex: o berço, o enxoval, a sessão de fotos newborn). É um investimento, não um gasto.
+  - Alinha com "Aninhamento": O ticket se encaixa no mindset de "preparação do ninho" dos pais, alinhado a outras compras de alto valor percebido (ex: o berço, o enxoval, a sessão de fotos newborn). É um investimento, não um gasto.
   - Habilita o PCE: Permite que o modelo de Provisão de Custo de Estoque funcione, garantindo a sobrevivência do negócio sem depender do upsell.
 
 ### O Upsell: "Pacote Completo" (O Valor)
@@ -121,7 +121,7 @@ O design do produto deve servir ao modelo financeiro (Visão & Viabilidade). Nos
 - **O que é (Finanças):** Como o PCE (5.1) garante nossa sobrevivência, o upsell é 100% focado em lucro. Alinhado com a Visão & Viabilidade (Seção 3.1), simplificamos o upsell para um único "Pacote Completo" de R$ 49.
 - **O que é (Produto/UX):** Abstraímos 100% o custo técnico. O usuário nunca compra "GiB" ou "armazenamento". Isso é jargão de TI, gera ansiedade e quebra a proposta de valor ("calma").
 - **Implicação de Design (Valor Percebido):** O usuário compra a história completa.
-  - Base (R$ 200): Inclui todos os 40 momentos-chave + 5 entradas gratuitas para cada momento recorrente (ex: 5 "Visitas Especiais", 5 "Galerias de Arte").
+  - Base (ticket — R$ 279 PIX / R$ 297 cartão): Inclui todos os 40 momentos-chave + 5 entradas gratuitas para cada momento recorrente (ex: 5 "Visitas Especiais", 5 "Galerias de Arte").
   - Upsell (R$ 49): O usuário compra o "Pacote Completo", que desbloqueia "Repetições Ilimitadas" para todas as categorias recorrentes (Social, Criativa, Saúde) de uma só vez.
 - **Rationale (Por que um, não três?):** Foco no Paradoxo da Escolha. Ana (Persona 3.1) está exausta às 22h. Ela não quer decidir se precisa do "Pacote Social" (R$ 29) ou "Criativo" (R$ 19). Isso é mais atrito. Um único "Pacote Completo" (R$ 49) é uma decisão "Sim/Não" de baixo atrito, que maximiza o LTV por transação e respeita a carga cognitiva da usuária.
 
@@ -134,9 +134,11 @@ Definimos duas jornadas de aquisição primárias, alinhadas com nossa estratég
 Esta é a jornada da Persona "Ana" (3.1).
 
 1. **Descoberta (Marketing):** Ana vê um anúncio (ex: Instagram de uma influencer de maternidade) que fala sobre "o app que não é rede social e salvou as memórias do primeiro ano". A mensagem foca na "calma" e "curadoria".
-2. **Landing Page (Consideração):** A página de vendas reforça a Tese (Seção 2). Mostra layouts bonitos do álbum (o PoD) e o testimonial do Avô (Sérgio). O call-to-action (CTA) é claro: "Compre seu Acesso Perpétuo por R$ 200".
+2. **Landing Page (Consideração):** A página de vendas reforça a Tese (Seção 2). Mostra layouts bonitos do álbum (o PoD) e o testimonial do Avô (Sérgio). O call-to-action (CTA) é claro: "Compre seu Acesso Perpétuo — R$ 297 (cartão) / R$ 279 (PIX)".
 3. **O "Atrito Positivo" (Checkout):** Este é um pilar da nossa estratégia anti-freemium (Seção 10.1). Não pedimos cartão depois, pedimos antes.
-   - **Rationale:** Queremos clientes comprometidos. O ato de pagar R$ 200 é um filtro de intenção. Ele filtra usuários não-sérios (que só geram custo de compute e storage) e seleciona clientes (como Ana) que estão investidos em completar a jornada.
+
+- **Rationale:** Queremos clientes comprometidos. O ato de pagar o ticket (R$ 279 PIX / R$ 297 cartão) é um filtro de intenção. Ele filtra usuários não-sérios (que só geram custo de compute e storage) e seleciona clientes (como Ana) que estão investidos em completar a jornada.
+
 4. **O "Primeiro Valor" (Onboarding Pós-Compra):** Ana baixa o app e faz login. O onboarding é mínimo. Não há um tour de 10 telas. O app pede 2 coisas:
    - Nome do Bebê.
    - Data de Nascimento (Opcional, mas crucial para o HUD).
@@ -149,7 +151,6 @@ Esta é a jornada do nosso canal GTM primário (Visão & Viabilidade, Seção 3.
 1. **Descoberta (Parceiro):** Ana contrata uma fotógrafa de newborn (nossa parceira B2B2C). Junto com as fotos, a fotógrafa entrega um voucher (um cartão físico premium, ou um código digital): "Como presente, aqui está o Acesso Perpétuo ao Baby Book para você guardar essas memórias."
 2. **Landing Page (Resgate):** Ana não vai para a página de vendas. Ela acessa uma URL específica de resgate (ex: babybook.com/resgatar). A UI deve ser elegante, parecendo "abrir um presente".
 3. **O "Resgate Sem Atrito":** A página pede duas coisas:
-
    - O código do voucher.
    - O e-mail para criar a conta.
    <!-- end list -->
@@ -230,7 +231,7 @@ Tão importante quanto saber o que fazer, é saber o que não fazer.
 
 - **O Anti-Padrão:** Oferecer um trial de 14 dias ou um plano "Grátis" (ex: 3 momentos).
 - **Por que é uma Armadilha:**
-  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o R$ 200 no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 30,60). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (B2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
+  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o ticket no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 30,60). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (B2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
   - Conflito com o Produto (Compromisso): O "Atrito Positivo" (Seção 6.1) é uma feature. Ele seleciona clientes (Anas) que estão comprometidos a usar o app. Um trial atrai usuários não-comprometidos.
 
 ### A Armadilha da "Ferramenta" (Ser o Google Photos)

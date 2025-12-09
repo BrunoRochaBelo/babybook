@@ -34,6 +34,11 @@ asset_kind_enum = Enum("photo", "video", "audio", name="asset_kind_enum")
 asset_status_enum = Enum("queued", "processing", "ready", "failed", name="asset_status_enum")
 vault_kind_enum = Enum("certidao", "cpf_rg", "sus_plano", "outro", name="vault_kind_enum")
 
+# B2B2C / Voucher enums
+partner_status_enum = Enum("active", "inactive", "suspended", name="partner_status_enum")
+voucher_status_enum = Enum("available", "redeemed", "expired", "revoked", name="voucher_status_enum")
+delivery_status_enum = Enum("pending", "processing", "completed", "failed", name="delivery_status_enum")
+
 
 class Base(DeclarativeBase):
     pass
@@ -85,6 +90,11 @@ class Account(TimestampMixin, Base):
     policy: Mapped["AppPolicy | None"] = relationship(back_populates="account", cascade="all,delete-orphan", uselist=False)
     moment_templates: Mapped[list["MomentTemplate"]] = relationship(back_populates="account", cascade="all,delete")
     worker_jobs: Mapped[list["WorkerJob"]] = relationship(back_populates="account", cascade="all,delete")
+    # B2B2C: vouchers resgatados por esta conta
+    redeemed_vouchers: Mapped[list["Voucher"]] = relationship(
+        foreign_keys="Voucher.beneficiary_id",
+        viewonly=True,
+    )
 
 
 class User(TimestampMixin, Base):
@@ -421,3 +431,188 @@ class AppPolicy(TimestampMixin, Base):
     rev: Mapped[int] = mapped_column(Integer, default=1)
 
     account: Mapped[Account] = relationship(back_populates="policy")
+
+
+# =============================================================================
+# B2B2C Models: Partner, Voucher, Delivery
+# =============================================================================
+
+
+class Partner(TimestampMixin, SoftDeleteMixin, Base):
+    """
+    Parceiro B2B2C que pode adquirir vouchers em bulk para distribuir
+    a beneficiários (ex: maternidades, fotógrafos, empresas).
+    
+    Fluxo Portal do Parceiro:
+    - Fotógrafo se cadastra e recebe role 'photographer' no User
+    - Compra créditos (voucher_balance) em pacotes
+    - Cria entregas, faz upload client-side, gera vouchers
+    - Acompanha resgates no dashboard
+    """
+    __tablename__ = "partners"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    
+    # Link com o User que controla este partner (role='photographer')
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    
+    name: Mapped[str] = mapped_column(String(200))
+    slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    company_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    cnpj: Mapped[str | None] = mapped_column(String(18), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    status: Mapped[str] = mapped_column(partner_status_enum, default="pending_approval")
+    contact_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # Saldo de vouchers disponíveis para criar entregas
+    voucher_balance: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # Configurações do parceiro
+    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+
+    user: Mapped["User | None"] = relationship()
+    vouchers: Mapped[list["Voucher"]] = relationship(back_populates="partner", cascade="all,delete-orphan")
+    deliveries: Mapped[list["Delivery"]] = relationship(back_populates="partner", cascade="all,delete-orphan")
+
+
+class Voucher(TimestampMixin, Base):
+    """
+    Voucher de acesso que pode ser resgatado por um beneficiário para
+    criar uma conta ou receber assets transferidos de um parceiro.
+    """
+    __tablename__ = "vouchers"
+    __table_args__ = (
+        Index("ix_vouchers_code", "code"),
+        Index("ix_vouchers_status_expires", "status", "expires_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    partner_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("partners.id", ondelete="CASCADE"),
+        index=True,
+    )
+    code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    status: Mapped[str] = mapped_column(voucher_status_enum, default="available")
+    discount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    uses_limit: Mapped[int] = mapped_column(Integer, default=1)
+    uses_count: Mapped[int] = mapped_column(Integer, default=0)
+    beneficiary_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("accounts.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    redeemed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    delivery_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("deliveries.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+
+    partner: Mapped[Partner] = relationship(back_populates="vouchers")
+    beneficiary: Mapped["Account | None"] = relationship()
+    delivery: Mapped["Delivery | None"] = relationship(back_populates="voucher", foreign_keys=[delivery_id])
+
+
+class Delivery(TimestampMixin, Base):
+    """
+    Entrega de assets de um parceiro para um beneficiário.
+    Representa o pacote de fotos/vídeos que um parceiro prepara
+    para entregar junto com um voucher.
+    
+    Fluxo:
+    1. Partner cria delivery com client_name
+    2. Faz upload client-side (compressão no browser)
+    3. assets_payload armazena paths temporários no B2
+    4. Sistema gera voucher_code automaticamente
+    5. Quando beneficiário resgata, assets movem de tmp/ para user/
+    """
+    __tablename__ = "deliveries"
+    __table_args__ = (
+        Index("ix_deliveries_partner_status", "partner_id", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    partner_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("partners.id", ondelete="CASCADE"),
+        index=True,
+    )
+    title: Mapped[str] = mapped_column(String(200))
+    client_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    event_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(delivery_status_enum, default="draft")
+    
+    # Armazena os caminhos dos arquivos no bucket temporário
+    # Ex: ["tmp/partner_id/delivery_id/foto1.jpg", ...]
+    assets_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    
+    # Código do voucher gerado automaticamente
+    generated_voucher_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    
+    beneficiary_email: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    beneficiary_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    beneficiary_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    target_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("accounts.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    assets_transferred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+
+    partner: Mapped[Partner] = relationship(back_populates="deliveries")
+    target_account: Mapped["Account | None"] = relationship()
+    voucher: Mapped["Voucher | None"] = relationship(
+        back_populates="delivery",
+        foreign_keys="Voucher.delivery_id",
+        uselist=False,
+    )
+    assets: Mapped[list["DeliveryAsset"]] = relationship(back_populates="delivery", cascade="all,delete-orphan")
+
+
+class DeliveryAsset(TimestampMixin, Base):
+    """
+    Associação entre uma entrega e seus assets.
+    Permite rastrear quais assets foram incluídos em uma entrega
+    e se já foram transferidos para a conta do beneficiário.
+    """
+    __tablename__ = "delivery_assets"
+    __table_args__ = (
+        UniqueConstraint("delivery_id", "asset_id", name="uq_delivery_asset"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    delivery_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("deliveries.id", ondelete="CASCADE"),
+        index=True,
+    )
+    asset_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    transferred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    target_asset_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("assets.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    delivery: Mapped[Delivery] = relationship(back_populates="assets")
+    asset: Mapped[Asset] = relationship(foreign_keys=[asset_id])
+    target_asset: Mapped[Asset | None] = relationship(foreign_keys=[target_asset_id])

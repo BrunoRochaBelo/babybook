@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import RequireAuth from "@/components/Auth/RequireAuth";
+import RequirePhotographer from "@/components/Auth/RequirePhotographer";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { CheckoutPage } from "@/pages/CheckoutPage";
@@ -24,6 +25,28 @@ import { MomentDraftPage } from "@/pages/MomentDraftPage";
 import { MomentAvulsoPage } from "@/pages/MomentAvulsoPage";
 import { ChapterMomentsPage } from "@/features/moments/pages/ChapterMomentsPage";
 import { ChaptersPage } from "@/features/moments/pages/ChaptersPage";
+// Partner Portal
+import {
+  PartnerDashboard,
+  CreditsPage,
+  CreateDeliveryPage,
+  DeliveryDetailPage,
+  DeliveriesListPage,
+  PartnerLoginPage,
+  PartnerRegisterPage,
+  PartnerSettingsPage,
+  DeliveryUploadPage,
+} from "@/features/partner-portal";
+// Voucher Redemption
+import { VoucherRedemptionPage } from "@/features/vouchers";
+// Onboarding
+import { OnboardingPage } from "@/features/onboarding";
+// Add Moment Wizard
+import { AddMomentPage } from "@/pages/AddMomentPage";
+// Share Page
+import { SharedMomentPage } from "@/pages/SharedMomentPage";
+// Settings Page
+import { SettingsPage } from "@/pages/SettingsPage";
 
 export function AppRouter() {
   return (
@@ -56,6 +79,7 @@ export function AppRouter() {
             element={<MomentDraftPage />}
           />
           <Route path="/jornada/moment/avulso" element={<MomentAvulsoPage />} />
+          <Route path="/app/novo-momento" element={<AddMomentPage />} />
           <Route
             path="/jornada/capitulos/:chapterId"
             element={<ChapterMomentsPage />}
@@ -67,6 +91,7 @@ export function AppRouter() {
             path="/jornada/perfil-crianca"
             element={<PerfilCriancaPage />}
           />
+          <Route path="/configuracoes" element={<SettingsPage />} />
         </Route>
 
         {/* Redirect root to dashboard */}
@@ -76,6 +101,89 @@ export function AppRouter() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        {/* Voucher Redemption - Public */}
+        <Route
+          path="/voucher/redeem/:code"
+          element={<VoucherRedemptionPage />}
+        />
+        <Route path="/resgatar" element={<VoucherRedemptionPage />} />
+        <Route path="/resgatar/:code" element={<VoucherRedemptionPage />} />
+
+        {/* Share Page - Public (for viral loop) */}
+        <Route path="/share/:token" element={<SharedMomentPage />} />
+
+        {/* Onboarding - Protected */}
+        <Route
+          path="/app/onboarding"
+          element={
+            <RequireAuth>
+              <OnboardingPage />
+            </RequireAuth>
+          }
+        />
+
+        {/* Partner Portal - Public Pages (Login/Register in app, Landing moved to landingpage project) */}
+        <Route path="/pro/login" element={<PartnerLoginPage />} />
+        <Route path="/pro/register" element={<PartnerRegisterPage />} />
+
+        {/* Partner Portal - Protected with PHOTOGRAPHER role */}
+        <Route
+          path="/partner"
+          element={
+            <RequirePhotographer>
+              <PartnerDashboard />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/credits"
+          element={
+            <RequirePhotographer>
+              <CreditsPage />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/settings"
+          element={
+            <RequirePhotographer>
+              <PartnerSettingsPage />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/deliveries"
+          element={
+            <RequirePhotographer>
+              <DeliveriesListPage />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/deliveries/new"
+          element={
+            <RequirePhotographer>
+              <CreateDeliveryPage />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/deliveries/:deliveryId"
+          element={
+            <RequirePhotographer>
+              <DeliveryDetailPage />
+            </RequirePhotographer>
+          }
+        />
+        <Route
+          path="/partner/deliveries/:deliveryId/upload"
+          element={
+            <RequirePhotographer>
+              <DeliveryUploadPage />
+            </RequirePhotographer>
+          }
+        />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/jornada" replace />} />

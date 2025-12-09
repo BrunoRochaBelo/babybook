@@ -289,7 +289,13 @@ export const quotaUsageSchema = rawUsageSchema.transform((usage) => ({
 
 export type QuotaUsage = z.infer<typeof quotaUsageSchema>;
 
-const userRoleSchema = z.enum(["owner", "guardian", "viewer"]);
+const userRoleSchema = z.enum([
+  "owner",
+  "guardian",
+  "viewer",
+  "photographer",
+  "admin",
+]);
 
 const rawUserProfileSchema = z.object({
   id: z.string().uuid(),

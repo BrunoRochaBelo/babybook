@@ -33,6 +33,48 @@ class Settings(BaseSettings):
     inline_worker_enabled: bool = Field(default=True, alias="INLINE_WORKER_ENABLED")
     dev_user_email: str = "bruno@example.com"
     dev_user_password: str = "password"
+    
+    # Storage - MinIO (local/dev)
+    minio_endpoint: str = "http://localhost:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+    minio_bucket: str = "babybook-dev"
+    minio_public_url: str = "http://localhost:9000/babybook-dev"
+    
+    # Storage - Cloudflare R2 (hot storage - production)
+    r2_bucket: str | None = None
+    r2_access_key_id: str | None = None
+    r2_secret_access_key: str | None = None
+    r2_public_url: str | None = None
+    r2_custom_domain: str | None = None
+    
+    # Storage - Backblaze B2 (cold storage - production)
+    b2_bucket: str | None = None
+    b2_endpoint: str = "https://s3.us-west-004.backblazeb2.com"
+    b2_access_key_id: str | None = None
+    b2_secret_access_key: str | None = None
+    b2_region: str = "us-west-004"
+
+    # ==========================================================================
+    # Feature Flags
+    # ==========================================================================
+    # Control feature rollout without code changes
+    # All flags default to True for new deployments
+    
+    # B2B2C Partner Portal - vouchers, deliveries, partner accounts
+    feature_voucher_b2b2c: bool = Field(default=True, alias="FEATURE_VOUCHER_B2B2C")
+    
+    # Hybrid Storage - R2 (hot) + B2 (cold) strategy
+    feature_r2_hybrid_storage: bool = Field(default=True, alias="FEATURE_R2_HYBRID_STORAGE")
+    
+    # Client-side transcoding with ffmpeg.wasm
+    feature_client_transcode: bool = Field(default=True, alias="FEATURE_CLIENT_TRANSCODE")
+    
+    # Edge Worker file protection ("Porteiro Digital")
+    feature_edge_file_protection: bool = Field(default=True, alias="FEATURE_EDGE_FILE_PROTECTION")
+    
+    # PIX payment method
+    feature_pix_payment: bool = Field(default=False, alias="FEATURE_PIX_PAYMENT")
 
 
 @lru_cache(maxsize=1)

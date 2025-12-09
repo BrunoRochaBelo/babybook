@@ -1,0 +1,25 @@
+# ============================================================================
+# Babybook Edge Worker - Development Variables
+# ============================================================================
+#
+# Copy this file to .dev.vars and fill in your values.
+# This file is used by `wrangler dev` for local development.
+#
+# DO NOT commit .dev.vars to version control!
+# ============================================================================
+
+# Backblaze B2 Credentials
+# Create an Application Key in B2 with read access to your bucket
+B2_ACCESS_KEY_ID=your-key-id-here
+B2_SECRET_ACCESS_KEY=your-application-key-here
+
+# B2 Bucket Configuration
+B2_BUCKET_NAME=bb-dev-v1
+B2_ENDPOINT=s3.us-east-005.backblazeb2.com
+
+# JWT Secret
+# Must match the JWT_SECRET used in your FastAPI backend
+JWT_SECRET=your-jwt-secret-here
+
+# Optional: B2 Region (defaults to us-east-1 for S3 compatibility)
+# B2_REGION=us-east-1

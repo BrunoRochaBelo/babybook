@@ -319,7 +319,8 @@ services:
       retries: 5
 
   # 2. Storage Mock (Minio S3)
-  # Alinhado com o Backblaze B2 (S3 compatible)
+  # Local: MinIO (mock S3) para desenvolvimento.
+  # Produção: estratégia híbrida Cloudflare R2 (hot) + Backblaze B2 (cold) — thumbnails e previews na borda, originais no cold storage.
   storage:
     image: minio/minio:latest
     container_name: babybook_storage_local

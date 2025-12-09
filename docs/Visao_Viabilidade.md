@@ -24,7 +24,7 @@ O foco estratégico é duplo: (1) converter a emoção da paternidade em uma com
 
 ### Objetivo financeiro
 
-**Margem de contribuição positiva no D0:** O pagamento de R$ 200 deve, imediatamente (Dia Zero), cobrir o CAC (realista), todos os custos transacionais E provisionar o Custo de Estoque vitalício da conta. Cada venda deve gerar lucro líquido real no D0.
+**Margem de contribuição positiva no D0:** O pagamento de entrada (ticket) adota precificação dual: R$ 297 (cartão) / R$ 279 (PIX). Nas projeções financeiras usamos R$ 279 (PIX) como baseline conservadora. O ticket deve, imediatamente (Dia Zero), cobrir o CAC, todos os custos transacionais e provisionar o Custo de Estoque vitalício da conta. Cada venda deve gerar lucro líquido real no D0.
 
 **Viabilidade sem Upsell:** O negócio deve ser lucrativo e sustentável a longo prazo, mesmo com uma taxa de upsell (attach rate) de 0%. O upsell é um acelerador de lucro, não uma condição de sobrevivência.
 
@@ -40,7 +40,7 @@ Esta seção detalha a amarração entre as decisões de produto, engenharia e f
 
 **Psicologia da Venda (Valor, não Utilidade):** Esta é a distinção estratégica mais importante. Não vendemos "dados" (GiB) ou "espaço". Vender "espaço" é um jogo de commodity, uma corrida para o fundo do poço vencida por gigantes.
 
-O Pacote Base (R$ 200): Inclui todos os momentos únicos (ex: "Primeiro Sorriso") e séries fixas (ex: "Mêsversários"). Para momentos recorrentes (ex: "Visitas Especiais", "Consultas", "Galeria de Arte", "Livro de Visitas"), o pacote base inclui 5 entradas gratuitas para cada.
+O Pacote Base (ticket — R$ 297 cartão / R$ 279 PIX): Inclui todos os momentos únicos (ex: "Primeiro Sorriso") e séries fixas (ex: "Mêsversários"). Para momentos recorrentes (ex: "Visitas Especiais", "Consultas", "Galeria de Arte", "Livro de Visitas"), o pacote base inclui 5 entradas gratuitas para cada.
 
 O Upsell (Pacotes de Repetição): O upsell é acionado quando o usuário tenta adicionar a 6ª entrada em um momento recorrente. O upsell é a compra de "Pacotes de Repetição Ilimitada" (pagamento único).
 
@@ -56,7 +56,7 @@ O modelo de Acesso Perpétuo inverte a lógica do SaaS: a receita é concentrada
 
 **O Problema Central: Custo Fixo vs. Custo Vitalício**
 
-O cliente paga R$ 200 uma vez, mas nós temos que "bancar" o custo de storage, egress (tráfego) e compute (processamento) desse cliente para sempre. Em um SaaS normal (assinatura), o custo fixo (servidor ligado 24/7, como um AWS RDS de R$ 200/mês) é diluído pela receita recorrente. No nosso modelo, a receita é só no Dia Zero (D0). Portanto, a ociosidade é o nosso maior inimigo.
+O cliente paga o ticket uma vez (R$ 297 cartão / R$ 279 PIX), mas nós temos que "bancar" o custo de storage, egress (tráfego) e compute (processamento) desse cliente para sempre. Em um SaaS normal (assinatura), o custo fixo (servidor ligado 24/7 — por exemplo, uma RDS que poderia custar centenas de reais/mês) é diluído pela receita recorrente. No nosso modelo, a receita é só no Dia Zero (D0). Portanto, a ociosidade é o nosso maior inimigo.
 
 **O que era preciso (A Tese):** Precisávamos de um stack que tivesse um custo fixo de R$ 0 (ou perto disso) e cujo custo variável escalasse perfeitamente com a receita (novos uploads), não com o uso (visualização).
 
@@ -66,7 +66,7 @@ Nós atacamos os três grandes ralos de custo: Banco de Dados, Processamento (Wo
 
 1. **O Problema do Banco de Dados (Ociosidade)**
 
-   O que era preciso: Um banco de dados que não cobrasse R$ 200/mês só para ficar "ligado", já que 90% dos usuários ficarão inativos após o primeiro ano.
+   O que era preciso: Um banco de dados que não cobrasse custos mensais fixos altos só para ficar "ligado" (ex.: RDS tradicional), já que 90% dos usuários ficarão inativos após o primeiro ano.
 
    A Tecnologia Escolhida: Neon (PostgreSQL Serverless).
 
@@ -80,7 +80,7 @@ Nós atacamos os três grandes ralos de custo: Banco de Dados, Processamento (Wo
 
    A Tecnologia Escolhida: Modal (Workers Python).
 
-   O Motivo (Por quê?): É o "compute" elástico e sem gerenciamento. Pagamos por segundo de CPU usado. Se ninguém faz upload, o custo é R$ 0. Se 1.000 usuários fazem upload no mesmo minuto, 1.000 workers "nascem" sob demanda, processam o vídeo (executando nosso código Python/FFmpeg) e "morrem". O custo de compute (os R$ 0,44 por conta, ver 2.3) só acontece no D0, junto com a receita de R$ 200.
+   O Motivo (Por quê?): É o "compute" elástico e sem gerenciamento. Pagamos por segundo de CPU usado. Se ninguém faz upload, o custo é R$ 0. Se 1.000 usuários fazem upload no mesmo minuto, 1.000 workers "nascem" sob demanda, processam o vídeo (executando nosso código Python/FFmpeg) e "morrem". O custo de compute (os R$ 0,44 por conta, ver 2.3) só acontece no D0, junto com a receita do ticket (R$ 279 PIX / R$ 297 cartão).
 
 3. **O Problema da Fila (Robustez)**
 
@@ -96,12 +96,11 @@ Nós atacamos os três grandes ralos de custo: Banco de Dados, Processamento (Wo
 
    **O que era preciso (A "Saída Gratuita"):** Precisávamos de storage barato com egress (saída) gratuito.
 
-   A Tecnologia Escolhida: O combo Backblaze B2 (Storage) + Cloudflare (CDN).
+   A Tecnologia Escolhida: Armazenamento híbrido R2 (hot) + Backblaze B2 (cold) servido pela CDN (Cloudflare) para minimizar egress.
 
    O Motivo (Por quê?): O B2 é um dos storages S3-compatíveis mais baratos do mercado. Mas o "pulo do gato" é que ele faz parte da "Bandwidth Alliance".
 
    Como foi resolvido: Essa aliança significa que qualquer transferência de dados do B2 para a CDN da Cloudflare tem custo ZERO de egress. Nosso fluxo fica:
-
    - Armazenamos a mídia no B2 (barato).
    - O usuário pede a mídia.
    - A Cloudflare (CDN) "puxa" a mídia do B2 (custo R$ 0) e armazena em cache na borda.
@@ -112,313 +111,6 @@ Nós atacamos os três grandes ralos de custo: Banco de Dados, Processamento (Wo
 **Resumo do Stack**
 
 O stack não foi escolhido por ser "moderno" (apesar de ser), mas como uma estratégia financeira direta para viabilizar o modelo de Acesso Perpétuo:
-
-- Neon + Modal: Matam o custo fixo (ociosidade).
-- B2 + Cloudflare: Matam o custo de egress (o "sangramento" variável).
-- Cloudflare Queues + Fly.io: Garantem que a UX seja rápida e que o sistema aguente picos sem quebrar.
-
-### 2.3 Custo de Estoque Real (O "Sangramento" Auditado)
-
-O modelo anterior (revC) usava uma estimativa conservadora de R$ 4,44/ano. Uma auditoria nos custos reais (baseada nos preços atuais de B2) revela um número muito menor, o que torna o modelo de provisionamento (Seção 5.3) viável.
-
-O custo de Setup (D0) é o custo de processar os 60 momentos iniciais. O custo de Estoque (Anual) é o custo de manter a conta inativa.
-
-**Custo de Setup (D0):** R$ 0,44
-
-- Compute (workers): R$ 0,44 (Custo único de transcodificação dos 60 momentos no D0).
-
-**Custo de Estoque (Anual):** R$ 1,53
-
-- Storage (B2 Real): R$ 0,20
-
-  Cálculo: (0,6 GB _ (R$ 5,50 _ $0,005/GB/mês) * 12 meses). O valor de R$ 2,67 anterior era uma provisão de 1200% de gordura.
-
-- Egress (edge/CDN): R$ 1,11 (Provisão para tráfego não-B2: API, Neon).
-
-- Banco/I/O: R$ 0,22 (Custo do Neon "dormindo").
-
-- Total "Sangramento": R$ 1,53/conta/ano.
-
-### 2.4 Por que os Limites (A Defesa do Modelo)
-
-**Cognitivo e conclusão (60 momentos + 5 repetições):** Pedir "suba suas fotos" falha; pedir "complete 'Primeira papinha'" gera vitória rápida.
-
-**Previsibilidade de custo (2 GiB):** Os limites são uma feature, não uma punição. Eles evitam o "Google Photos Trap" (armazenamento infinito = custo infinito). 60 momentos e 2 GiB permitem calcular o custo de estoque real de R$ 1,53/ano e precificar o Acesso Perpétuo (R$ 200) com confiança.
-
-**Qualidade pela restrição (3 fotos, 10 s):** Forçamos a curadoria. Um vídeo de 10 s transcodifica em segundos (compute barato). Um vídeo de 60 s multiplicaria custo e espera 6×.
-
-### 2.5 Privacidade & SLOs Financeiros
-
-**Privacidade (3 modos):** private (padrão), people (convidados), link (público opcional).
-
-**SLOs Financeiros:** Time-to-ready ≤ 2 min: Tempo do upload ao playback (eficiência da fila + worker).
-
-Custo de Estoque ≤ R$ 2,00/conta/ano: A métrica de sobrevivência do negócio. (Estamos em R$ 1,53).
-
-## 3. O Modelo de Receita (Go-to-Market)
-
-Esta seção foca em como geramos receita e quanto custa adquiri-la.
-
-### 3.1 Modelo de Preços (Revisado)
-
-**Ticket de entrada (Acesso Perpétuo):** R$ 200 por conta (inclui todos os 60+ momentos e 5 entradas para cada momento recorrente).
-
-**Upsell (Pacote Completo):** R$ 49 (pagamento único).
-
-Prompt: "Desbloqueie entradas ilimitadas para todos os seus momentos recorrentes: Visitas, Saúde, Diário da Barriga, Galeria de Arte e mais. Complete sua história sem limites."
-
-**Ticket médio upsell (base):** R$ 49 (Ajustado para o pacote único)
-
-**Política:** Upsell contextual (acionado na 6ª entrada de um recorrente), focado em liberar valor, não em vender espaço.
-
-### 3.2 Racional de Preço
-
-**Âncora emocional (R$ 200):** Referência a bens duráveis (álbum de luxo, ensaio fotográfico) sem bloquear a compra por impulso.
-
-**Upsell como Produto (R$ 49):** É um frictionless step-up. Simplifica a jornada de compra (uma decisão, não três) e maximiza o LTV de clientes engajados.
-
-### 3.3 Mix de Canais e CAC Alvo
-
-O cenário de lançamento (realista) assume um CAC blended de R$ 80.
-
-| Canal                    | Papel                    | CAC alvo (R$) | Observações / Métricas-Chave                                                           |
-| ------------------------ | ------------------------ | ------------- | -------------------------------------------------------------------------------------- |
-| Parcerias (B2B2C)        | Prioridade 1 (CAC baixo) | 15–30         | Fotógrafos de parto, lojas de enxoval. Métrica: Custo por Parceiro Qualificado (CPPQ). |
-| Orgânico/SEO             | Base de longo prazo      | 10–25         | Long tail de marcos do bebê; ramp-up lento. Métrica: % de Vendas Orgânicas.            |
-| Influência de nicho      | Picos com credibilidade  | 30–55         | Microinfluenciadores; rastreamento por cupom. Métrica: ROAS por Cupom.                 |
-| Mídia paga (meta/search) | Acelerar lote (Pós-PMF)  | 70–90         | Cenário realista de leilão caro. Só manter se LTV/CAC ≥ 3×. Métrica: LTV/CAC > 3x.     |
-
-### 3.4 Plano GTM Tático (Foco B2B2C - 180 Dias)
-
-O canal de Parcerias (B2B2C) não é opcional; é a estratégia primária de aquisição para o Ano 1, pois nos permite adquirir clientes com um custo baseado em comissão (R$ 15-30), não em leilão (R$ 70-90).
-
-**Alvo (180 Dias):** Conquistar 40 parceiros qualificados. (Se 50% das 3.000 contas do A1 vierem de B2B2C, e cada parceiro gerar 3-4 vendas/mês, precisamos de ~35-40 parceiros ativos).
-
-**Risco de Execução:** O ciclo de vendas B2B2C é lento. O DRE (Seção 5) já assume um CAC de R$ 80, dando-nos "gordura" para queimar em mídia paga enquanto o canal B2B2C amadurece.
-
-**Canais de Parceria Prioritários:**
-
-**Fotógrafos de Parto/Newborn:**
-
-- **Modelo Principal (Venda Direta):** Venda de pacotes de 10 vouchers com 30% de desconto (R$ 140/licença). O fotógrafo presenteia o cliente, embutindo o custo em seu pacote "premium". Este modelo de venda em lote (vouchers) é a nossa estratégia primária, pois garante a receita no D0 para nós, gera um LTV/CAC claro (LTV/CAC > 4x) e alinha 100% os incentivos, pois o parceiro só ganha se nós ganharmos. Isso torna a escala de parceiros muito mais rápida.
-
-**Lojas de Enxoval (Físicas e Online):**
-
-- **Oferta A (Gift Card):** Venda de gift cards do Baby Book no caixa.
-- **Oferta B (Bônus):** Nas compras acima de R$ X, o cliente ganha o Baby Book.
-
-### 3.5 Gateway e Parcelamento
-
-**Provedor recomendado:** Stripe (Plano B: Pagar.me).
-
-**Custo:** Premissa média 3,49% + R$ 0,39/tx.
-
-**Política de parcelamento:**
-
-- Acesso Perpétuo (R$ 200): até 3× sem juros. >3× com juros (cliente assume).
-- Upsells (R$ 19, R$ 29): 1×.
-
-## 4. Premissas & Projeções (O Modelo Financeiro)
-
-Esta seção detalha as entradas (inputs) do nosso modelo financeiro.
-
-### 4.1 Premissas Financeiras (BRL)
-
-**Moeda e câmbio:** Provedores cobram em USD. Assumimos USD/BRL = R$ 5,50 com margem.
-
-**Hedge (Mandatório):** Política de manter 2-3 meses de custos de infra (USD) em caixa (ex: créditos pré-pagos B2/Modal) é mandatória. O financeiro deve ativamente comprar créditos USD sempre que a taxa de câmbio (PTAX) estiver abaixo da média dos últimos 30 dias (M30).
-
-**Tributos (Simples efetivo):** Ano 1: 9% | Ano 2: 10% | Ano 3: 12%.
-
-**Gateway de pagamento:** 3,49% + R$ 0,39/tx; chargeback: 0,4% (provisionado).
-
-**CAC (Custo de Aquisição):**
-
-- Base (Realista A1): R$ 80
-- Meta (Otimização A2): R$ 65
-- Meta (Longo Prazo A3+): R$ 55
-
-**Upsell:**
-
-- Attach anual (Base Realista): 20% (A1). Otimização para 25% (A2) e 30% (A3). Esta é agora uma premissa de lucro, não de sobrevivência.
-- Ticket upsell médio: R$ 49 (Ajustado para o pacote único).
-
-**Infra (consolidado):**
-
-- Variável por conta/ano (estoque): R$ 1,53 (Custo real auditado, Seção 2.3).
-- Variável por conta (Setup D0): R$ 0,44 (Custo real auditado, Seção 2.3).
-- Fixo mensal: R$ 55/mês (A1) e R$ 214,50/mês (A2–A3).
-
-**Opex administrativo:** R$ 2.500/mês (A1) → R$ 7.000/mês (A2) → R$ 15.000/mês (A3). (Premissa revisada para incluir custos de ferramentas mais realistas e provisão para pró-labore simbólico a partir do A2).
-
-### 4.2 Premissas de Consumo (Storage)
-
-**Por momento (médias):** ≈ 9,5–10 MB (3 fotos + thumbs + vídeo 10s + áudio).
-
-**Por conta (base):** ≈ 600 MB (60 × 10 MB).
-
-**Target de 2 GiB:** Folga > 3× para variações. Essa folga é intencional para que o usuário nunca se sinta "apertado".
-
-### 4.3 Projeção de Demanda e Dimensionamento de Mercado (TAM)
-
-**Dados de Mercado (TAM):**
-
-O mercado brasileiro registra, de forma conservadora, cerca de 2,5 milhões de nascimentos por ano (fonte: IBGE/Datasus). Este é o nosso Mercado Anual Total Endereçável (TAM).
-
-**Projeção de Demanda (Novas Contas/Ano):**
-
-- Ano 1: 3.000 (Meta de Penetração: 0,12% do TAM)
-- Ano 2: 10.000 (Meta de Penetração: 0,40% do TAM)
-- Ano 3: 25.000 (Meta de Penetração: 1,00% do TAM)
-
-**Racional (A1):** A meta de 3.000 contas no Ano 1 é deliberadamente conservadora. Capturar apenas 0,12% (ou 1 a cada 833 nascimentos) do mercado nacional é uma meta realista e alcançável, especialmente ao focar em nichos de alta conversão. O GTM (3.4) focado em 40 parceiros B2B2C (fotógrafos, lojas) é a máquina tática para gerar essa demanda inicial de forma sustentável (CAC baixo), enquanto o SEO (long tail) constrói a base para o A2 e A3.
-
-### 4.4 Funil de Conversão (Hipóteses Revisadas)
-
-- Visita → cadastro: 8–12%.
-- Cadastro → compra: 6–9%.
-- Compra → attach (ano): 20% (A1) → 25% (A2) → 30% (A3).
-
-## 5. DRE e Unit Economics (A Prova Financeira)
-
-Esta seção detalha os resultados (outputs) do modelo, com base nas premissas da Seção 4.
-
-### 5.1 DRE Projetado (Ano 1–3) — Revisado (PCE)
-
-Parâmetros (A1): Ticket R$ 200; Upsell médio R$ 49; Attach 20%; CAC R$ 80.
-
-Parâmetros (A2): Attach 25%; CAC R$ 65.
-
-Parâmetros (A3): Attach 30%; CAC R$ 55.
-
-(Demais premissas conforme Seção 4.1)
-
-| Indicador           | Ano 1 (Base R$ 80) | Ano 2 (Otim R$ 65) | Ano 3 (Otim R$ 55) |
-| ------------------- | ------------------ | ------------------ | ------------------ |
-| Contas novas        | 3.000              | 10.000             | 25.000             |
-| Contas ativas (fim) | 3.000              | 13.000             | 38.000             |
-| Receita ticket (R$) | 600.000            | 2.000.000          | 5.000.000          |
-| Receita upsell (R$) | 29.400             | 159.250            | 558.600            |
-| Receita bruta (R$)  | 629.400            | 2.159.250          | 5.558.600          |
-| Gateway (R$)        | 23.362             | 80.528             | 208.204            |
-| Chargeback (R$)     | 2.518              | 8.637              | 22.234             |
-| Tributos (R$)       | 56.646             | 215.925            | 667.032            |
-
-### 5.2 Síntese do DRE
-
-**Robustez Comprovada:** Mesmo com um CAC 60% maior (R$ 80) e um Opex mais realista (R$ 30k/ano), o modelo ainda gera R$ 270k de resultado operacional no Ano 1. A Margem Operacional de 42,9% prova que o unit economic é sadio. O aumento do ticket de upsell compensou o aumento do Opex no A2 e A3.
-
-### 5.3 Unit Economics (LTV/CAC) (Revisado)
-
-Esta é a matemática de uma única venda, agora com o modelo de Provisão de Custo de Estoque (PCE).
-
-**Nova conta (Acesso Perpétuo R$ 200) — Ano 1**
-
-Receita (D0): R$ 200,00
-
-(–) Gateway: R$ 7,37
-
-(–) Tributos (9%): R$ 18,00
-
-(–) Chargeback (0,4%): R$ 0,80
-
-(–) Custo de Setup (Compute D0): R$ 0,44
-
-Margem Bruta (pré-CAC): ≈ R$ 173,39
-
-(–) CAC (Base Realista A1): R$ 80,00
-
-Contribuição Líquida (pré-PCE): ≈ R$ 93,39
-
-**A Nova Provisão (PCE): Pagando o "Sangramento" no D0**
-
-(–) Provisão de Custo de Estoque (PCE): Provisionando 20 anos de "sangramento" (Custo de Estoque Real).
-
-PCE = 20 anos \* R$ 1,53/ano = R$ 30,60
-
-Contribuição Líquida (pré-PCE): R$ 93,39
-
-(–) Provisão de Custo de Estoque (20 anos): R$ 30,60
-
-**LUCRO LÍQUIDO REAL (D0):** ≈ R$ 62,79
-
-**Upsell (Pacote R$ 49) — Puro Lucro**
-
-(–) Gateway: R$ 2,10 | Tributos (9%): R$ 4,41 | Chargeback: R$ 0,20 | Infra adicional: ≈ R$ 0,20
-
-Contribuição: ≈ R$ 42,09
-
-**LTV (LTD + upsell esperado)**
-
-Leitura (Modelo Robusto): O negócio sobrevive com 0% de attach rate. O custo de estoque vitalício (R$ 30,60) é provisionado no D0, e ainda sobram R$ 62,79 de lucro líquido imediato por venda.
-
-O Upsell é "Gravy" (Lucro Extra): O LTV incremental (A1) ≈ Attach (20%) × Contribuição Upsell (R$ 42,09) = R$ 8,42/conta/ano.
-
-Implicação: Este LTV incremental (R$ 8,42) é puro lucro, pois o custo de estoque (R$ 1,53) já foi pago pela provisão no D0.
-
-### 5.4 Break-Even e "Ponto de Parada" (Revisado)
-
-**Payback (por cliente)**
-
-Imediato (D0): O negócio é lucrativo no D0. Cada venda gera R$ 62,79 de lucro líquido imediato, após pagar CAC e provisionar 20 anos de custos de estoque.
-
-**Break-even mensal (Ano 1)**
-
-Fixos/mês (A1): ≈ R$ 2.555 (Infra R$ 55 + Opex R$ 2.500)
-
-Lucro Líquido Real por conta nova (pós-CAC, pós-PCE): ≈ R$ 62,79
-
-Ponto de equilíbrio: ≈ 41 contas/mês (R$ 2.555 ÷ R$ 62,79).
-
-**Implicação:** O break-even subiu de 17 para 41 contas/mês devido à premissa de Opex mais realista. Este número (41 vendas) ainda é extremamente baixo e alcançável (menos de 2 vendas por dia útil).
-
-**Manutenção do cliente ("ponto de parada")**
-
-Regra: O custo de estoque (R$ 1,53/ano) é coberto pela "Provisão de Custo de Estoque" (R$ 30,60) feita no D0.
-
-Ação de Custo: Contas inativas por 12 meses → cold storage (redução de custo de 40-60%). Ao retornar, restaura sob demanda.
-
-## 6. Riscos & Sensibilidades
-
-### 6.1 Análise de Sensibilidade (Alavancas de Gestão)
-
-**Otimização de CAC (R$ 80 → R$ 50):** A principal alavanca de lucro. Cada R$ 10 de redução no CAC A1 gera +R$ 30.000 no resultado.
-
-**Otimização de Attach Rate (20% → 35%):** A principal alavanca de lucro incremental (gravy). Deixou de ser uma alavanca de sobrevivência.
-
-**Câmbio (USD/BRL):** Risco externo. + R$ 0,50 no FX (base R$ 5,50) ⇒ ≈ +9,1% na infra variável.
-
-### 6.2 Riscos Principais & Mitigação
-
-**Risco de Custo (Longo Prazo):** A promessa de "Acesso Perpétuo" expõe o negócio à flutuação de custos de terceiros (B2, Neon) e câmbio.
-
-**Mitigação (Jurídico/Produto/Técnico):**
-
-- **Hedge (4.1):** Política mandatória de compra de créditos USD.
-- **Migração Técnica (Cloudflare R2):** Como mitigação técnica para o fim da "Bandwidth Alliance", o plano de longo prazo inclui a migração do storage (B2) para o Cloudflare R2. O R2 possui custo de egress zero por padrão, neutralizando este risco de plataforma (embora exija reavaliação do custo de storage).
-- **Termos de Uso (Legal):** O termo "Acesso Perpétuo" deve ser legalmente definido em nossos Termos de Uso como "acesso pela vida útil comercial do serviço".
-- **Cold Storage (Técnico):** Cláusula contratual (Termos de Uso) permitindo cold storage agressivo após 12 meses de inatividade (5.4).
-- **Válvula de Escape (Legal/Financeiro):** Cláusula de "taxa de manutenção simbólica" para contas inativas > 36 meses.
-
-**Deriva de consumo (storage/compute):** Tetos rígidos (10 s), normalização no cliente, presets no worker.
-
-**Picos sazonais (custo/estabilidade):** Fila (Cloudflare Queues) + autoscaling (Modal) + backpressure (429 Retry-After).
-
-## 7. Plano de Ação & Recomendações
-
-O DRE (Seção 5) é robusto e lucrativo no D0. O foco agora é escalar o lucro via CAC e Upsell.
-
-### 7.1 Otimização de CAC: Foco Tático (0-6 meses)
-
-**Dono:** Head de Growth/CEO.
-
-**Métrica Principal:** CAC Blended.
-
-**Plano de Ação:** Foco total em Parcerias B2B2C (Seção 3.4) e SEO. Pausar mídia paga se o CAC do canal ultrapassar R$ 90.
-
-### 7.2 Otimização de LTV: Estratégia de Engajamento e Upsell (Plano de Produto)
-
-O Risco: O risco mudou de sobrevivência para oportunidade. O upsell é agora 100% lucro incremental.
 
 A Solução (Plano Tático): O attach rate deve ser construído pelo produto.
 
@@ -444,7 +136,7 @@ A Solução (Plano Tático): O attach rate deve ser construído pelo produto.
 
 ## Anexo A — Fórmulas e notas de cálculo
 
-Receita bruta = (Contas novas × R$ 200) + (Contas novas × attach_rate × upsell_médio)
+Receita bruta = (Contas novas × ticket [R$ 279 PIX / R$ 297 cartão]) + (Contas novas × attach_rate × upsell_médio)
 
 ... (demais fórmulas mantidas)
 
@@ -488,7 +180,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **GTM (Go-to-Market):** O plano tático de "ida ao mercado" (Seção 3.4), focado em B2B2C.
 
-**LTV (Lifetime Value):** "Valor do Ciclo de Vida do Cliente". A receita total esperada de um cliente. No nosso modelo: LTV = R$ 200 (D0) + (Contribuição Média do Upsell _ Attach Rate _ Anos).
+**LTV (Lifetime Value):** "Valor do Ciclo de Vida do Cliente". A receita total esperada de um cliente. No nosso modelo: LTV = ticket (R$ 279 PIX / R$ 297 cartão) (D0) + (Contribuição Média do Upsell _ Attach Rate _ Anos).
 
 **Opex (Operational Expenditure):** Nossos custos fixos mensais (ex: Opex Adm. de R$ 2.500/mês), que não incluem infra variável.
 

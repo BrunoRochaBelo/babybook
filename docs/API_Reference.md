@@ -199,7 +199,7 @@ Este é o fluxo recomendado para uma Single-Page Application (SPA).
 
 ## 3. Guia Rápido: Upload de Mídia (Multipart Flow)
 
-O upload de arquivos grandes é feito diretamente para o B2 (Backblaze B2 ou similar) usando URLs pré-assinadas, sem passar pelo servidor da API.
+O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 ou Backblaze B2, dependendo do tipo de asset) usando URLs pré-assinadas ou um protocolo resumable (TUS). Sempre que possível a compressão/transcode é feita no cliente (ffmpeg.wasm no navegador ou bibliotecas nativas no mobile) antes do envio, reduzindo custos de banda e processamento server-side.
 
 - **Iniciar Upload (Cliente -> API):** O cliente informa à API que deseja iniciar um upload.
 
@@ -209,7 +209,6 @@ O upload de arquivos grandes é feito diretamente para o B2 (Backblaze B2 ou sim
   ```
 
   **Ação da API:**
-
   - Verifica quota de storage (quota.bytes.exceeded → 413).
   - Verifica sha256 para deduplicação (conforme Modelo de Dados 5.0).
 

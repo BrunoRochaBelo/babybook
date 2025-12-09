@@ -1,0 +1,160 @@
+# @babybook/edge - Cloudflare Edge Worker
+
+**O "Porteiro Digital"** - Protege arquivos do bucket B2/S3 e serve via CDN.
+
+## 🎯 O Que Este Worker Faz
+
+1. **Intercepta** requisições de arquivos (ex: `https://cdn.babybook.com.br/v1/file/u/user-123/video.mp4`)
+2. **Verifica o Crachá (JWT)** - Token válido?
+3. **Verifica a Sala (ACL)** - O ID do usuário no token bate com o ID na URL?
+4. **Busca no B2** - Assina a requisição e busca do bucket privado
+5. **Entrega com Cache** - Devolve o arquivo e cacheia na borda por horas
+
+## 🔒 Regras de Acesso por Pasta
+
+| Pasta                       | Acesso       | Regra                                            |
+| --------------------------- | ------------ | ------------------------------------------------ |
+| `u/{user_id}/...`           | 🔐 Privado   | JWT obrigatório + `sub` deve bater com `user_id` |
+| `partners/{partner_id}/...` | 🔐 Privado   | JWT obrigatório + role `photographer` ou `admin` |
+| `sys/...`                   | 🌍 Público   | Logos, placeholders, defaults                    |
+| `tmp/...`                   | 🚫 Bloqueado | Arquivos temporários internos                    |
+
+## 💰 Por Que Isso Economiza Dinheiro
+
+1. **B2 Privado** - Ninguém baixa terabytes de vídeo sem token
+2. **Zero Egress** - Bandwidth Alliance (CF ↔ B2) = transferência GRÁTIS
+3. **Cache na Borda** - Vídeo assistido 10x = 9 vindas do cache (custo zero)
+
+## 🚀 Rotas
+
+### Arquivos Protegidos
+
+```
+GET /v1/file/{path}
+HEAD /v1/file/{path}
+```
+
+Exemplos:
+
+```
+GET /v1/file/u/user-uuid/m/moment-uuid/photo.jpg
+GET /v1/file/partners/partner-uuid/delivery-uuid/video.mp4
+GET /v1/file/sys/defaults/placeholder.webp
+```
+
+### Tokens de Compartilhamento
+
+```
+GET /s/{token}
+```
+
+### Health Check
+
+```
+GET /health
+```
+
+## 🛠️ Desenvolvimento
+
+### Pré-requisitos
+
+```bash
+pnpm install
+```
+
+### Configurar Variáveis
+
+```bash
+cp .dev.vars.example .dev.vars
+# Edite .dev.vars com suas credenciais
+```
+
+### Rodar Localmente
+
+```bash
+pnpm dev
+```
+
+### Testes
+
+```bash
+pnpm test
+```
+
+## 📦 Deploy
+
+### Configurar Secrets (Uma vez)
+
+```bash
+# Credenciais do Backblaze
+npx wrangler secret put B2_ACCESS_KEY_ID
+npx wrangler secret put B2_SECRET_ACCESS_KEY
+npx wrangler secret put B2_BUCKET_NAME
+npx wrangler secret put B2_ENDPOINT
+
+# JWT Secret (mesmo do backend Python)
+npx wrangler secret put JWT_SECRET
+```
+
+### Deploy para Production
+
+```bash
+npx wrangler deploy
+```
+
+### Deploy para Staging
+
+```bash
+npx wrangler deploy --env staging
+```
+
+## 🏗️ Arquitetura
+
+```
+┌─────────────┐     ┌───────────────────┐     ┌─────────────┐
+│   Cliente   │────▶│  Edge Worker (CF) │────▶│  B2 Bucket  │
+│  (Browser)  │◀────│    "Porteiro"     │◀────│  (Privado)  │
+└─────────────┘     └───────────────────┘     └─────────────┘
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │  CF Cache     │
+                    │  (200+ POPs)  │
+                    └───────────────┘
+```
+
+## 📁 Estrutura
+
+```
+apps/edge/
+├── src/
+│   ├── index.ts           # Entry point (Hono app)
+│   ├── routes/
+│   │   └── files.ts       # File serving routes
+│   └── lib/
+│       ├── auth.ts        # JWT verification, ACL
+│       └── storage.ts     # B2/S3 signed requests
+├── tests/
+│   ├── auth.test.ts
+│   └── storage.test.ts
+├── wrangler.toml          # Cloudflare config
+└── .dev.vars.example      # Local dev secrets template
+```
+
+## 🔑 Variáveis de Ambiente
+
+| Variável               | Descrição                      | Exemplo                          |
+| ---------------------- | ------------------------------ | -------------------------------- |
+| `B2_ACCESS_KEY_ID`     | Backblaze keyID                | `0012345...`                     |
+| `B2_SECRET_ACCESS_KEY` | Backblaze applicationKey       | `K001abc...`                     |
+| `B2_BUCKET_NAME`       | Nome do bucket                 | `bb-production-v1`               |
+| `B2_ENDPOINT`          | Endpoint S3 do B2              | `s3.us-east-005.backblazeb2.com` |
+| `JWT_SECRET`           | Segredo JWT (mesmo do backend) | `super-secret-key`               |
+| `API_BASE_URL`         | URL da API (para shares)       | `https://api.babybook.dev`       |
+
+## 📝 Notas
+
+- O Worker usa `aws4fetch` para assinar requisições S3 (compatível com B2)
+- O JWT usa `jose` para validação robusta
+- O cache é configurado por tipo de pasta (sys=24h, u=4h, partners=1h)
+- Suporta `Range` headers para streaming de vídeo

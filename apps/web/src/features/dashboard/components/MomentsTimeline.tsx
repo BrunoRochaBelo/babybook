@@ -4,8 +4,9 @@ import type { Moment } from "@babybook/contracts";
 import { List, Grid2X2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MOMENT_CATALOG, type CatalogSequenceItem } from "@/data/momentCatalog";
-import { MomentCard } from "@/components/MomentCard";
+import { EnhancedMomentCard } from "@/components/EnhancedMomentCard";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { cn } from "@/lib/utils";
 import { NextMomentSuggestion } from "./NextMomentSuggestion";
 import { JourneyProgressCard } from "./JourneyProgressCard";
@@ -33,8 +34,13 @@ export const MomentsTimeline = ({
   const navigate = useNavigate();
   const { selectedChild } = useSelectedChild();
   const [viewMode, setViewMode] = useState<ViewMode>("timeline");
-  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(null);
+  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(
+    null,
+  );
   const [chaptersLayout, setChaptersLayout] = useState<ChaptersLayout>("list");
+
+  // Scroll restoration - preserves position when navigating back
+  useScrollRestoration({ key: "moments-timeline", delay: 100 });
 
   const publishedTemplateKeys = useMemo(
     () =>
@@ -119,8 +125,8 @@ export const MomentsTimeline = ({
       return (
         <div className="mt-6 rounded-3xl border border-dashed border-border bg-surface p-8 text-center shadow-sm">
           <p className="text-sm text-ink-muted">
-            Nenhum momento publicado ainda. Use o HUD ou crie um momento livre para
-            iniciar a história.
+            Nenhum momento publicado ainda. Use o HUD ou crie um momento livre
+            para iniciar a história.
           </p>
           <button
             onClick={handleCreateAvulso}
@@ -136,7 +142,7 @@ export const MomentsTimeline = ({
     return (
       <div className="mt-6 space-y-4">
         {moments.map((moment) => (
-          <MomentCard key={moment.id} moment={moment} />
+          <EnhancedMomentCard key={moment.id} moment={moment} />
         ))}
       </div>
     );
@@ -224,7 +230,9 @@ export const MomentsTimeline = ({
                   }
                   className={cn(
                     "rounded-2xl border border-border px-4 py-2 text-sm font-semibold transition",
-                    isExpanded ? "bg-primary text-primary-foreground" : "text-ink hover:border-ink",
+                    isExpanded
+                      ? "bg-primary text-primary-foreground"
+                      : "text-ink hover:border-ink",
                   )}
                 >
                   {isExpanded ? "Esconder momentos" : "Ver todos os momentos"}
@@ -253,7 +261,10 @@ export const MomentsTimeline = ({
                         key={template.id}
                         type="button"
                         onClick={() =>
-                          handlePlaceholderClick(template.id, template.templateKey)
+                          handlePlaceholderClick(
+                            template.id,
+                            template.templateKey,
+                          )
                         }
                         className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-left transition hover:border-ink"
                         disabled={isLoading}
@@ -261,9 +272,13 @@ export const MomentsTimeline = ({
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
                             <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                              {template.type === "recurring" ? "Recorrente" : "Único"}
+                              {template.type === "recurring"
+                                ? "Recorrente"
+                                : "Único"}
                             </p>
-                            <p className="font-semibold text-ink">{template.title}</p>
+                            <p className="font-semibold text-ink">
+                              {template.title}
+                            </p>
                           </div>
                           <span className="text-xs text-ink-muted">
                             {publishedCount > 0
@@ -331,7 +346,11 @@ export const MomentsTimeline = ({
                       <motion.span
                         layoutId="journey-view-pill"
                         className="absolute inset-0 rounded-[28px] bg-primary shadow-[0_10px_24px_rgba(242,153,93,0.28)]"
-                        transition={{ type: "spring", stiffness: 320, damping: 30 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 320,
+                          damping: 30,
+                        }}
                       />
                     )}
                     <span className="relative z-10">

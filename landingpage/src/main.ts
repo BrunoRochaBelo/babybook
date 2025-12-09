@@ -76,6 +76,10 @@ import { setupAccordion } from "./features/interactive/accordion";
 import { initCtaFinalBehavior } from "./features/ctaFinalBehavior";
 import { initFooterBehavior } from "./features/footerBehavior";
 
+// Features - Checkout
+import { mountCheckout } from "./features/checkout";
+import { injectCheckoutStyles } from "./features/checkout/styles";
+
 // Utils
 import {
   setupScrollDepthTracking,
@@ -264,6 +268,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   safeInit("Accordion", () => setupAccordion());
+
+  // Checkout Modal - Fluxo de compra
+  safeInit("Checkout", () => {
+    injectCheckoutStyles();
+    return mountCheckout();
+  });
 
   // PREMIUM: Smart Interactions
   safeInit("Smart Prefetch & Haptic", async () => {

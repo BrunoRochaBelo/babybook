@@ -8,7 +8,7 @@
   - [Edge (Cloudflare Pages/Workers)](#edge-cloudflare-pagesworkers)
   - [API (FastAPI no Fly.io)](#api-fastapi-no-flyio)
   - [Banco de Dados (Neon Postgres)](#banco-de-dados-neon-postgres)
-  - [Storage (Backblaze B2 — S3 API)](#storage-backblaze-b2--s3-api)
+  - [Storage (Cloudflare R2 + Backblaze B2 — S3 API)](#storage-cloudflare-r2--backblaze-b2--s3-api)
   - [Workers (Modal) & Fila (Cloudflare Queues)](#workers-modal--fila-cloudflare-queues)
   - [Matriz de Responsabilidades (RACI) e Plantão](#matriz-de-responsabilidades-raci-e-plantão)
 - [CI/CD e Promoção Entre Ambientes](#cicd-e-promoção-entre-ambientes)
@@ -134,14 +134,18 @@ Extensões: citext, pgcrypto, uuid-ossp/gen_random_uuid().
 Observabilidade: Monitorar pg_locks, pg_stat_activity, tempo de query, bloat (especialmente em usage_counter), dead tuples; alertas para slow queries e tx_wraparound.
 Segurança: Políticas de RLS (Row Level Security) ativas para dados sensíveis (Health/Vault), ver §4.8.
 
-### 2.5. Storage (Backblaze B2 — S3 API)
+### 2.5. Storage (Cloudflare R2 + Backblaze B2 — S3 API)
 
-Buckets: bb-media (originais/derivados) e bb-exports (ZIPs temporários).
+Arquitetura híbrida de storage:
+
+- Hot (Cloudflare R2): thumbnails, WebP previews, avatares e assets fortemente cacheados. R2 oferece egress otimizado a partir da borda, reduzindo custos quando o mesmo asset é solicitado milhares de vezes.
+- Cold (Backblaze B2): originais high-res e vídeos armazenados para custo de storage mais baixo.
+
+Buckets: bb-media (originais/derivados), bb-exports (ZIPs temporários) — com regras de lifecycle aplicadas por prefixo.
 Lifecycle: Derivados com TTL curto (30d); exports 72h; reaper diário para órfãos (conforme Modelo de Dados 10.4).
-Assinaturas (Presign):Modelo: A API gera URLs PUT pré-assinadas.
-Segurança: O presign deve ser o mais restrito possível: escopo por key exata, content-length-range (para evitar uploads gigantes), Content-MD5 (se possível) e TTL curto (ex: 5-10 min).
-Segurança: Criptografia em repouso; chaves por ambiente; policy de leitura estrita por prefixo.
-Egress (Custo): O uso da Bandwidth Alliance (Cloudflare-B2) é o pilar do nosso modelo de custo (Visão & Viabilidade 2.2.4). O media.babybook.com (Cloudflare) deve ser configurado para puxar do B2.
+Assinaturas (Presign): A API gera URLs PUT pré-assinadas ou fornece pontos de entrada TUS dependendo do caso de uso.
+Segurança: Presigns restritos (key exata, content-length-range, TTL curto). Criptografia em repouso e políticas por prefixo.
+Egress (Custo): A estratégia híbrida visa reduzir risco de custo dependente de acordos. O R2 reduz egress para arquivos hot; o B2 mantém custo baixo para armazenamento frio. Configurar o CDN (media.babybook.com) para privilegiar o R2 quando possível e só cair no B2 para originais sob demanda.
 
 ### 2.6. Workers (Modal) & Fila (Cloudflare Queues)
 
@@ -668,4 +672,3 @@ async def complete_upload(
 3. No Modal/Fly, construa a imagem dos workers com `ffmpeg`/`ffprobe` e valide que as envs `FFMPEG_PATH`/`FFPROBE_PATH` apontam para o binário existente.
 4. Configure a Cloudflare Queue com Dead-Letter Queue (DLQ) após N tentativas e garanta o mesmo nome/credenciais usados na API (`CLOUDFLARE_*`).
 5. Aponte `QUEUE_PROVIDER=cloudflare` em produção e mantenha `INLINE_WORKER_ENABLED=false` para evitar processamento inline fora do dev.
-

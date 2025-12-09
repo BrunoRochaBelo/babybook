@@ -54,6 +54,10 @@ JOB_MAP: dict[str, JobHandler] = {
     "video.transcode": _lazy_handler("app.ffmpeg:transcode_video"),
     "image.thumbnail": _lazy_handler("app.images:create_thumbnail"),
     "export.zip": _lazy_handler("app.exports:build_export_zip"),
+    # Fallback media processing jobs (from client-side failure)
+    "media.transcode": _lazy_handler("app.media_processing:process_transcode_job"),
+    "media.optimize_image": _lazy_handler("app.media_processing:process_image_optimize_job"),
+    "media.thumbnail": _lazy_handler("app.media_processing:process_thumbnail_job"),
 }
 
 

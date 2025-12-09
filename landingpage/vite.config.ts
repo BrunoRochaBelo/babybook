@@ -4,6 +4,7 @@ import { imagetools } from "vite-imagetools";
 import { VitePWA } from "vite-plugin-pwa";
 import fs from "fs";
 import path from "path";
+import { resolve } from "path";
 
 export default defineConfig({
   server: {
@@ -14,6 +15,11 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      // Multi-page app: B2C (index.html) + B2B Pro (pro.html)
+      input: {
+        main: resolve(__dirname, "index.html"),
+        pro: resolve(__dirname, "pro.html"),
+      },
       output: {
         manualChunks: {
           // Vendor chunk - Lenis (scrolling library)

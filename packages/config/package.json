@@ -10,13 +10,15 @@
     "./eslint": "./eslint/index.mjs",
     "./tailwind": "./tailwind/tailwind.config.js",
     "./tsconfig": "./tsconfig/base.json",
-    "./design-tokens": "./design-tokens.ts"
+    "./design-tokens": "./design-tokens.ts",
+    "./pricing": "./pricing.ts"
   },
   "files": [
     "eslint",
     "tailwind",
     "tsconfig",
-    "design-tokens.ts"
+    "design-tokens.ts",
+    "pricing.ts"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.1.0",

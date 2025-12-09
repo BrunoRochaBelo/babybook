@@ -39,7 +39,7 @@
 
 Esta seção define as restrições e decisões fundamentais que governam todo o modelo de dados, alinhadas com o documento Arquitetura & Domínio.
 
-Fonte de Verdade: PostgreSQL (metadados) + Backblaze B2/S3 (mídia).Justificativa: Esta separação é crucial e é o pilar do nosso modelo de Visão & Viabilidade. O PostgreSQL (via Neon) armazena metadados (texto, JSON, UUIDs), que têm um custo de armazenamento low-cost e previsível. O B2/S3 armazena blobs (GiB de mídia), que têm um custo de armazenamento variável (pay-per-use). Tentar armazenar mídia no banco (ex: bytea) seria financeiramente proibitivo e tecnicamente ineficiente, quebrando o "God SLO" de Custo de Estoque (< R$ 2,00/ano).
+Fonte de Verdade: PostgreSQL (metadados) + Storage híbrido (Cloudflare R2 hot + Backblaze B2 cold) para mídia. Justificativa: Esta separação é crucial e é o pilar do nosso modelo de Visão & Viabilidade. O PostgreSQL (via Neon) armazena metadados (texto, JSON, UUIDs), que têm um custo de armazenamento low-cost e previsível. O storage híbrido mantém thumbnails/previews na borda (R2) e os originais no cold storage (B2), otimizando custo e egress. Tentar armazenar mídia no banco (ex: bytea) seria financeiramente proibitivo e tecnicamente ineficiente, quebrando o "God SLO" de Custo de Estoque (< R$ 2,00/ano).
 Multi-tenant: Por account_id com RLS (Row Level Security) ativo em todo o domínio.Implicação: A API (FastAPI) nunca deve escrever uma query com WHERE account_id = ?. Este é um anti-pattern perigoso. O RLS (Seção 8) injeta essa condição automaticamente no nível do banco. Isso é a nossa principal defesa contra vazamento de dados entre contas (tenants). Um bug na API (que "esqueça" o WHERE) é contido pelo banco, que não retornará linhas que não pertençam ao app.account_id setado na sessão (ver 8.1).
 Concorrência: Otimista. rev + updated_at $\rightarrow$ ETag W/"<rev>-<epoch>" com If-Match.Justificativa: Em uma aplicação web colaborativa (pai e mãe editando), locks pessimistas (SELECT...FOR UPDATE) são um gargalo de performance que serializa o acesso. É preferível permitir a colisão (duas pessoas salvarem ao mesmo tempo) e rejeitar a segunda escrita com um erro 412 Precondition Failed.
 Implicação (UI): A UI (cliente), conforme a Estrutura do Projeto (Seção 3.9), deve tratar o 412 de forma inteligente: ela deve informar ao usuário ("Alguém salvou este momento enquanto você editava. Suas alterações não foram salvas.") e, idealmente, oferecer um "diff" ou a opção de "copiar minhas alterações" antes de recarregar os dados do servidor. A trigger touch_rev (Seção 9.3) implementa a mecânica de ETag no DDL.
@@ -1028,8 +1028,8 @@ Estratégia: Um worker que executa uma query de UPDATE...FROM...WHERE para recal
 
 ## Anexos (Índices, API, Migração, LGPD, Testes)
 
-PoD: /print-jobs $\rightarrow$ print_job, print_job_item. (Worker valida asset_exif.dpi_x).
-Saúde/Cofre (Owner): /health/_, /vault/_ $\rightarrow$ health_measurement, vault_document (RLS da Seção 8.3 bloqueia não-Owners).
+PoD: /print-jobs $\rightarrow$ print*job, print_job_item. (Worker valida asset_exif.dpi_x).
+Saúde/Cofre (Owner): /health/*, /vault/\_ $\rightarrow$ health_measurement, vault_document (RLS da Seção 8.3 bloqueia não-Owners).
 Anexo C: Seeds (Catálogo Mínimo)
 (A ser executado na implantação ou copiado na criação da conta)
 

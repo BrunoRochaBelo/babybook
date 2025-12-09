@@ -49,7 +49,7 @@ Estes são os momentos que compõem a "Jornada do Primeiro Ano" (nosso guia de m
 > 6. Se o usuário preencher um momento futuro (ex: "Primeiros Passos" antes do "Primeiro Dente"), o HUD deve retornar ao rascunho mais antigo pendente ("Primeiro Dente"). Isso garante que a jornada seja preenchida de forma cronológica, mas permite flexibilidade.
 
 > **Rationale de Upsell (Momentos Recorrentes)**:
-> Conforme a Visão & Viabilidade (Seção 3.1), o Plano Base (R$ 200) inclui 5 entradas gratuitas para cada momento de tipologia "Recorrente" (ex: "Visitas Especiais", "Galeria de Arte"). Ao tentar criar a 6ª entrada, a API (API Reference, Seção 4.4) retorna um erro `402 Payment Required`.
+> Conforme a Visão & Viabilidade (Seção 3.1), o Plano Base (ticket — R$ 297 cartão / R$ 279 PIX) inclui 5 entradas gratuitas para cada momento de tipologia "Recorrente" (ex: "Visitas Especiais", "Galeria de Arte"). Ao tentar criar a 6ª entrada, a API (API Reference, Seção 4.4) retorna um erro `402 Payment Required`.
 
 > **Implicação de Engenharia (Link DDL → API)**: Para que a API saiba qual upsell acionar, este Catálogo define a Categoria de Upsell de cada momento recorrente. Este Metadado (ex: `tracking`, `social`, `creative`) é armazenado na tabela `moment_template` (conforme Modelo de Dados 4.4) e é a chave que a API usa para retornar o erro `402` com o payload correto (ex: `details: { package_key: 'unlimited_tracking' }`).
 
