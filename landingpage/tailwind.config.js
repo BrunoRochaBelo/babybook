@@ -104,8 +104,7 @@ export default {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         // Gradientes quentes para seções
         "gradient-warm": "linear-gradient(135deg, #F7F3EF 0%, #FDF9F5 100%)",
-        "gradient-accent":
-          "linear-gradient(135deg, #F2995D 0%, #F5B07A 100%)",
+        "gradient-accent": "linear-gradient(135deg, #F2995D 0%, #F5B07A 100%)",
         // PREMIUM: Gradientes vibrantes para CTAs e elementos de destaque
         "gradient-accent-vibrant":
           "linear-gradient(135deg, #EF8A47 0%, #F3B07F 50%, #F7D4B8 100%)",
@@ -120,9 +119,12 @@ export default {
         soft: "0 4px 20px -5px rgba(42, 42, 42, 0.08)",
         "soft-lg": "0 10px 40px -10px rgba(42, 42, 42, 0.12)",
         // PREMIUM: Sombras coloridas com glow para elementos interativos
-        "glow-sm": "0 0 20px -5px rgba(239, 138, 71, 0.4), 0 4px 14px -2px rgba(242, 153, 93, 0.25)",
-        "glow-md": "0 0 30px -5px rgba(239, 138, 71, 0.5), 0 10px 25px -5px rgba(242, 153, 93, 0.35)",
-        "glow-lg": "0 0 40px -5px rgba(239, 138, 71, 0.6), 0 20px 40px -10px rgba(242, 153, 93, 0.45)",
+        "glow-sm":
+          "0 0 20px -5px rgba(239, 138, 71, 0.4), 0 4px 14px -2px rgba(242, 153, 93, 0.25)",
+        "glow-md":
+          "0 0 30px -5px rgba(239, 138, 71, 0.5), 0 10px 25px -5px rgba(242, 153, 93, 0.35)",
+        "glow-lg":
+          "0 0 40px -5px rgba(239, 138, 71, 0.6), 0 20px 40px -10px rgba(242, 153, 93, 0.45)",
       },
     },
   },
