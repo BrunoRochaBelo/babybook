@@ -275,6 +275,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return mountCheckout();
   });
 
+  // Access Modal - Filtro de acesso para usuários/fotógrafos
+  safeInit("Access Modal", async () => {
+    const { setupAccessModal } = await import("./features/access");
+    return setupAccessModal();
+  });
+
+
   // PREMIUM: Smart Interactions
   safeInit("Smart Prefetch & Haptic", async () => {
     const { setupSmartPrefetch, setupHapticFeedback } = await import(
