@@ -590,37 +590,179 @@
       <div class="hero-glow-secondary absolute inset-0 pointer-events-none"></div>
       <div class="decorative-grid absolute inset-0 pointer-events-none"></div>
 
-      <div class="max-w-7xl mx-auto px-6 lg:px-8 py-20 md:py-28 relative z-10 w-full">
-        <div class="grid lg:grid-cols-2 gap-10 items-center">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 py-16 md:py-24 relative z-10 w-full">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <!-- LEFT COLUMN - Copy -->
           <div class="text-left max-w-2xl">
-            <div class="inline-flex items-center gap-2.5 glass-card text-pink-200 px-4 py-2 text-xs font-semibold mb-8 uppercase tracking-widest">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Exclusivo para Fotógrafos Profissionais
+            <!-- Eyebrow with social proof -->
+            <div class="inline-flex items-center gap-3 glass-card text-pink-200 px-4 py-2.5 text-xs font-semibold mb-6 uppercase tracking-wider scale-in">
+              <div class="flex -space-x-2">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white/20"></div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 border-2 border-white/20"></div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-white/20"></div>
+              </div>
+              <span><strong class="text-white">+150</strong> fotógrafos já usam</span>
             </div>
 
-            <h1 class="font-serif heading-display hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight fade-in-up stagger-1">O que acontece com suas fotos quando o link expira?</h1>
-            <p class="text-lg md:text-xl text-gray-100 mb-8 max-w-xl fade-in-up stagger-2">Você investe em lentes de elite, workshops e noites de edição. Por que sua entrega final parece amadora? Transforme sua entrega em um legado digital vitalício.</p>
+            <!-- Headline - Pain focused -->
+            <h1 class="font-serif heading-display text-4xl md:text-5xl lg:text-[3.5rem] text-white mb-5 leading-[1.15] fade-in-up stagger-1">
+              Suas fotos merecem <br class="hidden sm:block">
+              <span class="gradient-text-animated">mais que um link que expira</span>
+            </h1>
 
-            <div class="flex flex-col sm:flex-row gap-4 fade-in-up stagger-3">
-              <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold text-base group">
-                <span>Conhecer o Baby Book PRO</span>
-                <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <!-- Subheadline - Agitation + Solution -->
+            <p class="text-lg md:text-xl text-gray-200 mb-6 max-w-xl leading-relaxed fade-in-up stagger-2">
+              Você investe <strong class="text-white">horas</strong> em cada sessão. Por que entregar num Drive que a cliente esquece em 7 dias?
+              <span class="text-pink-300">Transforme cada ensaio em um presente vitalício.</span>
+            </p>
+
+            <!-- Value proposition pills -->
+            <div class="flex flex-wrap gap-3 mb-8 fade-in-up stagger-2">
+              <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
+                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Sem mensalidade
+              </div>
+              <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
+                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Suporte é nosso
+              </div>
+              <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
+                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Qualidade Retina
+              </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="flex flex-col gap-4 fade-in-up stagger-3">
+              <!-- Primary CTA - Clear benefit -->
+              <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-bold text-lg group">
+                <span>Começar gratuitamente</span>
+                <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </a>
-              <div class="flex items-center text-gray-100 text-sm sm:pl-2">Sem mensalidade. Pague apenas pelo que entregar.</div>
+
+              <!-- Trust indicators below CTA -->
+              <div class="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Cadastro em 30 segundos</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span>4.9/5 avaliação</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Garantia 7 dias</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="card-premium tilt-card glow-follow bg-white/10 border border-white/15 text-white p-8 rounded-3xl backdrop-blur-lg shadow-2xl fade-in-up stagger-4">
-            <h3 class="font-serif text-xl font-bold mb-4">Entrega que não expira</h3>
-            <p class="text-gray-100 mb-6">App vitalício com sua marca, visual otimizado para telas Retina/4K e zero suporte pós-venda para você.</p>
-            <div class="space-y-4">
-              <div class="flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-emerald-500/30 text-emerald-200 flex items-center justify-center">✓</span><span class="text-gray-50">Entrega definitiva em aplicativo elegante.</span></div>
-              <div class="flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-emerald-500/30 text-emerald-200 flex items-center justify-center">✓</span><span class="text-gray-50">Visualização sem compressão aparente (Retina/4K).</span></div>
-              <div class="flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-emerald-500/30 text-emerald-200 flex items-center justify-center">✓</span><span class="text-gray-50">Suporte pós-venda é nosso. Você segue fotografando.</span></div>
+          <!-- RIGHT COLUMN - Feature Card -->
+          <div class="relative">
+            <!-- Floating badge - urgency -->
+            <div class="absolute -top-4 -right-2 z-20 floating floating-delay-2">
+              <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-orange-500/30 flex items-center gap-2">
+                <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
+                </svg>
+                <span>Vagas limitadas este mês</span>
+              </div>
+            </div>
+
+            <div class="card-premium tilt-card glow-follow bg-white/10 border border-white/15 text-white p-8 md:p-10 rounded-3xl backdrop-blur-lg shadow-2xl fade-in-up stagger-4">
+              <!-- Card header with icon -->
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                  <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-serif text-xl font-bold">Entrega vitalícia</h3>
+                  <p class="text-gray-300 text-sm">Nunca mais "perdi as fotos"</p>
+                </div>
+              </div>
+
+              <!-- Benefits list with better visual hierarchy -->
+              <div class="space-y-4 mb-6">
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
+                  <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
+                  <div>
+                    <span class="text-white font-medium">App com sua marca</span>
+                    <p class="text-gray-400 text-sm">Logo e cores personalizadas</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
+                  <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
+                  <div>
+                    <span class="text-white font-medium">Qualidade Retina/4K</span>
+                    <p class="text-gray-400 text-sm">Sem compressão visível</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
+                  <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
+                  <div>
+                    <span class="text-white font-medium">Suporte 100% nosso</span>
+                    <p class="text-gray-400 text-sm">Você só fotografa</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Social proof testimonial -->
+              <div class="border-t border-white/10 pt-5">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">LP</div>
+                  <div class="flex-1">
+                    <p class="text-gray-200 text-sm italic leading-relaxed">"Aumentei meu ticket em R$200 por ensaio. A cliente vê valor real."</p>
+                    <p class="text-pink-300 text-xs font-medium mt-1">— Larissa P., Fotógrafa Newborn</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom trust bar -->
+        <div class="mt-16 pt-8 border-t border-white/10 fade-in-up stagger-4">
+          <div class="flex flex-wrap justify-center items-center gap-8 md:gap-12 text-gray-400 text-sm">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>LGPD Compliant</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+              <span>Backup em nuvem</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>Criptografia AES-256</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>Feito para fotógrafos</span>
             </div>
           </div>
         </div>
@@ -724,99 +866,390 @@
 
     <section id="valor" class="section-dark section-spaced relative overflow-hidden">
       <div class="absolute inset-0 decorative-grid pointer-events-none opacity-20"></div>
+
+      <!-- Floating glow effects -->
+      <div class="absolute top-20 left-10 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute bottom-20 right-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
       <div class="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
-        <div class="text-center mb-12">
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">A Matemática Silenciosa do Lucro</h2>
-          <p class="text-gray-200 text-lg">Ancoragem de preço na prática.</p>
-        </div>
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-          <div class="card-premium bg-white/10 border border-white/15 p-8 text-center text-white">
-            <p class="text-sm uppercase tracking-[0.2em] text-blue-100 mb-2">Valor percebido pelo cliente</p>
-            <p class="text-5xl font-extrabold text-white">R$ 297</p>
-            <p class="text-gray-100 mt-2">Preço de mercado se a mãe comprar o app avulso.</p>
+        <!-- Header with badge -->
+        <div class="text-center mb-14">
+          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-emerald-300 mb-6">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+            </svg>
+            <span>Aumente seu ticket médio</span>
           </div>
-          <div class="card-premium bg-white/10 border border-white/15 p-8 text-center text-white">
-            <p class="text-sm uppercase tracking-[0.2em] text-emerald-400 mb-2">Seu custo de parceiro</p>
-            <p class="text-5xl font-extrabold text-emerald-300">R$ 120</p>
-            <p class="text-gray-100 mt-2">No pacote PRO. Licença vitalícia.</p>
-          </div>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">A Matemática que <span class="gradient-text-animated">Dobra seu Lucro</span></h2>
+          <p class="text-gray-300 text-lg max-w-2xl mx-auto">Ancoragem de preço: seu cliente vê valor de R$297, você paga R$120. A diferença é seu lucro.</p>
         </div>
-        <div class="card-premium bg-white/10 border border-white/20 p-8 text-white">
-          <p class="text-sm font-semibold text-emerald-400 mb-3 uppercase tracking-wide">Script de vendas sugerido</p>
-          <p class="text-lg leading-relaxed text-gray-100 mb-4">“Dona Maria, eu não entrego apenas arquivos soltos. Meu trabalho inclui o Baby Book Vitalício: um cofre digital de <strong class="text-white">R$ 297</strong> que organiza as memórias e a saúde do bebê. Para meus clientes, isso já está incluso no valor.”</p>
-          <p class="text-emerald-400 font-semibold">Resultado: Aumento imediato do valor percebido.</p>
-        </div>
-      </div>
-    </section>
 
-    <section id="pacotes" class="section-light section-spaced">
-      <div class="max-w-6xl mx-auto px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Modelo de Investimento Transparente</h2>
-          <p class="text-gray-700 text-lg">Sem assinaturas. Seus créditos nunca expiram.</p>
-        </div>
-        <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
-          <div class="card-premium p-8 border border-gray-100 bg-white">
-            <p class="text-sm font-semibold text-gray-500 uppercase mb-2">Starter Pack</p>
-            <h3 class="text-3xl font-bold text-gray-900 mb-2">R$ 700 <span class="text-base font-semibold text-gray-500">/lote</span></h3>
-            <p class="text-pink-600 font-semibold mb-6">Sai a R$ 140 por cliente</p>
-            <ul class="space-y-3 text-gray-800 mb-6">
-              <li class="flex gap-3"><span class="text-emerald-500">✓</span>5 Licenças Vitalícias</li>
-              <li class="flex gap-3"><span class="text-emerald-500">✓</span>Painel Administrativo</li>
-              <li class="flex gap-3"><span class="text-emerald-500">✓</span>Suporte Técnico Incluso</li>
-            </ul>
-            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-3">Começar com Starter</a>
-          </div>
-          <div class="card-premium p-8 border-2 border-blue-200 bg-gradient-to-b from-white to-blue-50 shadow-lg">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-semibold text-blue-600 uppercase">PRO Pack</p><span class="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-bold">Melhor custo-benefício</span>
+        <!-- Stats Grid with Counters -->
+        <div class="grid md:grid-cols-3 gap-6 mb-10">
+          <!-- Stat 1: Client perceived value -->
+          <div class="card-premium tilt-card bg-white/10 border border-white/15 p-8 text-center text-white">
+            <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-7 h-7 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
             </div>
-            <h3 class="text-3xl font-bold text-gray-900 mb-2">R$ 1.200 <span class="text-base font-semibold text-gray-500">/lote</span></h3>
-            <p class="text-blue-700 font-semibold mb-6">Sai a R$ 120 por cliente (Maior Margem)</p>
-            <ul class="space-y-3 text-gray-800 mb-6">
-              <li class="flex gap-3"><span class="text-emerald-600">✓</span>10 Licenças Vitalícias</li>
-              <li class="flex gap-3"><span class="text-emerald-600">✓</span>Maior Margem de Lucro</li>
-              <li class="flex gap-3"><span class="text-emerald-600">✓</span>Painel Administrativo Completo</li>
-            </ul>
-            <a href="javascript:navigateToApp('/pro/register?plan=pro')" class="btn-primary text-white w-full inline-flex items-center justify-center rounded-xl font-semibold py-3">Adquirir Lote PRO</a>
+            <p class="text-xs uppercase tracking-[0.2em] text-blue-200 mb-2">Valor percebido</p>
+            <p class="text-5xl font-extrabold text-white mb-1">R$ <span data-counter="297" class="counter-value">0</span></p>
+            <p class="text-gray-400 text-sm">Preço de mercado do app</p>
+          </div>
+
+          <!-- Stat 2: Partner cost -->
+          <div class="card-premium tilt-card bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-400/30 p-8 pt-10 text-center text-white relative">
+            <div class="absolute top-2 right-2 z-10">
+              <div class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">SEU CUSTO</div>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/30 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-7 h-7 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p class="text-xs uppercase tracking-[0.2em] text-emerald-200 mb-2">Custo parceiro</p>
+            <p class="text-5xl font-extrabold text-emerald-300 mb-1">R$ <span data-counter="120" class="counter-value">0</span></p>
+            <p class="text-emerald-200/70 text-sm">Licença vitalícia</p>
+          </div>
+
+          <!-- Stat 3: Your profit -->
+          <div class="card-premium tilt-card bg-gradient-to-br from-pink-500/20 to-purple-600/10 border border-pink-400/30 p-8 pt-10 text-center text-white relative">
+            <div class="absolute top-2 right-2 z-10">
+              <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg animate-pulse">LUCRO</div>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-pink-500/30 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-7 h-7 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <p class="text-xs uppercase tracking-[0.2em] text-pink-200 mb-2">Seu lucro mínimo</p>
+            <p class="text-5xl font-extrabold text-pink-300 mb-1">R$ <span data-counter="177" class="counter-value">0</span></p>
+            <p class="text-pink-200/70 text-sm">Por cliente (59% margem)</p>
+          </div>
+        </div>
+
+        <!-- Sales Script Card -->
+        <div class="card-premium tilt-card glow-follow bg-white/10 border border-white/20 p-8 md:p-10 text-white">
+          <div class="flex flex-col md:flex-row md:items-start gap-6">
+            <div class="flex-shrink-0">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Script de vendas pronto</span>
+                <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">Copy & Paste</span>
+              </div>
+              <p class="text-xl leading-relaxed text-gray-100 mb-4 italic">
+                "Dona Maria, meu trabalho inclui o <strong class="text-white not-italic">Baby Book Vitalício</strong> — um cofre digital de <strong class="text-white not-italic">R$297</strong> que organiza as memórias e a saúde do bebê para sempre. Para meus clientes, <strong class="text-emerald-300 not-italic">já está incluso</strong>."
+              </p>
+              <div class="flex items-center gap-2 text-emerald-400 font-semibold">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span>Aumento imediato do valor percebido</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="bg-gray-100 py-12">
-      <div class="max-w-5xl mx-auto px-6 lg:px-8">
-        <div class="bg-gray-200 rounded-2xl px-8 py-10 text-center text-gray-800 shadow-inner">
-          <p class="text-lg mb-2">Ainda não tem certeza? Crie sua conta gratuita e olhe por dentro.</p>
-          <a href="javascript:navigateToApp('/pro/register?source=landing')" class="font-bold text-gray-900 hover:text-pink-600 inline-flex items-center gap-2">Criar conta de Parceiro (Sem custo)<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+    <section id="pacotes" class="section-light section-spaced relative">
+      <!-- Background decoration -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-30"></div>
+
+      <div class="max-w-6xl mx-auto px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-14">
+          <div class="inline-flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-600 mb-6">
+            <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>Créditos nunca expiram</span>
+          </div>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Escolha seu <span class="text-pink-600">Pacote</span></h2>
+          <p class="text-gray-600 text-lg max-w-2xl mx-auto">Sem assinaturas. Sem surpresas. Compre uma vez, use quando quiser.</p>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <!-- Starter Pack -->
+          <div class="card-premium tilt-card p-8 border border-gray-200 bg-white relative">
+            <div class="mb-6">
+              <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Starter Pack</p>
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-5xl font-extrabold text-gray-900">R$700</span>
+                <span class="text-gray-500 font-medium">/lote</span>
+              </div>
+              <p class="text-pink-600 font-semibold text-lg">Sai a R$140 por cliente</p>
+            </div>
+
+            <ul class="space-y-4 mb-8">
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700"><strong class="text-gray-900">5</strong> Licenças Vitalícias</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700">Painel Administrativo</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700">Suporte Técnico Incluso</span>
+              </li>
+            </ul>
+
+            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-4 text-base">
+              Começar com Starter
+            </a>
+          </div>
+
+          <!-- PRO Pack - Recommended -->
+          <div class="card-premium tilt-card glow-follow p-8 pt-12 border-2 border-pink-300 bg-gradient-to-b from-white via-white to-pink-50 relative shadow-xl shadow-pink-100">
+            <!-- Popular badge -->
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+              <div class="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-pink-500/30 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span>MAIS POPULAR</span>
+              </div>
+            </div>
+
+            <div class="mb-6 pt-2">
+              <p class="text-sm font-bold text-pink-600 uppercase tracking-wider mb-3">PRO Pack</p>
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-5xl font-extrabold text-gray-900">R$1.200</span>
+                <span class="text-gray-500 font-medium">/lote</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <p class="text-pink-600 font-semibold text-lg">Sai a R$120/cliente</p>
+                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">-14% OFF</span>
+              </div>
+            </div>
+
+            <ul class="space-y-4 mb-8">
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700"><strong class="text-gray-900">10</strong> Licenças Vitalícias</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700"><strong class="text-pink-600">Maior margem de lucro</strong></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700">Painel Administrativo Completo</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span class="text-gray-700">Suporte Prioritário</span>
+              </li>
+            </ul>
+
+            <a href="javascript:navigateToApp('/pro/register?plan=pro')" class="btn-primary magnetic-btn text-white w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold py-4 text-base group">
+              <span>Quero o PRO Pack</span>
+              <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="text-center mt-10 text-gray-500 text-sm">
+          <p>✓ Pagamento único · ✓ Garantia de 7 dias · ✓ Suporte humanizado</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section - Urgency -->
+    <section class="relative py-16 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900"></div>
+      <div class="absolute inset-0 decorative-grid opacity-10"></div>
+
+      <!-- Floating glows -->
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+      <div class="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="text-center">
+          <p class="text-pink-400 font-semibold text-sm uppercase tracking-wider mb-4">Ainda com dúvidas?</p>
+          <h3 class="font-serif text-3xl md:text-4xl text-white mb-4">Explore o painel <span class="text-pink-300">gratuitamente</span></h3>
+          <p class="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">Crie sua conta sem compromisso. Veja como funciona por dentro antes de decidir.</p>
+
+          <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-bold text-lg group">
+            <span>Criar conta grátis</span>
+            <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg></a>
+            </svg>
+          </a>
+
+          <p class="text-gray-500 text-sm mt-4">Sem cartão de crédito · Leva 30 segundos</p>
         </div>
       </div>
     </section>
 
     <section id="faq" class="section-light section-spaced">
       <div class="max-w-4xl mx-auto px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Perguntas Frequentes</h2>
+        <!-- Header -->
+        <div class="text-center mb-14">
+          <div class="inline-flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-600 mb-6">
+            <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Tire suas dúvidas</span>
+          </div>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Perguntas <span class="text-pink-600">Frequentes</span></h2>
+          <p class="text-gray-600 text-lg max-w-2xl mx-auto">Tudo que você precisa saber antes de começar</p>
         </div>
-        <div class="space-y-6">
-          <div class="card-premium p-6 border border-gray-100 bg-white">
-            <h3 class="font-semibold text-lg text-gray-900 mb-2">1. Existe mensalidade ou taxa de manutenção?</h3>
-            <p class="text-gray-700">Não. Zero. Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa.</p>
+
+        <!-- FAQ Accordion -->
+        <div class="space-y-4" id="faq-accordion">
+          <!-- FAQ Item 1 -->
+          <div class="faq-item card-premium border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-lg">
+            <button class="faq-trigger w-full px-6 py-5 flex items-center justify-between text-left group" onclick="toggleFaq(this)">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
+                  <span class="text-pink-600 font-bold text-sm">01</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Existe mensalidade ou taxa de manutenção?</h3>
+              </div>
+              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <div class="ml-14 text-gray-600 leading-relaxed">
+                <p><strong class="text-gray-900">Não. Zero.</strong> Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa. Suas licenças nunca expiram.</p>
+              </div>
+            </div>
           </div>
-          <div class="card-premium p-6 border border-gray-100 bg-white">
-            <h3 class="font-semibold text-lg text-gray-900 mb-2">2. E se minha cliente perder o celular?</h3>
-            <p class="text-gray-700">O acesso é vinculado à conta, não ao aparelho. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo.</p>
+
+          <!-- FAQ Item 2 -->
+          <div class="faq-item card-premium border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-lg">
+            <button class="faq-trigger w-full px-6 py-5 flex items-center justify-between text-left group" onclick="toggleFaq(this)">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
+                  <span class="text-pink-600 font-bold text-sm">02</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se minha cliente perder o celular?</h3>
+              </div>
+              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <div class="ml-14 text-gray-600 leading-relaxed">
+                <p>O acesso é vinculado à <strong class="text-gray-900">conta, não ao aparelho</strong>. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo — basta fazer login no novo celular.</p>
+              </div>
+            </div>
           </div>
-          <div class="card-premium p-6 border border-gray-100 bg-white">
-            <h3 class="font-semibold text-lg text-gray-900 mb-2">3. O cliente final paga alguma coisa?</h3>
-            <p class="text-gray-700">Não. O acesso vitalício é um presente (ou upsell) que você entrega. Para a mãe/pai, o aplicativo é gratuito e livre de anúncios intrusivos.</p>
+
+          <!-- FAQ Item 3 -->
+          <div class="faq-item card-premium border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-lg">
+            <button class="faq-trigger w-full px-6 py-5 flex items-center justify-between text-left group" onclick="toggleFaq(this)">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
+                  <span class="text-pink-600 font-bold text-sm">03</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">O cliente final paga alguma coisa?</h3>
+              </div>
+              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <div class="ml-14 text-gray-600 leading-relaxed">
+                <p><strong class="text-gray-900">Não.</strong> O acesso vitalício é um presente (ou upsell) que você entrega. Para a mãe/pai, o aplicativo é <strong class="text-gray-900">gratuito e livre de anúncios</strong> intrusivos. Você é o herói que presenteou.</p>
+              </div>
+            </div>
           </div>
-          <div class="card-premium p-6 border border-gray-100 bg-white">
-            <h3 class="font-semibold text-lg text-gray-900 mb-2">4. Como entrego as fotos?</h3>
-            <p class="text-gray-700">Você recebe acesso ao Painel do Parceiro. Faz o upload das fotos em alta, gera um código único e envia para a cliente (físico ou digital). Ela baixa o app, insere o código e pronto.</p>
+
+          <!-- FAQ Item 4 -->
+          <div class="faq-item card-premium border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-lg">
+            <button class="faq-trigger w-full px-6 py-5 flex items-center justify-between text-left group" onclick="toggleFaq(this)">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
+                  <span class="text-pink-600 font-bold text-sm">04</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Como entrego as fotos para o cliente?</h3>
+              </div>
+              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <div class="ml-14 text-gray-600 leading-relaxed">
+                <p>Você recebe acesso ao <strong class="text-gray-900">Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para a cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class="text-gray-900">menos de 2 minutos</strong>.</p>
+              </div>
+            </div>
           </div>
+
+          <!-- FAQ Item 5 -->
+          <div class="faq-item card-premium border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-lg">
+            <button class="faq-trigger w-full px-6 py-5 flex items-center justify-between text-left group" onclick="toggleFaq(this)">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
+                  <span class="text-pink-600 font-bold text-sm">05</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se eu não gostar, tem garantia?</h3>
+              </div>
+              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <div class="ml-14 text-gray-600 leading-relaxed">
+                <p>Sim! Oferecemos <strong class="text-gray-900">garantia de 7 dias</strong>. Se não ficar satisfeito, devolvemos seu investimento sem burocracia. Confiamos tanto no produto que assumimos o risco.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- More questions CTA -->
+        <div class="text-center mt-10">
+          <p class="text-gray-500 text-sm mb-3">Ainda tem dúvidas?</p>
+          <a href="mailto:contato@babybook.app" class="inline-flex items-center gap-2 text-pink-600 font-semibold hover:text-pink-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>Fale conosco</span>
+          </a>
         </div>
       </div>
     </section>
@@ -878,6 +1311,34 @@
       const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('local');
       const appBaseUrl = isDev ? 'http://localhost:5173' : window.location.origin.replace(/\/.*/, '');
       window.location.href = appBaseUrl + path;
+    }
+
+    // FAQ Accordion Toggle
+    function toggleFaq(button) {
+      const faqItem = button.closest('.faq-item');
+      const content = faqItem.querySelector('.faq-content');
+      const icon = faqItem.querySelector('.faq-icon');
+      const isOpen = !content.classList.contains('hidden');
+
+      // Close all other FAQ items first
+      document.querySelectorAll('.faq-item').forEach(item => {
+        if (item !== faqItem) {
+          item.querySelector('.faq-content')?.classList.add('hidden');
+          item.querySelector('.faq-icon')?.classList.remove('rotate-180');
+          item.classList.remove('faq-open');
+        }
+      });
+
+      // Toggle current item
+      if (isOpen) {
+        content.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+        faqItem.classList.remove('faq-open');
+      } else {
+        content.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+        faqItem.classList.add('faq-open');
+      }
     }
 
     // Smooth scroll for internal anchors
