@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Navegação - Landing Page PRO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8">🧪 Teste de Navegação - Landing Page PRO</h1>
+
+    <div class="bg-gray-800 rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-bold mb-4">Status Atual</h2>
+      <ul class="space-y-2">
+        <li>✅ <strong>Landing Page Pro:</strong> <code class="bg-gray-700 px-2 py-1">http://localhost:3000/pro.html</code></li>
+        <li>✅ <strong>Aplicação Web React:</strong> <code class="bg-gray-700 px-2 py-1">http://localhost:5173</code></li>
+        <li>✅ <strong>Rotas configuradas:</strong>
+          <ul class="ml-4 mt-2 space-y-1">
+            <li>└─ <code class="bg-gray-700 px-2 py-1">/pro/login</code> → PartnerLoginPage</li>
+            <li>└─ <code class="bg-gray-700 px-2 py-1">/pro/register</code> → PartnerRegisterPage</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-blue-900 rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-bold mb-4">🔧 Como Funciona</h2>
+      <p class="mb-4">A função <code class="bg-blue-800 px-2 py-1">navigateToApp()</code> detecta automaticamente o ambiente:</p>
+      <div class="bg-blue-800 rounded p-4 font-mono text-sm">
+        <pre>function navigateToApp(path) {
+  const isDev = window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' || 
+                window.location.hostname.includes('local');
+  const appBaseUrl = isDev ? 'http://localhost:5173' : window.location.origin;
+  window.location.href = appBaseUrl + path;
+}</pre>
+      </div>
+      <ul class="mt-4 space-y-2">
+        <li>🖥️ <strong>Em Desenvolvimento:</strong> Redireciona para <code class="bg-blue-800 px-2 py-1">http://localhost:5173</code></li>
+        <li>🌐 <strong>Em Produção:</strong> Usa o domínio atual (ex: babybook.com)</li>
+      </ul>
+    </div>
+
+    <div class="bg-green-900 rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-bold mb-4">✨ Links Atualizados</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-bold mb-2">📄 pro.html (Origem - 9 links)</h3>
+          <ul class="space-y-1 text-sm">
+            <li>✓ Header: Entrar</li>
+            <li>✓ Header: Criar conta</li>
+            <li>✓ Mobile: Entrar</li>
+            <li>✓ Mobile: Criar conta</li>
+            <li>✓ Hero: Conhecer o PRO</li>
+            <li>✓ Pacote Starter: CTA</li>
+            <li>✓ Pacote PRO: CTA</li>
+            <li>✓ Footer: Criar conta</li>
+            <li>✓ Footer: Começar Agora</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold mb-2">📦 dist/pro.html (Build - 5 links)</h3>
+          <ul class="space-y-1 text-sm">
+            <li>✓ Header: Entrar</li>
+            <li>✓ Header: Criar conta grátis</li>
+            <li>✓ Pacote Starter: CTA</li>
+            <li>✓ Pacote PRO: CTA</li>
+            <li>✓ Footer: CTA geral</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-yellow-900 rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-bold mb-4">🧬 Exemplo de Redirecionamento</h2>
+      <p class="mb-4">Quando o usuário clica em um link na landing page:</p>
+      <div class="bg-yellow-800 rounded p-4 mb-4">
+        <p><strong>Clique em:</strong> <code class="bg-yellow-700 px-2 py-1">javascript:navigateToApp('/pro/register?plan=pro')</code></p>
+        <p class="mt-2"><strong>Redireciona para:</strong> <code class="bg-yellow-700 px-2 py-1">http://localhost:5173/pro/register?plan=pro</code></p>
+        <p class="mt-2"><strong>Que carrega:</strong> PartnerRegisterPage com <code class="bg-yellow-700 px-2 py-1">plan=pro</code> como query param</p>
+      </div>
+    </div>
+
+    <div class="bg-purple-900 rounded-lg p-6">
+      <h2 class="text-2xl font-bold mb-4">🚀 Próximos Passos</h2>
+      <ol class="space-y-2 ml-4">
+        <li>1. Abra <a href="http://localhost:3000/pro.html" target="_blank" class="text-blue-300 hover:text-blue-100 underline">http://localhost:3000/pro.html</a></li>
+        <li>2. Clique em qualquer botão CTA (Criar conta, Entrar, etc)</li>
+        <li>3. Você deve ser redirecionado para a aplicação web em <code class="bg-purple-800 px-2 py-1">localhost:5173</code></li>
+        <li>4. Se o React Router estiver funcionando, verá a página de login ou registro</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Função de teste inline
+    function navigateToApp(path) {
+      const isDev = window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('local');
+      const appBaseUrl = isDev ? 'http://localhost:5173' : window.location.origin;
+      console.log(`📍 Redirecionando para: ${appBaseUrl}${path}`);
+      alert(`Redirecionaria para:\n\n${appBaseUrl}${path}`);
+    }
+  </script>
+</body>
+
+</html>
