@@ -1046,7 +1046,7 @@ a,
   width: 400px;
   height: 300px;
   left: 50%;
-  top: 35%;
+  top: 50%;
   transform: translate(-50%, -50%);
 }
 
@@ -1056,7 +1056,7 @@ a,
     width: 350px;
     height: 250px;
     left: 50%;
-    top: 25%;
+    top: 50%;
     transform: translate(-50%, -50%);
     filter: saturate(1.05);
   }
@@ -1067,7 +1067,7 @@ a,
     width: 600px;
     height: 400px;
     left: 50%;
-    top: 30%;
+    top: 50%;
     transform: translate(-50%, -50%);
   }
 }
@@ -1684,6 +1684,9 @@ a,
   /* Use a similar min-height to HERO to create a similar feel and allow enough scroll for footer reveal */
   min-height: 180vh;
   will-change: transform;
+  /* Scroll snap para completar o movimento */
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .cta-final-lock {

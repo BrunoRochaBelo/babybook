@@ -105,10 +105,65 @@ export const initFooterBehavior = async () => {
 
   // Event listener com passive: true para melhor performance
   let rafId: number | null = null;
+  let snapTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let isSnapping = false;
+  let lastScrollY = window.scrollY;
+  
   const handleScroll = () => {
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
       updateFooterBehavior();
+      
+      const currentScrollY = window.scrollY;
+      const scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+      lastScrollY = currentScrollY;
+      
+      // Snap logic: se footer está parcialmente visível e não está fazendo snap
+      // Threshold baixo (10%) para disparar rápido
+      if (footerProgress > 0.1 && footerProgress < 0.9 && !isSnapping) {
+        // Cancelar timeout anterior se existir
+        if (snapTimeoutId) {
+          clearTimeout(snapTimeoutId);
+        }
+        
+        // Aguardar 80ms para ver se usuário parou de rolar
+        snapTimeoutId = setTimeout(() => {
+          // Re-checar se ainda está na zona de snap
+          if (footerProgress > 0.1 && footerProgress < 0.9 && !isSnapping) {
+            isSnapping = true;
+            
+            // Comportamento de gaveta: baseado na direção do scroll
+            // Scrollou para baixo = revela; Scrollou para cima = esconde
+            const shouldReveal = scrollDirection === 'down';
+            
+            // Adicionar transição suave
+            footer.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease';
+            
+            if (shouldReveal) {
+              // Revelar footer completamente
+              footer.style.transform = 'translateY(0%)';
+              footer.style.opacity = '1';
+              footerVisible = true;
+              footer.classList.add('footer-revealed');
+            } else {
+              // Esconder footer completamente
+              footer.style.transform = 'translateY(100%)';
+              footer.style.opacity = '0';
+              footerVisible = false;
+              footer.classList.remove('footer-revealed');
+            }
+            
+            // Reset after animation completes
+            setTimeout(() => {
+              isSnapping = false;
+              // Remover transição inline para não interferir com scroll normal
+              footer.style.transition = '';
+            }, 400);
+          }
+          snapTimeoutId = null;
+        }, 80);
+      }
+      
       rafId = null;
     });
   };
@@ -125,6 +180,7 @@ export const initFooterBehavior = async () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
       if (rafId) cancelAnimationFrame(rafId);
+      if (snapTimeoutId) clearTimeout(snapTimeoutId);
     } catch (err) {
       logger.error("Error cleaning up Footer behavior", err);
     }
