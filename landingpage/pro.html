@@ -11,7 +11,7 @@
   <meta name="robots" content="index, follow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -24,6 +24,10 @@
 
     * {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .font-serif {
+      font-family: 'Lora', Georgia, serif;
     }
 
     body {
@@ -150,6 +154,389 @@
     .footer-bg {
       background: linear-gradient(135deg, #0b1224, #0f172a);
     }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes shine {
+      0% {
+        left: -150%;
+      }
+
+      50%,
+      100% {
+        left: 150%;
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.7s ease-out forwards;
+    }
+
+    .scale-in {
+      animation: scaleIn 0.5s ease-out forwards;
+    }
+
+    .stagger-1 {
+      animation-delay: 100ms;
+    }
+
+    .stagger-2 {
+      animation-delay: 200ms;
+    }
+
+    .stagger-3 {
+      animation-delay: 300ms;
+    }
+
+    .stagger-4 {
+      animation-delay: 400ms;
+    }
+
+    /* Shine effect for buttons */
+    .shine-effect {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shine-effect::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+          transparent,
+          rgba(255, 255, 255, 0.25),
+          transparent);
+      animation: shine 3s infinite;
+    }
+
+    /* === ENHANCED CARD EFFECTS === */
+    .card-premium {
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card-premium:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 80px rgba(15, 23, 42, 0.18);
+    }
+
+    .section-dark .card-premium {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .section-dark .card-premium:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Feature card icon hover */
+    .card-premium svg {
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .card-premium:hover svg {
+      transform: scale(1.1);
+    }
+
+    /* === ENHANCED BUTTONS === */
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899, #c026d3);
+      box-shadow: 0 15px 40px rgba(236, 72, 153, 0.35);
+      transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent);
+      animation: shine 3s infinite;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.08);
+      box-shadow: 0 20px 55px rgba(236, 72, 153, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    /* === GLASS BADGE ANIMATION === */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      backdrop-filter: blur(12px);
+      animation: scaleIn 0.5s ease-out forwards;
+    }
+
+    /* === FAQ ACCORDION STYLES === */
+    .faq-card {
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .faq-card:hover {
+      border-color: rgba(236, 72, 153, 0.3);
+      box-shadow: 0 10px 40px rgba(236, 72, 153, 0.08);
+    }
+
+    /* === SCROLL REVEAL ANIMATIONS === */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .scroll-reveal-left {
+      opacity: 0;
+      transform: translateX(-50px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal-left.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .scroll-reveal-right {
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal-right.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .scroll-reveal-scale {
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal-scale.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Staggered reveal delays */
+    .reveal-delay-1 {
+      transition-delay: 100ms;
+    }
+
+    .reveal-delay-2 {
+      transition-delay: 200ms;
+    }
+
+    .reveal-delay-3 {
+      transition-delay: 300ms;
+    }
+
+    .reveal-delay-4 {
+      transition-delay: 400ms;
+    }
+
+    .reveal-delay-5 {
+      transition-delay: 500ms;
+    }
+
+    /* === PARALLAX BACKGROUNDS === */
+    .parallax-bg {
+      position: absolute;
+      inset: -20%;
+      transition: transform 0.1s linear;
+      will-change: transform;
+    }
+
+    /* === COUNTER ANIMATION === */
+    .counter-value {
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* === GLOW FOLLOW EFFECT === */
+    .glow-follow {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow-follow::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .glow-follow:hover::after {
+      opacity: 1;
+    }
+
+    /* === TILT CARD EFFECT === */
+    .tilt-card {
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease;
+    }
+
+    .tilt-card:hover {
+      transform: perspective(1000px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg));
+    }
+
+    /* === PROGRESS BAR === */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, #ec4899, #c026d3, #8b5cf6);
+      z-index: 9999;
+      transition: width 0.1s linear;
+    }
+
+    /* === FLOATING PARTICLES === */
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+    }
+
+    .floating {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .floating-delay-1 {
+      animation-delay: 0s;
+    }
+
+    .floating-delay-2 {
+      animation-delay: 1s;
+    }
+
+    .floating-delay-3 {
+      animation-delay: 2s;
+    }
+
+    /* === GRADIENT TEXT ANIMATION === */
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .gradient-text-animated {
+      background: linear-gradient(90deg, #ec4899, #c026d3, #8b5cf6, #ec4899);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease infinite;
+    }
+
+    /* === MAGNETIC BUTTON EFFECT === */
+    .magnetic-btn {
+      transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    /* === SECTION DIVIDER === */
+    .section-divider {
+      position: relative;
+    }
+
+    .section-divider::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #ec4899, transparent);
+      border-radius: 2px;
+    }
+
+    /* === NUMBER HIGHLIGHT === */
+    .number-highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .number-highlight::before {
+      content: '';
+      position: absolute;
+      inset: -8px -12px;
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.1));
+      border-radius: 12px;
+      z-index: -1;
+    }
   </style>
 </head>
 
@@ -157,10 +544,10 @@
   <header class="nav-header fixed top-6 left-1/2 -translate-x-1/2 z-40 w-full px-4 transition-all duration-300">
     <nav class="nav-pill mx-auto max-w-6xl rounded-full px-6 py-3 shadow-lg shadow-black/20 flex items-center gap-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold">BB</div>
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-sm">BB</div>
         <div>
-          <p class="text-sm text-white font-semibold">Baby Book PRO</p>
-          <p class="text-[11px] text-slate-300">Para fotógrafos profissionais</p>
+          <p class="font-serif text-base text-white font-bold italic tracking-tight">Baby Book <span class="text-pink-300">PRO</span></p>
+          <p class="text-[10px] text-slate-400 font-medium">Para fotógrafos profissionais</p>
         </div>
       </div>
       <div class="hidden md:flex items-center gap-3 ml-6 text-sm text-slate-200">
@@ -213,11 +600,11 @@
               Exclusivo para Fotógrafos Profissionais
             </div>
 
-            <h1 class="heading-display hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">O que acontece com suas fotos quando o link expira?</h1>
-            <p class="text-lg md:text-xl text-gray-100 mb-8 max-w-xl">Você investe em lentes de elite, workshops e noites de edição. Por que sua entrega final parece amadora? Transforme sua entrega em um legado digital vitalício.</p>
+            <h1 class="font-serif heading-display hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight fade-in-up stagger-1">O que acontece com suas fotos quando o link expira?</h1>
+            <p class="text-lg md:text-xl text-gray-100 mb-8 max-w-xl fade-in-up stagger-2">Você investe em lentes de elite, workshops e noites de edição. Por que sua entrega final parece amadora? Transforme sua entrega em um legado digital vitalício.</p>
 
-            <div class="flex flex-col sm:flex-row gap-4">
-              <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold text-base group">
+            <div class="flex flex-col sm:flex-row gap-4 fade-in-up stagger-3">
+              <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold text-base group">
                 <span>Conhecer o Baby Book PRO</span>
                 <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -227,8 +614,8 @@
             </div>
           </div>
 
-          <div class="card-premium bg-white/10 border border-white/15 text-white p-8 rounded-3xl backdrop-blur-lg shadow-2xl">
-            <h3 class="text-xl font-bold mb-4">Entrega que não expira</h3>
+          <div class="card-premium tilt-card glow-follow bg-white/10 border border-white/15 text-white p-8 rounded-3xl backdrop-blur-lg shadow-2xl fade-in-up stagger-4">
+            <h3 class="font-serif text-xl font-bold mb-4">Entrega que não expira</h3>
             <p class="text-gray-100 mb-6">App vitalício com sua marca, visual otimizado para telas Retina/4K e zero suporte pós-venda para você.</p>
             <div class="space-y-4">
               <div class="flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-emerald-500/30 text-emerald-200 flex items-center justify-center">✓</span><span class="text-gray-50">Entrega definitiva em aplicativo elegante.</span></div>
@@ -243,12 +630,12 @@
     <section id="dor" class="section-light section-spaced">
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="heading-section text-3xl md:text-5xl text-gray-900 mb-4">A parte que ninguém te conta sobre ser fotógrafo</h2>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">A parte que ninguém te conta sobre ser fotógrafo</h2>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-10">
-          <div class="card-premium p-8 bg-white border border-rose-100 shadow-md">
+          <div class="card-premium tilt-card p-8 bg-white border border-rose-100 shadow-md">
             <div class="flex items-center gap-3 mb-4 text-rose-600 font-semibold text-sm uppercase">Cenário Atual</div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-6">O Ciclo da Frustração</h3>
+            <h3 class="font-serif text-2xl font-bold text-gray-900 mb-6">O Ciclo da Frustração</h3>
             <ul class="space-y-4 text-gray-800">
               <li class="flex gap-3">
                 <svg class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
@@ -270,9 +657,9 @@
               </li>
             </ul>
           </div>
-          <div class="card-premium p-8 bg-[#0d1a2f] text-white border border-blue-900 shadow-lg">
+          <div class="card-premium tilt-card glow-follow p-8 bg-[#0d1a2f] text-white border border-blue-900 shadow-lg">
             <div class="flex items-center gap-3 mb-4 text-cyan-200 font-semibold text-sm uppercase">Baby Book PRO</div>
-            <h3 class="text-2xl font-bold mb-6">A Nova Experiência</h3>
+            <h3 class="font-serif text-2xl font-bold mb-6">A Nova Experiência</h3>
             <ul class="space-y-4 text-gray-100">
               <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Entrega definitiva em um aplicativo elegante com sua marca.</span></li>
               <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Visualização otimizada para telas Retina/4K (sem compressão visível).</span></li>
@@ -286,7 +673,7 @@
     <section id="beneficios" class="section-spaced bg-white">
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-14">
-          <h2 class="heading-section text-3xl md:text-5xl text-gray-900 mb-4">Muito mais que uma galeria online</h2>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Muito mais que uma galeria online</h2>
           <p class="text-gray-700 text-lg max-w-3xl mx-auto">Você não está vendendo apenas fotos. Está vendendo um ecossistema de proteção familiar. Isso é o que justifica você cobrar mais caro.</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
@@ -339,7 +726,7 @@
       <div class="absolute inset-0 decorative-grid pointer-events-none opacity-20"></div>
       <div class="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
         <div class="text-center mb-12">
-          <h2 class="heading-section text-3xl md:text-5xl text-white mb-4">A Matemática Silenciosa do Lucro</h2>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">A Matemática Silenciosa do Lucro</h2>
           <p class="text-gray-200 text-lg">Ancoragem de preço na prática.</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 mb-8">
@@ -365,7 +752,7 @@
     <section id="pacotes" class="section-light section-spaced">
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="heading-section text-3xl md:text-5xl text-gray-900 mb-4">Modelo de Investimento Transparente</h2>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Modelo de Investimento Transparente</h2>
           <p class="text-gray-700 text-lg">Sem assinaturas. Seus créditos nunca expiram.</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
@@ -411,7 +798,7 @@
     <section id="faq" class="section-light section-spaced">
       <div class="max-w-4xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="heading-section text-3xl md:text-5xl text-gray-900 mb-4">Perguntas Frequentes</h2>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Perguntas Frequentes</h2>
         </div>
         <div class="space-y-6">
           <div class="card-premium p-6 border border-gray-100 bg-white">
@@ -442,19 +829,29 @@
           <div class="flex items-center gap-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center text-white font-bold">BB</div>
             <div>
-              <p class="text-white font-bold text-lg">Baby Book PRO</p>
-              <p class="text-sm text-slate-300">Para fotógrafos profissionais</p>
+              <p class="font-serif text-white font-bold text-xl italic tracking-tight">Baby Book <span class="text-pink-300">PRO</span></p>
+              <p class="text-sm text-slate-400">Para fotógrafos profissionais</p>
             </div>
           </div>
-          <p class="text-slate-400 max-w-xl">Feito com afeto para profissionais que valorizam a entrega. Preservando histórias que duram para sempre.</p>
+          <p class="text-slate-400 max-w-xl leading-relaxed">Feito com afeto para profissionais que valorizam a entrega. Preservando histórias que duram para sempre.</p>
         </div>
         <div>
           <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4">Navegação</h3>
-          <div class="flex flex-col gap-3 text-sm text-slate-300"><a href="#dor" class="hover:text-pink-300">Problema</a><a href="#beneficios" class="hover:text-pink-300">Benefícios</a><a href="#pacotes" class="hover:text-pink-300">Pacotes</a><a href="#faq" class="hover:text-pink-300">FAQ</a><a href="javascript:navigateToApp('/pro/register?source=landing')" class="hover:text-pink-300">Começar Agora</a></div>
+          <div class="flex flex-col gap-3 text-sm text-slate-300">
+            <a href="#dor" class="hover:text-pink-300 transition-colors">Problema</a>
+            <a href="#beneficios" class="hover:text-pink-300 transition-colors">Benefícios</a>
+            <a href="#pacotes" class="hover:text-pink-300 transition-colors">Pacotes</a>
+            <a href="#faq" class="hover:text-pink-300 transition-colors">FAQ</a>
+            <a href="javascript:navigateToApp('/pro/register?source=landing')" class="hover:text-pink-300 transition-colors font-medium">Começar Agora →</a>
+          </div>
         </div>
         <div>
           <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4">Suporte</h3>
-          <div class="flex flex-col gap-3 text-sm text-slate-300"><a href="mailto:contato@babybook.app" class="hover:text-pink-300">contato@babybook.app</a><a href="/termos" class="hover:text-pink-300">Termos de Uso</a><a href="/privacidade" class="hover:text-pink-300">Política de Privacidade</a></div>
+          <div class="flex flex-col gap-3 text-sm text-slate-300">
+            <a href="mailto:contato@babybook.app" class="hover:text-pink-300 transition-colors">contato@babybook.app</a>
+            <a href="/termos" class="hover:text-pink-300 transition-colors">Termos de Uso</a>
+            <a href="/privacidade" class="hover:text-pink-300 transition-colors">Política de Privacidade</a>
+          </div>
         </div>
       </div>
       <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-sm">
@@ -558,6 +955,208 @@
 
       window.addEventListener('scroll', onScroll, { passive: true });
     })();
+
+    // ===== SCROLL REVEAL - Intersection Observer =====
+    (function initScrollReveal() {
+      const revealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale');
+
+      if (!revealElements.length) return;
+
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -80px 0px',
+        threshold: 0.15
+      };
+
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            // Optional: stop observing after reveal
+            // revealObserver.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      revealElements.forEach(el => revealObserver.observe(el));
+    })();
+
+    // ===== SCROLL PROGRESS BAR =====
+    (function initScrollProgress() {
+      // Create progress bar element
+      const progressBar = document.createElement('div');
+      progressBar.className = 'scroll-progress';
+      document.body.prepend(progressBar);
+
+      function updateProgress() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (scrollTop / scrollHeight) * 100;
+        progressBar.style.width = `${Math.min(progress, 100)}%`;
+      }
+
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress(); // Initial call
+    })();
+
+    // ===== ANIMATED COUNTERS =====
+    (function initCounters() {
+      const counters = document.querySelectorAll('[data-counter]');
+      if (!counters.length) return;
+
+      const animateCounter = (el) => {
+        const target = parseInt(el.getAttribute('data-counter'), 10);
+        const duration = 2000;
+        const increment = target / (duration / 16);
+        let current = 0;
+
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            el.textContent = target.toLocaleString('pt-BR');
+            clearInterval(timer);
+          } else {
+            el.textContent = Math.floor(current).toLocaleString('pt-BR');
+          }
+        }, 16);
+      };
+
+      const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCounter(entry.target);
+            counterObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      counters.forEach(counter => counterObserver.observe(counter));
+    })();
+
+    // ===== PARALLAX EFFECT ON SCROLL =====
+    (function initParallax() {
+      const parallaxElements = document.querySelectorAll('.parallax-bg');
+      if (!parallaxElements.length) return;
+
+      function updateParallax() {
+        const scrollY = window.pageYOffset;
+        parallaxElements.forEach(el => {
+          const speed = parseFloat(el.getAttribute('data-speed')) || 0.3;
+          const yPos = -(scrollY * speed);
+          el.style.transform = `translateY(${yPos}px)`;
+        });
+      }
+
+      window.addEventListener('scroll', updateParallax, { passive: true });
+    })();
+
+    // ===== TILT CARD EFFECT (Mouse tracking) =====
+    (function initTiltCards() {
+      const tiltCards = document.querySelectorAll('.tilt-card');
+
+      tiltCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+
+          const rotateX = ((y - centerY) / centerY) * -8;
+          const rotateY = ((x - centerX) / centerX) * 8;
+
+          card.style.setProperty('--rotateX', `${rotateX}deg`);
+          card.style.setProperty('--rotateY', `${rotateY}deg`);
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.setProperty('--rotateX', '0deg');
+          card.style.setProperty('--rotateY', '0deg');
+        });
+      });
+    })();
+
+    // ===== MAGNETIC BUTTON EFFECT =====
+    (function initMagneticButtons() {
+      const magneticBtns = document.querySelectorAll('.magnetic-btn');
+
+      magneticBtns.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+
+          btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'translate(0, 0)';
+        });
+      });
+    })();
+
+    // ===== GLOW FOLLOW EFFECT =====
+    (function initGlowFollow() {
+      const glowElements = document.querySelectorAll('.glow-follow');
+
+      glowElements.forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          el.style.setProperty('--glow-x', `${x}px`);
+          el.style.setProperty('--glow-y', `${y}px`);
+
+          // Position the pseudo-element
+          const afterEl = el.querySelector('.glow-spot');
+          if (afterEl) {
+            afterEl.style.left = `${x}px`;
+            afterEl.style.top = `${y}px`;
+          }
+        });
+      });
+    })();
+
+    // ===== INITIAL ANIMATIONS - Add scroll-reveal to key elements =====
+    (function autoAddScrollReveal() {
+      // Section titles
+      document.querySelectorAll('section h2').forEach((el, i) => {
+        el.classList.add('scroll-reveal');
+        if (i > 0) el.classList.add(`reveal-delay-${Math.min(i, 3)}`);
+      });
+
+      // Cards in grids
+      document.querySelectorAll('.card-premium').forEach((el, i) => {
+        if (!el.closest('.hero-section')) {
+          el.classList.add('scroll-reveal-scale');
+          el.classList.add(`reveal-delay-${(i % 4) + 1}`);
+        }
+      });
+
+      // Section paragraphs
+      document.querySelectorAll('section > div > div > p').forEach((el) => {
+        if (!el.closest('.hero-section') && !el.classList.contains('scroll-reveal')) {
+          el.classList.add('scroll-reveal');
+          el.classList.add('reveal-delay-1');
+        }
+      });
+
+      // Trigger observer for newly added elements
+      const newRevealElements = document.querySelectorAll('.scroll-reveal:not(.revealed), .scroll-reveal-scale:not(.revealed)');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+      newRevealElements.forEach(el => observer.observe(el));
+    })();
+
+    console.log('🚀 Baby Book PRO - Interactive effects loaded');
   </script>
 </body>
 
