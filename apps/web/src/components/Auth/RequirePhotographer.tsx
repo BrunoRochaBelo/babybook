@@ -27,11 +27,11 @@ export function RequirePhotographer({ children }: RequirePhotographerProps) {
     );
   }
 
-  // Not authenticated - redirect to login
+  // Not authenticated - redirect to partner login
   if (!isAuthenticated) {
     return (
       <Navigate
-        to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}
+        to={`/pro/login?redirectTo=${encodeURIComponent(location.pathname)}`}
         replace
       />
     );

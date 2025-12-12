@@ -124,6 +124,19 @@ def seed_demo_data(
     seeds.seed_demo_data_command(database_url)
 
 
+@app.command("seed-partner-data")
+def seed_partner_data(
+    database_url: Optional[str] = typer.Option(
+        None,
+        "--database-url",
+        envvar="BABYBOOK_DATABASE_URL",
+        help="Banco alvo para o seed.",
+    ),
+) -> None:
+    """Cria usuário parceiro/fotógrafo de teste (pro@babybook.dev / pro123)."""
+    seeds.seed_partner_data_command(database_url)
+
+
 async def _fetch_worker_jobs(
     database_url: Optional[str],
     status: Optional[str],

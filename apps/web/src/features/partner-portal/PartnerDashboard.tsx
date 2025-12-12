@@ -123,61 +123,61 @@ export function PartnerDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Portal do Parceiro
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Olá, {profile?.studio_name || profile?.name}! 👋
               </p>
             </div>
             <Link
               to="/partner/deliveries/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
             >
               <Plus className="w-5 h-5" />
-              Nova Entrega
+              <span className="hidden sm:inline">Nova Entrega</span>
+              <span className="sm:hidden">Nova</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Credit Balance Card - Destaque principal */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="text-pink-100 text-sm font-medium">
+                <p className="text-pink-100 text-xs sm:text-sm font-medium uppercase tracking-wide">
                   Saldo de Créditos
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-bold">
+                  <span className="text-3xl sm:text-4xl font-bold">
                     {stats?.voucher_balance || 0}
                   </span>
-                  <span className="text-pink-100">vouchers disponíveis</span>
+                  <span className="text-pink-100 text-sm sm:text-base">vouchers disponíveis</span>
                 </div>
-                <p className="text-pink-100 text-sm mt-2">
+                <p className="text-pink-100 text-xs sm:text-sm mt-2 hidden sm:block">
                   Cada crédito = 1 entrega para cliente
                 </p>
               </div>
-              <div className="flex flex-col gap-2">
-                <Link
-                  to="/partner/credits"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-pink-600 rounded-lg hover:bg-pink-50 transition-colors font-medium"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  Comprar Créditos
-                </Link>
-              </div>
+              <Link
+                to="/partner/credits"
+                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-white text-pink-600 rounded-xl hover:bg-pink-50 transition-colors font-semibold shadow-sm"
+              >
+                <CreditCard className="w-5 h-5" />
+                <span className="hidden sm:inline">Comprar Créditos</span>
+                <span className="sm:hidden">Comprar</span>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatCard
             icon={Package}
             label="Total Entregas"

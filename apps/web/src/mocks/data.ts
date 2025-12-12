@@ -585,3 +585,97 @@ export const mockUser: UserProfile = {
   hasPurchased: false,
   onboardingCompleted: true,
 };
+
+// =============================================================================
+// Partner Portal Mock Data
+// =============================================================================
+
+export const mockPartnerUser: UserProfile = {
+  id: "p1e9a7c8-7d0a-4d38-8ba1-5f5a0f28c9ef",
+  email: "pro@babybook.dev",
+  name: "Maria Fotógrafa",
+  locale: "pt-BR",
+  role: "photographer",
+  hasPurchased: true,
+  onboardingCompleted: true,
+};
+
+export interface MockPartner {
+  id: string;
+  name: string;
+  email: string;
+  studioName: string | null;
+  phone: string | null;
+  logoUrl: string | null;
+  voucherBalance: number;
+  status: "pending_approval" | "active" | "inactive" | "suspended";
+  createdAt: string;
+}
+
+export interface MockDelivery {
+  id: string;
+  partnerId: string;
+  title: string;
+  clientName: string | null;
+  description: string | null;
+  eventDate: string | null;
+  status: "draft" | "pending_upload" | "ready" | "completed";
+  assetsCount: number;
+  voucherCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const mockPartner: MockPartner = {
+  id: "partner-demo-001",
+  name: "Maria Fotógrafa",
+  email: "pro@babybook.dev",
+  studioName: "Estúdio Demo",
+  phone: "(11) 99999-9999",
+  logoUrl: null,
+  voucherBalance: 5,
+  status: "active",
+  createdAt: "2024-01-15T10:00:00Z",
+};
+
+export const mockDeliveries: MockDelivery[] = [
+  {
+    id: "delivery-001",
+    partnerId: "partner-demo-001",
+    title: "Ensaio Newborn - Sofia",
+    clientName: "Ana Silva",
+    description: "Ensaio newborn da pequena Sofia, 10 dias de vida.",
+    eventDate: "2024-12-10",
+    status: "ready",
+    assetsCount: 15,
+    voucherCode: "BB-SOFIA-2024",
+    createdAt: "2024-12-10T14:00:00Z",
+    updatedAt: "2024-12-10T16:30:00Z",
+  },
+  {
+    id: "delivery-002",
+    partnerId: "partner-demo-001",
+    title: "Smash the Cake - Miguel",
+    clientName: "Carla Santos",
+    description: "Smash the Cake de 1 aninho do Miguel.",
+    eventDate: "2024-12-08",
+    status: "completed",
+    assetsCount: 25,
+    voucherCode: "BB-MIGUEL-2024",
+    createdAt: "2024-12-08T10:00:00Z",
+    updatedAt: "2024-12-09T11:00:00Z",
+  },
+  {
+    id: "delivery-003",
+    partnerId: "partner-demo-001",
+    title: "Ensaio Gestante - Julia",
+    clientName: "Julia Mendes",
+    description: null,
+    eventDate: "2024-12-12",
+    status: "pending_upload",
+    assetsCount: 0,
+    voucherCode: null,
+    createdAt: "2024-12-12T09:00:00Z",
+    updatedAt: "2024-12-12T09:00:00Z",
+  },
+];

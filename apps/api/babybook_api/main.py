@@ -35,7 +35,7 @@ from .routes import (
 )
 from .settings import settings
 from .deps import AsyncSessionLocal
-from .services.auth import bootstrap_dev_user
+from .services.auth import bootstrap_dev_user, bootstrap_dev_partner
 
 
 def create_app() -> FastAPI:
@@ -82,17 +82,24 @@ def create_app() -> FastAPI:
     # Partner Portal: Self-service para fotógrafos (role PHOTOGRAPHER)
     app.include_router(partner_portal.router, prefix="/partner", tags=["partner-portal"])
 
-    # Dev-only: ensure a dev user exists on startup so developers can login with known credentials
+    # Dev-only: ensure dev users exist on startup so developers can login with known credentials
     if settings.app_env == "local":
         @app.on_event("startup")
-        async def _seed_dev_user():
+        async def _seed_dev_users():
             try:
                 async with AsyncSessionLocal() as session:
+                    # Seed regular dev user
                     await bootstrap_dev_user(session, settings.dev_user_email, settings.dev_user_password, "Dev User")
+                    
+                    # Seed partner/photographer dev user
+                    # Credentials: pro@babybook.dev / pro123
+                    await bootstrap_dev_partner(session)
+                    
                     await session.commit()
+                    print("[babybook] dev users seeded: dev user + partner user")
             except Exception as e:
                 # Do not break startup if DB is not ready or migrations not applied yet.
-                print(f"[babybook] warning: failed to seed dev user: {e}")
+                print(f"[babybook] warning: failed to seed dev users: {e}")
 
     return app
 

@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Plus,
@@ -18,6 +18,7 @@ import {
   Clock,
   CheckCircle2,
   Gift,
+  ArrowLeft,
 } from "lucide-react";
 import { listDeliveries } from "./api";
 import type { Delivery, DeliveryStatus } from "./types";
@@ -85,6 +86,7 @@ function StatusBadge({ status }: { status: DeliveryStatus }) {
 type FilterStatus = "all" | DeliveryStatus;
 
 export function DeliveriesListPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
 
@@ -115,22 +117,30 @@ export function DeliveriesListPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
+          <button
+            onClick={() => navigate("/partner")}
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Minhas Entregas
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 {data?.total || 0} entregas no total
               </p>
             </div>
             <Link
               to="/partner/deliveries/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
             >
               <Plus className="w-5 h-5" />
-              Nova Entrega
+              <span className="hidden sm:inline">Nova Entrega</span>
+              <span className="sm:hidden">Nova</span>
             </Link>
           </div>
 

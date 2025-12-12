@@ -7,6 +7,10 @@ import {
   mockHealthVaccines,
   mockMoments,
   mockUser,
+  mockPartnerUser,
+  mockPartner,
+  mockDeliveries,
+  MockDelivery,
 } from "./data";
 import {
   Child,
@@ -49,16 +53,18 @@ const makeAccount = ({
   email,
   password,
   name,
+  role = defaultRole,
 }: {
   email: string;
   password: string;
   name?: string | null;
+  role?: string;
 }): MockAccount => ({
   id: randomId(),
   email,
   name: name?.trim() && name.length > 0 ? name.trim() : email.split("@")[0],
   locale: defaultLocale,
-  role: defaultRole,
+  role,
   has_purchased: defaultHasPurchased,
   onboarding_completed: defaultOnboardingCompleted,
   password,
@@ -71,13 +77,33 @@ const devPassword = (
   import.meta.env.VITE_DEV_USER_PASSWORD ?? "password"
 ).toString();
 
+// Partner credentials (same as backend seed)
+const proEmail = normalizeEmail(
+  (import.meta.env.VITE_PRO_USER_EMAIL ?? "pro@babybook.dev").toString(),
+);
+const proPassword = (
+  import.meta.env.VITE_PRO_USER_PASSWORD ?? "pro123"
+).toString();
+
 const registeredUsers = new Map<string, MockAccount>();
+
+// Seed regular dev user
 const seededAccount = makeAccount({
   email: devEmail,
   password: devPassword,
   name: mockUser.name,
 });
 registeredUsers.set(devEmail, seededAccount);
+
+// Seed partner/photographer user
+const partnerAccount = makeAccount({
+  email: proEmail,
+  password: proPassword,
+  name: mockPartnerUser.name,
+  role: "photographer",
+});
+registeredUsers.set(proEmail, partnerAccount);
+
 let activeUser: MockAccount = seededAccount;
 let sessionActive = true;
 
@@ -192,6 +218,21 @@ const mutableMoments = [...mockMoments];
 const mutableGuestbook = [...mockGuestbookEntries];
 const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
+const mutableDeliveries: MockDelivery[] = [...mockDeliveries];
+
+const toDeliveryResponse = (delivery: MockDelivery) => ({
+  id: delivery.id,
+  partner_id: delivery.partnerId,
+  title: delivery.title,
+  client_name: delivery.clientName,
+  description: delivery.description,
+  event_date: delivery.eventDate,
+  status: delivery.status,
+  assets_count: delivery.assetsCount,
+  voucher_code: delivery.voucherCode,
+  created_at: delivery.createdAt,
+  updated_at: delivery.updatedAt,
+});
 
 const unauthorizedResponse = () =>
   HttpResponse.json(
@@ -427,6 +468,217 @@ export const handlers = [
       items: vaccines.map(toVaccineResponse),
       next: null,
     });
+  }),
+
+  // ==========================================================================
+  // Partner Portal Handlers
+  // ==========================================================================
+  
+  // Partner profile - /partner/me
+  http.get(withBase("/partner/me"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        { error: { code: "partner.not_found", message: "Perfil de parceiro não encontrado" } },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json({
+      id: mockPartner.id,
+      name: mockPartner.name,
+      email: mockPartner.email,
+      studio_name: mockPartner.studioName,
+      phone: mockPartner.phone,
+      logo_url: mockPartner.logoUrl,
+      voucher_balance: mockPartner.voucherBalance,
+      status: mockPartner.status,
+      created_at: mockPartner.createdAt,
+    });
+  }),
+
+  // Partner dashboard stats - /partner/me/stats
+  http.get(withBase("/partner/me/stats"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
+        { status: 403 }
+      );
+    }
+    const deliveries = mockDeliveries;
+    return HttpResponse.json({
+      voucher_balance: mockPartner.voucherBalance,
+      total_deliveries: deliveries.length,
+      ready_deliveries: deliveries.filter(d => d.status === "ready").length,
+      delivered_deliveries: deliveries.filter(d => d.status === "completed").length,
+      total_vouchers: deliveries.filter(d => d.voucherCode).length,
+      redeemed_vouchers: deliveries.filter(d => d.status === "completed").length,
+      pending_vouchers: deliveries.filter(d => d.status === "ready").length,
+      total_assets: deliveries.reduce((sum, d) => sum + d.assetsCount, 0),
+    });
+  }),
+
+  // Partner deliveries list
+  http.get(withBase("/partner/deliveries"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
+        { status: 403 }
+      );
+    }
+    return HttpResponse.json({
+      deliveries: mutableDeliveries.map(toDeliveryResponse),
+      total: mutableDeliveries.length,
+    });
+  }),
+
+  // Create delivery
+  http.post(withBase("/partner/deliveries"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
+        { status: 403 }
+      );
+    }
+    const body = (await request.json()) as {
+      title: string;
+      client_name?: string;
+      description?: string;
+      event_date?: string;
+    };
+    const newDelivery: MockDelivery = {
+      id: `delivery-${nanoid(8)}`,
+      partnerId: mockPartner.id,
+      title: body.title,
+      clientName: body.client_name ?? null,
+      description: body.description ?? null,
+      eventDate: body.event_date ?? null,
+      status: "draft",
+      assetsCount: 0,
+      voucherCode: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    mutableDeliveries.unshift(newDelivery);
+    return HttpResponse.json(toDeliveryResponse(newDelivery), { status: 201 });
+  }),
+
+  // Get single delivery
+  http.get(withBase("/partner/deliveries/:deliveryId"), ({ params }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    const delivery = mutableDeliveries.find(d => d.id === params.deliveryId);
+    if (!delivery) {
+      return HttpResponse.json(
+        { error: { code: "delivery.not_found", message: "Entrega não encontrada" } },
+        { status: 404 }
+      );
+    }
+    // Return detailed delivery with assets
+    return HttpResponse.json({
+      ...toDeliveryResponse(delivery),
+      description: delivery.description,
+      event_date: delivery.eventDate,
+      assets: [], // Mock empty assets for now
+    });
+  }),
+
+  // Credit packages - synced with backend CREDIT_PACKAGES
+  // Values from apps/api/babybook_api/routes/partner_portal.py
+  http.get(withBase("/partner/credits/packages"), () => {
+    return HttpResponse.json([
+      { 
+        id: "pack_5", 
+        name: "Pacote Inicial", 
+        voucher_count: 5, 
+        price_cents: 60000,       // R$ 600
+        unit_price_cents: 12000,  // R$ 120/unid
+        savings_percent: 0,
+        is_popular: false,
+      },
+      { 
+        id: "pack_10", 
+        name: "Pacote Profissional", 
+        voucher_count: 10, 
+        price_cents: 100000,      // R$ 1.000
+        unit_price_cents: 10000,  // R$ 100/unid
+        savings_percent: 17,
+        is_popular: true,
+      },
+      { 
+        id: "pack_25", 
+        name: "Pacote Estúdio", 
+        voucher_count: 25,
+        price_cents: 200000,      // R$ 2.000
+        unit_price_cents: 8000,   // R$ 80/unid
+        savings_percent: 33,
+        is_popular: false,
+      },
+    ]);
+  }),
+
+  // Purchase credits - mock Stripe checkout
+  http.post(withBase("/partner/credits/purchase"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
+        { status: 403 }
+      );
+    }
+    const body = (await request.json()) as { package_id: string };
+    
+    // Package lookup based on real backend values
+    const packages: Record<string, { name: string; voucher_count: number; price_cents: number }> = {
+      "pack_5": { name: "Pacote Inicial", voucher_count: 5, price_cents: 60000 },
+      "pack_10": { name: "Pacote Profissional", voucher_count: 10, price_cents: 100000 },
+      "pack_25": { name: "Pacote Estúdio", voucher_count: 25, price_cents: 200000 },
+    };
+    const pkg = packages[body.package_id] || packages["pack_5"];
+    
+    // In mock mode, redirect back to partner dashboard with success
+    return HttpResponse.json({
+      checkout_id: `chk_${nanoid(16)}`,
+      checkout_url: `/partner?credits_added=true&package=${body.package_id}`,
+      package: {
+        id: body.package_id,
+        ...pkg,
+      },
+      expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min
+    });
+  }),
+
+  // Partner onboarding (registration)
+  http.post(withBase("/partner/onboarding"), async ({ request }) => {
+    const body = (await request.json()) as {
+      name: string;
+      email: string;
+      password: string;
+      studio_name?: string;
+      phone?: string;
+    };
+    const email = normalizeEmail(body.email);
+    if (registeredUsers.has(email)) {
+      return HttpResponse.json(
+        { error: { code: "auth.user.exists", message: "Email já cadastrado" } },
+        { status: 409 }
+      );
+    }
+    // Create new partner account
+    const newUser = makeAccount({
+      email,
+      password: body.password,
+      name: body.name,
+      role: "photographer",
+    });
+    registeredUsers.set(email, newUser);
+    return HttpResponse.json({
+      success: true,
+      message: "Cadastro realizado com sucesso! Aguarde a aprovação.",
+      partner_id: nanoid(),
+      status: "pending_approval",
+    }, { status: 201 });
   }),
 ];
 

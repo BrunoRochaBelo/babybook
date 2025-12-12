@@ -8,11 +8,15 @@
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Camera, Eye, EyeOff, Loader2, AlertCircle, Heart } from "lucide-react";
-import { useLogin } from "@/hooks/api";
+import { useLogin, useUserProfile } from "@/hooks/api";
+import { useAuthStore } from "@/store/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function PartnerLoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLogin();
+  const queryClient = useQueryClient();
+  const login = useAuthStore((s) => s.login);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +38,38 @@ export function PartnerLoginPage() {
 
     try {
       await loginMutation.mutateAsync({ email: email.trim(), password });
-      navigate("/partner");
+      
+      // Force refetch user profile from mock/API to get correct role
+      const profileData = await queryClient.fetchQuery({
+        queryKey: ["user-profile"],
+        queryFn: async () => {
+          // Use the API path - MSW intercepts /api/me
+          const response = await fetch("/api/me", {
+            credentials: "include",
+          });
+          if (!response.ok) throw new Error("Failed to fetch profile");
+          return response.json();
+        },
+        staleTime: 0, // Force fresh fetch
+      });
+      
+      // Update auth store with the fetched profile
+      if (profileData) {
+        login({
+          id: profileData.id,
+          email: profileData.email,
+          name: profileData.name,
+          locale: profileData.locale ?? "pt-BR",
+          role: profileData.role ?? "owner",
+          hasPurchased: profileData.has_purchased ?? false,
+          onboardingCompleted: profileData.onboarding_completed ?? false,
+        });
+      }
+      
+      // Navigate to redirect URL if available, otherwise go to partner portal
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirectTo") ?? "/partner";
+      navigate(redirectTo);
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes("photographer")) {

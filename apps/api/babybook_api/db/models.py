@@ -515,7 +515,7 @@ class Partner(TimestampMixin, SoftDeleteMixin, Base):
     voucher_balance: Mapped[int] = mapped_column(Integer, default=0)
     
     # Configurações do parceiro
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    partner_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
 
     user: Mapped["User | None"] = relationship()
     vouchers: Mapped[list["Voucher"]] = relationship(back_populates="partner", cascade="all,delete-orphan")
@@ -556,7 +556,7 @@ class Voucher(TimestampMixin, Base):
         ForeignKey("deliveries.id", ondelete="SET NULL"),
         nullable=True,
     )
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    voucher_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
 
     partner: Mapped[Partner] = relationship(back_populates="vouchers")
     beneficiary: Mapped["Account | None"] = relationship()
@@ -610,7 +610,7 @@ class Delivery(TimestampMixin, Base):
     )
     assets_transferred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    delivery_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
 
     partner: Mapped[Partner] = relationship(back_populates="deliveries")
     target_account: Mapped["Account | None"] = relationship()

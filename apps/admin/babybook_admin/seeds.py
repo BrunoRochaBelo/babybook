@@ -241,6 +241,101 @@ async def seed_demo_data(database_url: str | None = None) -> dict[str, str]:
         }
 
 
+# =============================================================================
+# Partner/Photographer Demo User
+# =============================================================================
+
+PRO_USER_EMAIL = "pro@babybook.dev"
+PRO_USER_PASSWORD = "pro123"
+PRO_USER_NAME = "Maria Fotógrafa"
+PRO_STUDIO_NAME = "Estúdio Demo"
+
+
+async def seed_partner_data(database_url: str | None = None) -> dict[str, str]:
+    """
+    Cria um usuário parceiro (fotógrafo) para testes locais.
+    
+    - User com role 'photographer'
+    - Partner com status 'active' 
+    - 5 créditos de voucher para testar fluxo completo
+    """
+    from uuid import uuid4
+    from babybook_api.db.models import Account, Partner, User
+    from babybook_api.security import hash_password
+    
+    async with _session_scope(database_url) as session:
+        # Check if user already exists
+        result = await session.execute(
+            select(User).where(User.email == PRO_USER_EMAIL.lower())
+        )
+        user = result.scalar_one_or_none()
+        
+        if user is None:
+            # Create account
+            account = Account(
+                name=PRO_STUDIO_NAME,
+                slug="estudio-demo",
+            )
+            session.add(account)
+            await session.flush()
+            
+            # Create user with photographer role
+            user = User(
+                account_id=account.id,
+                email=PRO_USER_EMAIL.lower(),
+                password_hash=hash_password(PRO_USER_PASSWORD),
+                name=PRO_USER_NAME,
+                locale="pt-BR",
+                role="photographer",  # Important: photographer role
+            )
+            session.add(user)
+            await session.flush()
+            console.print(f"[green]Usuário criado:[/green] {PRO_USER_EMAIL}")
+        else:
+            # Ensure role is photographer
+            if user.role != "photographer":
+                user.role = "photographer"
+                console.print(f"[yellow]Role atualizado para photographer[/yellow]")
+        
+        # Check if partner exists
+        result = await session.execute(
+            select(Partner).where(Partner.user_id == user.id)
+        )
+        partner = result.scalar_one_or_none()
+        
+        if partner is None:
+            partner = Partner(
+                id=uuid4(),
+                user_id=user.id,
+                name=PRO_USER_NAME,
+                email=PRO_USER_EMAIL.lower(),
+                slug="estudio-demo",
+                company_name=PRO_STUDIO_NAME,
+                phone="(11) 99999-9999",
+                status="active",  # Already approved
+                voucher_balance=5,  # 5 credits to test
+            )
+            session.add(partner)
+            console.print(f"[green]Partner criado:[/green] {PRO_STUDIO_NAME}")
+        else:
+            # Ensure partner is active with credits
+            if partner.status != "active":
+                partner.status = "active"
+                console.print(f"[yellow]Partner ativado[/yellow]")
+            if partner.voucher_balance < 5:
+                partner.voucher_balance = 5
+                console.print(f"[yellow]Créditos ajustados para 5[/yellow]")
+        
+        await session.commit()
+        
+        return {
+            "user_email": PRO_USER_EMAIL,
+            "user_password": PRO_USER_PASSWORD,
+            "partner_id": str(partner.id),
+            "voucher_balance": str(partner.voucher_balance),
+        }
+
+
 def seed_moment_templates_command(database_url: str | None = None) -> None:
     inserted = asyncio.run(seed_moment_templates(database_url))
     console.print(f"[green]Templates upserted:[/green] {inserted}")
@@ -257,3 +352,16 @@ def seed_demo_data_command(database_url: str | None = None) -> None:
         "[green]Seed demo atualizado:[/green] "
         f"{payload['user_email']} / {payload['user_password']} (share={payload['share_token']})"
     )
+
+
+def seed_partner_data_command(database_url: str | None = None) -> None:
+    """Criar usuário parceiro/fotógrafo de teste."""
+    payload = asyncio.run(seed_partner_data(database_url))
+    console.print(
+        "[green]Parceiro de teste criado:[/green]\n"
+        f"  Email: {payload['user_email']}\n"
+        f"  Senha: {payload['user_password']}\n"
+        f"  Partner ID: {payload['partner_id']}\n"
+        f"  Créditos: {payload['voucher_balance']}"
+    )
+

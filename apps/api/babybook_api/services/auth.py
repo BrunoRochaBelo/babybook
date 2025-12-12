@@ -156,3 +156,78 @@ async def get_or_create_user_by_email(db: AsyncSession, email: str, name: str | 
     await db.flush()
     return user
 
+
+async def bootstrap_dev_partner(
+    db: AsyncSession,
+    email: str = "pro@babybook.dev",
+    password: str = "pro123",
+    name: str = "Maria Fotógrafa",
+    studio_name: str = "Estúdio Demo",
+) -> None:
+    """
+    Helper para ambientes locais: cria um parceiro/fotógrafo de teste se não existir.
+    
+    Credenciais padrão:
+    - Email: pro@babybook.dev
+    - Senha: pro123
+    - Créditos: 5
+    """
+    from uuid import uuid4
+    from babybook_api.db.models import Account, Partner
+    
+    # Check if user exists
+    result = await db.execute(select(User).where(User.email == email.lower()))
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        # Create account for photographer
+        account = Account(
+            name=studio_name,
+            slug=studio_name.lower().replace(" ", "-").replace("ú", "u"),
+        )
+        db.add(account)
+        await db.flush()
+        
+        # Create user with photographer role
+        user = User(
+            account_id=account.id,
+            email=email.lower(),
+            password_hash=hash_password(password),
+            name=name,
+            locale="pt-BR",
+            role="photographer",
+        )
+        db.add(user)
+        await db.flush()
+    else:
+        # Ensure role is photographer
+        if user.role != "photographer":
+            user.role = "photographer"
+    
+    # Check if partner exists
+    result = await db.execute(select(Partner).where(Partner.user_id == user.id))
+    partner = result.scalar_one_or_none()
+    
+    if partner is None:
+        partner = Partner(
+            id=uuid4(),
+            user_id=user.id,
+            name=name,
+            email=email.lower(),
+            slug=studio_name.lower().replace(" ", "-").replace("ú", "u"),
+            company_name=studio_name,
+            phone="(11) 99999-9999",
+            status="active",  # Already approved for dev
+            voucher_balance=5,  # 5 credits to test
+        )
+        db.add(partner)
+    else:
+        # Ensure partner is active with credits for testing
+        if partner.status != "active":
+            partner.status = "active"
+        if partner.voucher_balance < 5:
+            partner.voucher_balance = 5
+    
+    await db.flush()
+
+
