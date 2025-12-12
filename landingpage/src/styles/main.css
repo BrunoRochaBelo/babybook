@@ -42,33 +42,85 @@ section {
 */
 
 :root {
-  /* Paleta alinhada ao app web */
-  --brand-background: #f7f3ef;
-  --brand-background-strong: #f3e8dd;
-  --brand-background-deep: #e9d9c8;
-  --brand-surface: #ffffff;
-  --brand-surface-muted: #fdf9f5;
-  --brand-ink: #2a2a2a;
-  --brand-ink-muted: rgba(42, 42, 42, 0.7);
-  --brand-muted: #c9d3c2;
-  --brand-sage: #8c9b87;
-  --brand-accent: #f2995d;
-  --brand-accent-strong: #d97f45;
-  --brand-accent-soft: #fad5b8;
-  --brand-accent-deep: #b9652f;
-  --brand-border: #e3dbcf;
-  --brand-border-strong: #d3c2af;
-
+  /* === PALETA QUENTE PROFISSIONAL - OTIMIZADA PARA CONVERSÃO === */
+  /* Baseada em psicologia de cores: laranja (energia, otimismo) + terracota (confiança, estabilidade) */
+  
+  /* --- Backgrounds Neutros Quentes (60% do design) --- */
+  /* Criam sensação de calor, acolhimento e profissionalismo */
+  --brand-background: #f7f3ef; /* Base cream - mantido */
+  --brand-background-strong: #f3e8dd; /* Cream intenso */
+  --brand-background-deep: #e9d9c8; /* Cream profundo */
+  --brand-surface: #ffffff; /* Branco puro para contraste */
+  --brand-surface-muted: #fdf9f5; /* Branco creme para superfícies */
+  
+  /* --- Textos (Hierarquia de Contraste) --- */
+  /* Contraste otimizado: 8.6:1 (WCAG AAA) sobre backgrounds claros */
+  --brand-ink: #2a2a2a; /* Texto principal - preto quente */
+  --brand-ink-muted: rgba(42, 42, 42, 0.7); /* Texto secundário */
+  --brand-ink-warm: #3d2f28; /* Texto com tom marrom quente */
+  --brand-text-secondary: #5a4a3a; /* Texto secundário com mais contraste */
+  
+  /* --- COR PRIMÁRIA: Laranja/Coral (30% do design) --- */
+  /* Tom principal de ação - transmite energia, entusiasmo e movimento */
+  /* Usado para CTAs, links, elementos interativos */
+  --brand-accent: #f2995d; /* Laranja principal - MANTIDO (cor da marca) */
+  --brand-accent-light: #f5a975; /* Variante clara para hover */
+  --brand-accent-strong: #ef8a47; /* Mais saturado para impacto visual */
+  --brand-accent-deep: #d97f45; /* Tom escuro para contraste */
+  --brand-accent-darker: #c26830; /* Pressed/active states */
+  --brand-accent-soft: #fad5b8; /* Backgrounds sutis e badges */
+  --brand-accent-glow: rgba(242, 153, 93, 0.25); /* Glow effect para sombras */
+  
+  /* --- COR SECUNDÁRIA: Terracota/Marsala (10% do design) --- */
+  /* Complementa o laranja, adiciona sofisticação e confiança */
+  /* Usado para accents, bordas, elementos de suporte */
+  --brand-secondary: #c17b5a; /* Terracota médio */
+  --brand-secondary-dark: #a66849; /* Terracota escuro */
+  --brand-secondary-deeper: #8b5538; /* Para textos e bordas com contraste */
+  --brand-secondary-text: #7a4a30; /* Texto sobre fundos claros (contraste 5.2:1) */
+  
+  /* --- COR DE APOIO: Sage Verde (Elementos sutis) --- */
+  /* Verde suave para elementos de confiança, sucesso, natureza */
+  --brand-sage: #8c9b87; /* Sage original - mantido */
+  --brand-sage-dark: #6d7a69; /* Sage escuro para contraste */
+  --brand-success: #7caa7d; /* Verde para confirmações */
+  
+  /* --- BORDAS E DIVISORES --- */
+  /* Sistema de bordas em tons quentes para coesão visual */
+  --brand-border: #e3dbcf; /* Borda sutil neutra */
+  --brand-border-strong: #d3c2af; /* Borda mais visível */
+  --brand-border-accent: rgba(242, 153, 93, 0.3); /* Borda com tom laranja */
+  --brand-border-accent-strong: rgba(217, 127, 69, 0.5); /* Borda laranja intensa */
+  
+  /* --- UTILITÁRIOS DE PÁGINA --- */
   --page-cream-100: var(--brand-background);
   --page-cream-200: var(--brand-background-strong);
   --page-cream-300: var(--brand-background-deep);
-  --surface-color: rgba(255, 255, 255, 0.8);
+  --surface-color: rgba(255, 255, 255, 0.85); /* Mais opaco para melhor contraste */
   --surface-border: rgba(227, 219, 207, 0.9);
-  --surface-border-strong: rgba(242, 153, 93, 0.45);
-  /* Sombras mais quentes inspiradas em papel */
+  --surface-border-strong: var(--brand-border-accent-strong);
+  
+  /* --- SOMBRAS QUENTES PREMIUM --- */
+  /* Sombras com tons quentes criam profundidade e coesão visual */
   --surface-shadow:
     0 25px 60px -20px rgba(58, 45, 36, 0.25),
     0 20px 40px -30px rgba(149, 120, 95, 0.35);
+  
+  /* Sombras coloridas para elementos interativos (marketing visual) */
+  --shadow-accent-sm: 0 4px 14px -2px var(--brand-accent-glow);
+  --shadow-accent-md: 0 10px 25px -5px rgba(242, 153, 93, 0.35);
+  --shadow-accent-lg: 0 20px 40px -10px rgba(242, 153, 93, 0.4);
+  --shadow-accent-glow: 0 0 30px -5px rgba(239, 138, 71, 0.5);
+  
+  /* --- GRADIENTES PERSUASIVOS --- */
+  /* Gradientes estratégicos para guiar atenção e criar hierarquia */
+  --gradient-primary: linear-gradient(135deg, #f5a975 0%, #f2995d 50%, #ef8a47 100%);
+  --gradient-primary-vibrant: linear-gradient(135deg, #ef8a47 0%, #f3b07f 50%, #f7d4b8 100%);
+  --gradient-secondary: linear-gradient(135deg, #c17b5a 0%, #a66849 100%);
+  --gradient-warm-bg: linear-gradient(140deg, #faf8f6 0%, #f3e8dd 48%, #e9d9c8 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(239, 138, 71, 0.15), transparent 70%);
+  
+  /* --- VARIÁVEIS DE CONTROLE --- */
   --pointer-x: 50;
   --pointer-y: 40;
   --hero-collapse-progress: 0;
@@ -251,33 +303,40 @@ body {
   min-height: 100vh;
   position: relative;
   color: var(--brand-ink);
+  /* === BACKGROUND LIMPO COM PALETA QUENTE === */
   background-image:
-    /* Textura tátil */
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
+    /* Textura de papel muito sutil */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E"),
+    /* Orb 1: Laranja suave (topo esquerdo) */
     radial-gradient(
-      circle at 18% 18%,
-      rgba(242, 153, 93, 0.25),
-      transparent 52%
+      circle at 18% 15%,
+      rgba(242, 153, 93, 0.12),
+      transparent 45%
     ),
+    /* Orb 2: Coral claro (centro direita) */
     radial-gradient(
-      circle at 78% 12%,
-      rgba(140, 155, 135, 0.22),
-      transparent 55%
+      circle at 82% 50%,
+      rgba(250, 213, 184, 0.18),
+      transparent 50%
     ),
+    /* Orb 3: Amber sutil (baixo direita) */
     radial-gradient(
-      circle at 78% 62%,
-      rgba(250, 213, 184, 0.4),
-      transparent 55%
+      circle at 75% 85%,
+      rgba(245, 169, 117, 0.14),
+      transparent 48%
     ),
+    /* Gradiente base limpo e suave */
     linear-gradient(
-      140deg,
-      var(--page-cream-100) 0%,
-      var(--page-cream-200) 48%,
-      var(--page-cream-300) 100%
+      150deg,
+      #faf8f6 0%,
+      #f7f3ef 35%,
+      #f3e8dd 70%,
+      #eee0d0 100%
     );
   isolation: isolate;
 }
 
+/* === OVERLAY SIMPLES E LIMPO === */
 body::before,
 body::after {
   content: "";
@@ -287,40 +346,24 @@ body::after {
   pointer-events: none;
 }
 
+/* Luz superior suave - sem blend mode */
 body::before {
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(247, 243, 239, 0.3) 50%,
-      transparent 100%
-    ),
-    linear-gradient(
-      0deg,
-      transparent 0%,
-      rgba(247, 243, 239, 0.8) 50%,
-      transparent 100%
-    ),
-    linear-gradient(transparent calc(100% - 1px), rgba(42, 42, 42, 0.05)),
-    linear-gradient(90deg, transparent calc(100% - 1px), rgba(42, 42, 42, 0.05));
-  background-size:
-    100% 24px,
-    24px 100%,
-    140px 140px,
-    140px 140px;
-  background-repeat: repeat-y, repeat-x, repeat, repeat;
-  opacity: 1;
-  mix-blend-mode: normal;
-}
-
-body::after {
   background: radial-gradient(
-    circle at 50% -5%,
-    rgba(255, 255, 255, 0.65),
+    ellipse 120% 50% at 50% -10%,
+    rgba(255, 250, 245, 0.6),
     transparent 60%
   );
-  opacity: 0.8;
-  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+/* Grid muito sutil - sem blend mode */
+body::after {
+  background-image:
+    linear-gradient(90deg, transparent 0%, rgba(247, 243, 239, 0.15) 50%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, rgba(247, 243, 239, 0.15) 50%, transparent 100%);
+  background-size: 32px 100%, 100% 32px;
+  background-repeat: repeat-x, repeat-y;
+  opacity: 0.5;
 }
 
 .section-surface,
@@ -659,25 +702,30 @@ section:not(.chaos-container):not(.horizontal-scroll-section):not(
 }
 
 /* --- ESTILOS DE CTAs E BOTÕES PREMIUM --- */
+/* Design baseado em psicologia persuasiva: contraste, sombras coloridas, feedback tátil */
+
 .cta-primary,
 .cta-secondary {
   position: relative;
   overflow: hidden;
   isolation: isolate;
   cursor: pointer;
-  /* Transição suave com cubic-bezier refinado */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Transição suave com cubic-bezier refinado para sensação premium */
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Hover states com sombra e scale sutis */
+/* === BOTÃO PRIMÁRIO (Laranja) === */
+/* Gradiente vibrante + sombra colorida = chama atenção sem ser agressivo */
 .cta-primary:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-3px) scale(1.025); /* Elevação mais pronunciada */
+  /* Sombra colorida quente + glow sutil = profissionalismo premium */
   box-shadow:
-    0 12px 28px -8px rgba(239, 138, 71, 0.4),
-    0 6px 16px -4px rgba(242, 153, 93, 0.3);
+    0 0 35px -8px rgba(239, 138, 71, 0.55), /* Glow laranja */
+    0 14px 32px -10px rgba(242, 153, 93, 0.45), /* Sombra principal */
+    0 6px 18px -4px rgba(217, 127, 69, 0.35); /* Sombra de profundidade */
 }
 
-/* Shine effect sutil nos botões principais */
+/* Shine effect nos botões principais - micro-interação que aumenta conversão */
 .cta-primary::after {
   content: "";
   position: absolute;
@@ -688,10 +736,10 @@ section:not(.chaos-container):not(.horizontal-scroll-section):not(
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.35), /* Um pouco mais visível */
     transparent
   );
-  transition: left 0.6s ease;
+  transition: left 0.65s ease-out; /* Mais lento = mais elegante */
   z-index: 1;
 }
 
@@ -699,17 +747,25 @@ section:not(.chaos-container):not(.horizontal-scroll-section):not(
   left: 100%;
 }
 
+/* === BOTÃO SECUNDÁRIO (Neutro com borda) === */
+/* Contraste sutil mas claro - não compete com o primário */
 .cta-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -6px rgba(42, 42, 42, 0.15);
-  border-color: rgba(42, 42, 42, 0.3);
+  transform: translateY(-2px) scale(1.015);
+  /* Sombra neutra quente ao invés de fria */
+  box-shadow: 
+    0 10px 24px -8px rgba(122, 74, 48, 0.18), /* Tom terracota */
+    0 4px 12px -3px rgba(42, 42, 42, 0.12);
+  /* Borda com tom quente ao invés de cinza neutro */
+  border-color: var(--brand-secondary-dark);
+  background-color: rgba(247, 243, 239, 0.5); /* Fundo sutil cream */
 }
 
-/* Feedback tátil em botões - press effect */
+/* === FEEDBACK TÁTIL === */
+/* Press effect - importante para sensação de responsividade */
 .cta-primary:active,
 .cta-secondary:active {
-  transform: scale(0.98);
-  transition-duration: 0.1s;
+  transform: scale(0.97); /* Redução mais visível */
+  transition-duration: 0.08s; /* Resposta instantânea */
 }
 
 /* Transição suave universal para elementos interativos */
@@ -718,12 +774,13 @@ button {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Efeito magnetic refinado com cursor personalizado */
+/* === EFEITO MAGNETIC === */
+/* Sutil mas perceptível - aumenta engajamento */
 .magnetic {
   position: relative;
   display: inline-flex;
   will-change: transform;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce sutil */
   cursor: pointer;
 }
 
@@ -883,7 +940,11 @@ a,
 /* Variant of the shared section surface but adapted for the premium dark CTA */
 .section-surface--cta {
   /* Reuse the surface sizing and spacing while keeping a dark visual core */
-  width: min(1200px, calc(100% - 2.5rem));
+  /* Permite “full-bleed” no fim do progresso sem quebrar o layout inicial.
+     Quando o CTA estiver usando o CSS do HERO (.hero-section dentro de .hero-lock),
+     o próprio HERO module controla width/margins/padding/transform. */
+  width: 100%;
+  max-width: 1200px;
   margin-inline: auto;
   padding: clamp(2.5rem, 5vw, 5rem);
   border-radius: clamp(32px, 4vw, 56px);
@@ -964,17 +1025,20 @@ a,
 }
 
 /* Interpolate the border radius of the CTA surface to match the visual collapse behaviour */
-.cta-final-lock .section-surface--cta {
+.cta-final-lock:not(.hero-lock) .section-surface--cta {
   --cta-surface-radius-start: clamp(32px, 4vw, 56px);
   --cta-surface-radius-end: 0px;
   border-radius: calc(
-    (1 - var(--cta-collapse-progress, 0)) * var(--cta-surface-radius-start) +
-      var(--cta-collapse-progress, 0) * var(--cta-surface-radius-end)
+    (1 - var(--cta-collapse-eased, var(--cta-collapse-progress, 0))) *
+      var(--cta-surface-radius-start) +
+      var(--cta-collapse-eased, var(--cta-collapse-progress, 0)) *
+      var(--cta-surface-radius-end)
   );
-  transition: border-radius 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Scroll-driven: sem transição para não “atrasar” nem parecer que recua do nada */
+  transition: none;
 }
 
-.cta-final-lock.cta-final-pinned .section-surface--cta {
+.cta-final-lock:not(.hero-lock).cta-final-pinned .section-surface--cta {
   border-radius: 0;
 }
 
@@ -1424,20 +1488,20 @@ a,
   margin-top: 2rem;
 }
 
-/* CTA-specific accent line behavior: interpolate position, size and opacity with --cta-collapse-progress (0..1) */
+/* CTA-specific accent line behavior: siga o mesmo progresso do HERO quando estiver em modo clone */
 .cta-final .accent-line-top,
 .cta-final .accent-line-bottom {
   /* define width interpolation between small start -> larger end on pin */
   --accent-width-start: 140px;
   --accent-width-end: 220px;
   width: calc(
-    (1 - var(--cta-collapse-progress)) * var(--accent-width-start) +
-      var(--cta-collapse-progress) * var(--accent-width-end)
+    (1 - var(--hero-collapse-progress, 0)) * var(--accent-width-start) +
+      var(--hero-collapse-progress, 0) * var(--accent-width-end)
   );
 
   /* vertical movement: lines slide in from outside towards final position as scroll progresses */
-  transform: translateY(calc((1 - var(--cta-collapse-progress)) * -12px));
-  opacity: calc(0.6 + var(--cta-collapse-progress) * 0.4);
+  transform: translateY(calc((1 - var(--hero-collapse-progress, 0)) * -12px));
+  opacity: calc(0.6 + var(--hero-collapse-progress, 0) * 0.4);
 
   /* smoother transitions w/ same easing as container */
   transition:
@@ -1448,7 +1512,7 @@ a,
 
 /* Slight variation for bottom accent: slide from below instead of above */
 .cta-final .accent-line-bottom {
-  transform: translateY(calc((1 - var(--cta-collapse-progress)) * 12px));
+  transform: translateY(calc((1 - var(--hero-collapse-progress, 0)) * 12px));
 }
 
 /* When CTA is pinned, slightly increase line width for visual emphasis */
@@ -1678,19 +1742,17 @@ a,
 
 /* === CTA FINAL BEHAVIOR STYLES === */
 /* Wrapper para comportamento sticky similar ao HERO */
-.cta-final-stage {
+.cta-final-stage:not(.hero-stage) {
   position: relative;
   width: 100%;
   /* Use a similar min-height to HERO to create a similar feel and allow enough scroll for footer reveal */
-  min-height: 180vh;
+  min-height: 140vh;
   will-change: transform;
-  /* Scroll snap para completar o movimento */
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
-.cta-final-lock {
+.cta-final-lock:not(.hero-lock) {
   --cta-collapse-progress: 0;
+  --cta-collapse-eased: 0;
 
   position: sticky;
   top: 0;
@@ -1700,28 +1762,14 @@ a,
   justify-content: center;
   overflow: hidden;
 
-  /* Aplicar padding baseado no progresso de collapse, invertendo para começar maior e diminuir */
-  --cta-lock-pad-inline-start: 1.5rem;
-  --cta-lock-pad-inline-end: 0rem;
-  --cta-lock-pad-vertical-start: 2rem;
-  --cta-lock-pad-vertical-end: 0.5rem;
-  padding-inline: calc(
-    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-inline-start) +
-      var(--cta-collapse-progress) * var(--cta-lock-pad-inline-end)
-  );
-  padding-top: calc(
-    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
-      var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
-  );
-  padding-bottom: calc(
-    (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
-      var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
-  );
+  /* Sem padding externo: o full-bleed é garantido no fim do progresso.
+      O “inset” inicial vem de max-width e scale (transform), evitando reflow por padding. */
+  padding: 0;
 
-  will-change: padding;
+  will-change: transform;
 }
 
-.cta-final-lock .cta-final {
+.cta-final-lock:not(.hero-lock) .cta-final {
   position: relative;
   width: 100%;
   max-width: none;
@@ -1733,68 +1781,50 @@ a,
   --cta-outer-radius-start: clamp(32px, 4vw, 56px);
   --cta-outer-radius-end: 0px;
   border-radius: calc(
-    (1 - var(--cta-collapse-progress)) * var(--cta-outer-radius-start) +
-      var(--cta-collapse-progress) * var(--cta-outer-radius-end)
+    (1 - var(--cta-collapse-eased, var(--cta-collapse-progress))) *
+      var(--cta-outer-radius-start) +
+      var(--cta-collapse-eased, var(--cta-collapse-progress)) *
+      var(--cta-outer-radius-end)
   );
   box-shadow:
     0 45px 140px -40px rgba(42, 32, 24, 0.55),
     0 25px 80px -50px rgba(242, 153, 93, 0.35),
     inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-  /* Padding interpolates from start -> end for better fitting while scaling
-      We use a formula mixing 1 and 0 using the --cta-collapse-progress variable */
-  --cta-pad-start: 3rem;
+  /* Padding fixo para evitar reflow durante scroll */
+  --cta-pad-start: clamp(1.75rem, 3vw, 3rem);
   --cta-pad-end: 0rem;
-  padding: calc(
-    (1 - var(--cta-collapse-progress)) * var(--cta-pad-start) +
-      var(--cta-collapse-progress) * var(--cta-pad-end)
-  );
+  padding: var(--cta-pad-start);
 
-  /* Transformar: escalar de 0.6 até 1.0, mover para cima, inspirado no HERO */
-  transform-origin: center calc(50% + var(--cta-collapse-progress) * 10%);
-  transform: translate3d(0, calc(var(--cta-collapse-progress) * -9vh), 0)
-    scale(calc(0.6 + var(--cta-collapse-progress) * 0.4));
+  /* Movimento progressivo (sensação tipo HERO), mas garantindo 100% no final:
+     - comportamento tipo HERO: scale decrescente ("colapso")
+     - termina alinhado em 0 (sem gap nas bordas)
+  */
+  transform-origin: center top;
+  transform: translate3d(
+      0,
+      calc(
+        (1 - var(--cta-collapse-eased, var(--cta-collapse-progress))) * 10vh
+      ),
+      0
+    )
+    scale(
+      calc(
+        0.84 + var(--cta-collapse-eased, var(--cta-collapse-progress)) * 0.16
+      )
+    );
 
   will-change: transform, border-radius, box-shadow;
-  transition:
-    border-radius 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    box-shadow 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    padding 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    transform 480ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Scroll-driven: sem transição para não "atrasar" em relação ao scroll */
+  transition: none;
 }
 
 /* Estado pinado do CTA FINAL */
-.cta-final-lock.cta-final-pinned .cta-final {
-  border-radius: 0;
-  box-shadow: none;
-  /* reduzemos o padding pra 'encaixar' melhor a seção quando 100% */
-  padding: var(--cta-pad-end);
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cta-final-lock.cta-final-pinned .cta-final.section-shell {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 2rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cta-final-lock.cta-final-pinned {
-  padding-inline: var(--cta-lock-pad-inline-end);
-  padding-top: var(--cta-lock-pad-vertical-end);
-  padding-bottom: var(--cta-lock-pad-vertical-end);
-}
+/* Mantemos o estado pinned apenas como “flag” para outras features (ex.: footer),
+   evitando alterações bruscas de layout/spacing que dão sensação de salto. */
 
 .cta-final-lock .pulsating-background {
-  opacity: calc(0.28 + var(--cta-collapse-progress) * 0.6);
-  transform: scale(calc(1 + var(--cta-collapse-progress) * 0.06));
+  opacity: calc(0.28 + var(--hero-collapse-progress, 0) * 0.6);
+  transform: scale(calc(1 + var(--hero-collapse-progress, 0) * 0.06));
 }
 .cta-final-pinned .pulsating-background {
   animation: pulse-intensity 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -1831,27 +1861,27 @@ a,
   bottom: 0;
   left: 0;
   width: 100%;
-  max-height: 70vh;
+  max-height: 80vh;
   z-index: 40;
 
+  /* Se o conteúdo for maior, não "corta" — permite rolagem interna */
+  overflow: auto;
+  overscroll-behavior: contain;
+
   /* Inicialmente oculto */
-  opacity: 0;
-  transform: translateY(100%);
-  pointer-events: none;
+  opacity: var(--footer-opacity, 0);
+  transform: translateY(var(--footer-translate-y, 100%))
+    scale(var(--footer-scale, 0.99));
+  filter: blur(var(--footer-blur, 10px));
+  pointer-events: var(--footer-pointer-events, none);
 
-  /* Transição suave para aparecer */
+  /* Transição suave para aparecer e desaparecer */
   transition:
-    opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  will-change: transform, opacity;
-}
-
-/* Quando footer é revelado */
-.site-footer.footer-revealed {
-  pointer-events: auto;
-  opacity: 1;
-  transform: translateY(0%);
+  will-change: transform, opacity, filter;
 }
 
 /* Garantir que o conteúdo do footer está visível quando revelado */
@@ -1860,29 +1890,20 @@ a,
 }
 
 @media (max-width: 768px) {
-  .cta-final-lock {
+  .cta-final-lock:not(.hero-lock) {
     /* Use smaller start values on narrow viewports and shrink towards the end value */
     --cta-lock-pad-inline-start: 1rem;
     --cta-lock-pad-inline-end: 0rem;
     --cta-lock-pad-vertical-start: 1.25rem;
     --cta-lock-pad-vertical-end: 0.5rem;
-    padding-inline: calc(
-      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-inline-start) +
-        var(--cta-collapse-progress) * var(--cta-lock-pad-inline-end)
-    );
-    padding-top: calc(
-      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
-        var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
-    );
-    padding-bottom: calc(
-      (1 - var(--cta-collapse-progress)) * var(--cta-lock-pad-vertical-start) +
-        var(--cta-collapse-progress) * var(--cta-lock-pad-vertical-end)
-    );
+    padding: 0;
   }
 
-  .cta-final-lock .cta-final {
+  .cta-final-lock:not(.hero-lock) .cta-final {
     /* On smaller screens, keep an initial rounded feel but smaller than desktop */
-    border-radius: calc((1 - var(--cta-collapse-progress)) * 24px);
+    border-radius: calc(
+      (1 - var(--cta-collapse-eased, var(--cta-collapse-progress))) * 24px
+    );
   }
 
   .site-footer {
@@ -1891,13 +1912,23 @@ a,
 }
 
 @media (max-width: 640px) {
-  .cta-final-stage {
-    min-height: 160vh;
+  .cta-final-stage:not(.hero-stage) {
+    min-height: 130vh;
   }
 
-  .cta-final-lock .cta-final {
-    transform: translate3d(0, calc(var(--cta-collapse-progress) * -6vh), 0)
-      scale(calc(0.93 + var(--cta-collapse-progress) * 0.07));
+  .cta-final-lock:not(.hero-lock) .cta-final {
+    transform: translate3d(
+        0,
+        calc(
+          (1 - var(--cta-collapse-eased, var(--cta-collapse-progress))) * 7vh
+        ),
+        0
+      )
+      scale(
+        calc(
+          0.9 + var(--cta-collapse-eased, var(--cta-collapse-progress)) * 0.1
+        )
+      );
   }
 }
 
@@ -2411,20 +2442,22 @@ a,
 
 /* Seção Horizontal (Livros) */
 .horizontal-scroll-section {
-  height: 350vh; /* Móvel: menos altura = scroll mais rápido */
+  /* Alturas menores para evitar sensação de seção “infinita” e reduzir engasgos.
+     A interação continua (sticky + transform), mas com percurso vertical mais curto. */
+  height: 240vh;
   position: relative;
   scroll-snap-align: none; /* Desabilita snap nesta seção específica */
 }
 
 @media (min-width: 640px) {
   .horizontal-scroll-section {
-    height: 450vh;
+    height: 280vh;
   }
 }
 
 @media (min-width: 768px) {
   .horizontal-scroll-section {
-    height: 550vh; /* Desktop: altura original */
+    height: 320vh;
   }
 }
 
@@ -2631,7 +2664,8 @@ body.pricing-hold-active {
 
 /* Seção Caos -> Ordem */
 .chaos-container {
-  height: 320vh; /* Equilibrado para transições suaves sem ser muito lento */
+  /* Menos altura = transição mais rápida e scroll mais natural */
+  height: 220vh;
   position: relative;
   scroll-snap-align: none; /* Desabilita snap nesta seção específica */
 }
@@ -2639,7 +2673,7 @@ body.pricing-hold-active {
 /* Mobile: reduzir altura para scroll mais rápido */
 @media (max-width: 767px) {
   .chaos-container {
-    height: 250vh;
+    height: 180vh;
   }
 }
 

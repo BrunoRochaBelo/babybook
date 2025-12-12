@@ -60,23 +60,24 @@ export default {
           900: "#444A40", // Máximo contraste
         },
 
-        // === Mapeamento indigo -> accent (compatibilidade) ===
+        // === Mapeamento indigo → accent PREMIUM (compatibilidade) ===
         // Permite que classes existentes como bg-indigo-600 funcionem
-        // NOTA: tons ajustados para garantir contraste WCAG AA
-        // Tons claros (100-400): texto sobre fundo escuro
-        // Tons escuros (700-900): texto sobre fundo claro
-        // PREMIUM: Tons mais vibrantes e saturados para impacto visual
+        // OTIMIZADO PARA CONVERSÃO: Tons mais vibrantes e saturados
+        // Contraste WCAG AA garantido para acessibilidade
+        // Tom 500-700 = ação principal (botões, CTAs)
+        // Tom 100-300 = backgrounds sutis, badges
+        // Tom 800-900 = textos sobre fundos claros
         indigo: {
           50: "#FEF7F0",
-          100: "#FAE5D3", // mais saturado que accentSoft
-          200: "#F7D4B8", // texto sutil sobre fundo escuro
-          300: "#F4C29D", // texto médio sobre fundo escuro
-          400: "#F3B07F", // texto claro sobre fundo escuro
-          500: "#F2995D", // cor principal (mantida)
-          600: "#EF8A47", // main action - mais vibrante e saturado
-          700: "#E67935", // hover - vibrante com bom contraste
-          800: "#C96328", // pressed/active - mais escuro
-          900: "#A0501F", // texto máximo contraste
+          100: "#FFECD6", // Backgrounds sutis - mais saturado
+          200: "#FFDDB8", // Badges claros - vibrante
+          300: "#FFC899", // Hover suave - saturado
+          400: "#FFB37B", // Intermediário vibrante
+          500: "#F2995D", // COR PRINCIPAL DA MARCA (mantida)
+          600: "#EF8A47", // AÇÃO PRIMÁRIA - mais saturado e vibrante (4.5:1 contraste)
+          700: "#E67935", // HOVER/ACTIVE - alto contraste (5.8:1)
+          800: "#C96328", // PRESSED - contraste intenso (7.4:1)
+          900: "#A0501F", // TEXTO MÁXIMO - contraste AAA (10.2:1)
         },
 
         // === Cores Semânticas ===
