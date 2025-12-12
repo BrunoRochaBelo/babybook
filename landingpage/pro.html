@@ -9,6 +9,8 @@
   <meta name="keywords" content="baby book pro, fotografia newborn, voucher bebê, parceiro fotógrafos, álbum digital vitalício" />
   <meta name="author" content="Baby Book" />
   <meta name="robots" content="index, follow" />
+  <link rel="icon" href="./assets/favicon-pro.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./assets/favicon-pro.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
@@ -63,6 +65,9 @@
         radial-gradient(circle at 20% 20%, rgba(236, 72, 153, 0.18), transparent 40%),
         radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.16), transparent 35%);
       overflow: hidden;
+      /* puxar o background para cima até atrás da barra de navegação (pt-24 = 6rem) */
+      margin-top: -6rem;
+      padding-top: 6rem;
     }
 
     .hero-glow,
@@ -310,13 +315,41 @@
     }
 
     /* === FAQ ACCORDION STYLES === */
-    .faq-card {
+    .faq-item {
       transition: box-shadow 0.3s ease, border-color 0.3s ease;
     }
 
-    .faq-card:hover {
+    .faq-item:hover {
       border-color: rgba(236, 72, 153, 0.3);
       box-shadow: 0 10px 40px rgba(236, 72, 153, 0.08);
+    }
+
+    /* FAQ Icon rotation with smooth easing */
+    .faq-icon {
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transform: rotate(0deg);
+    }
+
+    .faq-icon.rotate-180 {
+      transform: rotate(180deg) !important;
+    }
+
+    /* FAQ Content smooth expand/collapse animation */
+    .faq-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .faq-content.open {
+      max-height: 500px;
+      opacity: 1;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      padding-bottom: 1.25rem;
     }
 
     /* === SCROLL REVEAL ANIMATIONS === */
@@ -453,16 +486,16 @@
 
       0%,
       100% {
-        transform: translateY(0px) rotate(0deg);
+        transform: translateY(0px);
       }
 
       50% {
-        transform: translateY(-20px) rotate(5deg);
+        transform: translateY(-6px);
       }
     }
 
     .floating {
-      animation: float 6s ease-in-out infinite;
+      animation: float 4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     }
 
     .floating-delay-1 {
@@ -550,7 +583,7 @@
           <p class="text-[10px] text-slate-400 font-medium">Para fotógrafos profissionais</p>
         </div>
       </div>
-      <div class="hidden md:flex items-center gap-3 ml-6 text-sm text-slate-200">
+      <div class="hidden md:flex items-center gap-3 justify-center flex-1 text-sm text-slate-200">
         <a href="#dor" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Problema</a>
         <a href="#beneficios" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Benefícios</a>
         <a href="#valor" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Valor</a>
@@ -584,7 +617,7 @@
     </div>
   </header>
 
-  <main class="pt-32">
+  <main class="pt-24">
     <section id="hero-pro" class="hero-section relative min-h-[70vh] md:min-h-[90vh] flex items-center">
       <div class="hero-glow absolute inset-0 pointer-events-none"></div>
       <div class="hero-glow-secondary absolute inset-0 pointer-events-none"></div>
@@ -613,7 +646,7 @@
             <!-- Subheadline - Agitation + Solution -->
             <p class="text-lg md:text-xl text-gray-200 mb-6 max-w-xl leading-relaxed fade-in-up stagger-2">
               Você investe <strong class="text-white">horas</strong> em cada sessão. Entregue algo à altura:
-              <span class="text-pink-300">um presente vitalicio que a cliente nunca vai perder.</span>
+              <span class="text-pink-300">um presente vitalício que sua cliente vai guardar para sempre.</span>
             </p>
 
             <!-- Value proposition pills -->
@@ -628,7 +661,7 @@
                 <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                Licença vitalícia
+                Suporte pós-venda por nossa conta
               </div>
               <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
                 <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -676,7 +709,7 @@
           <div class="relative">
             <!-- Floating badge - value proposition -->
             <div class="absolute -top-4 -right-2 z-20 floating floating-delay-2">
-              <div class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+              <div class="bg-gradient-to-r from-yellow-400 via-amber-400 to-amber-600 text-amber-900 text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-amber-500/30 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
@@ -717,8 +750,8 @@
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
                   <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
                   <div>
-                    <span class="text-white font-medium">Suporte 100% nosso</span>
-                    <p class="text-gray-400 text-sm">Você só fotografa</p>
+                    <span class="text-white font-medium">Licença vitalícia</span>
+                    <p class="text-gray-400 text-sm">Seu cliente tem acesso para sempre</p>
                   </div>
                 </div>
               </div>
@@ -728,7 +761,7 @@
                 <div class="flex items-start gap-3">
                   <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">LP</div>
                   <div class="flex-1">
-                    <p class="text-gray-200 text-sm italic leading-relaxed">"Minha cliente chorou ao ver as fotos no app. Disse que era o presente mais lindo que já recebeu."</p>
+                    <p class="text-gray-200 text-sm italic leading-relaxed">"Meu cliente chorou ao ver as fotos no app. Disse que era o presente mais lindo que já recebeu."</p>
                     <p class="text-pink-300 text-xs font-medium mt-1">— Larissa P., Fotógrafa Newborn</p>
                   </div>
                 </div>
@@ -773,6 +806,7 @@
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-12">
           <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">A parte que ninguém te conta sobre ser fotógrafo</h2>
+          <p class="text-gray-600 text-lg max-w-3xl mx-auto">A sessão acaba em algumas horas. O que fica é a entrega — e ela define o quanto seu trabalho é lembrado (e recomendado).</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-10">
           <div class="card-premium tilt-card p-8 bg-white border border-rose-100 shadow-md">
@@ -783,13 +817,13 @@
                 <svg class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>Você envia um link de Drive/Transfer que expira em 7 dias.</span>
+                <span>Você envia um link de Drive/Transfer que expira entre 7 e 30 dias.</span>
               </li>
               <li class="flex gap-3">
                 <svg class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>A cliente faz um 'print' ou baixa errado. O WhatsApp comprime, as cores mudam e a qualidade que você vendeu desaparece na tela do celular.</span>
+                <span>O cliente 'printa' ou baixa errado. O WhatsApp comprime, as cores mudam e a qualidade que você vendeu desaparece na tela do celular.</span>
               </li>
               <li class="flex gap-3">
                 <svg class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
@@ -805,7 +839,7 @@
             <ul class="space-y-4 text-gray-100">
               <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Entrega definitiva em um aplicativo elegante com sua marca.</span></li>
               <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Visualização otimizada para telas Retina/4K (sem compressão visível).</span></li>
-              <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Backup vitalício na nuvem. Sua cliente nunca mais perde as fotos.</span></li>
+              <li class="flex gap-3"><span class="text-emerald-400 font-bold">✓</span><span>Backup vitalício na nuvem. Seu cliente nunca mais perde as fotos.</span></li>
             </ul>
           </div>
         </div>
@@ -815,8 +849,8 @@
     <section id="beneficios" class="section-spaced bg-white">
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-14">
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Muito mais que fotos num Drive</h2>
-          <p class="text-gray-700 text-lg max-w-3xl mx-auto">Um ecossistema completo que sua cliente vai usar todo dia — não só no dia da entrega.</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Muito mais que fotos em um Drive</h2>
+          <p class="text-gray-700 text-lg max-w-3xl mx-auto">Um ecossistema que prolonga a experiência pós-ensaio e torna você <strong>inesquecível</strong> — sem você trabalhar mais.</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
           <div class="card-premium p-8 border border-gray-100 bg-white">
@@ -826,9 +860,9 @@
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M8 5l1-2h6l1 2"></path>
               </svg>
-              <h3 class="text-2xl font-bold text-gray-900 mb-0">Sua Galeria Pro</h3>
+              <h3 class="text-2xl font-bold text-gray-900 mb-0">Galeria Pro</h3>
             </div>
-            <p class="text-gray-700">Onde seu trabalho brilha. Layout imersivo, sem distrações, focado na emoção da imagem.</p>
+            <p class="text-gray-700">Onde seu trabalho brilha. Uma galeria elegante para momentos especiais da infância — da gestação ao primeiro aniversário.</p>
           </div>
           <div class="card-premium p-8 border border-gray-100 bg-white">
             <div class="flex items-center gap-3 mb-3">
@@ -880,8 +914,8 @@
             </svg>
             <span>Eleve o valor da sua entrega</span>
           </div>
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">Investimento que <span class="gradient-text-animated">se paga sozinho</span></h2>
-          <p class="text-gray-300 text-lg max-w-2xl mx-auto">Por menos de R$5 por dia de trabalho, você transforma cada entrega em uma experiência premium que seu cliente valoriza — e indica.</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">Invista em <span class="gradient-text-animated">diferenciação, não em custo</span></h2>
+          <p class="text-gray-300 text-lg max-w-2xl mx-auto">Tudo o que você viu acima vira um presente premium para a família. Para você, vira diferenciação com um custo por cliente que cabe no seu pacote — embutido ou como upsell, <strong>você decide</strong>.</p>
         </div>
 
         <!-- Stats Grid with Counters -->
@@ -893,39 +927,39 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <p class="text-xs uppercase tracking-[0.2em] text-blue-200 mb-2">Cliente recebe</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-blue-200 mb-2">Cliente percebe</p>
             <p class="text-5xl font-extrabold text-white mb-1">R$ <span data-counter="297" class="counter-value">0</span></p>
-            <p class="text-gray-400 text-sm">em valor agregado</p>
+            <p class="text-blue-200/70 text-sm">de valor agregado no presente</p>
           </div>
 
           <!-- Stat 2: Your investment -->
           <div class="card-premium tilt-card bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-400/30 p-8 pt-10 text-center text-white relative">
             <div class="absolute top-2 right-2 z-10">
-              <div class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">VOCÊ INVESTE</div>
+              <div class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">VOCÊ PAGA</div>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-emerald-500/30 flex items-center justify-center mx-auto mb-4">
               <svg class="w-7 h-7 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p class="text-xs uppercase tracking-[0.2em] text-emerald-200 mb-2">Por cliente</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-emerald-200 mb-2">Uma única vez</p>
             <p class="text-5xl font-extrabold text-emerald-300 mb-1">R$ <span data-counter="120" class="counter-value">0</span></p>
-            <p class="text-emerald-200/70 text-sm">Licença vitalícia inclusa</p>
+            <p class="text-emerald-200/70 text-sm">Entrega vitalícia para a família</p>
           </div>
 
-          <!-- Stat 3: Value multiplier -->
+          <!-- Stat 3: Return / Indicações -->
           <div class="card-premium tilt-card bg-gradient-to-br from-pink-500/20 to-purple-600/10 border border-pink-400/30 p-8 pt-10 text-center text-white relative">
             <div class="absolute top-2 right-2 z-10">
-              <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">VALOR</div>
+              <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">RETORNO</div>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-pink-500/30 flex items-center justify-center mx-auto mb-4">
               <svg class="w-7 h-7 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <p class="text-xs uppercase tracking-[0.2em] text-pink-200 mb-2">Multiplicador</p>
-            <p class="text-5xl font-extrabold text-pink-300 mb-1"><span data-counter="2" class="counter-value">0</span>.5x</p>
-            <p class="text-pink-200/70 text-sm">mais valor percebido</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-pink-200 mb-2">Boca a boca</p>
+            <p class="text-4xl font-extrabold text-pink-300 mb-1">+<span data-counter="3" class="counter-value">0</span> indicações</p>
+            <p class="text-pink-200/70 text-sm">Potencial de indicações quando a entrega é memorável</p>
           </div>
         </div>
 
@@ -941,20 +975,30 @@
             </div>
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-4">
-                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Como comunicar ao cliente</span>
-                <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">Sugestão</span>
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Como comunicar valor</span>
+                <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">Script sugerido</span>
               </div>
               <p class="text-xl leading-relaxed text-gray-100 mb-4 italic">
-                "Dona Maria, sua entrega inclui o <strong class="text-white not-italic">Baby Book Vitalício</strong> — um aplicativo exclusivo onde as fotos ficam organizadas <strong class="text-white not-italic">para sempre</strong>, com backup seguro na nuvem. É como um álbum digital que <strong class="text-emerald-300 not-italic">nunca se perde</strong>."
+                "Dona Maria, sua entrega inclui o <strong class="text-white not-italic">Baby Book Vitalício</strong> — uma experiência premium onde cada foto fica organizada <strong class="text-white not-italic">para sempre</strong>, com backup seguro. Você tem um álbum digital elegante que <strong class="text-pink-300 not-italic">nunca vai perder</strong> — nem trocando de celular."
               </p>
-              <div class="flex items-center gap-2 text-emerald-400 font-semibold">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <div class="flex items-start gap-3 text-emerald-300 font-semibold mt-6 pt-4 border-t border-white/10">
+                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
-                <span>Experiência premium que encanta e gera indicações</span>
+                <span>Resultado: Cliente indicará para amigas, e você cresce sem dependência de marketing pago.</span>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="text-center mt-10">
+          <a href="#pacotes" class="btn-primary magnetic-btn inline-flex items-center justify-center gap-3 text-white px-7 py-3.5 rounded-2xl font-bold text-base group">
+            <span>Ver pacotes e custo por cliente</span>
+            <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+          <p class="text-gray-400 text-sm mt-3">Sem assinatura. Licenças vitalícias. Créditos que não expiram.</p>
         </div>
       </div>
     </section>
@@ -977,9 +1021,9 @@
         </div>
 
         <!-- Pricing Cards -->
-        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
           <!-- Starter Pack -->
-          <div class="card-premium tilt-card p-8 border border-gray-200 bg-white relative">
+          <div class="card-premium tilt-card p-8 border border-gray-200 bg-white relative h-full flex flex-col">
             <div class="mb-6">
               <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Starter Pack</p>
               <div class="flex items-baseline gap-2 mb-2">
@@ -1016,13 +1060,13 @@
               </li>
             </ul>
 
-            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-4 text-base">
+            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="mt-auto btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-4 text-base">
               Começar com Starter
             </a>
           </div>
 
           <!-- PRO Pack - Recommended -->
-          <div class="card-premium tilt-card glow-follow p-8 pt-12 border-2 border-pink-300 bg-gradient-to-b from-white via-white to-pink-50 relative shadow-xl shadow-pink-100">
+          <div class="card-premium tilt-card glow-follow p-8 pt-12 border-2 border-pink-300 bg-gradient-to-b from-white via-white to-pink-50 relative shadow-xl shadow-pink-100 h-full flex flex-col">
             <!-- Popular badge -->
             <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10">
               <div class="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-pink-500/30 flex items-center gap-1.5">
@@ -1080,7 +1124,7 @@
               </li>
             </ul>
 
-            <a href="javascript:navigateToApp('/pro/register?plan=pro')" class="btn-primary magnetic-btn text-white w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold py-4 text-base group">
+            <a href="javascript:navigateToApp('/pro/register?plan=pro')" class="mt-auto btn-primary magnetic-btn text-white w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold py-4 text-base group">
               <span>Quero ser Parceiro PRO</span>
               <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -1148,11 +1192,11 @@
                 </div>
                 <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Existe mensalidade ou taxa de manutenção?</h3>
               </div>
-              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div class="faq-content hidden px-6 pb-5">
+            <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
                 <p><strong class="text-gray-900">Não. Zero.</strong> Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa. Suas licenças nunca expiram.</p>
               </div>
@@ -1166,13 +1210,13 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">02</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se minha cliente perder o celular?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se meu cliente perder o celular?</h3>
               </div>
-              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div class="faq-content hidden px-6 pb-5">
+            <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
                 <p>O acesso é vinculado à <strong class="text-gray-900">conta, não ao aparelho</strong>. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo — basta fazer login no novo celular.</p>
               </div>
@@ -1188,11 +1232,11 @@
                 </div>
                 <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">O cliente final paga alguma coisa?</h3>
               </div>
-              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div class="faq-content hidden px-6 pb-5">
+            <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
                 <p><strong class="text-gray-900">Não.</strong> O acesso vitalício é um presente (ou upsell) que você entrega. Para a mãe/pai, o aplicativo é <strong class="text-gray-900">gratuito e livre de anúncios</strong> intrusivos. Você é o herói que presenteou.</p>
               </div>
@@ -1208,13 +1252,13 @@
                 </div>
                 <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Como entrego as fotos para o cliente?</h3>
               </div>
-              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div class="faq-content hidden px-6 pb-5">
+            <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p>Você recebe acesso ao <strong class="text-gray-900">Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para a cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class="text-gray-900">menos de 2 minutos</strong>.</p>
+                <p>Você recebe acesso ao <strong class="text-gray-900">Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para o cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class="text-gray-900">menos de 2 minutos</strong>.</p>
               </div>
             </div>
           </div>
@@ -1228,11 +1272,11 @@
                 </div>
                 <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se eu não gostar, tem garantia?</h3>
               </div>
-              <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div class="faq-content hidden px-6 pb-5">
+            <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
                 <p>Sim! Oferecemos <strong class="text-gray-900">garantia de 7 dias</strong>. Se não ficar satisfeito, devolvemos seu investimento sem burocracia. Confiamos tanto no produto que assumimos o risco.</p>
               </div>
@@ -1317,24 +1361,28 @@
       const faqItem = button.closest('.faq-item');
       const content = faqItem.querySelector('.faq-content');
       const icon = faqItem.querySelector('.faq-icon');
-      const isOpen = !content.classList.contains('hidden');
+      const isOpen = content.classList.contains('open');
 
-      // Close all other FAQ items first
+      // Close all other FAQ items with smooth animation
       document.querySelectorAll('.faq-item').forEach(item => {
         if (item !== faqItem) {
-          item.querySelector('.faq-content')?.classList.add('hidden');
-          item.querySelector('.faq-icon')?.classList.remove('rotate-180');
+          const otherContent = item.querySelector('.faq-content');
+          const otherIcon = item.querySelector('.faq-icon');
+          otherContent?.classList.remove('open');
+          otherIcon?.classList.remove('rotate-180');
           item.classList.remove('faq-open');
         }
       });
 
-      // Toggle current item
+      // Toggle current item with smooth animation
       if (isOpen) {
-        content.classList.add('hidden');
+        // Close
+        content.classList.remove('open');
         icon.classList.remove('rotate-180');
         faqItem.classList.remove('faq-open');
       } else {
-        content.classList.remove('hidden');
+        // Open
+        content.classList.add('open');
         icon.classList.add('rotate-180');
         faqItem.classList.add('faq-open');
       }

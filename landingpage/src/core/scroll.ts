@@ -15,6 +15,7 @@ export const initSmoothScrolling = (): (() => void) => {
     syncTouch: true,
     syncTouchLerp: 0.075,
   });
+  lenisInstance = lenis;
 
   let rafId = 0;
   function raf(time: number) {
@@ -30,11 +31,16 @@ export const initSmoothScrolling = (): (() => void) => {
       if (rafId) cancelAnimationFrame(rafId);
       // If lenis exposes a destroy method, call it
       (lenis as any).destroy?.();
+      // Clear instance on destroy
+      lenisInstance = null;
     } catch (err) {
       // ignore errors
     }
   };
 };
+
+let lenisInstance: Lenis | null = null;
+export const getLenis = () => lenisInstance;
 
 // === SCROLL PROGRESS INDICATOR ===
 export const initScrollProgress = () => {

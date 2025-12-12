@@ -1,4 +1,5 @@
 import { logger } from "../utils/logger";
+import { getLenis } from "../core/scroll";
 
 /**
  * FOOTER BEHAVIOR
@@ -121,47 +122,70 @@ export const initFooterBehavior = async () => {
       // Snap logic: se footer está parcialmente visível e não está fazendo snap
       // Threshold baixo (10%) para disparar rápido
       if (footerProgress > 0.1 && footerProgress < 0.9 && !isSnapping) {
-        // Cancelar timeout anterior se existir
+        // Cancelar timeout anterior se existir (debounce)
         if (snapTimeoutId) {
           clearTimeout(snapTimeoutId);
         }
         
-        // Aguardar 80ms para ver se usuário parou de rolar
+        // Se já está fazendo snap, não fazer nada (deixar terminar)
+        // A menos que o usuário esteja "brigando" com o scroll (interrupção via user input no Lenis já pararia o scroll, mas nosso boolean isSnapping pode ter ficado true)
+        // Por segurança, o onComplete e o timeout de fallback lidam com reset do isSnapping.
+
+        // Aguardar curto período para confirmar parada do usuário
         snapTimeoutId = setTimeout(() => {
-          // Re-checar se ainda está na zona de snap
-          if (footerProgress > 0.1 && footerProgress < 0.9 && !isSnapping) {
+          // Zona de ativação agressiva: qualquer coisa que não seja "fechado" (0) ou "aberto" (1)
+          if (footerProgress > 0.01 && footerProgress < 0.99 && !isSnapping) {
+            
+            const lenis = getLenis();
+            if (!lenis) return;
+
             isSnapping = true;
             
-            // Comportamento de gaveta: baseado na direção do scroll
-            // Scrollou para baixo = revela; Scrollou para cima = esconde
-            const shouldReveal = scrollDirection === 'down';
+            // Recalcular offsets
+            const wrapperRect = ctaFinalStage!.getBoundingClientRect();
+            const footerHeight = footer.clientHeight;
+            const currentScroll = window.scrollY;
+            const stageTopAbsolute = currentScroll + wrapperRect.top;
             
-            // Adicionar transição suave
-            footer.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease';
+            // Definir destinos
+            const hideScrollPos = stageTopAbsolute + 200; // Threshold original de reveal
+            const showScrollPos = stageTopAbsolute + 200 + footerHeight; // Aberto completo
+
+            // Lógica de decisão de destino
+            let targetPos = hideScrollPos;
             
-            if (shouldReveal) {
-              // Revelar footer completamente
-              footer.style.transform = 'translateY(0%)';
-              footer.style.opacity = '1';
-              footerVisible = true;
-              footer.classList.add('footer-revealed');
+            // Se passou de 50% OU rolou para baixo recentemente -> Abre
+            // Se rolou para cima -> Fecha
+            if (scrollDirection === 'down') {
+                targetPos = showScrollPos;
             } else {
-              // Esconder footer completamente
-              footer.style.transform = 'translateY(100%)';
-              footer.style.opacity = '0';
-              footerVisible = false;
-              footer.classList.remove('footer-revealed');
+                targetPos = hideScrollPos;
+                // Exceção: Se o usuário parou muito perto do fim (>90%) mesmo subindo um pouco, talvez queira manter aberto? 
+                // Melhor ser estrito: subiu = quer esconder.
             }
+
+            // Distância para animar
+            const dist = Math.abs(targetPos - currentScroll);
+            // Duração dinâmica baseada na distância (mín 0.6s, máx 1.0s)
+            const duration = Math.min(1.0, Math.max(0.6, dist / 1000));
+
+            // Executar Scroll
+            lenis.scrollTo(targetPos, {
+              duration: duration,
+              easing: (t: number) => 1 - Math.pow(1 - t, 4), // Quartic out para "travar" suave mas firme
+              lock: true, // Tenta travar scroll do usuário durante animação
+              onComplete: () => {
+                isSnapping = false;
+              }
+            });
             
-            // Reset after animation completes
+            // Fallback de segurança para liberar estado
             setTimeout(() => {
               isSnapping = false;
-              // Remover transição inline para não interferir com scroll normal
-              footer.style.transition = '';
-            }, 400);
+            }, duration * 1000 + 100);
           }
           snapTimeoutId = null;
-        }, 80);
+        }, 60); // Delay curto para resposta rápida
       }
       
       rafId = null;
