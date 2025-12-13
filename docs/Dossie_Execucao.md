@@ -23,15 +23,15 @@ Premissa Original:
 
 Nova Realidade (Blindagem do Caixa):
 
-- A Verdade Brasileira: Tickets de R$ 200+ viram parcelamento 3x-12x. Taxas de antecipação consomem 5% a 15% da margem
-- Custo Real Projetado: R$ 16,33 (~5,5%) para vendas no cartão B2C
-- Taxa PIX: ~R$ 1,00 (fixa)
+- A Verdade Brasileira: Ticket de R$ 200+ quase sempre vira parcelamento. Para viabilizar conversão sem implodir margem, **subsidiaremos apenas até 3x sem juros** no B2C.
+- Regra de Segurança Financeira (pior cenário): **assumimos 12% all-in** (gateway + antecipação + custo do parcelamento 3x) no cartão.
+- Taxa PIX (referência): **R$ 1,50** (fixa)
 
 Estratégia de Incentivo PIX:
 
-- Preço "Cheio" (Cartão): R$ 297,00 → absorve taxa de parcelamento
-- Preço "Desconto" (PIX): R$ 279,00 → economiza ~R$ 30 em taxas de gateway
-- Resultado: Margem líquida maior + chargeback zero
+- Preço "Cheio" (Cartão): **R$ 297,00** → comunica premium e absorve o custo do parcelamento até 3x
+- Preço "Desconto" (PIX): **R$ 279,00** → incentiva liquidez imediata e reduz risco/custo
+- Resultado: Margem líquida maior no PIX + menor risco operacional (chargeback e disputa)
 
 #### 1.2 Impostos e Regime Tributário
 
@@ -90,12 +90,12 @@ Nova Estratégia (Valor Percebido):
 | -------------- | -----: | ----------------------- | -------------: |
 | B2C (Varejo)   | R$ 297 | Preço premium acessível |            47% |
 | B2C (PIX)      | R$ 279 | Incentivo conversão     |            50% |
-| B2B (Parceiro) | R$ 120 | Lote 10 unidades        |            62% |
-| B2B (Volume)   | R$ 100 | Lote 50+ unidades       |            55% |
+| B2B (Parceiro) | R$ 135 | Lote 10 vouchers (PIX)  |              - |
+| B2B (Parceiro) | R$ 149 | Lote 10 vouchers (3x)   |              - |
 
 Mecânica de Ancoragem:
 
-- Fotógrafo paga R$ 120 (atacado)
+- Fotógrafo paga R$ 135 (atacado via PIX/transferência)
 - Cliente vê produto de R$ 297 (varejo)
 - Fotógrafo diz: "Estou te dando um bônus de R$ 300"
 - Cliente percebe valor extremo
@@ -185,21 +185,18 @@ Resultado: Elimina barreira + encantamento imediato.
 
 #### 4.1 Unit Economics Consolidado (A Matemática da Sobrevivência)
 
-Esta análise incorpora um componente crítico ignorado por 99% dos desenvolvedores: o PCE (Provisão de Custo de Existência) de R$ 25,00 por venda. Este valor cria um "Fundo de Perpetuidade" que garante que a empresa honrará a promessa feita aos pais por décadas, mesmo em cenários de crise.
+Esta análise incorpora um componente crítico ignorado por 99% dos desenvolvedores: o PCE (Provisão de Custo de Existência) de R$ 25,00 por venda. Este valor cria um "Fundo de Perpetuidade" que sustenta a promessa de acesso perpétuo.
 
-| Indicador Estratégico        | B2B (Parceiro) | B2C (Varejo Cartão) | Notas Explicativas                  |
-| ---------------------------- | -------------: | ------------------: | ----------------------------------- |
-| PREÇO DE VENDA               |      R$ 120,00 |           R$ 297,00 | Ticket médio real                   |
-| (-) Impostos (10% Efetivo)   |      -R$ 12,00 |           -R$ 29,70 | DAS Simples + INSS sobre pró-labore |
-| (-) Gateway (Taxas Reais)    |       -R$ 1,50 |           -R$ 16,33 | B2B via PIX/Boleto vs B2C Parcelado |
-| (-) CAC (Marketing)          |       -R$ 0,00 |           -R$ 80,00 | B2B é relacional, B2C exige Ads     |
-| (-) Setup D0 (Infra Inicial) |       -R$ 1,50 |            -R$ 1,50 | Processamento WASM + Fallback       |
-| (-) PCE (Fundo 20 Anos)      |      -R$ 25,00 |           -R$ 25,00 | ⭐ A Reserva Técnica Sagrada        |
-| (-) Custos Invisíveis        |       -R$ 5,00 |            -R$ 5,00 | Contador, domínios, SaaS            |
-| = LUCRO LÍQUIDO REAL         |       R$ 75,00 |           R$ 139,47 | Dinheiro livre para sócios          |
-| Margem de Lucro              |          62,5% |               47,0% | B2B superior e mais segura          |
+**Regra de Auditoria (Pior Cenário Brasil):** todos os cálculos abaixo assumem **imposto de 15,5%** e **taxas de gateway altas**.
 
-Variante B2C PIX: Para vendas diretas via PIX (R$ 279), a margem sobe para ~65% devido à eliminação das taxas de cartão (-R$ 16,33 → -R$ 1,00), resultando em lucro líquido de R$ 166,30.
+| Canal / Produto  | Condição     | Preço Venda | Imposto (15,5%) | Gateway/Juros  | CAC      | PCE (Fundo) | Infra/Ops | Lucro Líquido  | Meta R$ 60?  |
+| :--------------- | :----------- | :---------- | :-------------- | :------------- | :------- | :---------- | :-------- | :------------- | :----------- |
+| **B2C Cartão**   | 3x Sem Juros | R$ 297,00   | R$ 46,04        | R$ 35,64 (12%) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 85,82**   | ✅ SIM       |
+| **B2C Pix**      | A Vista      | R$ 279,00   | R$ 43,25        | R$ 1,50 (Fixo) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 104,75**  | ✅ SIM       |
+| **B2B Parceiro** | Pix/Transfer | R$ 135,00   | R$ 20,93        | R$ 1,50 (Fixo) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 64,07**   | ✅ SIM       |
+| **B2B Parceiro** | Cartão 3x    | R$ 149,00   | R$ 23,10        | R$ 17,88 (12%) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 59,52\*** | ⚠️ ACEITÁVEL |
+
+_Nota sobre B2B Cartão: O lucro de ~R$ 59,52 é aceitável pelo volume e zero CAC recorrente. Ajustar preço para R$ 149,00 no cartão._
 
 #### 4.2 O Segredo do PCE: A Máquina de Perpetuidade
 
@@ -227,21 +224,21 @@ A Mágica da Perpetuidade:
 
 #### 4.3 Projeção de Custos de Manutenção (Run Rate)
 
-Projeção considerando Dólar a R$ 6,00 (cenário pessimista/realista) para blindar contra surpresas cambiais em serviços dolarizados (Backblaze, Fly.io).
+Projeção considerando Dólar a R$ 6,00 (cenário pessimista/realista) para blindar contra surpresas cambiais em serviços dolarizados (Cloudflare, Fly.io, Modal).
 
-| Categoria | Item           | 1 Usuário (Dev) | 100 Usuários | 1.000 Usuários | 10.000 Usuários |
-| --------- | -------------- | --------------: | -----------: | -------------: | --------------: |
-| Fixos     | Domínios/DNS   |            R$ 7 |         R$ 7 |           R$ 7 |            R$ 7 |
-| Fixos     | E-mail/SaaS    |           R$ 45 |        R$ 80 |         R$ 150 |          R$ 500 |
-| Fixos     | Contador       |          R$ 300 |       R$ 300 |         R$ 300 |          R$ 500 |
-| Infra     | Fly.io + Neon  |            R$ 0 |        R$ 35 |         R$ 180 |        R$ 1.000 |
-| Storage   | Backblaze B2\* |            R$ 0 |        R$ 40 |         R$ 400 |        R$ 4.000 |
-| Egress    | R2/B2 Saída    |            R$ 0 |         R$ 5 |          R$ 50 |          R$ 300 |
-| TOTAL     | Custo Mensal   |          R$ 352 |       R$ 467 |       R$ 1.087 |        R$ 6.307 |
-|           | Custo/Usuário  |       R$ 352,00 |      R$ 4,67 |        R$ 1,09 |         R$ 0,63 |
+| Categoria | Item          | 1 Usuário (Dev) | 100 Usuários | 1.000 Usuários | 10.000 Usuários |
+| --------- | ------------- | --------------: | -----------: | -------------: | --------------: |
+| Fixos     | Domínios/DNS  |            R$ 7 |         R$ 7 |           R$ 7 |            R$ 7 |
+| Fixos     | E-mail/SaaS   |           R$ 45 |        R$ 80 |         R$ 150 |          R$ 500 |
+| Fixos     | Contador      |          R$ 300 |       R$ 300 |         R$ 300 |          R$ 500 |
+| Infra     | Fly.io + Neon |            R$ 0 |        R$ 35 |         R$ 180 |        R$ 1.000 |
+| Storage   | Cloudflare R2 |            R$ 0 |        R$ 40 |         R$ 400 |        R$ 4.000 |
+| Requests  | R2 Requests   |            R$ 0 |         R$ 5 |          R$ 50 |          R$ 300 |
+| TOTAL     | Custo Mensal  |          R$ 352 |       R$ 467 |       R$ 1.087 |        R$ 6.307 |
+|           | Custo/Usuário |       R$ 352,00 |      R$ 4,67 |        R$ 1,09 |         R$ 0,63 |
 
 Estimativa de Storage: 10GB totais por usuário (vídeo H.265 + fotos QHD comprimidas)
-10.000 usuários = 100TB → Custo Backblaze: $600 USD × 6,0 = R$ 3.600 + impostos/IOF ≈ R$ 4.000
+10.000 usuários = 100TB → Custo de storage (R2) depende do pricing vigente. O SLO e o PCE existem para absorver variações; revalidar semestralmente.
 Insights Críticos:
 
 - Economia de Escala: Custo por usuário cai 99,8% (de R$ 352 para R$ 0,63)
@@ -284,10 +281,10 @@ Banco de Dados:
 - Crítico: PgBouncer (Connection Pooling) obrigatório
 - Motivo: PWA abre múltiplas conexões simultâneas
 
-Armazenamento Híbrido:
+Armazenamento (R2-only):
 
-- Hot (R2): Thumbnails, WebP, Avatares → Egress Zero
-- Cold (B2): Vídeos Originais, Fotos High-Res → Storage Barato ($6/TB)
+- Cloudflare R2: originais e derivados (thumb/preview/720p) no mesmo storage.
+- Mitigação de custo: quota rígida (2 GiB), compressão agressiva e purge de derivados recriáveis.
 
 #### 5.2 Algoritmo de Decisão (Smart Upload)
 
@@ -323,7 +320,7 @@ Compressão WASM (Passo a Passo):
 - Navegador carrega em memória (Blob)
 - FFmpeg.wasm processa em Web Worker (não trava UI)
 - Output: H.265 720p (~15MB)
-- Uppy envia para B2/R2 via Presigned URL
+- Uppy envia para R2 via Presigned URL
 
 Configuração de Segurança (Headers Cloudflare Pages):
 
@@ -414,10 +411,10 @@ BEGIN TRANSACTION
   # 2. Cria/Busca usuário
   user = get_or_create_user(email)
 
-  # 3. Copia arquivos (server-side copy no B2)
+  # 3. Copia arquivos (server-side copy no storage)
   assets = voucher.delivery.assets_payload
   FOR EACH asset IN assets:
-    b2_copy_file(
+    storage_copy_object(
       source = f"/partners/{partner_id}/{asset}",
       dest = f"/u/{user.id}/m/{moment_id}/{asset}"
     )
@@ -462,9 +459,8 @@ async function handleRequest(request) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // Roteia para storage correto
-  const ext = url.pathname.split(".").pop();
-  const storage = [".webp", ".jpg"].includes(ext) ? R2 : B2;
+  // Storage único (R2-only)
+  const storage = R2;
 
   // Busca e entrega
   const object = await storage.get(url.pathname);

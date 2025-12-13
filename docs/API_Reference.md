@@ -141,7 +141,7 @@ Estes são os limites contratuais que o cliente deve esperar.
 | POST /auth/login           | 10 req/min/conta   | 60 s   | (Spoofing) Lockout progressivo             |
 | POST /auth/password/forgot | 3 req/hora/conta   | 3600 s | (DoS) Evitar spam de e-mail                |
 | POST /webhooks/payment     | (Sem limite de IP) |        | (Spoofing) Protegido por HMAC              |
-| POST /uploads/init         | 10 req/min/conta   | 60 s   | (DoS) Proteger B2 e API de hotspots        |
+| POST /uploads/init         | 10 req/min/conta   | 60 s   | (DoS) Proteger R2 e API de hotspots        |
 | POST /uploads/complete     | 10 req/min/conta   | 60 s   | (Tampering) Idempotência obrigatória       |
 | POST /moments              | 30 req/min/conta   | 60 s   | (DoS) Validação de slots (custosa)         |
 | POST /moments/{id}/share   | 10 req/min/conta   | 60 s   | 1 ativo por momento (regra de negócio)     |
@@ -199,7 +199,7 @@ Este é o fluxo recomendado para uma Single-Page Application (SPA).
 
 ## 3. Guia Rápido: Upload de Mídia (Multipart Flow)
 
-O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 ou Backblaze B2, dependendo do tipo de asset) usando URLs pré-assinadas ou um protocolo resumable (TUS). Sempre que possível a compressão/transcode é feita no cliente (ffmpeg.wasm no navegador ou bibliotecas nativas no mobile) antes do envio, reduzindo custos de banda e processamento server-side.
+O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 — **R2-only**) usando URLs pré-assinadas ou um protocolo resumable (TUS). Sempre que possível a compressão/transcode é feita no cliente (ffmpeg.wasm no navegador ou bibliotecas nativas no mobile) antes do envio, reduzindo custos de banda e processamento server-side.
 
 - **Iniciar Upload (Cliente -> API):** O cliente informa à API que deseja iniciar um upload.
 
@@ -218,7 +218,7 @@ O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 
 
   ```
   200 OK
-  Corpo: { "upload_id": "2f2a...", "key": "u/...", "parts": [1, 2], "urls": ["https://b2...", "https://b2..."] }
+  Corpo: { "upload_id": "2f2a...", "key": "u/...", "parts": [1, 2], "urls": ["https://r2...", "https://r2..."] }
   ```
 
   **Cenário B (Deduplicação):** O arquivo já existe.
@@ -230,13 +230,13 @@ O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 
 
   **Implicação (UI):** O upload é pulado. A UI pode marcar como 100% concluído.
 
-- **Enviar Partes (Cliente -> B2):** (Apenas se Cenário A)
+- **Enviar Partes (Cliente -> R2):** (Apenas se Cenário A)
 
-  O cliente faz PUT dos chunks (partes) do arquivo diretamente para as urls pré-assinadas (ex: PUT https://b2...partNumber=1...).
+  O cliente faz PUT dos chunks (partes) do arquivo diretamente para as urls pré-assinadas (ex: PUT https://r2...partNumber=1...).
 
   **Implicação (UI):** A UI (conforme Estrutura do Projeto 9.0) deve fazer isso em paralelo (ex: 3 partes de cada vez) e suportar retries por parte.
 
-  O cliente deve coletar o header ETag (ex: "a543...") retornado pelo B2 para cada parte enviada com sucesso.
+  O cliente deve coletar o header ETag (ex: "a543...") retornado pelo storage para cada parte enviada com sucesso.
 
 - **Completar Upload (Cliente -> API):** (Apenas se Cenário A)
 
@@ -248,7 +248,7 @@ O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 
 
 - **Agendar Transcode (API -> Cliente):**
 
-  A API valida as partes no B2 e publica um job na Cloudflare Queues para apps/workers.
+  A API valida as partes no R2 e publica um job na Cloudflare Queues para apps/workers.
 
   ```
   202 Accepted
@@ -731,7 +731,12 @@ Endpoint público para receber eventos de faturamento. Este endpoint é o núcle
 
 **Idempotência:** A API deve tratar idempotência usando o id do evento enviado pelo gateway (ex: evt\_...) e armazenando-o em uma tabela idempotency_key (conforme Modelo de Dados 7.2) para evitar provisionamento duplicado.
 
-**Corpo da Requisição (Exemplo Stripe):** O payload crucial é o metadata que o cliente (UI) enviou para o Stripe Checkout, que é retornado no evento.
+**Corpo da Requisição (Exemplo Stripe):** O payload crucial é (1) o _metadata_ que o cliente (UI) enviou para o checkout e (2) o método de pagamento normalizado.
+
+**Campo obrigatório para conciliação:** `payment_method_type`
+
+- Valores aceitos (normalizados pela API): `pix` | `credit_card`
+- Motivo: as margens (e o timing do caixa) são drasticamente diferentes entre PIX e cartão; precisamos registrar isso no `Purchase/order` para relatórios e auditoria.
 
 ```json
 {
@@ -742,6 +747,7 @@ Endpoint público para receber eventos de faturamento. Este endpoint é o núcle
       "id": "pi_...",
       "amount": 2900,
       "currency": "brl",
+      "payment_method_type": "pix",
       "metadata": {
         "account_id": "uuid-da-conta-do-usuario",
         "package_key": "unlimited_social"

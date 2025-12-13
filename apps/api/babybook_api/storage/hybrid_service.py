@@ -1,10 +1,15 @@
-"""
-Serviço de Storage Híbrido
+""" 
+Serviço de Storage (hot/cold lógico)
 
-Coordena o uso de hot storage (R2) e cold storage (B2) para:
-- Uploads de originais → Cold (B2) em u/{user_id}/m/{moment_id}/
-- Previews/thumbs → Hot (R2) para CDN
-- Transferência entre storages (worker jobs)
+O Baby Book opera em modo R2-only. Ainda mantemos a distinção *lógica* entre
+hot e cold para:
+- separar paths (previews/thumbs vs originais)
+- facilitar políticas de lifecycle/cleanup
+- permitir otimizações futuras sem “breaking changes”
+
+Na prática:
+- staging/production: HOT=COLD=Cloudflare R2 (S3-compatible)
+- local: HOT=COLD=MinIO (mock S3)
 
 Estrutura de pastas seguindo paths.py:
 ├── tmp/uploads/          <-- Upload em andamento (lifecycle 1 dia)
@@ -101,37 +106,52 @@ class HybridStorageService:
     
     async def prepare_upload(
         self,
-        user_id: str,
-        moment_id: str,
         filename: str,
         mime_type: str,
         size_bytes: int,
         use_multipart: bool = False,
         part_count: int = 1,
+        metadata: dict[str, str] | None = None,
+        # Compat: rotas antigas (momentos)
+        user_id: str | None = None,
+        moment_id: str | None = None,
+        # Compat: rotas novas (uploads por asset)
+        account_id: str | None = None,
+        asset_id: str | None = None,
     ) -> UploadTarget:
         """
         Prepara URLs para upload de um novo asset.
         
-        Fluxo:
-        1. Upload vai para tmp/uploads/{upload_id}/ (lifecycle 1 dia)
-        2. Após confirmação, move para u/{user_id}/m/{moment_id}/
-        
-        Decide automaticamente se vai para hot ou cold storage baseado no tipo e tamanho.
+                Decide automaticamente se vai para hot ou cold storage baseado no tipo e tamanho.
+
+                Observação: este método é usado por fluxos diferentes.
+                - Se account_id/asset_id forem fornecidos, usamos key estável em
+                    accounts/{account_id}/uploads/{asset_id}/...
+                - Caso contrário, usamos tmp/uploads/{upload_id}/... (lifecycle curto)
         """
         use_hot = should_use_hot_storage(mime_type, size_bytes, is_preview=False)
         storage_type = StorageType.HOT if use_hot else StorageType.COLD
         provider = self._get_provider(storage_type)
         
-        # Upload vai para tmp primeiro, depois é movido
-        upload_id = str(uuid.uuid4())
-        tmp_path = tmp_upload_path(upload_id, filename)
-        key = tmp_path.path
+        safe_name = secure_filename(filename)
+
+        if account_id and asset_id:
+            # Upload estável por asset (compatível com /uploads e rotas resumíveis)
+            account_id = require_uuid(account_id, "account_id")
+            asset_id = require_uuid(asset_id, "asset_id")
+            key = f"accounts/{account_id}/uploads/{asset_id}/{safe_name}"
+        else:
+            # Upload temporário (lifecycle curto)
+            logical_upload_id = str(uuid.uuid4())
+            tmp_path = tmp_upload_path(logical_upload_id, safe_name)
+            key = tmp_path.path
         
         if use_multipart and part_count > 1:
             # Upload multipart
             mp_upload_id = await provider.create_multipart_upload(
                 key=key,
                 content_type=mime_type,
+                metadata=metadata,
             )
             part_urls = await provider.generate_presigned_part_urls(
                 key=key,
@@ -151,6 +171,7 @@ class HybridStorageService:
                 key=key,
                 content_type=mime_type,
                 expires_in=timedelta(hours=1),
+                metadata=metadata,
             )
             return UploadTarget(
                 storage_type=storage_type,
@@ -237,7 +258,7 @@ class HybridStorageService:
         """
         Gera URL pré-assinada para download de original.
         
-        Originais estão no cold storage (B2).
+        Originais ficam no cold storage lógico (R2-only).
         Path: u/{user_id}/m/{moment_id}/{filename}
         """
         path = user_moment_path(user_id, moment_id, filename)
@@ -247,7 +268,17 @@ class HybridStorageService:
             safe_name = secure_filename(filename)
             disposition = f'attachment; filename="{safe_name}"'
         
-        return await self.cold.generate_presigned_get_url(
+        # Em R2-only, hot/cold podem ser o mesmo provider. Mantemos fallback
+        # por compatibilidade com deployments antigos/local.
+        provider = self.cold
+        try:
+            if not await provider.object_exists(path.path):
+                provider = self.hot
+        except Exception:
+            # Se HEAD falhar, ainda tentamos gerar a URL.
+            pass
+
+        return await provider.generate_presigned_get_url(
             key=path.path,
             expires_in=expires_in,
             response_content_disposition=disposition,
@@ -307,7 +338,7 @@ class HybridStorageService:
         """
         Confirma upload e move de tmp/ para u/{user_id}/m/{moment_id}/.
         
-        Usa copy server-side (B2 b2_copy_file) + delete original.
+        Usa cópia server-side (S3-compatible) + delete do tmp.
         
         Args:
             user_id: UUID do usuário
@@ -328,14 +359,21 @@ class HybridStorageService:
         # Path de destino (u/{user_id}/m/{moment_id}/)
         dest_path = user_moment_path(user_id, moment_id, filename)
         
-        # Copy server-side (no cold storage)
-        await self.cold.copy_object(
+        # Descobrir em qual provider o tmp foi escrito (hot vs cold)
+        src_provider = self.cold
+        try:
+            if await self.hot.object_exists(source_path.path):
+                src_provider = self.hot
+        except Exception:
+            # Se HEAD falhar no hot, tentamos com cold.
+            src_provider = self.cold
+
+        await src_provider.copy_object(
             source_key=source_path.path,
             dest_key=dest_path.path,
         )
-        
-        # Delete original do tmp
-        await self.cold.delete_object(source_path.path)
+
+        await src_provider.delete_object(source_path.path)
         
         return dest_path
     

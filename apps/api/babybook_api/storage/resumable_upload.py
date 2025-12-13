@@ -3,7 +3,7 @@ Serviço de Upload Resiliente
 
 Implementa uploads multipart resumíveis com:
 - Suporte a retomada após falha de rede
-- Integração com storage híbrido (R2/B2)
+- Integração com storage S3-compatible (R2)
 - Tracking de progresso
 - Cleanup de uploads abandonados
 
@@ -61,7 +61,7 @@ class ResumableUploadSession:
     # Storage
     storage_type: StorageType
     storage_key: str
-    storage_upload_id: str  # ID do multipart no S3/R2/B2
+    storage_upload_id: str  # ID do multipart no S3/R2
     
     # Partes
     part_size: int

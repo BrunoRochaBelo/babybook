@@ -791,7 +791,7 @@ paths:
   /uploads/init:
     post:
       tags: [Uploads]
-      summary: Cria sessão de upload multipart direto ao B2
+      summary: Cria sessão de upload multipart direto ao R2
       operationId: uploadsInit
       security:
         - SessionCookie: []

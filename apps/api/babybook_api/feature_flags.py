@@ -26,7 +26,6 @@ Usage:
 
 Environment Variables:
     FEATURE_VOUCHER_B2B2C=true       # Partner portal, vouchers, deliveries
-    FEATURE_R2_HYBRID_STORAGE=true   # R2 + B2 hybrid storage
     FEATURE_CLIENT_TRANSCODE=true    # ffmpeg.wasm client-side processing
     FEATURE_EDGE_FILE_PROTECTION=true # Edge Worker file protection
     FEATURE_PIX_PAYMENT=false        # PIX payment method (in development)
@@ -46,7 +45,6 @@ from babybook_api.settings import settings
 
 FeatureFlagName = Literal[
     "voucher_b2b2c",
-    "r2_hybrid_storage",
     "client_transcode",
     "edge_file_protection",
     "pix_payment",
@@ -71,11 +69,6 @@ class FeatureFlags:
         return settings.feature_voucher_b2b2c
 
     @property
-    def r2_hybrid_storage(self) -> bool:
-        """Hybrid Storage - R2 (hot) + B2 (cold) strategy."""
-        return settings.feature_r2_hybrid_storage
-
-    @property
     def client_transcode(self) -> bool:
         """Client-side transcoding with ffmpeg.wasm."""
         return settings.feature_client_transcode
@@ -98,7 +91,6 @@ class FeatureFlags:
         """Return all feature flags as a dictionary."""
         return {
             "voucher_b2b2c": self.voucher_b2b2c,
-            "r2_hybrid_storage": self.r2_hybrid_storage,
             "client_transcode": self.client_transcode,
             "edge_file_protection": self.edge_file_protection,
             "pix_payment": self.pix_payment,

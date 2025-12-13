@@ -82,8 +82,12 @@ export interface CheckAccessResponse {
  * Verifica se cliente já tem acesso ao Baby Book
  * Se tiver, a entrega não consome crédito
  */
-export async function checkClientAccess(email: string): Promise<CheckAccessResponse> {
-  return apiClient.get<CheckAccessResponse>(`${API_BASE}/check-access?email=${encodeURIComponent(email)}`);
+export async function checkClientAccess(
+  email: string,
+): Promise<CheckAccessResponse> {
+  return apiClient.get<CheckAccessResponse>(
+    `${API_BASE}/check-access?email=${encodeURIComponent(email)}`,
+  );
 }
 
 // ============================================================
@@ -170,7 +174,7 @@ export async function deleteDelivery(deliveryId: string): Promise<void> {
 }
 
 // ============================================================
-// Upload (Direct to B2 temp folder)
+// Upload (direct to presigned URL)
 // ============================================================
 
 /**

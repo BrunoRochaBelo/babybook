@@ -50,7 +50,7 @@ Este README.md é apenas a porta de entrada. Antes de codar, todo desenvolvedor 
 >
 > - Pricing: adotamos precificação dual como padrão comercial — Ticket: R$297 (cartão) / R$279 (PIX). Ver `docs/DOSSIE_ATUALIZACAO_EXECUCAO.md` para o racional e a modelagem financeira.
 > - GTM: pivot B2B2C com vouchers e portal para parceiros (fotógrafos/estúdios). O fluxo de resgate de vouchers e o portal do parceiro estão detalhados no Dossiê.
-> - Storage: produção usa estratégia híbrida Cloudflare R2 (hot, previews) + Backblaze B2 (cold, originais). Localmente usamos MinIO como mock S3 para desenvolvimento — R2 não é simulado localmente.
+> - Storage: produção é **R2-only (S3-compatible)**. “Hot/Cold” é apenas uma separação **lógica** (tiers) dentro do mesmo provedor. Localmente usamos MinIO como mock S3/R2 para desenvolvimento.
 > - Media processing: preferência por processamento na ponta (web: `ffmpeg.wasm` em Web Worker; mobile: ffmpeg-kit / libs nativas). Workers server-side (Modal) são fallback para dispositivos ou casos excepcionais.
 >
 > Consulte o Dossiê para a lista completa de decisões, SQL apêndice e o checklist de execução.
@@ -100,7 +100,7 @@ docker-compose up -d
 Isso irá iniciar (em background):
 
 - db (PostgreSQL 15) na porta 5432 (simulando o Neon).
-- storage (MinIO - mock S3) na porta 9000 (Endpoint da API) e 9001 (Console Web). Atenção: o MinIO é um mock local para desenvolvimento e simula o comportamento básico de um S3/Backblaze B2 para testes; a Cloudflare R2 (hot/previews) não é simulada localmente e é considerada uma dependência de produção conforme o Dossiê.
+- storage (MinIO - mock S3/R2) na porta 9000 (Endpoint da API) e 9001 (Console Web). Atenção: o MinIO é um mock local para desenvolvimento e simula o comportamento básico de um S3-compatible (incluindo R2) para testes.
 
 ### 3.4. Migração do Banco (Setup Inicial)
 
@@ -174,7 +174,7 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não precisa rodar localmente para o fluxo padrão. Para simplificar o DevEx, usamos o modo **inline worker**: em `ENV=local` e `INLINE_WORKER_ENABLED=true`, a API (FastAPI) não publica na fila. Ela simula o processamento assincrono no mesmo processo e atualiza o asset.status para `ready` imediatamente. Isso mantém o upload funcional para quem está desenvolvendo o apps/web sem depender de ffmpeg/minio adicionais.
 
-Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou o modo `QUEUE_PROVIDER=database`), basta definir `INLINE_WORKER_ENABLED=false`, executar `pnpm dev:workers` (ou rodar o worker no provedor Modal) e deixar a API publicar os jobs normalmente. A composição local (`docker-compose`) cria os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO para conveniência de desenvolvimento; lembre-se que esses buckets são mocks locais — a produção usa a estratégia híbrida R2 (hot/previews) + Backblaze B2 (cold/originals) documentada no Dossiê.
+Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou o modo `QUEUE_PROVIDER=database`), basta definir `INLINE_WORKER_ENABLED=false`, executar `pnpm dev:workers` (ou rodar o worker no provedor Modal) e deixar a API publicar os jobs normalmente. A composição local (`docker-compose`) cria os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO para conveniência de desenvolvimento; lembre-se que esses buckets são mocks locais — em produção usamos **Cloudflare R2-only** (tiers lógicos) conforme o Dossiê.
 
 ## 4. O que tem aqui? (Estrutura do Monorepo)
 
@@ -306,5 +306,6 @@ O container usa pps/web/Dockerfile para buildar o bundle e serve o app em http:
 > Dica: para que o apps/web encontre os derivados no ambiente real/local, defina `VITE_MEDIA_BASE_URL` com o host do bucket (ex.: `http://localhost:9000`).
 
 ## Segurança (segredos e histórico)
+
 - Execute `pre-commit install` para habilitar o hook de _secret scanning_ baseado em `detect-secrets` (baseline em `.secrets.baseline`). Commits com novos segredos serão bloqueados.
 - O passo a passo para limpar o histórico e remover o segredo exposto (Company Email Password) está documentado em `docs/security-remediation.md`.

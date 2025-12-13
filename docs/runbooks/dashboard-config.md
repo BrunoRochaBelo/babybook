@@ -142,17 +142,14 @@ LIMIT 10;
 | Cold Starts          | count   | Inicializações a frio  |
 | GPU/CPU Time         | seconds | Uso de recursos        |
 
-### 5. Storage (R2 + B2)
+### 5. Storage (R2)
 
 **R2 (Cloudflare):**
 
 - Dashboard → R2 → babybook-bucket → Analytics
 - Métricas: Operations, Storage, Egress
 
-**B2 (Backblaze):**
-
-- B2 Dashboard → Caps & Alerts
-- Métricas: API Calls, Storage, Bandwidth
+Observação: como a estratégia é **R2-only**, a atenção aqui é garantir (a) taxa de requests dentro do budget, (b) cache hit alto no Edge, e (c) erros/latência de leitura baixos.
 
 ---
 

@@ -572,7 +572,7 @@ class Delivery(TimestampMixin, Base):
     Fluxo:
     1. Partner cria delivery com client_name
     2. Faz upload client-side (compressão no browser)
-    3. assets_payload armazena paths temporários no B2
+    3. assets_payload armazena paths temporários no storage (R2-only)
     4. Sistema gera voucher_code automaticamente
     5. Quando beneficiário resgata, assets movem de tmp/ para user/
     """

@@ -10,7 +10,7 @@ Nota: Políticas operacionais e SLOs descritos aqui foram definidos em consonân
   - [Edge (Cloudflare Pages/Workers)](#edge-cloudflare-pagesworkers)
   - [API (FastAPI no Fly.io)](#api-fastapi-no-flyio)
   - [Banco de Dados (Neon Postgres)](#banco-de-dados-neon-postgres)
-  - [Storage (Cloudflare R2 + Backblaze B2 — S3 API)](#storage-cloudflare-r2--backblaze-b2--s3-api)
+    - [Storage (Cloudflare R2 — R2-only)](#storage-cloudflare-r2--r2-only)
   - [Workers (Modal) & Fila (Cloudflare Queues)](#workers-modal--fila-cloudflare-queues)
   - [Matriz de Responsabilidades (RACI) e Plantão](#matriz-de-responsabilidades-raci-e-plantão)
 - [CI/CD e Promoção Entre Ambientes](#cicd-e-promoção-entre-ambientes)
@@ -42,7 +42,7 @@ Nota: Políticas operacionais e SLOs descritos aqui foram definidos em consonân
   - [Política de Freeze e Exceções](#política-de-freeze-e-exceções)
 - [Resiliência, Backup e Recuperação](#resiliência-backup-e-recuperação)
   - [PITR (Neon) — RPO/RTO e RLS](#pitr-neon--rpor-to-e-rls)
-  - [Exportações e Lifecycle (B2)](#exportações-e-lifecycle-b2)
+  - [Exportações e retenção (TTL)](#exportações-e-retenção-ttl)
   - [Graceful Degradation e Modo Somente Leitura](#graceful-degradation-e-modo-somente-leitura)
   - [Chaos Days e Testes de DR](#chaos-days-e-testes-de-dr)
 - [Custo, Capacidade e Prewarming](#custo-capacidade-e-prewarming)
@@ -65,7 +65,7 @@ Nota: Políticas operacionais e SLOs descritos aqui foram definidos em consonân
 - [Anexos Práticos](#anexos-práticos)
   - [Cloudflare Workers — Cabeçalhos SSR](#cloudflare-workers--cabeçalhos-ssr)
   - [Fly.io — fly.toml (Healthcheck)](#flyio--flytoml-healthcheck)
-  - [Política de Lifecycle — B2](#política-de-lifecycle--b2)
+  - [Política de retenção (TTL) — Storage](#política-de-retenção-ttl--storage)
   - [Alerta Composto — Burn Rate](#alerta-composto--burn-rate)
   - [Exemplo: Configuração de Pool asyncpg](#exemplo-configuração-de-pool-asyncpg)
   - [Exemplo: Lógica do Produtor (API $\rightarrow$ Fila)](#exemplo-lógica-do-produtor-api-$\rightarrow$-fila)
@@ -73,7 +73,7 @@ Nota: Políticas operacionais e SLOs descritos aqui foram definidos em consonân
 ## 1. Objetivo, Escopo e o "God SLO"
 
 Objetivo: Este é o guia prático e canônico para implantar, monitorar e manter o Baby Book em produção. Ele cobre ambientes, deploy, segurança, observabilidade, resiliência e custos.
-Escopo: Este documento assume a arquitetura definida no Arquitetura & Domínio: Edge (Cloudflare) para SSR público, API FastAPI (Fly.io), DB Neon (Postgres), Storage B2 (S3 API), Fila (Cloudflare Queues) e Workers (Modal).
+Escopo: Este documento assume a arquitetura definida no Arquitetura & Domínio: Edge (Cloudflare) para SSR público, API FastAPI (Fly.io), DB Neon (Postgres), Storage Cloudflare R2 (S3 compatível — R2-only), Fila (Cloudflare Queues) e Workers (Modal).
 Este documento é a "fonte da verdade" para o SRE (Site Reliability Engineer) de plantão às 3 da manhã. Ele traduz os requisitos dos manuais de Arquitetura e Estrutura do Projeto em procedimentos operacionais, métricas acionáveis e runbooks claros.
 O "God SLO": Acima de todos os SLOs de performance e disponibilidade (Seção 6.2), existe o "God SLO" definido na Visão & Viabilidade:
 
@@ -99,7 +99,7 @@ Domínio raiz: babybook.com (marketing, landing page)
 App autenticado (SPA): app.babybook.com (Estático via Pages; consome API).
 Compartilhamento público (SSR): share.babybook.com (Workers/Pages, noindex).
 API: api.babybook.com (Fly.io, TLS obrigatório; HSTS; blindado, ver §4.3).
-CDN de mídia: media.babybook.com (Origem B2, cache agressivo para derivados).
+CDN de mídia: media.babybook.com (Origem R2, cache agressivo para derivados).
 TTL recomendado (DNS): 300–600 s em prod; 60 s em staging/dev. TTLs moderados em prod permitem um rollback de DNS (emergência) em tempo razoável.
 Protocolos: HTTP/3 habilitado no Edge; Brotli para HTML/JSON; gzip como fallback.
 Implicação Operacional (API em Subdomínio): A escolha de api.babybook.com (em vez de app.babybook.com/api/) foi uma decisão de arquitetura para desacoplar o roteamento da API (Fly.io) do roteamento da SPA (Cloudflare Pages), simplificando a infra.
@@ -136,18 +136,18 @@ Extensões: citext, pgcrypto, uuid-ossp/gen_random_uuid().
 Observabilidade: Monitorar pg_locks, pg_stat_activity, tempo de query, bloat (especialmente em usage_counter), dead tuples; alertas para slow queries e tx_wraparound.
 Segurança: Políticas de RLS (Row Level Security) ativas para dados sensíveis (Health/Vault), ver §4.8.
 
-### 2.5. Storage (Cloudflare R2 + Backblaze B2 — S3 API)
+### 2.5. Storage (Cloudflare R2 — R2-only)
 
-Arquitetura híbrida de storage:
+Arquitetura R2-only de storage:
 
-- Hot (Cloudflare R2): thumbnails, WebP previews, avatares e assets fortemente cacheados. R2 oferece egress otimizado a partir da borda, reduzindo custos quando o mesmo asset é solicitado milhares de vezes.
-- Cold (Backblaze B2): originais high-res e vídeos armazenados para custo de storage mais baixo.
+- Cloudflare R2: originais e derivados no mesmo storage.
+- Mitigação de custo: quota rígida (2 GiB), compressão agressiva e purge de derivados recriáveis.
 
 Buckets: bb-media (originais/derivados), bb-exports (ZIPs temporários) — com regras de lifecycle aplicadas por prefixo.
 Lifecycle: Derivados com TTL curto (30d); exports 72h; reaper diário para órfãos (conforme Modelo de Dados 10.4).
 Assinaturas (Presign): A API gera URLs PUT pré-assinadas ou fornece pontos de entrada TUS dependendo do caso de uso. Padrão operacional: TTL das presigned URLs = 15 minutos; clients devem suportar renovar presigns em caso de upload longa (multipart resumable) e lógica de recheck de partes.
 Segurança: Presigns restritos (key exata, content-length-range, TTL curto — padrão 15 min). Criptografia em repouso e políticas por prefixo. Monitorar taxa de falha de presign (>2%) como alerta operacional (Sev-3).
-Egress (Custo): A estratégia híbrida visa reduzir risco de custo dependente de acordos. O R2 reduz egress para arquivos hot; o B2 mantém custo baixo para armazenamento frio. Configurar o CDN (media.babybook.com) para privilegiar o R2 quando possível e só cair no B2 para originais sob demanda.
+Egress/Requests (Custo): Em R2-only, o foco operacional é controlar requests e evitar abuso (rate-limit + cache). Configurar o CDN (media.babybook.com) para maximizar cache hit, especialmente para derivados.
 
 ### 2.6. Workers (Modal) & Fila (Cloudflare Queues)
 
@@ -158,7 +158,7 @@ account_id (para tagging de custo)
 job_type (ex: 'transcode', 'export', 'delete_asset')
 Consumidor (Modal): O worker (Modal) é o Consumidor. Ele é configurado para "ouvir" a Cloudflare Queues.
 Idempotência: A Fila garante entrega at-least-once. Se o worker processar o job mas falhar ao dar ACK (confirmação), a Fila vai reenviar. O worker deve ser idempotente (ex: IF asset.status != 'ready' THEN process...).
-Concorrência (Modal): concurrency_limit global (ex: 50) definido na função do worker para evitar que 1000 jobs da fila tentem rodar simultaneamente, saturando o B2 ou o pool do Neon. O warm pool (ex: 10) é mantido para reduzir o cold start.
+Concorrência (Modal): concurrency_limit global (ex: 50) definido na função do worker para evitar que 1000 jobs da fila tentem rodar simultaneamente, saturando o storage (R2) ou o pool do Neon. O warm pool (ex: 10) é mantido para reduzir o cold start.
 Resiliência (DLQ): A Fila (Cloudflare) é configurada para, após N falhas (ex: 3 retries), mover o job "envenenado" (ex: mídia corrupta) para uma Dead-Letter Queue (DLQ). Isso é gerenciado pela infra, não pelo DDL.
 
 ### 2.7. Matriz de Responsabilidades (RACI) e Plantão
@@ -224,7 +224,7 @@ Restrição RLS/ALE: Acesso break-glass ao banco não bypassa RLS/ALE (ver §4.8
 Cloudflare: Escopos por zone e projeto; acesso read-only para observabilidade. Tokens de API granulares (ex: "só pode dar purge no cache").
 Fly.io: Permissão apenas de deploy/secrets por ambiente; sem acesso a volumes.
 Neon: Roles app_rw (aplicação), app_ro (observabilidade), migrator (Alembic). Plantão (break-glass) nunca usa app_rw.
-B2: Chaves por bucket/prefix e ambiente. A API usa uma chave; o worker (Modal) usa outra (ex: app_rw só pode GET originais e PUT derivados).
+R2: Credenciais e escopos por bucket/prefix e ambiente. A API usa uma credencial; o worker (Modal) usa outra (ex: app_rw só pode GET originais e PUT derivados).
 Modal: Workspace segregado por ambiente; limites de concorrência por namespace.
 
 ### 4.3. Blindagem da Origem (Origin Shielding)
@@ -336,7 +336,7 @@ Alertas de FinOps: Budget mensal $\ge$ 90%, e alertas de derivação (ex: Custo/
 
 Probes Periódicos (ex: a cada 5 min de 3 regiões):GET /health e GET /ready (SLO de disponibilidade).
 Fluxo de Login (CSRF $\rightarrow$ POST /login).
-POST /uploads/init (Checa quota e B2).
+POST /uploads/init (Checa quota e storage/R2).
 GET /s/:token_publico (Checa SSR público).
 Probe de Fila (E2E): Synthetic que (1) publica um job de 'teste' (ex: asset_id_test) na Fila CF, e (2) sonda o banco de dados (Neon) até que asset.status = 'ready' para aquele ID. Ele mede o tempo total (TTR). Se TTR > 5 min, alerta Sev-2. Isso valida o loop completo: API (publicação) $\rightarrow$ Fila $\rightarrow$ Worker $\rightarrow$ DB (escrita).
 
@@ -375,7 +375,7 @@ RTO (Recovery Time Objective): $\le$ 30 min com cutover validado (Runbook 9.2).
 Implicação de RLS/ALE: Durante o drill de recuperação (§7.4), deve-se validar que as políticas de RLS (§4.8) e a infra de ALE (futuro) estão ativas no branch restaurado. Dados não podem ser restaurados "em aberto".
 Ensaios: Trimestrais com checklist e validação de integridade pós-cutover.
 
-### 7.2. Exportações e Lifecycle (B2)
+### 7.2. Exportações e retenção (TTL)
 
 Exports com validade de 72h; reaper diário remove órfãos; checksums e ETag mantidos.
 
@@ -386,12 +386,12 @@ Mensagens claras (i18n) na UI e status page atualizada.
 
 ### 7.4. Chaos Days e Testes de DR
 
-Injeção controlada de falhas (latência/timeout de B2, queda de uma instância API) em staging.
+Injeção controlada de falhas (latência/timeout de storage/R2, queda de uma instância API) em staging.
 
 Cenário 1: Fila Travada. Pausar o consumidor (Modal). Validar: (a) queue_backlog_size e oldest_message_age sobem, (b) alerta Sev-1 dispara (§5.5), (c) probes de TTR falham.
 Cenário 2: Poison Pill. Injetar um job "envenenado" (ex: asset_id inválido). Validar: (a) worker falha, (b) job é movido para a DLQ, (c) alerta Sev-2 dispara, (d) o restante da fila continua processando.
 Cenário 3: Saturação de DB. Reduzir o max_size do pool de DB. Validar: (a) API p95 sobe, (b) API retorna 503/429 (falha rápida), (c) autoscaler do Fly sobe novas máquinas (pode piorar o cenário, bom de ver).
-Cenário 4: Falha de Provedor (B2). Bloquear o acesso do worker ao B2. Validar: (a) Jobs de transcode falham, (b) Fila (CF) aplica retry, (c) Jobs eventualmente vão para a DLQ, (d) API (/uploads/init) pode falhar se não puder checar dedup.
+Cenário 4: Falha de Provedor (Storage/R2). Bloquear o acesso do worker ao storage. Validar: (a) Jobs de transcode falham, (b) Fila (CF) aplica retry, (c) Jobs eventualmente vão para a DLQ, (d) API (/uploads/init) pode falhar se não puder checar dedup.
 
 ## 8. Custo, Capacidade e Prewarming
 
@@ -402,7 +402,7 @@ Monitorar picos (ex.: Dia das Mães) e médias (semanal/mensal) para calibrar mi
 
 ### 8.2. Orçamentos e Quotas Operacionais
 
-Budgets por provedor (Cloudflare, Fly, Neon, B2, Modal); alertas em 50%/75%/90% (§5.5).
+Budgets por provedor (Cloudflare, Fly, Neon, Modal); alertas em 50%/75%/90% (§5.5).
 Quotas de proteção: Concorrência máxima em Workers, min_instances na API, rate limits para /s/\*.
 
 ### 8.3. Janela Sazonal (Dia das Mães)
@@ -414,7 +414,7 @@ Cron de prewarm: Seed de cache no Edge, min_instances na API, warm pool nos Work
 Tagging: Padronizado por env (prod/staging), service (api/worker/db) e owner (plataforma).
 Showback: Relatório mensal por serviço.
 Unidade de Custo (FinOps SLI):Custo de Aquisição (Técnico): (Custo_Fly + Custo_Neon_IO + Custo_Modal + Custo_Fila) / (Total_Momentos_Criados_Mês) = Custo por Momento Criado.
-Custo de Estoque (Técnico): (Custo_Neon_Storage + Custo_B2_Storage) / (Total_Contas_Ativas) = Custo de Estoque por Conta/Mês.
+Custo de Estoque (Técnico): (Custo_Neon_Storage + Custo_R2_Storage) / (Total_Contas_Ativas) = Custo de Estoque por Conta/Mês.
 Implicação: Este SLI de FinOps (§5.2) informa se a otimização de código (ex: worker mais rápido) está, de fato, reduzindo o custo unitário. O Custo de Estoque é vital para validar o "God SLO" (§6.1).
 
 ## 9. Runbooks Operacionais
@@ -467,7 +467,7 @@ Post-mortem: Varredura completa e post-mortem com ações preventivas.
 
 ### 9.5. Export Cost Guardrail
 
-Sintoma: Alerta de FinOps (Sev-3) sobre custo de compute (Modal) ou egress (B2).
+Sintoma: Alerta de FinOps (Sev-3) sobre custo de compute (Modal) ou storage/requests (R2).
 Ação:Ativar feature flag que limita o tamanho do export.
 Mover jobs de export para uma Fila low-priority (se houver).
 Implementar rate limiting mais agressivo no endpoint POST /export.
@@ -484,7 +484,7 @@ Gatilho: Alerta Sev-2 de novo item na DLQ (Cloudflare).
 Ação Imediata: Pausar reprocessamento automático para aquele job.
 Análise:O erro é definitivo (ex: mídia corrupta, ffmpeg exit 1)?
 O erro é um bug no worker (ex: NullPointerException, KeyError)?
-O erro é externo (ex: B2 retornando 403 permanente)?
+O erro é externo (ex: storage retornando 403 permanente)?
 Resolução:Se (1): Marcar job como failed_definitive (ex: PATCH /assets/{id} para status='failed'), notificar usuário (opcional).
 Se (2): Prioridade máxima. Preparar hotfix para o worker. Após o deploy, usar um script (apps/admin) para mover o job da DLQ de volta para a fila principal para reprocessamento.
 Se (3): Escalonar (incidente de segurança/provedor).
@@ -510,8 +510,8 @@ Workers: Golden files estáveis; tempos de job dentro da faixa; non-regression d
 | Fila (CF)       | Retries (Transitório)   | 5                            | Padrão (ex: 503, timeout).                    |
 | Fila (CF)       | Backoff                 | Exponencial (base 1s)        | Evitar thundering herd no retry.              |
 | Workers (Modal) | function_timeout        | 300s (5 min)                 | Tempo máximo para um job (ex: export).        |
-| Storage (B2)    | Exports TTL             | 72h                          | Tempo para usuário baixar.                    |
-| Storage (B2)    | Derivados TTL           | 30d                          | Recriáveis sob demanda (otimização de custo). |
+| Storage (R2)    | Exports TTL             | 72h                          | Tempo para usuário baixar.                    |
+| Storage (R2)    | Derivados TTL           | 30d                          | Recriáveis sob demanda (otimização de custo). |
 | DB (Neon)       | PITR                    | 14d                          | Janela de recuperação.                        |
 | DB (Neon)       | statement_timeout       | 10s (global), 5s (hot paths) | Evitar queries desgarradas.                   |
 | DB (App Pool)   | pool_min_size           | 2                            | Mínimo para warm-up.                          |
@@ -590,7 +590,7 @@ app = "babybook-api-prod"
     grace_period = "10s"
 ```
 
-### 14.3. Política de Lifecycle — B2
+### 14.3. Política de retenção (TTL) — Storage
 
 Derivados: Expirar entre 7–30 dias; recriáveis sob demanda.
 Exports: Expirar em 72h; mover para trash/ antes da remoção definitiva (janela curta).
@@ -670,7 +670,7 @@ async def complete_upload(
 ## Checklist de Provisionamento dos Workers
 
 1. Armazene o `SERVICE_API_TOKEN` no secrets manager do provedor (Fly/Modal) e injete-o tanto na API quanto nos workers. Nunca versione esse token.
-2. Crie os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no Backblaze B2 (ou provedor equivalente) e configure lifecycle policies (derivados expiram em 30 dias, exports em 72h).
+2. Crie os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no Cloudflare R2 e configure a política de retenção (derivados expiram em 30 dias, exports em 72h) via regra/cron/reaper.
 3. No Modal/Fly, construa a imagem dos workers com `ffmpeg`/`ffprobe` e valide que as envs `FFMPEG_PATH`/`FFPROBE_PATH` apontam para o binário existente.
 4. Configure a Cloudflare Queue com Dead-Letter Queue (DLQ) após N tentativas e garanta o mesmo nome/credenciais usados na API (`CLOUDFLARE_*`).
 5. Aponte `QUEUE_PROVIDER=cloudflare` em produção e mantenha `INLINE_WORKER_ENABLED=false` para evitar processamento inline fora do dev.

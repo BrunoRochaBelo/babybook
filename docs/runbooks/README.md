@@ -25,13 +25,12 @@ Este diretório contém procedimentos operacionais para resolução de incidente
 
 ## Contatos de Emergência
 
-| Serviço      | Canal               | Documentação                      |
-| ------------ | ------------------- | --------------------------------- |
-| Cloudflare   | Dashboard + Support | https://dash.cloudflare.com       |
-| Fly.io       | flyctl + Support    | https://fly.io/docs               |
-| Neon         | Dashboard           | https://neon.tech/docs            |
-| Backblaze B2 | Support             | https://www.backblaze.com/b2/docs |
-| Modal        | Dashboard           | https://modal.com/docs            |
+| Serviço               | Canal               | Documentação                |
+| --------------------- | ------------------- | --------------------------- |
+| Cloudflare (incl. R2) | Dashboard + Support | https://dash.cloudflare.com |
+| Fly.io                | flyctl + Support    | https://fly.io/docs         |
+| Neon                  | Dashboard           | https://neon.tech/docs      |
+| Modal                 | Dashboard           | https://modal.com/docs      |
 
 ## Checklist Pré-Incidente
 

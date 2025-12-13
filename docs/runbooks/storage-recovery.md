@@ -1,4 +1,4 @@
-# Runbook: Recuperação de Storage (R2/B2)
+# Runbook: Recuperação de Storage (R2)
 
 Nota: políticas de lifecycle e paths de buckets devem ser compatíveis com o [BABY BOOK: DOSSIÊ DE EXECUÇÃO](../Dossie_Execucao.md). Verifique prefixes (partners/, tmp/, u/) e regras de expiração antes de qualquer cópia em massa.
 
@@ -26,14 +26,14 @@ Nota: políticas de lifecycle e paths de buckets devem ser compatíveis com o [B
 │ sys/                  → Assets do sistema (permanente)  │
 └─────────────────────────────────────────────────────────┘
 
-┌─────────────────┐     ┌─────────────────┐
-│   Cloudflare R2 │     │   Backblaze B2  │
-│   (Hot Storage) │     │  (Cold Storage) │
-├─────────────────┤     ├─────────────────┤
-│ • Thumbnails    │     │ • Originais     │
-│ • Previews      │     │ • Vídeos HD     │
-│ • Acesso rápido │     │ • Backup        │
-└─────────────────┘     └─────────────────┘
+┌─────────────────────────────────────────┐
+│               Cloudflare R2             │
+│            (Storage R2-only)            │
+├─────────────────────────────────────────┤
+│ • Originais (u/)                        │
+│ • Derivados (recriáveis)                │
+│ • Exports (TTL curto)                   │
+└─────────────────────────────────────────┘
 ```
 
 ## Diagnóstico
@@ -43,9 +43,6 @@ Nota: políticas de lifecycle e paths de buckets devem ser compatíveis com o [B
 ```bash
 # Cloudflare R2
 curl -I https://media.babybook.com/health
-
-# Backblaze B2 Status
-curl https://status.backblaze.com/api/v2/status.json
 
 # Edge Worker
 curl https://edge.babybook.com/health
@@ -81,14 +78,13 @@ WHERE id = 'asset-uuid';
 
 # 2. Verificar se existe no storage
 # Via AWS CLI (compatível com S3)
-aws s3 ls s3://bb-production-v1/u/{user_id}/m/{moment_id}/ \
-  --endpoint-url https://s3.us-west-004.backblazeb2.com
-
-# 3. Se existir no B2 mas não no R2, copiar
-aws s3 cp \
-  s3://bb-production-v1/u/{user_id}/m/{moment_id}/preview.jpg \
-  s3://bb-r2-bucket/u/{user_id}/m/{moment_id}/preview.jpg \
+aws s3 ls s3://bb-r2-bucket/u/{user_id}/m/{moment_id}/ \
   --endpoint-url https://{account_id}.r2.cloudflarestorage.com
+
+# 3. Se o objeto NÃO existe no R2:
+# - Se for derivado (thumb/preview), siga para “Cenário 2” (regenerar).
+# - Se for original, tratar como incidente de perda de dados: interromper ações destrutivas,
+#   coletar evidências (logs/audit_event) e escalar (Sev1) para investigação.
 ```
 
 ### Cenário 2: Thumbnails/Previews Corrompidos
@@ -174,29 +170,15 @@ wrangler secret put JWT_SECRET
 
 ## Prevenção
 
-### Lifecycle Rules B2
+### Política de retenção (TTL) — R2
 
-```xml
-<!-- Configurar no dashboard B2 -->
-<LifecycleConfiguration>
-  <Rule>
-    <ID>tmp-cleanup</ID>
-    <Prefix>tmp/</Prefix>
-    <Status>Enabled</Status>
-    <Expiration>
-      <Days>1</Days>
-    </Expiration>
-  </Rule>
-  <Rule>
-    <ID>partners-cleanup</ID>
-    <Prefix>partners/</Prefix>
-    <Status>Enabled</Status>
-    <Expiration>
-      <Days>365</Days>
-    </Expiration>
-  </Rule>
-</LifecycleConfiguration>
-```
+Implementar retenção por prefixo (via regras nativas do R2 quando disponíveis, ou via job/worker “reaper”):
+
+- `tmp/` expira em 1 dia
+- `partners/` expira em 365 dias
+- `exports/` expira conforme definido (ex: 72h)
+
+**Importante:** nunca aplicar TTL em `u/` (originais do usuário).
 
 ### Monitoramento
 
@@ -216,7 +198,7 @@ alerts:
 
 Se a recuperação causar problemas:
 
-1. **Não deletar originais** - sempre preservar arquivos em B2
+1. **Não deletar originais** - sempre preservar arquivos no storage (R2)
 2. Reverter alterações no banco via PITR do Neon
 3. Restaurar derivados a partir dos originais
 

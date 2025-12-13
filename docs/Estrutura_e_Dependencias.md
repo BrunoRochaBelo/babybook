@@ -58,7 +58,7 @@ Este documento é o manual de engenharia e a fonte canônica de arquitetura para
   - [9.2. Estados e Transições](#92-estados-e-transições)
   - [9.3. Estratégias de Resiliência (Rede Móvel)](#93-estratégias-de-resiliência-rede-móvel)
   - [9.4. Contratos Mínimos do Uploader](#94-contratos-mínimos-do-uploader)
-- [Chaves de Armazenamento (S3/B2)](#10-chaves-de-armazenamento-s3b2)
+- [Chaves de Armazenamento (S3/R2)](#10-chaves-de-armazenamento-s3r2)
   - [10.1. Presets de Derivados (Workers)](#101-presets-de-derivados-workers)
   - [10.2. Metadados Relevantes](#102-metadados-relevantes)
   - [10.3. Política de Nomes (Exports e Lixo)](#103-política-de-nomes-exports-e-lixo)
@@ -322,7 +322,7 @@ services:
 
   # 2. Storage Mock (Minio S3)
   # Local: MinIO (mock S3) para desenvolvimento.
-  # Produção: estratégia híbrida Cloudflare R2 (hot) + Backblaze B2 (cold) — thumbnails e previews na borda, originais no cold storage.
+  # Produção: Cloudflare R2 (R2-only) — retenção por prefixo (tmp/, partners/, exports/) e derivados recriáveis.
   storage:
     image: minio/minio:latest
     container_name: babybook_storage_local
@@ -659,8 +659,8 @@ Localizado em apps/web/src/lib/upload/. Esta é a feature crítica que demanda a
 ### 9.1. Componentes Principais do Upload Manager
 
 - queue.ts: A "fila de espera". Gerencia a concorrência (ex: 3 uploads simultâneos), backoff exponencial (se a API falhar, esperar 1s, 2s, 4s...), cancelamento e prioridade (fotos são mais leves, vão antes de vídeos).
-- b2-multipart.ts: O "motor". Conhece a lógica de multipart da S3/B2. Sabe como chamar /uploads/init para obter o uploadId e as URLs, como fatiar o arquivo em partes (chunks), e como chamar /uploads/complete com os ETags das partes.
-- persister.ts: O "cofre" (IndexedDB). Este é o cérebro da resiliência. Ele armazena o estado da fila no IndexedDB. Se o usuário fechar o navegador com 5 arquivos na fila, ao reabrir, o persister.ts recarrega a fila e continua de onde parou. Ele salva o uploadId e quais parts (partes) já foram concluídas (com seus ETags), para que o b2-multipart.ts possa retomar o envio apenas das partes que faltam.
+- multipart.ts: O "motor". Conhece a lógica de multipart da S3/R2. Sabe como chamar /uploads/init para obter o uploadId e as URLs, como fatiar o arquivo em partes (chunks), e como chamar /uploads/complete com os ETags das partes.
+- persister.ts: O "cofre" (IndexedDB). Este é o cérebro da resiliência. Ele armazena o estado da fila no IndexedDB. Se o usuário fechar o navegador com 5 arquivos na fila, ao reabrir, o persister.ts recarrega a fila e continua de onde parou. Ele salva o uploadId e quais parts (partes) já foram concluídas (com seus ETags), para que o multipart.ts possa retomar o envio apenas das partes que faltam.
 - network.ts: O "vigia". Ele usa navigator.onLine e window.addEventListener para pausar a fila (queue.ts) se a rede cair, e retomá-la automaticamente quando a rede voltar.
 - preprocessor.ts: O "inspetor". Antes de enfileirar, ele lê o arquivo: valida o MIME type, checa a duração do vídeo (≤ 10s) usando HTMLVideoElement, e lê o EXIF para corrigir a orientação de fotos (JPEGs de celular).
 
@@ -675,12 +675,12 @@ A UI reflete estado por item e por lote; falhas recuperáveis disparam retry com
 
 Pausar fila em saveData=true ou bateria crítica; retomar manual ou automaticamente.
 Reduzir concorrência em dispositivos mais fracos.
-Cenário Crítico (O que acontece se...): O usuário está enviando um vídeo de 100MB (10 partes de 10MB). Ele envia 7 partes (70MB). A URL pré-assinada (presign) expira antes dele enviar a parte 8.Solução: O b2-multipart.ts recebe um erro 403 (Expired) da S3/B2.
+Cenário Crítico (O que acontece se...): O usuário está enviando um vídeo de 100MB (10 partes de 10MB). Ele envia 7 partes (70MB). A URL pré-assinada (presign) expira antes dele enviar a parte 8.Solução: O multipart.ts recebe um erro 403 (Expired) da S3/R2.
 Ele não descarta o upload.
 Ele sinaliza para a queue.ts que precisa "renovar" o presign.
 A queue.ts chama a API (/uploads/init) novamente, passando o uploadId original.
 A API gera novas URLs pré-assinadas para as partes restantes (8, 9, 10).
-O b2-multipart.ts recebe as novas URLs e continua o upload exatamente da parte 8, sem perder os 70MB já enviados. Isso é possível graças ao persister.ts que guardou os ETags das partes 1-7.
+O multipart.ts recebe as novas URLs e continua o upload exatamente da parte 8, sem perder os 70MB já enviados. Isso é possível graças ao persister.ts que guardou os ETags das partes 1-7.
 Visibilidade: Reduzir concorrência (visibilitychange) quando a aba está em background.
 
 ### 9.4. Contratos Mínimos do Uploader
@@ -709,7 +709,7 @@ export interface UploadItem {
 }
 ```
 
-## 10. Chaves de Armazenamento (S3/B2)
+## 10. Chaves de Armazenamento (S3/R2)
 
 - Originais: media/u/{account}/{asset}/original.{ext}
 - Derivados: media/u/{account}/{asset}/{preset}/...

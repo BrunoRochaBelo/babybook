@@ -25,17 +25,17 @@ API_BASE_URL = "https://api.babybook.dev"
 # 
 # Run these commands to set secrets:
 #
-# npx wrangler secret put B2_ACCESS_KEY_ID
-# npx wrangler secret put B2_SECRET_ACCESS_KEY
-# npx wrangler secret put B2_BUCKET_NAME
-# npx wrangler secret put B2_ENDPOINT
+# npx wrangler secret put R2_ACCESS_KEY_ID
+# npx wrangler secret put R2_SECRET_ACCESS_KEY
+# npx wrangler secret put R2_BUCKET_NAME
+# npx wrangler secret put R2_ACCOUNT_ID
 # npx wrangler secret put JWT_SECRET
 #
 # Example values:
-# B2_ACCESS_KEY_ID: Your Backblaze keyID
-# B2_SECRET_ACCESS_KEY: Your Backblaze applicationKey
-# B2_BUCKET_NAME: bb-production-v1
-# B2_ENDPOINT: s3.us-east-005.backblazeb2.com
+# R2_ACCESS_KEY_ID: Your R2 access key id
+# R2_SECRET_ACCESS_KEY: Your R2 secret access key
+# R2_BUCKET_NAME: bb-production-v1
+# R2_ACCOUNT_ID: Your Cloudflare account id
 # JWT_SECRET: Same secret used in FastAPI backend
 
 # =============================================================================
@@ -50,10 +50,10 @@ API_BASE_URL = "http://localhost:8000"
 
 # Dev secrets (for local development with wrangler dev --local)
 # Create a .dev.vars file with:
-# B2_ACCESS_KEY_ID=your-dev-key
-# B2_SECRET_ACCESS_KEY=your-dev-secret
-# B2_BUCKET_NAME=bb-dev-v1
-# B2_ENDPOINT=s3.us-east-005.backblazeb2.com
+# R2_ACCESS_KEY_ID=your-dev-key
+# R2_SECRET_ACCESS_KEY=your-dev-secret
+# R2_BUCKET_NAME=bb-dev-v1
+# R2_ACCOUNT_ID=your-account-id
 # JWT_SECRET=dev-secret-key
 
 # =============================================================================

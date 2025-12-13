@@ -49,7 +49,7 @@ modal logs --app babybook-workers --tail 100
 | ----------------- | ---------------------------- | ---------------- |
 | `timeout`         | Worker lento, arquivo grande | Aumentar timeout |
 | `memory_error`    | Arquivo muito grande         | Fallback ou skip |
-| `storage_error`   | B2/R2 indisponível           | Verificar status |
+| `storage_error`   | Storage/R2 indisponível      | Verificar status |
 | `invalid_payload` | Mensagem corrompida          | Descartar        |
 
 ## Procedimento de Reprocessamento

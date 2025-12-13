@@ -1,7 +1,7 @@
 /**
- * Storage proxy for B2/S3 backend
+ * Storage proxy for R2 (S3-compatible) backend
  *
- * Uses aws4fetch to sign requests to private B2 bucket.
+ * Uses aws4fetch to sign requests to a private R2 bucket.
  * This allows the Worker to fetch from a private bucket
  * without exposing credentials to the client.
  */
@@ -10,32 +10,40 @@ import { AwsClient } from "aws4fetch";
 export interface StorageConfig {
   accessKeyId: string;
   secretAccessKey: string;
+  accountId: string;
   bucketName: string;
-  endpoint: string;
   region?: string;
+  /**
+   * Optional override (host only). Default: {accountId}.r2.cloudflarestorage.com
+   * Example: "<accountid>.r2.cloudflarestorage.com"
+   */
+  endpoint?: string;
 }
 
 /**
- * Creates a signed request to fetch from B2/S3
+ * Creates a signed request to fetch from R2 (S3-compatible)
  *
  * The AwsClient handles the AWS Signature V4 signing process,
- * which B2 supports via S3-compatible API.
+ * which R2 supports via S3-compatible API.
  */
 export async function createSignedRequest(
   config: StorageConfig,
   objectKey: string,
-  originalRequest: Request
+  originalRequest: Request,
 ): Promise<Request> {
   const aws = new AwsClient({
     accessKeyId: config.accessKeyId,
     secretAccessKey: config.secretAccessKey,
     service: "s3",
-    region: config.region || "us-east-1", // B2 uses us-east-1 for S3 compat
+    region: config.region || "auto", // R2 usa "auto" no escopo de assinatura
   });
 
-  // Construct the B2 URL
-  // Format: https://bucket-name.s3.region.backblazeb2.com/object-key
-  const b2Url = `https://${config.bucketName}.${config.endpoint}/${objectKey}`;
+  // Construct the R2 URL (path-style)
+  // Format: https://{accountId}.r2.cloudflarestorage.com/{bucketName}/{objectKey}
+  const endpointHost = (
+    config.endpoint || `${config.accountId}.r2.cloudflarestorage.com`
+  ).replace(/^https?:\/\//, "");
+  const r2Url = `https://${endpointHost}/${config.bucketName}/${objectKey}`;
 
   // Headers to forward from original request
   const headers: Record<string, string> = {};
@@ -59,7 +67,7 @@ export async function createSignedRequest(
   }
 
   // Sign the request
-  const signedRequest = await aws.sign(b2Url, {
+  const signedRequest = await aws.sign(r2Url, {
     method: originalRequest.method,
     headers,
   });
@@ -68,7 +76,7 @@ export async function createSignedRequest(
 }
 
 /**
- * Fetches object from B2 and applies response headers
+ * Fetches object from R2 and applies response headers
  *
  * @param signedRequest - The AWS-signed request
  * @param objectKey - The object key (used to determine content-type)
@@ -77,7 +85,7 @@ export async function createSignedRequest(
 export async function fetchAndTransform(
   signedRequest: Request,
   objectKey: string,
-  cacheMaxAge: number = 14400
+  cacheMaxAge: number = 14400,
 ): Promise<Response> {
   const response = await fetch(signedRequest);
 
@@ -92,13 +100,19 @@ export async function fetchAndTransform(
   // - public: Can be cached by CDN/browser
   // - max-age: Client cache duration
   // - s-maxage: CDN cache duration (can be different)
-  newHeaders.set("Cache-Control", `public, max-age=${cacheMaxAge}, s-maxage=${cacheMaxAge}`);
+  newHeaders.set(
+    "Cache-Control",
+    `public, max-age=${cacheMaxAge}, s-maxage=${cacheMaxAge}`,
+  );
 
   // CORS headers (allow access from any origin)
   newHeaders.set("Access-Control-Allow-Origin", "*");
   newHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
   newHeaders.set("Access-Control-Allow-Headers", "Authorization, Range");
-  newHeaders.set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges");
+  newHeaders.set(
+    "Access-Control-Expose-Headers",
+    "Content-Length, Content-Range, Accept-Ranges",
+  );
 
   // Accept-Ranges for video streaming
   if (!newHeaders.has("Accept-Ranges")) {

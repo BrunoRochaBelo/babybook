@@ -11,7 +11,6 @@ from typing import Literal
 
 from babybook_api.storage.base import StorageProvider, StorageConfig, StorageType
 from babybook_api.storage.providers.r2 import R2Provider
-from babybook_api.storage.providers.b2 import B2Provider
 from babybook_api.storage.providers.minio import MinIOProvider
 
 
@@ -43,13 +42,12 @@ def create_storage_config_from_env() -> dict[StorageType, StorageConfig]:
         configs[StorageType.HOT] = minio_config
         configs[StorageType.COLD] = minio_config
     else:
-        # Staging/Production - usa R2 para hot, B2 para cold
-        
-        # R2 (Cloudflare) - Hot storage
+        # Staging/Production - R2-only (hot/cold são apenas uma distinção lógica)
+
         r2_account_id = settings.cloudflare_account_id or ""
-        configs[StorageType.HOT] = StorageConfig(
+        r2_config = StorageConfig(
             provider="r2",
-            bucket=settings.r2_bucket or "babybook-hot",
+            bucket=settings.r2_bucket or "babybook",
             endpoint_url=f"https://{r2_account_id}.r2.cloudflarestorage.com",
             access_key_id=settings.r2_access_key_id,
             secret_access_key=settings.r2_secret_access_key,
@@ -58,16 +56,8 @@ def create_storage_config_from_env() -> dict[StorageType, StorageConfig]:
             public_url_base=settings.r2_public_url or "https://media.babybook.com.br",
             custom_domain=settings.r2_custom_domain,
         )
-        
-        # B2 (Backblaze) - Cold storage
-        configs[StorageType.COLD] = StorageConfig(
-            provider="b2",
-            bucket=settings.b2_bucket or "babybook-cold",
-            endpoint_url=settings.b2_endpoint,
-            access_key_id=settings.b2_access_key_id,
-            secret_access_key=settings.b2_secret_access_key,
-            region=settings.b2_region,
-        )
+        configs[StorageType.HOT] = r2_config
+        configs[StorageType.COLD] = r2_config
     
     return configs
 
@@ -81,8 +71,6 @@ def create_provider(config: StorageConfig) -> StorageProvider:
     match config.provider:
         case "r2":
             return R2Provider(config)
-        case "b2":
-            return B2Provider(config)
         case "minio":
             return MinIOProvider(config)
         case "s3":
@@ -99,7 +87,7 @@ async def get_storage_provider(
     Obtém um provider de storage inicializado.
     
     Args:
-        storage_type: Tipo de storage (HOT para R2, COLD para B2)
+        storage_type: Tipo de storage (HOT/COLD são apenas uma distinção lógica)
     
     Returns:
         Provider inicializado e pronto para uso
@@ -126,7 +114,7 @@ async def get_hot_storage() -> StorageProvider:
 
 
 async def get_cold_storage() -> StorageProvider:
-    """Obtém provider de cold storage (B2/MinIO) para originais"""
+    """Obtém provider de cold storage (R2/MinIO) para originais"""
     return await get_storage_provider(StorageType.COLD)
 
 
@@ -148,7 +136,7 @@ def should_use_hot_storage(
     is_preview: bool = False,
 ) -> bool:
     """
-    Decide se um asset deve ir para hot storage (R2) ou cold storage (B2).
+    Decide se um asset deve ir para hot storage ou cold storage.
     
     Hot storage é usado para:
     - Previews e thumbnails (sempre)

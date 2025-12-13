@@ -24,7 +24,7 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 - **Privacidade/LGPD**: minimização de PII; exportação completa (ZIP); exclusão lógica + job de hard delete; trilha de auditoria; consentimento e política de retenção.
 - **Disponibilidade/SLOs**: p95 leitura ≤ 500ms; p95 escrita leve ≤ 800ms; p95 aceite upload ≤ 1500ms; time-to-ready ≤ 2 min; custo de estoque ≤ R$2/conta/ano; uptime API >99.5%.
 - **Performance/escala**: compressão client-side (ffmpeg.wasm) como default; fallback server-side (Modal); SSE ou short-poll minimal para status; cache na edge; paginação por cursor.
-- **Custo**: hot storage R2; cold B2 com lifecycle; PCE reservado por venda; deduplicação por SHA; FFmpeg client-side para reduzir compute.
+- **Custo**: storage **R2-only**; PCE reservado por venda; deduplicação por SHA; FFmpeg client-side para reduzir compute; purge de derivados recriáveis.
 - **Observabilidade**: X-Trace-Id em todas as respostas; logs estruturados; métricas (latência, taxa de sucesso de upload, uso de fallback); tracing distribuído (OTel); DLQ para jobs.
 - **Acessibilidade**: WCAG AA; foco visível; aria-\*; contraste em tokens.
 - **DevEx**: ambientes locais com MSW/MinIO; seeds; feature flags; testes automáticos (unit, integração, e2e).
@@ -53,13 +53,13 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 
 - View `v_effective_quotas`: 2 GiB storage, 60 momentos, 5 recorrências por categoria, flags `unlimited_*` em `account`.
 - Validações: /uploads/init → 413 quota.bytes.exceeded; /moments → 402 quota.moments.exceeded; recorrentes → 402 quota.recurrent_limit.exceeded {"package":"social|creative|tracking"}.
-- Billing: entidades `order/purchase` com `amount_gross`, `gateway_fee`, `tax_effective`, `pce_reserved`; pricing dual R$297 (cartão) / R$279 (PIX); B2B R$120 (10x) / R$100 (50x). Webhook HMAC idempotente aplicando entitlements.
+- Billing: entidades `order/purchase` com `amount_gross`, `gateway_fee`, `tax_effective`, `pce_reserved`; pricing dual R$297 (cartão, até 3x) / R$279 (PIX); B2B (lote 10) R$1.350 (PIX) / R$1.490 (cartão, até 3x). Webhook HMAC idempotente aplicando entitlements.
 - Landing/pricing: LP consome `packages/config/pricing.ts`; CTAs diferenciados PIX vs Cartão; tracking de conversão por canal (UTM); B2B âncoras na LP e fluxo /resgatar.
 
 ### 4) Upload de mídia
 
 - **Cliente**: ffmpeg.wasm em Web Worker; heurística `SharedArrayBuffer` + `deviceMemory>=4GB` + size<500MB → compressão local (720p H.265); barra unificada (0-30% compressão, 30-100% upload); Wake Lock + beforeunload guard.
-- **Init**: POST /uploads/init {filename,size,mime,sha256,scope} → dedup (sha); presigned URLs para R2/B2 (`tmp/uploads/{upload_uuid}/{part}`), part_size `upload_part_bytes`; retorna `upload_id`, `asset_id`, `urls`.
+- **Init**: POST /uploads/init {filename,size,mime,sha256,scope} → dedup (sha); presigned URLs para R2 (`tmp/uploads/{upload_uuid}/{part}`), part_size `upload_part_bytes`; retorna `upload_id`, `asset_id`, `urls`.
 - **Upload**: PUT direto ao storage (Tus ou presigned multipart). Coletar ETags.
 - **Complete**: POST /uploads/complete com ETags + `Idempotency-Key`; marca asset `processing`; publica job na queue.
 - **Fallback**: se cliente fraco, upload RAW sem compressão; worker server-side transcode.
@@ -69,7 +69,7 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 ### 5) Processamento de mídia (workers)
 
 - Consumer da fila (Cloudflare Queues ou equivalente) processa jobs `video.transcode`, `image.thumbnail`, `export.zip`.
-- Usa B2/R2 SDK (aioboto3) para GET original, PUT derivados (`u/{user}/m/{moment}/original|preview|thumb`).
+- Usa SDK S3 (aioboto3) apontando para R2 para GET original, PUT derivados (`u/{user}/m/{moment}/original|preview|thumb`).
 - Atualiza API via PATCH /assets/{id} com token de serviço; retries com backoff; DLQ após N tentativas.
 
 ### 6) Entregas B2B e “unboxing”
@@ -79,7 +79,7 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 - **Resgate /redeem (transação atômica)**:
   1. Valida voucher ativo.
   2. Cria/associa usuário (se não existir) e conta.
-  3. Copia assets server-side: `partners/...` → `u/{user}/m/{moment}/...` (copy no B2).
+  3. Copia assets server-side: `partners/...` → `u/{user}/m/{moment}/...` (copy no storage/R2).
   4. Cria momento tipo `PROFESSIONAL_GALLERY` (não criável pelo usuário).
   5. Marca voucher `redeemed`, delivery `claimed`.
 - UX: landing de resgate com código + criação de senha; primeiro login já mostra galeria profissional.
@@ -166,7 +166,7 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
    - Health/readiness: GET /health e GET /ready expostos e configurados no deploy (Fly/CI).
 
 2. **Fase 1 — Uploads e Edge**
-   - Presigned URLs R2/B2; paths canônicos; dedup SHA; `Idempotency-Key`.
+   - Presigned URLs R2; paths canônicos; dedup SHA; `Idempotency-Key`.
    - ffmpeg.wasm client + fallback; SSE de status; worker conectado à fila + DLQ.
    - Edge Worker integrado para download seguro.
    - Download individual com JWT/ACL e cache-control por prefixo.
@@ -195,7 +195,7 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 
 ## Matriz de ambientes e usuários
 
-- **Prod**: domínios reais; R2+B2; queues reais; MSW off; rate-limit ativo.
+- **Prod**: domínios reais; R2-only; queues reais; MSW off; rate-limit ativo.
 - **Staging**: dados quase reais, integrações reais com credenciais de teste; feature flags.
 - **Dev local**: MSW on por padrão; MinIO para S3; seeds (conta demo owner/guardian/viewer, parceiro fake com vouchers); toggle para API real.
 - **Test automation**: banco isolado por run; storage mock; usuários de teste dedicados; chaves HMAC fake.

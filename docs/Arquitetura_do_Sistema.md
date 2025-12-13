@@ -33,7 +33,7 @@ Documento de referência técnica. Cobre stack, fluxos críticos, segurança, go
   - 4.2. Verificação de E-mail
   - 4.3. Recuperação de Senha
   - 4.4. Autenticação (sessão + CSRF)
-  - 4.5. Upload multipart direto ao B2 (Fluxo de Erro Detalhado)
+  - 4.5. Upload resiliente (Web & Mobile)
   - 4.6. Compartilhamento público (SSR na Edge)
   - 4.7. Exportação completa (ZIP + manifest)
   - 4.8. Guestbook (mural) com RBAC
@@ -43,7 +43,7 @@ Documento de referência técnica. Cobre stack, fluxos críticos, segurança, go
   - 5.1. CSP, cookies, CORS e headers
   - 5.2. Gestão de segredos e privilégios
   - 5.3. LGPD, privacidade e RLS
-  - 5.4. Política de retenção e Cold Storage (Implementação Detalhada)
+  - 5.4. Política de retenção e arquivamento lógico (Implementação Detalhada)
 - Modelo padronizado de erros (API) (Alinhado)
 - Capacidade, performance e escala
   - 7.1. Orçamentos de performance (budgets)
@@ -131,9 +131,9 @@ Princípios:
 
 ### 1.3 Restrições e premissas (Alinhado)
 
-- Infra multi-fornecedor: Cloudflare (Edge/CDN/Fila), Fly.io (API), Neon (DB), Backblaze B2 (S3), Modal (workers).
+- Infra multi-fornecedor: Cloudflare (Edge/CDN/Fila/Storage), Fly.io (API), Neon (DB), Modal (workers).
 - API stateless: Sessão via cookie \_\_Host-session. Permite escalar horizontalmente.
-- Upload direto ao B2 (multipart): API não trafega payload pesado; apenas orquestra.
+- Upload direto ao storage (multipart): API não trafega payload pesado; apenas orquestra.
 - Quotas Base: 2 GiB de storage por conta; 60 momentos únicos; 5 entradas gratuitas para cada momento recorrente.
 - Modelo de Negócio: Acesso Perpétuo (pagamento único) + Upsell de "Pacotes de Repetição" (pagamentos únicos adicionais). O modelo não é de assinatura (MRR) e não depende de upsell para sobreviver (graças ao PCE).
 - Formato canônico: Vídeo MP4 (H.264/AAC) em 720p (base). 1080p pode ser um entitlement (direito) concedido via upsell, mas não é um shed-load.
@@ -142,30 +142,30 @@ Princípios:
 
 ### 2.1 Stack, escolhas e racional (Alinhado)
 
-| Componente     | Escolha                                                      | Racional (Alinhado com a Viabilidade)                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Entrega/Edge   | Cloudflare Pages                                             | CDN global, SSL/WAF nativos, deploy via Git. Custo zero para estáticos. Simplicidade operacional.                                                                                                |
-| SSR Público    | Cloudflare Workers                                           | Renderiza links públicos de share (share.babybook.com). Mantém a stack unificada na Cloudflare, custo fixo zero.                                                                                 |
-| Backend (API)  | FastAPI (Python) @ Fly.io                                    | Async nativo, performance de I/O, ecossistema Python (conecta ao Modal). Fly nos dá uma micro-VM "quente" e barata.                                                                              |
-| Banco de Dados | Neon (PostgreSQL)                                            | O pilar da elasticidade econômica. Autosuspend (escala-a-zero) em ociosidade. Vital para o modelo de Acesso Perpétuo.                                                                            |
-| Armazenamento  | Cloudflare R2 (hot) + Backblaze B2 (cold)                    | Hot (R2) para thumbnails, previews e assets frequentemente acessados; Cold (B2) para originais e vídeos. Estratégia híbrida protege contra mudança de acordos comerciais e otimiza egress/custo. |
-| Processamento  | Client-side (ffmpeg.wasm / mobile native) + Modal (fallback) | Compressão preferencial no cliente (ffmpeg.wasm em Web Worker; ffmpeg-kit / react-native-compressor no mobile). Modal mantém fallback server-side apenas para dispositivos fracos ou exceções.   |
-| Fila (Queue)   | Cloudflare Queues                                            | Desacopla a API dos workers. Absorve picos (Dia das Mães) e garante retries. Custo zero na camada gratuita.                                                                                      |
-| Sessão/Auth    | Cookies \_\_Host- + CSRF                                     | Abordagem B-F-F (Backend-for-Frontend) clássica. Simples e segura.                                                                                                                               |
-| IaC / CI/CD    | Terraform + GitHub Actions                                   | Padrão de indústria para infra declarativa e pipelines de automação.                                                                                                                             |
+| Componente     | Escolha                                                      | Racional (Alinhado com a Viabilidade)                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entrega/Edge   | Cloudflare Pages                                             | CDN global, SSL/WAF nativos, deploy via Git. Custo zero para estáticos. Simplicidade operacional.                                                                                              |
+| SSR Público    | Cloudflare Workers                                           | Renderiza links públicos de share (share.babybook.com). Mantém a stack unificada na Cloudflare, custo fixo zero.                                                                               |
+| Backend (API)  | FastAPI (Python) @ Fly.io                                    | Async nativo, performance de I/O, ecossistema Python (conecta ao Modal). Fly nos dá uma micro-VM "quente" e barata.                                                                            |
+| Banco de Dados | Neon (PostgreSQL)                                            | O pilar da elasticidade econômica. Autosuspend (escala-a-zero) em ociosidade. Vital para o modelo de Acesso Perpétuo.                                                                          |
+| Armazenamento  | Cloudflare R2 (S3 compatível)                                | **R2-only**. Storage único para originais e derivados. Reduz complexidade e elimina migrações entre buckets. Mitigação de custo via quota (2 GiB), compressão agressiva e cache/edge.          |
+| Processamento  | Client-side (ffmpeg.wasm / mobile native) + Modal (fallback) | Compressão preferencial no cliente (ffmpeg.wasm em Web Worker; ffmpeg-kit / react-native-compressor no mobile). Modal mantém fallback server-side apenas para dispositivos fracos ou exceções. |
+| Fila (Queue)   | Cloudflare Queues                                            | Desacopla a API dos workers. Absorve picos (Dia das Mães) e garante retries. Custo zero na camada gratuita.                                                                                    |
+| Sessão/Auth    | Cookies \_\_Host- + CSRF                                     | Abordagem B-F-F (Backend-for-Frontend) clássica. Simples e segura.                                                                                                                             |
+| IaC / CI/CD    | Terraform + GitHub Actions                                   | Padrão de indústria para infra declarativa e pipelines de automação.                                                                                                                           |
 
 ### 2.2 Mapa de comunicações
 
 - Cliente → API (via /api/ proxy): HTTPS (Cookie \_\_Host-session + Header X-CSRF-Token).
-- Cliente → B2: HTTPS (PUT multipart via Presigned-URL).
-- API → B2: HTTPS (SDK S3) - Apenas para gerar Presigned-URLs.
+- Cliente → R2: HTTPS (PUT multipart via Presigned-URL).
+- API → R2: HTTPS (SDK S3 / bindings) - Apenas para gerar Presigned-URLs e/ou validar metadados.
 - API → Cloudflare Queues: HTTPS (SDK) - Para publicar jobs (ex: transcode_asset_id_123).
 - Workers (Modal) → Cloudflare Queues: HTTPS (SDK) - Para consumir jobs.
-- Workers (Modal) → B2: HTTPS (SDK) - GET original, PUT derivados (thumbs, 720p).
+- Workers (Modal) → R2: HTTPS (SDK) - GET original, PUT derivados (thumbs, 720p).
 - Workers (Modal) → API: HTTPS (PATCH /assets/{id}) - Para atualizar status. Autenticado via Authorization: Bearer <MODAL_SERVICE_TOKEN>.
 - Gateway (Pagamento) → API: HTTPS (Webhook) - POST /webhooks/payment (protegido por HMAC).
 
-### 2.5 Padrões de chaves S3 e lifecycle (Alinhado) — **ATUALIZADO Jan/2025**
+### 2.5 Padrões de chaves S3 e retenção (Alinhado) — **ATUALIZADO Jan/2025**
 
 > ⚠️ **Implementação Concluída:** A estrutura de pastas abaixo está implementada em `apps/api/babybook_api/storage/paths.py`
 
@@ -215,7 +215,7 @@ sys/logos/{filename}
 - **`partners/` como quarentena:** Assets ficam em quarentena até resgate do voucher, quando são copiados para `u/`.
 - **Separação original/preview/thumb:** Permite lifecycle diferenciado (previews recriáveis podem ter TTL).
 
-#### Lifecycle Rules (B2)
+#### Política de retenção (R2-only)
 
 ```yaml
 rules:
@@ -227,26 +227,25 @@ rules:
     action: delete
     days: 365
 
-  - prefix: "u/"
-    action: cold_storage
-    days: 365 # Após 1 ano sem acesso
+  # Observação: para "u/" (permanente), não há transição de storage.
+  # A mitigação de custo é feita por quota (2 GiB), compressão e purge de derivados (recriáveis).
 ```
 
 #### Implementação
 
 - **Módulo:** `apps/api/babybook_api/storage/paths.py`
 - **Funções:** `tmp_upload_path()`, `partner_delivery_path()`, `user_moment_path()`, `secure_filename()`, `validate_user_access()`
-- **Integração:** `hybrid_service.py`, `partner_service.py`, rotas de upload
+- **Integração:** `partner_service.py`, rotas de upload
 
 ### 2.6 Edge Worker "Porteiro Digital" — **NOVO Jan/2025**
 
-> O bucket B2 é 100% privado. Todo acesso passa pelo Edge Worker que valida JWT e aplica ACL.
+> O bucket R2 é 100% privado. Todo acesso passa pelo Edge Worker que valida JWT e aplica ACL.
 
 #### Arquitetura
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Cliente   │────▶│ Cloudflare Edge  │────▶│ B2 Bucket       │
+│   Cliente   │────▶│ Cloudflare Edge  │────▶│ R2 Bucket       │
 │  (Browser)  │     │    Worker        │     │  (Privado)      │
 └─────────────┘     └──────────────────┘     └─────────────────┘
                            │
@@ -254,7 +253,7 @@ rules:
                     │ 1. Extract JWT
                     │ 2. Verify Signature
                     │ 3. Check ACL
-                    │ 4. Sign Request (aws4fetch)
+                    │ 4. Fetch/Proxy (R2 binding ou S3 compatível)
                     │ 5. Stream Response + Cache
                     └─────────────┘
 ```
@@ -271,7 +270,7 @@ rules:
 #### Benefícios
 
 - **Segurança:** Bucket permanece privado, sem URLs públicas vazadas
-- **Custo Zero de Egress:** Bandwidth Alliance (Cloudflare ↔ B2 = grátis)
+- **Custo controlado:** Mitigação via cache na edge + budgets/rate-limit (custo principal vira requests/armazenamento, não tráfego na API)
 - **Cache na Edge:** Vídeo assistido 10x = 9 do cache
 - **Baixa Latência:** Executa em 200+ POPs globais
 
@@ -362,12 +361,16 @@ Exemplo 2: Pacote "Saúde" (R$ 29) → Define Account.entitlements.features.unli
 
 ### 3.7.1 Política de Pricing & Fees (Atualização do Dossiê)
 
-Notas operacionais (deve constar na implementação do checkout e nos cálculos de Unit Economics):
+Notas operacionais (deve constar na implementação do checkout e nos cálculos de Unit Economics) — **pior cenário Brasil**:
 
-- Precificação dual: R$ 297 (cartão, B2C varejo) / R$ 279 (PIX). Incentivo explícito ao PIX para reduzir taxas.
-- Taxas de gateway projetadas: cartão B2C (parcelamento realístico) ≈ R$ 16,33 por venda; PIX ≈ R$ 1,00 por venda. Esses números devem ser usados nos cálculos de fechamento de pedido e relatórios financeiros.
-- Canais B2B: preços e descontos para fotógrafos/partners — ex.: R$ 120 (lote 10), R$ 100 (lote 50+). O checkout parceiro deve processar pagamento B2B e gerar vouchers em lote.
-- Tributação/Regime (Fator R): risco de enquadramento no Anexo V (alíquota ≈ 15,5%). Estratégia adotada: estruturar pró-labore >= 28% do faturamento bruto para manter Anexo III (alíquota efetiva mais favorável). Implementar checagens mensais (financeiro/contábil) e alertas se a razão pró-labore/faturamento cair abaixo do threshold.
+- Precificação B2C: R$ 297 (cartão, em até 3x) / R$ 279 (PIX). Incentivo explícito ao PIX para reduzir taxas.
+- Taxas assumidas (padrão de cálculo):
+  - Cartão (B2C e B2B): **12% all-in** (gateway + antecipação + custo do 3x subsidiado).
+  - PIX: **R$ 1,50** (taxa fixa).
+- Canais B2B (portal do fotógrafo): venda em lote de vouchers.
+  - Lote 10 (PIX): R$ 1.350,00 (equivale a R$ 135/voucher).
+  - Lote 10 (Cartão em até 3x): R$ 1.490,00 (equivale a R$ 149/voucher).
+- Tributação/Regime: para decisões e cálculos, assumir **15,5%** como pior cenário (Anexo V). Estratégias contábeis (ex: Fator R) são desejáveis, mas não podem ser pré-requisito do modelo.
 
 Implicação técnica: O serviço de faturamento (ou webhook handler) deve calcular e armazenar (no Purchase/order) os valores líquidos (amount_gross, tax_effective, gateway_fee, pce_reserved) para futura reconciliação e relatórios.
 
@@ -414,7 +417,7 @@ No modelo PWA/Edge, o upload precisa tolerar aba fechada, troca de app e redes m
 - Fluxo simplificado:
   1. Cliente solicita /api/uploads/init com metadados.
   2. API valida quota, cria Asset (status=uploading) e retorna instruções de upload (presigned URLs ou dados TUS).
-  3. Cliente realiza compressão local e envia os chunks resumable diretamente ao storage (R2/B2) sem atravessar a API.
+  3. Cliente realiza compressão local e envia os chunks resumable diretamente ao storage (R2) sem atravessar a API.
   4. Ao completar, o cliente chama /api/uploads/complete com prova (ETags ou metadata). API valida e marca Asset como queued/ready conforme webhooks de storage.
 
 - Fallback server-side:
@@ -497,25 +500,23 @@ Substitui o "Ciclo de Vida da Assinatura" por "Confirmação de Compra Única".
 
 ## 5. Segurança e conformidade (STRIDE)
 
-### 5.4 Política de retenção e Cold Storage (Implementação Detalhada)
+### 5.4 Política de retenção e arquivamento lógico (Implementação Detalhada)
 
 - Logs operacionais: 30-90 dias.
-- Exports: 72 h (B2 Lifecycle).
-- Derivados (Cache): 90 dias (B2 Lifecycle) - Recriáveis sob demanda.
+- Exports: 72 h (TTL via regra/cron) — zip + manifest são recreáveis.
+- Derivados (Cache): 90 dias (TTL via regra/cron) — recriáveis sob demanda.
 
 **Mitigação de Custo (Acesso Perpétuo):**
 
 - **Ação de Custo (Implementação):** Um job agendado (ex: Modal Cron daily) roda SELECT id FROM Account WHERE status = 'active' AND last_login_at < NOW() - INTERVAL '12 months'.
 - Para cada conta, o job (1) atualiza Account.status = 'archived' e (2) enfileira um novo job (ex: archive_account_assets) na Cloudflare Queues.
-- **Job de Arquivamento (Worker Modal):** O worker lista todos os original.{ext} da conta no B2 (media/u/{account_id}/...) e executa a transição de storage (API do B2/S3) para a classe "Archive".
-- **UX de Restauração (Implementação):**
+- **Arquivamento Lógico (Worker Modal):** em R2-only, não há "classe Archive". A economia vem de reduzir _requests_ e _computação_:
+  - Purge de derivados recriáveis (thumbs/previews) para contas inativas.
+  - Re-encode opcional para preset base (720p) quando aplicável.
+  - Congelar features caras (ex: 1080p) via entitlements/feature-flags.
+- **UX de Reativação (Implementação):**
   - Usuário loga (se status='archived', API atualiza para status='active').
-  - Usuário tenta acessar um Moment com Asset.status = 'archived'.
-  - UI mostra placeholder e botão "Restaurar do Arquivo" (e o aviso "Pode levar algumas horas").
-  - Usuário clica → API enfileira um job de restore (ex: restore_asset).
-  - Worker (Modal) chama a API do B2 (ex: "Standard" retrieval, 3-5 horas).
-  - A API deve ter um webhook (ou poller) para detectar que o restore do B2 foi concluído.
-  - Quando concluído, o webhook/poller atualiza Asset.status = 'ready'. A UI (via polling) reflete a mudança.
+  - Se um derivado não existir (purge), a UI mostra placeholder "Gerando…" e a API enfileira job de regeneração. O usuário não deve esperar horas; o tempo-alvo é minutos (SLO 1.1).
 
 ## 6. Modelo padronizado de erros (API) (Alinhado)
 
@@ -566,7 +567,7 @@ Novos Códigos de Domínio (Revisados):
 ### 9.1 SLIs, alertas e orçamentos de erro
 
 - SLIs: Latência p95; taxa 5xx; queue_time.
-- Alertas: Burn rate (ex: 14d/1h) nos SLIs. Alerta de Custo (ex: B2 egress > $100/dia).
+- Alertas: Burn rate (ex: 14d/1h) nos SLIs. Alerta de Custo (ex: requests/storage acima do budget por dia).
 - Ações: Freeze de deploy se exceder orçamento de erro.
 
 ### 9.2 Telemetria e correlação ponta a ponta
@@ -593,9 +594,9 @@ Novos Códigos de Domínio (Revisados):
 | Risco                                     | Mitigação (Alinhada com Viabilidade visao_viabilidade_babybook.md)                                                                                                                                                                                                                                                             |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1. Custo de Longo Prazo (Acesso Perpétuo) | O maior risco. Mitigado por: (1) Hedge Mandatório (créditos USD). (2) Cold Storage Agressivo (5.4) após 12 meses. (3) Cláusula de "Taxa de Manutenção" (Termos de Uso) para contas inativas > 36 meses. Detalhe: Legalmente, "Acesso Perpétuo" deve ser definido como "perpétuo enquanto o serviço for comercialmente viável". |
-| 2. Câmbio (USD/BRL)                       | Risco financeiro que impacta o Custo de Estoque (estimativa ≈ R$ 1,25/ano). Mitigado pela Política de Hedge Mandatório (compra de créditos USD pré-pagos no B2/Modal/Fly quando o câmbio estiver favorável).                                                                                                                   |
+| 2. Câmbio (USD/BRL)                       | Risco financeiro que impacta o Custo de Estoque (estimativa ≈ R$ 1,25/ano). Mitigado pela Política de Hedge Mandatório (compra de créditos USD pré-pagos no Cloudflare/Modal/Fly quando o câmbio estiver favorável).                                                                                                           |
 | 3. Cold Start (DB/Workers)                | Aceitar em p99. Manter pool warm (Modal) e instâncias mínimas (Fly.io) em picos sazonais. A UI deve sempre mostrar um spinner otimista para mascarar o cold start do Neon.                                                                                                                                                     |
-| 4. Fim da "Bandwidth Alliance"            | Risco de plataforma que quebraria o Custo de Estoque (aumentando o egress). Mitigação de Longo Prazo: Migrar o storage do B2 para o Cloudflare R2, que tem zero custo de egress por padrão, eliminando a dependência da aliança.                                                                                               |
+| 4. Mudança de pricing do storage/requests | Risco de plataforma que pode pressionar o Custo de Estoque (armazenamento + requests). Mitigação: quota rígida (2 GiB), compressão agressiva, cache/edge, budgets e possibilidade de migração por aderência a S3.                                                                                                              |
 | 5. Risco de Upsell Baixo                  | Rebaixado de Risco de Sobrevivência para Risco de Lucro. O modelo (visao_viabilidade_babybook.md, Seção 5.3) sobrevive com 0% de attach rate (graças ao PCE). Mitigação (Produto): O upsell é agora 100% "gravy". A mitigação é o Plano de Engajamento (CRM, Highlight Reels) para maximizar este lucro extra.                 |
 
 ## 11. Roadmap técnico (Simplificado)
@@ -655,7 +656,7 @@ Limites por IP (para rotas não autenticadas) e por account_id (para rotas auten
 | POST /auth/login           | 10 req/min/IP      | 60s    | (Spoofing) Lockout progressivo.         |
 | POST /auth/password/forgot | 3 req/hora/IP      | 3600s  | (DoS) Evitar spam de e-mail.            |
 | POST /webhooks/payment     | (Sem limite de IP) | -      | (Spoofing) Protegido por HMAC (4.10).   |
-| POST /uploads/init         | 20 req/min/Conta   | 60s    | (DoS) Proteger B2 e API de hotspots.    |
+| POST /uploads/init         | 20 req/min/Conta   | 60s    | (DoS) Proteger R2 e API de hotspots.    |
 | POST /uploads/complete     | 20 req/min/Conta   | 60s    | (Tampering) Idempotência obrigatória.   |
 | POST /moments              | 30 req/min/Conta   | 60s    | (DoS) Validação de quotas (3.2).        |
 | POST /export               | 1 job/hora/Conta   | 3600s  | (DoS/Custo) Retornar 429 (job recente). |
@@ -663,7 +664,7 @@ Limites por IP (para rotas não autenticadas) e por account_id (para rotas auten
 
 ### Apêndice C: Estratégia de Desenvolvimento Local (DevEx)
 
-Objetivo: Garantir que um desenvolvedor possa rodar e testar a aplicação localmente com o mínimo de atrito, sem depender dos serviços de nuvem (Neon, Modal, B2), que são usados em staging.
+Objetivo: Garantir que um desenvolvedor possa rodar e testar a aplicação localmente com o mínimo de atrito, sem depender dos serviços de nuvem (Neon, Modal, R2), que são usados em staging.
 
 Ferramenta Padrão: Um docker-compose.yml será mantido na raiz do repositório.
 

@@ -30,7 +30,7 @@ Nota operacional:
 
 - Pricing e ofertas: o produto adota pricing dual (Ticket R$297 cartão / R$279 PIX). A landing page e mensagens públicas devem ser validadas contra `docs/DOSSIE_ATUALIZACAO_EXECUCAO.md` antes de qualquer publicação.
 - Processamento de mídia: o frontend prefere processar mídia no cliente usando `ffmpeg.wasm` (Web Worker) para reduzir custos de infraestrutura. O pipeline de workers (Modal) existe como fallback e para jobs pesados; não dependa do worker para o fluxo básico local quando `VITE_ENABLE_MSW=true`.
-- Storage: em desenvolvimento a API normalmente aponta para um MinIO local (mock S3). Em produção usamos Cloudflare R2 (hot/previews) + Backblaze B2 (cold/originals).
+- Storage: em desenvolvimento a API normalmente aponta para um MinIO local (mock S3/R2). Em produção usamos **Cloudflare R2-only** (tiers lógicos).
 
 ### 3. Rodar em modo desenvolvimento
 

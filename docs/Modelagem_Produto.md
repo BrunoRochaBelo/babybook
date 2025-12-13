@@ -136,10 +136,14 @@ Definimos duas jornadas de aquisição primárias, alinhadas com nossa estratég
 Esta é a jornada da Persona "Ana" (3.1).
 
 1. **Descoberta (Marketing):** Ana vê um anúncio (ex: Instagram de uma influencer de maternidade) que fala sobre "o app que não é rede social e salvou as memórias do primeiro ano". A mensagem foca na "calma" e "curadoria".
-2. **Landing Page (Consideração):** A página de vendas reforça a Tese (Seção 2). Mostra layouts bonitos do álbum (o PoD) e o testimonial do Avô (Sérgio). O call-to-action (CTA) é claro: "Compre seu Acesso Perpétuo — R$ 297 (cartão) / R$ 279 (PIX)".
+2. **Landing Page (Consideração):** A página de vendas reforça a Tese (Seção 2). Mostra layouts bonitos do álbum (o PoD) e o testimonial do Avô (Sérgio). O call-to-action (CTA) deve destacar as duas escolhas de conversão:
+
+- **Cartão:** "3x de R$ 99,00 sem juros" (total R$ 297,00)
+- **PIX:** "R$ 279,00 à vista (desconto)"
+
 3. **O "Atrito Positivo" (Checkout):** Este é um pilar da nossa estratégia anti-freemium (Seção 10.1). Não pedimos cartão depois, pedimos antes.
 
-- **Rationale:** Queremos clientes comprometidos. O ato de pagar o ticket (R$ 279 PIX / R$ 297 cartão) é um filtro de intenção. Ele filtra usuários não-sérios (que só geram custo de compute e storage) e seleciona clientes (como Ana) que estão investidos em completar a jornada.
+- **Rationale:** Queremos clientes comprometidos. O ato de pagar o ticket (R$ 279 PIX / R$ 297 cartão em até 3x) é um filtro de intenção. Ele filtra usuários não-sérios (que só geram custo de compute e storage) e seleciona clientes (como Ana) que estão investidos em completar a jornada.
 
 4. **O "Primeiro Valor" (Onboarding Pós-Compra):** Ana baixa o app e faz login. O onboarding é mínimo. Não há um tour de 10 telas. O app pede 2 coisas:
    - Nome do Bebê.
@@ -149,6 +153,13 @@ Esta é a jornada da Persona "Ana" (3.1).
 ### Jornada B: Aquisição B2B2C (Voucher de Parceiro)
 
 Esta é a jornada do nosso canal GTM primário (Visão & Viabilidade, Seção 3.4).
+
+**Portal do Fotógrafo (Compra de Vouchers):** antes de existir voucher para a mãe resgatar, o parceiro precisa comprar em lote com uma UI simples e sem ambiguidade. A tela de compra deve oferecer um seletor explícito:
+
+- "**Lote 10 Vouchers - Pix:** R$ 1.350,00"
+- "**Lote 10 Vouchers - Cartão:** R$ 1.490,00 (em até 3x)"
+
+Regra de produto: o checkout B2B não deve prometer "melhor preço" no cartão; o cartão existe para facilitar compra, mas o **padrão recomendado** é PIX/transferência (liquidez e margem).
 
 1. **Descoberta (Parceiro):** Ana contrata uma fotógrafa de newborn (nossa parceira B2B2C). Junto com as fotos, a fotógrafa entrega um voucher (um cartão físico premium, ou um código digital): "Como presente, aqui está o Acesso Perpétuo ao Baby Book para você guardar essas memórias."
 2. **Landing Page (Resgate):** Ana não vai para a página de vendas. Ela acessa uma URL específica de resgate (ex: babybook.com/resgatar). A UI deve ser elegante, parecendo "abrir um presente".
@@ -233,7 +244,7 @@ Tão importante quanto saber o que fazer, é saber o que não fazer.
 
 - **O Anti-Padrão:** Oferecer um trial de 14 dias ou um plano "Grátis" (ex: 3 momentos).
 - **Por que é uma Armadilha:**
-  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o ticket no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 25,00). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (B2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
+  - Conflito com o Negócio (PCE): Nosso modelo financeiro (Visão & Viabilidade) depende de cada usuário pagar o ticket no D0 (na Jornada A) para provisionar o Custo de Estoque (PCE) de 20 anos (R$ 25,00). Um usuário freemium que faz upload de 3 vídeos e abandona o app gera um custo de compute (Modal) e storage (R2) não pago. Ele gera prejuízo líquido. (A Jornada B, do voucher, não é freemium, ela é pré-paga pelo parceiro).
   - Conflito com o Produto (Compromisso): O "Atrito Positivo" (Seção 6.1) é uma feature. Ele seleciona clientes (Anas) que estão comprometidos a usar o app. Um trial atrai usuários não-comprometidos.
 
 ### A Armadilha da "Ferramenta" (Ser o Google Photos)

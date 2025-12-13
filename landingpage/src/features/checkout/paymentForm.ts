@@ -432,7 +432,7 @@ function createPaymentFormTemplate(): string {
             <div class="text-2xl mb-1">💳</div>
             <div class="font-bold text-gray-900">Cartão</div>
             <div class="text-sm text-gray-600">R$ 297</div>
-            <div class="text-xs text-gray-500">até 12x</div>
+            <div class="text-xs text-gray-500">até 3x</div>
           </button>
         </div>
         

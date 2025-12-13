@@ -41,7 +41,7 @@ Nota: O modelo de dados foi atualizado para refletir as decisões do [BABY BOOK:
 
 Esta seção define as restrições e decisões fundamentais que governam todo o modelo de dados, alinhadas com o documento Arquitetura & Domínio.
 
-Fonte de Verdade: PostgreSQL (metadados) + Storage híbrido (Cloudflare R2 hot + Backblaze B2 cold) para mídia. Justificativa: Esta separação é crucial e é o pilar do nosso modelo de Visão & Viabilidade. O PostgreSQL (via Neon) armazena metadados (texto, JSON, UUIDs), que têm um custo de armazenamento low-cost e previsível. O storage híbrido mantém thumbnails/previews na borda (R2) e os originais no cold storage (B2), otimizando custo e egress. Tentar armazenar mídia no banco (ex: bytea) seria financeiramente proibitivo e tecnicamente ineficiente, quebrando o "God SLO" de Custo de Estoque (< R$ 2,00/ano).
+Fonte de Verdade: PostgreSQL (metadados) + Storage (Cloudflare R2 — **R2-only**) para mídia. Justificativa: Esta separação é crucial e é o pilar do nosso modelo de Visão & Viabilidade. O PostgreSQL (via Neon) armazena metadados (texto, JSON, UUIDs), que têm um custo de armazenamento low-cost e previsível. O storage mantém originais e derivados; a mitigação de custo vem de quota rígida (2 GiB), compressão e purge de derivados recriáveis (não de migração entre buckets). Tentar armazenar mídia no banco (ex: bytea) seria financeiramente proibitivo e tecnicamente ineficiente, quebrando o "God SLO" de Custo de Estoque (< R$ 2,00/ano).
 Multi-tenant: Por account_id com RLS (Row Level Security) ativo em todo o domínio.Implicação: A API (FastAPI) nunca deve escrever uma query com WHERE account_id = ?. Este é um anti-pattern perigoso. O RLS (Seção 8) injeta essa condição automaticamente no nível do banco. Isso é a nossa principal defesa contra vazamento de dados entre contas (tenants). Um bug na API (que "esqueça" o WHERE) é contido pelo banco, que não retornará linhas que não pertençam ao app.account_id setado na sessão (ver 8.1).
 Concorrência: Otimista. rev + updated_at $\rightarrow$ ETag W/"<rev>-<epoch>" com If-Match.Justificativa: Em uma aplicação web colaborativa (pai e mãe editando), locks pessimistas (SELECT...FOR UPDATE) são um gargalo de performance que serializa o acesso. É preferível permitir a colisão (duas pessoas salvarem ao mesmo tempo) e rejeitar a segunda escrita com um erro 412 Precondition Failed.
 Implicação (UI): A UI (cliente), conforme a Estrutura do Projeto (Seção 3.9), deve tratar o 412 de forma inteligente: ela deve informar ao usuário ("Alguém salvou este momento enquanto você editava. Suas alterações não foram salvas.") e, idealmente, oferecer um "diff" ou a opção de "copiar minhas alterações" antes de recarregar os dados do servidor. A trigger touch_rev (Seção 9.3) implementa a mecânica de ETag no DDL.
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS app.asset (
   account_id uuid NOT NULL REFERENCES app.account(id) ON DELETE CASCADE,
   kind app.asset_kind NOT NULL,
   status app.asset_status NOT NULL DEFAULT 'queued',
-  key_original text NULL, -- O path no S3/B2 (preenchido pelo worker pós-upload)
+  key_original text NULL, -- O path no S3/R2 (preenchido pelo worker pós-upload)
   mime text NOT NULL,
   size_bytes bigint NOT NULL,
   duration_ms int NULL,
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS app.asset (
   -- (se o cliente não enviar) ou usar o do cliente para fazer um
   -- `SELECT id FROM app.asset WHERE account_id = ? AND sha256 = ?`.
   -- Se encontrar, ela pula o *upload* e retorna o 'asset.id' existente.
-  -- Isso economiza: (1) Custo de Storage (B2), (2) Custo de Compute (Modal/Transcode),
+  -- Isso economiza: (1) Custo de Storage (R2), (2) Custo de Compute (Modal/Transcode),
   -- (3) Custo de Fila (CF Queues) e (4) Quota de GiB do usuário (mantendo o `usage_counter` correto).
   CONSTRAINT uq_asset_dedup UNIQUE (account_id, sha256)
 );
@@ -399,7 +399,7 @@ CREATE TABLE IF NOT EXISTS app.asset_variant (
   asset_id uuid NOT NULL REFERENCES app.asset(id) ON DELETE CASCADE,
   vtype text NOT NULL CHECK (vtype IN ('video','image','audio')),
   preset text NOT NULL, -- 'thumb', '720p', 'print_300dpi'
-  key text NOT NULL, -- O path S3/B2 para este derivado
+  key text NOT NULL, -- O path S3/R2 para este derivado
   bytes bigint NOT NULL,
   width_px int NULL,
   height_px int NULL,
@@ -492,7 +492,7 @@ CREATE INDEX IF NOT EXISTS idx_assets_processing ON app.media_assets(processing_
 --   -- 1. Validar voucher (status = 'ACTIVE')
 --   SELECT * FROM app.vouchers WHERE code = $1 AND status = 'ACTIVE' FOR UPDATE;
 --   -- 2. Criar ou recuperar usuário (get_or_create_user)
---   -- 3. Copiar arquivos server-side do prefix partners/... para u/{user}/m/{moment}/ (b2_copy_file) e inserir registros em app.asset/app.asset_variant
+--   -- 3. Copiar arquivos server-side (S3-compatible / R2) do prefix partners/... para u/{user}/m/{moment}/ e inserir registros em app.asset/app.asset_variant
 --   -- 4. Inserir momento (type = 'PROFESSIONAL_GALLERY') e relacionar assets via app.moment_asset
 --   -- 5. Atualizar vouchers.status = 'REDEEMED', vouchers.redeemed_by_user_id = {user.id}, vouchers.redeemed_at = now()
 --   -- 6. Atualizar deliveries.status = 'CLAIMED' (se aplicável)
@@ -577,7 +577,7 @@ CREATE TABLE IF NOT EXISTS app.export_job (
   account_id uuid NOT NULL REFERENCES app.account(id) ON DELETE CASCADE,
   params jsonb NOT NULL, -- Filtros do export (ex: { "child_id": "...", "include": ["health"] })
   status text NOT NULL CHECK (status IN ('queued','processing','ready','failed','canceled')),
-  result_url text NULL, -- Link S3/B2 para o ZIP
+  result_url text NULL, -- Link S3/R2 para o ZIP
   expires_at timestamptz NULL, -- Data de expiração do link
   error jsonb NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -1058,11 +1058,11 @@ Estratégia: SELECT ... FROM app.capsule_item WHERE open_at <= now() AND notifie
 Objetivo: Encontrar e excluir assets que foram processados (status = 'ready') mas nunca foram vinculados a uma entidade (Momento, Cofre, Guestbook, etc.) após um período de tolerância (ex: 24 horas).
 Justificativa: Resolve o "Asset Órfão". Se um usuário faz upload de 5 fotos, mas só salva o momento com 3, este job limpa as 2 fotos "soltas", liberando espaço no S3 e na quota do usuário.
 Frequência: Diariamente (ex: 04:00 UTC, fora do pico).
-Estratégia (Transacional Segura): Um worker (1) executa a query conceitual (abaixo) para encontrar os ids dos assets órfãos. (2) Em um loop (ou lote) transacional por asset:Dispara um job na Cloudflare Queues (topic: asset.delete, payload: {key: ...}) (para o worker deletar do S3/B2).
+Estratégia (Transacional Segura): Um worker (1) executa a query conceitual (abaixo) para encontrar os ids dos assets órfãos. (2) Em um loop (ou lote) transacional por asset:Dispara um job na Cloudflare Queues (topic: asset.delete, payload: {key: ...}) (para o worker deletar do S3/R2).
 INSERT INTO app.usage_event_queue (kind: 'bytes_dec', amount: ...) (para o Job 1 corrigir a quota).
 DELETE FROM app.asset WHERE id = ....
 
-Rationale: Esta ordem (Fila $\rightarrow$ Fila de Uso $\rightarrow$ Delete DB) garante que, se a deleção do S3 (via Fila) falhar, ela pode ser re-tentada (pela DLQ da Fila), mas o asset já foi removido da aplicação e da quota do usuário de forma atômica no DB.
+Rationale: Esta ordem (Fila $\rightarrow$ Fila de Uso $\rightarrow$ Delete DB) garante que, se a deleção do storage (S3/R2) (via Fila) falhar, ela pode ser re-tentada (pela DLQ da Fila), mas o asset já foi removido da aplicação e da quota do usuário de forma atômica no DB.
 
 ```sql
 -- Query Conceitual (Pesada, rodar fora de pico):

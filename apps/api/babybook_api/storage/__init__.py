@@ -3,7 +3,6 @@ Storage Layer - Baby Book
 
 Abstração de storage para suportar múltiplos providers:
 - Cloudflare R2 (hot storage - thumbnails, previews)
-- Backblaze B2 (cold storage - originais, vídeos)
 - MinIO (desenvolvimento local)
 
 Estrutura de Pastas:

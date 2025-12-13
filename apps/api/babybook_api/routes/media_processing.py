@@ -107,7 +107,7 @@ async def queue_processing_job(
     - Device has limited resources (mobile, low-end)
     
     The job will be processed by workers and the result stored in the
-    appropriate storage tier (R2 for previews, B2 for originals).
+    appropriate storage tier (R2-only; hot/cold são distinções lógicas).
     """,
 )
 async def queue_transcode_job(

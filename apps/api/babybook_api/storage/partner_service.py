@@ -311,8 +311,8 @@ class PartnerStorageService:
         """
         Copia todos os assets de uma entrega para a pasta do usuário.
         
-        Usado quando um voucher é resgatado. Utiliza b2_copy_file para
-        cópia server-side (instantânea, não consome banda).
+        Usado quando um voucher é resgatado. Utiliza cópia server-side
+        (instantânea, não consome banda de egress).
         
         Args:
             partner_id: UUID do parceiro

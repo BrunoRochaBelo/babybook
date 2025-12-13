@@ -18,10 +18,11 @@ Nota: regras de autorização e TTL de presigned URLs descritas no [BABY BOOK: D
 
 ```
 ┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
-│   Cliente   │────▶│ Cloudflare Edge │────▶│ B2 Bucket   │
+│   Cliente   │────▶│ Cloudflare Edge │────▶│ R2 Bucket   │
 │  (Browser)  │     │    Worker       │     │  (Privado)  │
 └─────────────┘     └─────────────────┘     └─────────────┘
-                           │
+
+                                │
                     ┌──────┴──────┐
                     │ 1. JWT Auth  │
                     │ 2. ACL Check │
@@ -63,7 +64,8 @@ curl -v "https://edge.babybook.com/v1/file/u/{user_id}/m/{moment_id}/photo.jpg" 
    - Request count
    - Error rate
    - CPU time
-   - Subrequests (chamadas ao B2)
+
+- Subrequests (chamadas ao R2)
 
 ## Cenários de Resolução
 
@@ -75,7 +77,7 @@ wrangler tail babybook-edge --format json | jq 'select(.level == "error")'
 
 # Causas comuns:
 # 1. JWT_SECRET não configurado
-# 2. B2 credentials inválidas
+# 2. R2 credentials inválidas
 # 3. Código com bug
 
 # Verificar secrets
@@ -105,29 +107,31 @@ wrangler secret put JWT_SECRET
 ### Cenário 3: Erros de Storage (502/504)
 
 ```bash
-# Verificar conectividade com B2
-curl -I https://s3.us-west-004.backblazeb2.com
+# Verificar conectividade com R2
+curl -I https://{account_id}.r2.cloudflarestorage.com
 
-# Verificar credentials B2
-wrangler secret list | grep B2_
+# Verificar credentials R2
+wrangler secret list | grep -E "R2_|CLOUDFLARE_"
 
 # Testar assinatura S3 manualmente
 aws s3 ls s3://bb-production-v1/ \
-  --endpoint-url https://s3.us-west-004.backblazeb2.com \
-  --profile babybook-b2
+  --endpoint-url https://{account_id}.r2.cloudflarestorage.com \
+  --profile babybook-r2
 ```
 
 ### Cenário 4: Rate Limiting
 
 ```bash
-# Verificar se está sendo rate limited pelo B2
-# B2 tem limite de 2500 Class B transactions/day (free tier)
+# Verificar se há throttling/rate limiting do storage (R2) ou do próprio Worker
+# Sinais comuns: 429/503, aumento de subrequests, cache hit baixo.
 
-# Ver uso no dashboard B2
-# backblaze.com → B2 Cloud Storage → Caps & Alerts
+# Ver uso no Cloudflare Dashboard
+# R2 → Analytics (Operations/Errors) e Workers → Analytics (Subrequests/CPU)
 
-# Solução temporária: aumentar cache TTL
-# Solução permanente: upgrade do plano B2
+# Mitigações típicas:
+# - aumentar cache TTL e cache hit rate
+# - reduzir subrequests (ex: agrupar reads, evitar HEAD redundante)
+# - garantir que arquivos públicos passem por cache na edge quando possível
 ```
 
 ### Cenário 5: Worker Desatualizado
@@ -162,7 +166,7 @@ wrangler rollback --deployment-id {id}
 Se o Edge Worker estiver totalmente down, configurar bypass temporário:
 
 ```bash
-# Opção 1: Redirect direto para B2 (perde proteção!)
+# Opção 1: Redirect direto para R2 (perde proteção!)
 # NÃO RECOMENDADO - usar apenas em emergência extrema
 
 # Opção 2: Usar signed URLs da API

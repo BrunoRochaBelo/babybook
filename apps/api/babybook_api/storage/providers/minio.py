@@ -1,7 +1,7 @@
 """
 MinIO Storage Provider
 
-MinIO é usado para desenvolvimento local, simulando S3/R2/B2.
+MinIO é usado para desenvolvimento local, simulando S3/R2.
 
 Em docker-compose.yml, o MinIO está configurado em:
 - Endpoint: http://localhost:9000

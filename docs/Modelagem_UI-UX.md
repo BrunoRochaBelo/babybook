@@ -221,7 +221,7 @@ flowchart TD
     M0[Dashboard (HUD na Aba Jornada)] -- "Próxima Sugestão: [Primeiro Sorriso]" --> M1(Formulário Template Específico)
     M1 -- "Data, Para quem foi?, Vídeo" --> M2[Preenche campos únicos]
     M2 --> M3[Enviar Mídias (Slots específicos)]
-    M3 -- Upload Inicia --> M4[Upload B2]
+    M3 -- Upload Inicia --> M4[Upload R2]
     M4 -- Concluído --> M5[Transcode Assíncrono]
     M2 --> M7[Salvar (Botão sticky)]
     M7 -- Salvar (API Rápida) --> M8(Momento salvo com estado "Processando")

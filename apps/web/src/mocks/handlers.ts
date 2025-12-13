@@ -473,14 +473,19 @@ export const handlers = [
   // ==========================================================================
   // Partner Portal Handlers
   // ==========================================================================
-  
+
   // Partner profile - /partner/me
   http.get(withBase("/partner/me"), () => {
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
-        { error: { code: "partner.not_found", message: "Perfil de parceiro não encontrado" } },
-        { status: 404 }
+        {
+          error: {
+            code: "partner.not_found",
+            message: "Perfil de parceiro não encontrado",
+          },
+        },
+        { status: 404 },
       );
     }
     return HttpResponse.json({
@@ -501,19 +506,26 @@ export const handlers = [
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
-        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
-        { status: 403 }
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
       );
     }
     const deliveries = mockDeliveries;
     return HttpResponse.json({
       voucher_balance: mockPartner.voucherBalance,
       total_deliveries: deliveries.length,
-      ready_deliveries: deliveries.filter(d => d.status === "ready").length,
-      delivered_deliveries: deliveries.filter(d => d.status === "completed").length,
-      total_vouchers: deliveries.filter(d => d.voucherCode).length,
-      redeemed_vouchers: deliveries.filter(d => d.status === "completed").length,
-      pending_vouchers: deliveries.filter(d => d.status === "ready").length,
+      ready_deliveries: deliveries.filter((d) => d.status === "ready").length,
+      delivered_deliveries: deliveries.filter((d) => d.status === "completed")
+        .length,
+      total_vouchers: deliveries.filter((d) => d.voucherCode).length,
+      redeemed_vouchers: deliveries.filter((d) => d.status === "completed")
+        .length,
+      pending_vouchers: deliveries.filter((d) => d.status === "ready").length,
       total_assets: deliveries.reduce((sum, d) => sum + d.assetsCount, 0),
     });
   }),
@@ -523,8 +535,13 @@ export const handlers = [
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
-        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
-        { status: 403 }
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
       );
     }
     return HttpResponse.json({
@@ -538,8 +555,13 @@ export const handlers = [
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
-        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
-        { status: 403 }
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
       );
     }
     const body = (await request.json()) as {
@@ -568,11 +590,16 @@ export const handlers = [
   // Get single delivery
   http.get(withBase("/partner/deliveries/:deliveryId"), ({ params }) => {
     if (!sessionActive) return sessionRequiredResponse();
-    const delivery = mutableDeliveries.find(d => d.id === params.deliveryId);
+    const delivery = mutableDeliveries.find((d) => d.id === params.deliveryId);
     if (!delivery) {
       return HttpResponse.json(
-        { error: { code: "delivery.not_found", message: "Entrega não encontrada" } },
-        { status: 404 }
+        {
+          error: {
+            code: "delivery.not_found",
+            message: "Entrega não encontrada",
+          },
+        },
+        { status: 404 },
       );
     }
     // Return detailed delivery with assets
@@ -588,31 +615,31 @@ export const handlers = [
   // Values from apps/api/babybook_api/routes/partner_portal.py
   http.get(withBase("/partner/credits/packages"), () => {
     return HttpResponse.json([
-      { 
-        id: "pack_5", 
-        name: "Pacote Inicial", 
-        voucher_count: 5, 
-        price_cents: 60000,       // R$ 600
-        unit_price_cents: 12000,  // R$ 120/unid
+      {
+        id: "pack_5",
+        name: "Pacote Inicial",
+        voucher_count: 5,
+        price_cents: 85000, // R$ 850
+        unit_price_cents: 17000, // R$ 170/unid
         savings_percent: 0,
         is_popular: false,
       },
-      { 
-        id: "pack_10", 
-        name: "Pacote Profissional", 
-        voucher_count: 10, 
-        price_cents: 100000,      // R$ 1.000
-        unit_price_cents: 10000,  // R$ 100/unid
-        savings_percent: 17,
+      {
+        id: "pack_10",
+        name: "Pacote Profissional",
+        voucher_count: 10,
+        price_cents: 149000, // R$ 1.490
+        unit_price_cents: 14900, // R$ 149/unid
+        savings_percent: 12,
         is_popular: true,
       },
-      { 
-        id: "pack_25", 
-        name: "Pacote Estúdio", 
+      {
+        id: "pack_25",
+        name: "Pacote Estúdio",
         voucher_count: 25,
-        price_cents: 200000,      // R$ 2.000
-        unit_price_cents: 8000,   // R$ 80/unid
-        savings_percent: 33,
+        price_cents: 322500, // R$ 3.225
+        unit_price_cents: 12900, // R$ 129/unid
+        savings_percent: 24,
         is_popular: false,
       },
     ]);
@@ -623,20 +650,36 @@ export const handlers = [
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
-        { error: { code: "partner.forbidden", message: "Acesso restrito a parceiros" } },
-        { status: 403 }
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
       );
     }
     const body = (await request.json()) as { package_id: string };
-    
+
     // Package lookup based on real backend values
-    const packages: Record<string, { name: string; voucher_count: number; price_cents: number }> = {
-      "pack_5": { name: "Pacote Inicial", voucher_count: 5, price_cents: 60000 },
-      "pack_10": { name: "Pacote Profissional", voucher_count: 10, price_cents: 100000 },
-      "pack_25": { name: "Pacote Estúdio", voucher_count: 25, price_cents: 200000 },
+    const packages: Record<
+      string,
+      { name: string; voucher_count: number; price_cents: number }
+    > = {
+      pack_5: { name: "Pacote Inicial", voucher_count: 5, price_cents: 85000 },
+      pack_10: {
+        name: "Pacote Profissional",
+        voucher_count: 10,
+        price_cents: 149000,
+      },
+      pack_25: {
+        name: "Pacote Estúdio",
+        voucher_count: 25,
+        price_cents: 322500,
+      },
     };
     const pkg = packages[body.package_id] || packages["pack_5"];
-    
+
     // In mock mode, redirect back to partner dashboard with success
     return HttpResponse.json({
       checkout_id: `chk_${nanoid(16)}`,
@@ -662,7 +705,7 @@ export const handlers = [
     if (registeredUsers.has(email)) {
       return HttpResponse.json(
         { error: { code: "auth.user.exists", message: "Email já cadastrado" } },
-        { status: 409 }
+        { status: 409 },
       );
     }
     // Create new partner account
@@ -673,12 +716,15 @@ export const handlers = [
       role: "photographer",
     });
     registeredUsers.set(email, newUser);
-    return HttpResponse.json({
-      success: true,
-      message: "Cadastro realizado com sucesso! Aguarde a aprovação.",
-      partner_id: nanoid(),
-      status: "pending_approval",
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        success: true,
+        message: "Cadastro realizado com sucesso! Aguarde a aprovação.",
+        partner_id: nanoid(),
+        status: "pending_approval",
+      },
+      { status: 201 },
+    );
   }),
 ];
 

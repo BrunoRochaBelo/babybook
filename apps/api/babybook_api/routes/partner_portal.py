@@ -122,26 +122,26 @@ CREDIT_PACKAGES: list[CreditPackage] = [
         id="pack_5",
         name="Pacote Inicial",
         voucher_count=5,
-        price_cents=60000,  # R$ 600
-        unit_price_cents=12000,  # R$ 120/unid
+        price_cents=85000,  # R$ 850
+        unit_price_cents=17000,  # R$ 170/unid
         savings_percent=0,
     ),
     CreditPackage(
         id="pack_10",
         name="Pacote Profissional",
         voucher_count=10,
-        price_cents=100000,  # R$ 1.000
-        unit_price_cents=10000,  # R$ 100/unid
-        savings_percent=17,
+        price_cents=149000,  # R$ 1.490
+        unit_price_cents=14900,  # R$ 149/unid
+        savings_percent=12,
         is_popular=True,
     ),
     CreditPackage(
         id="pack_25",
         name="Pacote Estúdio",
         voucher_count=25,
-        price_cents=200000,  # R$ 2.000
-        unit_price_cents=8000,  # R$ 80/unid
-        savings_percent=33,
+        price_cents=322500,  # R$ 3.225
+        unit_price_cents=12900,  # R$ 129/unid
+        savings_percent=24,
     ),
 ]
 
@@ -670,7 +670,7 @@ async def get_delivery_detail(
     response_model=UploadInitResponse,
     summary="Inicia upload de arquivo",
     description="""
-    Retorna URL presigned para upload direto ao B2/R2.
+    Retorna URL presigned para upload direto ao R2.
     Fotógrafo faz upload do arquivo comprimido diretamente.
     
     Arquivos vão para tmp/uploads/ inicialmente.

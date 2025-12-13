@@ -7,8 +7,8 @@
  * 3. Edge caching and CDN
  *
  * Benefits:
- * - B2 bucket stays 100% private
- * - Zero egress cost (Bandwidth Alliance: CF ↔ B2 = free)
+ * - Bucket R2 fica 100% privado
+ * - Sem egress fees no R2
  * - Edge caching (video watched 10x = 9 from cache)
  * - Granular ACL (user can only access their own files)
  * - Low latency (runs in 200+ global POPs)
@@ -23,12 +23,14 @@ import { fileRoutes } from "./routes/files";
 type Bindings = {
   // API
   API_BASE_URL: string;
-  // B2/S3 credentials
-  B2_ACCESS_KEY_ID: string;
-  B2_SECRET_ACCESS_KEY: string;
-  B2_BUCKET_NAME: string;
-  B2_ENDPOINT: string;
-  B2_REGION?: string;
+  // R2 (S3-compatible) credentials
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
+  R2_BUCKET_NAME: string;
+  R2_ACCOUNT_ID: string;
+  R2_REGION?: string;
+  // Optional override (host only). Default: {accountId}.r2.cloudflarestorage.com
+  R2_ENDPOINT?: string;
   // JWT secret (same as backend)
   JWT_SECRET: string;
 };
@@ -72,7 +74,7 @@ app.get("/s/:token", async (c) => {
   if (!parseResult.success) {
     return c.json(
       { error: { code: "share.token.invalid", message: "Token inválido" } },
-      400 as any,
+      400,
     );
   }
 
@@ -82,7 +84,17 @@ app.get("/s/:token", async (c) => {
   );
 
   if (!response.ok) {
-    return c.json(await response.json(), response.status as any);
+    // Evita cast para `any` e respeita o status de origem.
+    // Preserva payload/Content-Type retornados pela API.
+    const bodyText = await response.text();
+    const contentType =
+      response.headers.get("Content-Type") || "application/json";
+    return new Response(bodyText, {
+      status: response.status,
+      headers: {
+        "Content-Type": contentType,
+      },
+    });
   }
 
   const payload = await response.json();

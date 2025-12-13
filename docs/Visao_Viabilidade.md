@@ -30,6 +30,23 @@ O foco estratégico é duplo: (1) converter a emoção da paternidade em uma com
 
 **Eficiência de Capital:** Atingir um Custo de Estoque (sangramento) real por conta ≤ R$ 2,00/ano. O break-even mensal deve permanecer baixo (target: < 20 contas/mês).
 
+### Unit Economics (Pior Cenário Brasil)
+
+Regra: para evitar autoengano, todas as contas abaixo assumem **pior cenário de operação no Brasil**:
+
+- **Impostos:** 15,5% (Anexo V como default de segurança)
+- **Cartão:** parcelamento **subsidiado até 3x sem juros** no B2C, usando taxa de referência **12% all-in** (gateway + antecipação + custo do parcelamento)
+- **PIX:** taxa fixa de referência **R$ 1,50**
+
+| Canal / Produto  | Condição     | Preço Venda | Imposto (15,5%) | Gateway/Juros  | CAC      | PCE (Fundo) | Infra/Ops | Lucro Líquido  | Meta R$ 60?  |
+| :--------------- | :----------- | :---------- | :-------------- | :------------- | :------- | :---------- | :-------- | :------------- | :----------- |
+| **B2C Cartão**   | 3x Sem Juros | R$ 297,00   | R$ 46,04        | R$ 35,64 (12%) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 85,82**   | ✅ SIM       |
+| **B2C Pix**      | A Vista      | R$ 279,00   | R$ 43,25        | R$ 1,50 (Fixo) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 104,75**  | ✅ SIM       |
+| **B2B Parceiro** | Pix/Transfer | R$ 135,00   | R$ 20,93        | R$ 1,50 (Fixo) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 64,07**   | ✅ SIM       |
+| **B2B Parceiro** | Cartão 3x    | R$ 149,00   | R$ 23,10        | R$ 17,88 (12%) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 59,52\*** | ⚠️ ACEITÁVEL |
+
+_Nota sobre B2B Cartão: O lucro de ~R$ 59,52 é aceitável pelo volume e CAC recorrente próximo de zero. Ajustar preço para R$ 149,00 no cartão._
+
 ## DOSSIÊ DE EXECUÇÃO — Atualizações Principais
 
 Nota canônica: este resumo sintetiza as decisões definidas no documento principal do projeto — [BABY BOOK: DOSSIÊ DE EXECUÇÃO](Dossie_Execucao.md). Consulte-o para a versão canônica e o roteiro de implementação.
@@ -37,7 +54,7 @@ Nota canônica: este resumo sintetiza as decisões definidas no documento princi
 Resumo das decisões tomadas no "Dossiê de Execução" (financeiro, produto e técnico) e que devem ser refletidas em todo o repositório:
 
 - PCE (Provisão de Custo de Existência): provisionar R$ 25,00 por venda no D0 para formar o fundo de perpetuidade. Isso substitui versões anteriores do valor e altera unit economics e políticas de preço.
-- Gateway & Liquidez: considerar custo real de cartão (projeção R$ 16,33 por venda para B2C parcelado) e taxa PIX fixa ≈ R$ 1,00; estratégia de preço: R$ 297 (cartão) / R$ 279 (PIX) com incentivo explícito ao PIX.
+- Gateway & Liquidez: assumir **parcelamento subsidiado até 3x** no B2C e modelar cartão com **12% all-in** como taxa de referência; PIX com taxa fixa **R$ 1,50**. Estratégia de preço: R$ 297 (cartão) / R$ 279 (PIX) com incentivo explícito ao PIX.
 - Regime Tributário (Fator R): risco de enquadramento no Anexo V (~15,5%). Estratégia: estruturar pró-labore ≥ 28% do faturamento bruto para manter Anexo III (alíquota efetiva menor). Manter 10% de margem de segurança nas projeções fiscais.
 - Infra D0 e Mídia: mover processamento pesado para o cliente (FFmpeg.wasm) quando possível; fallback server-side para dispositivos fracos (~R$ 0,20 por conta). Isso reduz drasticamente o custo de entrada por usuário.
 - Pivot de GTM: priorizar canal B2B2C (fotógrafos de parto como parceiros) para CAC quase zero e receita pré-paga; manter vendas diretas B2C como canal complementar com CAC estimado em R$ 80.
@@ -111,19 +128,16 @@ Nós atacamos os três grandes ralos de custo: Banco de Dados, Processamento (Wo
 
    Esse era o maior risco. De que adianta o storage ser barato se, toda vez que o usuário (ou os avós) assiste a um vídeo, nós pagamos egress (saída de dados), que é caríssimo? Um álbum compartilhado que viraliza quebraria a empresa.
 
-   **O que era preciso (A "Saída Gratuita"):** Precisávamos de storage barato com egress (saída) gratuito.
+   **O que era preciso (Egress previsível):** Precisávamos eliminar o risco de o custo variável explodir em cenários de compartilhamento (família/avós acessando muito).
 
-   A Tecnologia Escolhida: Armazenamento híbrido R2 (hot) + Backblaze B2 (cold) servido pela CDN (Cloudflare) para minimizar egress.
+   A Tecnologia Escolhida: **Cloudflare R2 como armazenamento único (R2-only)**, servido pela própria rede Cloudflare.
 
-   O Motivo (Por quê?): O B2 é um dos storages S3-compatíveis mais baratos do mercado. Mas o "pulo do gato" é que ele faz parte da "Bandwidth Alliance".
+   O Motivo (Por quê?): O R2 foi escolhido para reduzir complexidade (um único provedor de storage) e tornar o custo de entrega mais previsível, evitando dependência de acordos externos. O ganho operacional é enorme: menos código, menos migrações, menos falhas em borda.
 
-   Como foi resolvido: Essa aliança significa que qualquer transferência de dados do B2 para a CDN da Cloudflare tem custo ZERO de egress. Nosso fluxo fica:
-   - Armazenamos a mídia no B2 (barato).
-   - O usuário pede a mídia.
-   - A Cloudflare (CDN) "puxa" a mídia do B2 (custo R$ 0) e armazena em cache na borda.
-   - A Cloudflare entrega a mídia para o usuário (rápido e, na maior parte, de graça).
-
-   Basicamente, essa única decisão (a "Bandwidth Alliance") neutralizou o maior risco financeiro variável do modelo de Acesso Perpétuo.
+   Como controlamos o risco:
+   - **Cache agressivo na borda** (Cache-Control longo para derivados) para transformar múltiplas visualizações em cache hits.
+   - **Derivados pequenos** (thumb/preview) no hot path.
+   - **Rate limiting** e budgets de custo/tenant para detectar abuso ou viralização fora do esperado.
 
 **Resumo do Stack**
 
@@ -175,7 +189,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **Attach Rate (%):** "Taxa de Adesão". A porcentagem de clientes da base (Acesso Perpétuo) que compram um upsell (Pacote de Repetição) por ano. É a métrica-chave de LTV incremental.
 
-**Bandwidth Alliance:** O "pulo do gato" técnico. Acordo entre o B2 (Backblaze) e a Cloudflare que zera o custo de egress (tráfego de saída) de mídia, tornando o streaming financeiramente viável.
+**R2-only (Storage Único):** Estratégia de infraestrutura onde todos os arquivos (originais e derivados) vivem no Cloudflare R2, reduzindo complexidade e riscos de operação multi-storage.
 
 **B2B2C:** "Business-to-Business-to-Consumer". Nossa estratégia de GTM prioritária (Seção 3.4), onde vendemos/ofertamos o app através de parceiros (Fotógrafos, Lojas de Enxoval) para chegar ao cliente final.
 
@@ -185,7 +199,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **Cold Storage:** "Armazenamento Frio". Mover dados de contas inativas (>12 meses) para uma camada de storage mais barata (e lenta) para reduzir o Custo de Estoque.
 
-**Custo de Estoque:** Nosso "sangramento" anual. O custo de infra pay-per-use (estimativa ≈ R$ 1,25/ano) para manter uma conta inativa "em prateleira" (B2 + I/O mínimo). Esta estimativa deriva da provisão do PCE (R$ 25,00 dividido ao longo de 20 anos) e deve ser revisada periodicamente.
+**Custo de Estoque:** Nosso "sangramento" anual. O custo de infra pay-per-use (estimativa alvo ≤ R$ 2,00/ano) para manter uma conta inativa "em prateleira" (storage + requests + operação mínima). Esta estimativa deriva da provisão do PCE (R$ 25,00 dividido ao longo de 20 anos) e deve ser revisada periodicamente.
 
 **Custo de Setup:** Custo único de compute (R$ 0,44) incorrido no D0 para processar (transcodificar) os 60 momentos iniciais do cliente.
 
@@ -193,7 +207,7 @@ CAC (custo) = Contas novas × CAC_anual (R$ 80 no A1, R$ 65 no A2, R$ 55 no A3)
 
 **DRE (Demonstração do Resultado):** A projeção financeira que valida o modelo (Seção 5.1).
 
-**Egress:** Custo de tráfego de saída de dados (ex: streaming de vídeo). O maior risco de custo, mitigado pela Bandwidth Alliance.
+**Egress:** Custo (ou risco) associado à entrega de mídia para usuários finais. No Baby Book, mitigamos o risco via estratégia R2-only + cache agressivo na borda.
 
 **GTM (Go-to-Market):** O plano tático de "ida ao mercado" (Seção 3.4), focado em B2B2C.
 

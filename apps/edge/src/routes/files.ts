@@ -10,8 +10,8 @@
  * - tmp/... → Blocked (internal use only)
  *
  * Benefits:
- * 1. B2 bucket stays 100% private
- * 2. Zero egress cost (Bandwidth Alliance: CF ↔ B2 = free)
+ * 1. Bucket R2 fica 100% privado
+ * 2. Sem egress fees no R2
  * 3. Edge caching (video watched 10x = 9 from cache)
  * 4. Granular ACL (user can only access their own files)
  */
@@ -33,12 +33,14 @@ import {
 } from "../lib/storage";
 
 interface FileBindings {
-  // B2/S3 credentials
-  B2_ACCESS_KEY_ID: string;
-  B2_SECRET_ACCESS_KEY: string;
-  B2_BUCKET_NAME: string;
-  B2_ENDPOINT: string;
-  B2_REGION?: string;
+  // R2 (S3-compatible) credentials
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
+  R2_BUCKET_NAME: string;
+  R2_ACCOUNT_ID: string;
+  R2_REGION?: string;
+  // Optional override (host only). Default: {accountId}.r2.cloudflarestorage.com
+  R2_ENDPOINT?: string;
   // JWT secret (same as backend)
   JWT_SECRET: string;
   // Optional: API base URL for validating share tokens
@@ -62,7 +64,7 @@ fileRoutes.use(
 /**
  * CORS preflight handler
  */
-fileRoutes.options("/*", (c) => {
+fileRoutes.options("/*", () => {
   return new Response(null, {
     status: 204,
     headers: {
@@ -97,14 +99,15 @@ fileRoutes.get("/*", async (c) => {
 
     // Build storage config from environment
     const storageConfig: StorageConfig = {
-      accessKeyId: c.env.B2_ACCESS_KEY_ID,
-      secretAccessKey: c.env.B2_SECRET_ACCESS_KEY,
-      bucketName: c.env.B2_BUCKET_NAME,
-      endpoint: c.env.B2_ENDPOINT,
-      region: c.env.B2_REGION,
+      accessKeyId: c.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: c.env.R2_SECRET_ACCESS_KEY,
+      bucketName: c.env.R2_BUCKET_NAME,
+      accountId: c.env.R2_ACCOUNT_ID,
+      endpoint: c.env.R2_ENDPOINT,
+      region: c.env.R2_REGION,
     };
 
-    // Create signed request to B2
+    // Create signed request to R2
     const signedRequest = await createSignedRequest(
       storageConfig,
       objectKey,
@@ -150,11 +153,12 @@ fileRoutes.on("HEAD", ["/*"], async (c) => {
     await applySecurityRules(c.req.raw, c.env, objectKey);
 
     const storageConfig: StorageConfig = {
-      accessKeyId: c.env.B2_ACCESS_KEY_ID,
-      secretAccessKey: c.env.B2_SECRET_ACCESS_KEY,
-      bucketName: c.env.B2_BUCKET_NAME,
-      endpoint: c.env.B2_ENDPOINT,
-      region: c.env.B2_REGION,
+      accessKeyId: c.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: c.env.R2_SECRET_ACCESS_KEY,
+      bucketName: c.env.R2_BUCKET_NAME,
+      accountId: c.env.R2_ACCOUNT_ID,
+      endpoint: c.env.R2_ENDPOINT,
+      region: c.env.R2_REGION,
     };
 
     const signedRequest = await createSignedRequest(

@@ -441,7 +441,7 @@ def get_copy_destination(
     Quando um voucher é resgatado, os arquivos são copiados de
     partners/{p_id}/{d_id}/photos/* para u/{user_id}/m/{moment_id}/*
     
-    Usa b2_copy_file (server-side, não consome banda).
+    Usa cópia server-side (S3-compatible), não consome banda de egress.
     
     Args:
         source_path: Caminho original (na pasta do parceiro)
@@ -558,9 +558,9 @@ class LifecycleRule:
 
 def get_lifecycle_rules() -> list[LifecycleRule]:
     """
-    Retorna as regras de lifecycle recomendadas para configurar no B2.
-    
-    Configurar no painel B2 → Bucket Settings → Lifecycle Rules
+    Retorna regras de lifecycle recomendadas para configurar no bucket.
+
+    No R2, configurar via Cloudflare Dashboard (R2 → Lifecycle rules) ou API.
     
     Returns:
         Lista de regras de lifecycle

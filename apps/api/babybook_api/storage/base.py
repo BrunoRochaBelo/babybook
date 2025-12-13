@@ -13,13 +13,13 @@ from typing import Any, Literal
 class StorageType(str, Enum):
     """Tipo de storage (hot para acesso frequente, cold para arquivamento)"""
     HOT = "hot"   # R2 - thumbnails, previews, assets frequentes
-    COLD = "cold"  # B2 - originais, vídeos, arquivos grandes
+    COLD = "cold"  # R2 - originais, vídeos, arquivos grandes (arquivamento lógico)
 
 
 @dataclass
 class StorageConfig:
     """Configuração de um provider de storage"""
-    provider: Literal["r2", "b2", "minio", "s3"]
+    provider: Literal["r2", "minio", "s3"]
     bucket: str
     endpoint_url: str | None = None
     access_key_id: str | None = None
@@ -86,7 +86,6 @@ class StorageProvider(ABC):
     
     Implementações:
     - R2Provider (Cloudflare R2)
-    - B2Provider (Backblaze B2) 
     - MinIOProvider (desenvolvimento local)
     """
     
