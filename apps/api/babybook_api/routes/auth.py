@@ -47,10 +47,11 @@ async def login(
         payload.csrf_token,
         user_agent=request.headers.get("user-agent"),
         client_ip=request.client.host if request.client else None,
+        remember_me=payload.remember_me,
     )
     await db.commit()
 
-    apply_session_cookie(response, session.token)
+    apply_session_cookie(response, session.token, remember_me=payload.remember_me)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
 

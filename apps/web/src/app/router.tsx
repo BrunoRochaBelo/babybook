@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
+import { PartnerLayout } from "@/layouts/PartnerLayout";
 import RequireAuth from "@/components/Auth/RequireAuth";
 import RequirePhotographer from "@/components/Auth/RequirePhotographer";
 import { LoginPage } from "@/pages/LoginPage";
@@ -36,6 +37,7 @@ import {
   PartnerRegisterPage,
   PartnerSettingsPage,
   DeliveryUploadPage,
+  PartnerNotificationsPage,
 } from "@/features/partner-portal";
 // Voucher Redemption
 import { VoucherRedemptionPage } from "@/features/vouchers";
@@ -127,63 +129,23 @@ export function AppRouter() {
         <Route path="/pro/login" element={<PartnerLoginPage />} />
         <Route path="/pro/register" element={<PartnerRegisterPage />} />
 
-        {/* Partner Portal - Protected with PHOTOGRAPHER role */}
+        {/* Partner Portal - Protected with PHOTOGRAPHER role and PartnerLayout */}
         <Route
-          path="/partner"
           element={
             <RequirePhotographer>
-              <PartnerDashboard />
+              <PartnerLayout />
             </RequirePhotographer>
           }
-        />
-        <Route
-          path="/partner/credits"
-          element={
-            <RequirePhotographer>
-              <CreditsPage />
-            </RequirePhotographer>
-          }
-        />
-        <Route
-          path="/partner/settings"
-          element={
-            <RequirePhotographer>
-              <PartnerSettingsPage />
-            </RequirePhotographer>
-          }
-        />
-        <Route
-          path="/partner/deliveries"
-          element={
-            <RequirePhotographer>
-              <DeliveriesListPage />
-            </RequirePhotographer>
-          }
-        />
-        <Route
-          path="/partner/deliveries/new"
-          element={
-            <RequirePhotographer>
-              <CreateDeliveryPage />
-            </RequirePhotographer>
-          }
-        />
-        <Route
-          path="/partner/deliveries/:deliveryId"
-          element={
-            <RequirePhotographer>
-              <DeliveryDetailPage />
-            </RequirePhotographer>
-          }
-        />
-        <Route
-          path="/partner/deliveries/:deliveryId/upload"
-          element={
-            <RequirePhotographer>
-              <DeliveryUploadPage />
-            </RequirePhotographer>
-          }
-        />
+        >
+          <Route path="/partner" element={<PartnerDashboard />} />
+          <Route path="/partner/credits" element={<CreditsPage />} />
+          <Route path="/partner/settings" element={<PartnerSettingsPage />} />
+          <Route path="/partner/notifications" element={<PartnerNotificationsPage />} />
+          <Route path="/partner/deliveries" element={<DeliveriesListPage />} />
+          <Route path="/partner/deliveries/new" element={<CreateDeliveryPage />} />
+          <Route path="/partner/deliveries/:deliveryId" element={<DeliveryDetailPage />} />
+          <Route path="/partner/deliveries/:deliveryId/upload" element={<DeliveryUploadPage />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/jornada" replace />} />

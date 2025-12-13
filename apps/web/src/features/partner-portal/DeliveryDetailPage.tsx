@@ -134,52 +134,39 @@ export function DeliveryDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <button
-            onClick={() => navigate("/partner/deliveries")}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar às Entregas
-          </button>
+      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              {delivery.title || delivery.client_name || "Entrega"}
+            </h1>
+            <p className="text-gray-500 mt-1">
+              {delivery.client_name && `Cliente: ${delivery.client_name} • `}
+              Criada em {formatDate(delivery.created_at)}
+            </p>
+          </div>
 
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {delivery.title || delivery.client_name || "Entrega"}
-              </h1>
-              <p className="text-gray-500 mt-1">
-                {delivery.client_name && `Cliente: ${delivery.client_name} • `}
-                Criada em {formatDate(delivery.created_at)}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {hasVoucher ? (
-                <button
-                  onClick={() => setShowVoucherModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-                >
-                  <QrCode className="w-4 h-4" />
-                  Ver Voucher
-                </button>
-              ) : canGenerateVoucher ? (
-                <button
-                  onClick={() => setShowVoucherModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-                >
-                  <Ticket className="w-4 h-4" />
-                  Gerar Voucher
-                </button>
-              ) : null}
-            </div>
+          <div className="flex items-center gap-2">
+            {hasVoucher ? (
+              <button
+                onClick={() => setShowVoucherModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                <QrCode className="w-4 h-4" />
+                Ver Voucher
+              </button>
+            ) : canGenerateVoucher ? (
+              <button
+                onClick={() => setShowVoucherModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                <Ticket className="w-4 h-4" />
+                Gerar Voucher
+              </button>
+            ) : null}
           </div>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Voucher Info (if exists) */}
         {hasVoucher && (
           <div className="mb-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 text-white">

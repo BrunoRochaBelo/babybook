@@ -28,8 +28,7 @@
     "dev:all:lite": "node ./scripts/dev-all-lite.js",
     "setup:py:win": "powershell -NoProfile -Command \"python -m venv .venv; & .\\.venv\\Scripts\\Activate.ps1; .\\.venv\\Scripts\\python -m pip install --upgrade pip; .\\.venv\\Scripts\\python -m pip install -e apps/api -e apps/workers\"",
     "setup:py:unix": "bash -lc \"python -m venv .venv || true; source .venv/bin/activate || true; python -m pip install --upgrade pip; python -m pip install -e apps/api -e apps/workers\"",
-    "bootstrap": "node ./scripts/bootstrap.js",
-    "prepare": "husky"
+    "bootstrap": "node ./scripts/bootstrap.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.1",

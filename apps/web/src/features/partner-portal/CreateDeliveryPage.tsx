@@ -21,8 +21,12 @@ import {
   AlertCircle,
   Trash2,
   RefreshCw,
+  Search,
+  Gift,
+  UserPlus,
+  CreditCard,
 } from "lucide-react";
-import { createDelivery } from "./api";
+import { createDelivery, checkClientAccess } from "./api";
 import { usePartnerUpload } from "./usePartnerUpload";
 import type { CreateDeliveryRequest } from "./types";
 
@@ -37,9 +41,46 @@ export function CreateDeliveryPage() {
 
   // Form state
   const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [childName, setChildName] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
+
+  // Access verification state
+  const [accessStatus, setAccessStatus] = useState<{
+    hasAccess: boolean;
+    childName?: string;
+    message: string;
+  } | null>(null);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
+
+  // Verifica se cliente já tem acesso usando API real
+  const handleCheckAccess = async () => {
+    setIsCheckingAccess(true);
+    setAccessStatus(null);
+
+    try {
+      const response = await checkClientAccess(clientEmail);
+      setAccessStatus({
+        hasAccess: response.has_access,
+        childName: response.client_name || undefined,
+        message: response.message,
+      });
+      
+      // Se tiver nome do cliente, preenche automaticamente
+      if (response.client_name && !clientName) {
+        setClientName(response.client_name);
+      }
+    } catch (err) {
+      setAccessStatus({
+        hasAccess: false,
+        message: "Erro ao verificar acesso. Tente novamente.",
+      });
+    }
+
+    setIsCheckingAccess(false);
+  };
 
   // Create delivery mutation
   const createMutation = useMutation({
@@ -55,13 +96,17 @@ export function CreateDeliveryPage() {
 
   const handleCreateDelivery = () => {
     if (!clientName.trim()) {
-      setError("Nome do cliente é obrigatório");
+      setError("Nome do responsável é obrigatório");
+      return;
+    }
+    if (!childName.trim()) {
+      setError("Nome da criança é obrigatório");
       return;
     }
     setError(null);
     createMutation.mutate({
       client_name: clientName.trim(),
-      title: title.trim() || undefined,
+      title: title.trim() || `Ensaio - ${childName.trim()}`,
       description: description.trim() || undefined,
       event_date: eventDate || undefined,
     });
@@ -75,20 +120,15 @@ export function CreateDeliveryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          <button
-            onClick={() => navigate("/partner")}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Nova Entrega</h1>
+      <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header with Progress Steps */}
+        <div className="mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
+            Nova Entrega
+          </h1>
 
           {/* Progress Steps */}
-          <div className="flex items-center gap-4 mt-6">
+          <div className="flex items-center gap-4">
             <StepIndicator
               step={1}
               label="Cliente"
@@ -127,9 +167,6 @@ export function CreateDeliveryPage() {
             />
           </div>
         </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Error */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
@@ -146,12 +183,19 @@ export function CreateDeliveryPage() {
           <ClientStep
             clientName={clientName}
             setClientName={setClientName}
+            clientEmail={clientEmail}
+            setClientEmail={setClientEmail}
+            childName={childName}
+            setChildName={setChildName}
             title={title}
             setTitle={setTitle}
             description={description}
             setDescription={setDescription}
             eventDate={eventDate}
             setEventDate={setEventDate}
+            accessStatus={accessStatus}
+            isCheckingAccess={isCheckingAccess}
+            onCheckAccess={handleCheckAccess}
             onNext={handleCreateDelivery}
             isLoading={createMutation.isPending}
           />
@@ -225,8 +269,22 @@ interface ClientStepProps {
   setDescription: (v: string) => void;
   eventDate: string;
   setEventDate: (v: string) => void;
+  clientEmail: string;
+  setClientEmail: (v: string) => void;
+  childName: string;
+  setChildName: (v: string) => void;
+  accessStatus: AccessCheckResult | null;
+  isCheckingAccess: boolean;
+  onCheckAccess: () => void;
   onNext: () => void;
   isLoading: boolean;
+}
+
+// Resultado da verificação de acesso
+interface AccessCheckResult {
+  hasAccess: boolean;
+  childName?: string;
+  message: string;
 }
 
 function ClientStep({
@@ -238,86 +296,208 @@ function ClientStep({
   setDescription,
   eventDate,
   setEventDate,
+  clientEmail,
+  setClientEmail,
+  childName,
+  setChildName,
+  accessStatus,
+  isCheckingAccess,
+  onCheckAccess,
   onNext,
   isLoading,
 }: ClientStepProps) {
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail);
+
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">
-        Dados do Cliente
-      </h2>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nome do Cliente *
-          </label>
-          <input
-            type="text"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Ex: Maria Silva"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-          />
+    <div className="space-y-6">
+      {/* Card de verificação de acesso */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+            <Search className="w-5 h-5 text-pink-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Verificar Acesso
+            </h2>
+            <p className="text-sm text-gray-500">
+              Digite o e-mail do responsável para verificar se já tem Baby Book
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Título da Entrega (opcional)
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex: Ensaio Newborn - Bebê João"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-          />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <input
+              type="email"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              placeholder="email@responsavel.com"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={onCheckAccess}
+            disabled={!emailIsValid || isCheckingAccess}
+            className="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+          >
+            {isCheckingAccess ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Verificando...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4" />
+                Verificar
+              </>
+            )}
+          </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Data do Evento (opcional)
-          </label>
-          <input
-            type="date"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Descrição (opcional)
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            placeholder="Observações sobre a entrega..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none"
-          />
-        </div>
+        {/* Resultado da verificação */}
+        {accessStatus && (
+          <div
+            className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
+              accessStatus.hasAccess
+                ? "bg-green-50 border border-green-200"
+                : "bg-blue-50 border border-blue-200"
+            }`}
+          >
+            {accessStatus.hasAccess ? (
+              <>
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-green-800">
+                    🎉 Cliente já tem acesso!
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">
+                    {accessStatus.message}
+                  </p>
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    <Gift className="w-4 h-4" />
+                    Esta entrega não consome crédito
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <UserPlus className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-blue-800">
+                    Novo cliente
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    {accessStatus.message}
+                  </p>
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    <CreditCard className="w-4 h-4" />
+                    Será consumido 1 crédito
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="mt-8 flex justify-end">
-        <button
-          onClick={onNext}
-          disabled={!clientName.trim() || isLoading}
-          className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Criando...
-            </>
-          ) : (
-            <>
-              Próximo
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
+      {/* Dados da entrega */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          Dados da Entrega
+        </h2>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nome do Responsável *
+              </label>
+              <input
+                type="text"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder="Ex: Maria Silva"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nome da Criança *
+              </label>
+              <input
+                type="text"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="Ex: João"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Título da Entrega (opcional)
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex: Ensaio Newborn - Bebê João"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Data do Evento (opcional)
+            </label>
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descrição (opcional)
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Observações sobre a entrega..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={onNext}
+            disabled={!clientName.trim() || !childName.trim() || isLoading}
+            className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              <>
+                Próximo
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -157,12 +157,20 @@ export const useCreateMoment = () => {
 export const useLogin = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { email: string; password: string }) => {
+    mutationFn: async (payload: { 
+      email: string; 
+      password: string;
+      rememberMe?: boolean;
+    }) => {
       const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
       await apiClient.post("/auth/login", {
         email: payload.email,
         password: payload.password,
         csrf_token: csrf.csrf_token,
+        // Enviamos para o backend para que ele defina a duração do cookie
+        // Backend deve usar sessão mais longa (ex: 30 dias) quando true
+        // Isso é seguro pois não armazenamos credenciais no client
+        remember_me: payload.rememberMe ?? false,
       });
     },
     onSuccess: () => {

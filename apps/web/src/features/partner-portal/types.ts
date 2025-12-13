@@ -100,6 +100,8 @@ export type DeliveryStatus =
 
 export interface CreateDeliveryRequest {
   client_name: string;
+  client_email?: string;  // E-mail do responsável (para verificar acesso)
+  child_name?: string;    // Nome da criança
   title?: string;
   description?: string;
   event_date?: string;

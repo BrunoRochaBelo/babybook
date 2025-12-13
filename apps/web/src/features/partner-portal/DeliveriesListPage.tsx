@@ -88,7 +88,23 @@ type FilterStatus = "all" | DeliveryStatus;
 export function DeliveriesListPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
+  
+  // Ler filtro da URL (ex: /partner/deliveries?status=ready)
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialStatus = (searchParams.get("status") as FilterStatus) || "all";
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>(initialStatus);
+
+  // Sincronizar URL quando mudar o filtro
+  const handleStatusChange = (newStatus: FilterStatus) => {
+    setStatusFilter(newStatus);
+    const url = new URL(window.location.href);
+    if (newStatus === "all") {
+      url.searchParams.delete("status");
+    } else {
+      url.searchParams.set("status", newStatus);
+    }
+    window.history.replaceState({}, "", url.toString());
+  };
 
   // Query
   const { data, isLoading } = useQuery({
@@ -115,72 +131,60 @@ export function DeliveriesListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
-          <button
-            onClick={() => navigate("/partner")}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
+      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Minhas Entregas
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {data?.total || 0} entregas no total
+            </p>
+          </div>
+          <Link
+            to="/partner/deliveries/new"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar ao Dashboard
-          </button>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Minhas Entregas
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {data?.total || 0} entregas no total
-              </p>
-            </div>
-            <Link
-              to="/partner/deliveries/new"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">Nova Entrega</span>
-              <span className="sm:hidden">Nova</span>
-            </Link>
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Nova Entrega</span>
+            <span className="sm:hidden">Nova</span>
+          </Link>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por cliente, título ou código..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            />
           </div>
 
-          {/* Filters */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por cliente, título ou código..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as FilterStatus)
-                }
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
-              >
-                <option value="all">Todos os status</option>
-                <option value="draft">Rascunho</option>
-                <option value="pending_upload">Aguardando upload</option>
-                <option value="ready">Pronta</option>
-                <option value="delivered">Entregue</option>
-                <option value="archived">Arquivada</option>
-              </select>
-            </div>
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-gray-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                handleStatusChange(e.target.value as FilterStatus)
+              }
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
+            >
+              <option value="all">Todos os status</option>
+              <option value="draft">Rascunho</option>
+              <option value="pending_upload">Aguardando upload</option>
+              <option value="ready">Pronta</option>
+              <option value="delivered">Entregue</option>
+              <option value="archived">Arquivada</option>
+            </select>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-pink-500" />

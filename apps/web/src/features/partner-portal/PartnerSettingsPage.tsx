@@ -134,16 +134,9 @@ export function PartnerSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
-          <button
-            onClick={() => navigate("/partner")}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar ao Dashboard
-          </button>
+      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Configurações do Perfil
           </h1>
@@ -151,9 +144,6 @@ export function PartnerSettingsPage() {
             Gerencie as informações do seu estúdio
           </p>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Success Message */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-700">

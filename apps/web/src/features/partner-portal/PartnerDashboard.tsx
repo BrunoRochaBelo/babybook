@@ -121,31 +121,26 @@ export function PartnerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Portal do Parceiro
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Olá, {profile?.studio_name || profile?.name}! 👋
-              </p>
-            </div>
-            <Link
-              to="/partner/deliveries/new"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">Nova Entrega</span>
-              <span className="sm:hidden">Nova</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Dashboard
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Olá, {profile?.studio_name || profile?.name}! 👋
+            </p>
+          </div>
+          <Link
+            to="/partner/deliveries/new"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Nova Entrega</span>
+            <span className="sm:hidden">Nova</span>
+          </Link>
+        </div>
         {/* Credit Balance Card - Destaque principal */}
         <div className="mb-6 sm:mb-8">
           <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg">
@@ -183,24 +178,32 @@ export function PartnerDashboard() {
             label="Total Entregas"
             value={stats?.total_deliveries || 0}
             color="blue"
+            to="/partner/deliveries"
+            description="Todas as entregas"
           />
           <StatCard
             icon={CheckCircle2}
             label="Prontas"
             value={stats?.ready_deliveries || 0}
             color="green"
+            to="/partner/deliveries?status=ready"
+            description="Aguardando voucher"
           />
           <StatCard
             icon={Ticket}
             label="Vouchers Gerados"
             value={stats?.total_vouchers || 0}
             color="purple"
+            to="/partner/deliveries?status=delivered"
+            description="Com voucher ativo"
           />
           <StatCard
             icon={Gift}
             label="Resgatados"
             value={stats?.redeemed_vouchers || 0}
             color="pink"
+            to="/partner/notifications"
+            description="Clientes convertidos"
           />
         </div>
 
@@ -304,9 +307,11 @@ interface StatCardProps {
   label: string;
   value: number;
   color: "blue" | "green" | "purple" | "pink";
+  to?: string;
+  description?: string;
 }
 
-function StatCard({ icon: Icon, label, value, color }: StatCardProps) {
+function StatCard({ icon: Icon, label, value, color, to, description }: StatCardProps) {
   const colorClasses = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
@@ -314,8 +319,8 @@ function StatCard({ icon: Icon, label, value, color }: StatCardProps) {
     pink: "bg-pink-50 text-pink-600",
   };
 
-  return (
-    <div className="bg-white rounded-xl p-4 border border-gray-200">
+  const content = (
+    <>
       <div
         className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[color]} mb-3`}
       >
@@ -323,6 +328,32 @@ function StatCard({ icon: Icon, label, value, color }: StatCardProps) {
       </div>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
+      {description && (
+        <p className="text-xs text-gray-400 mt-1">{description}</p>
+      )}
+      {to && (
+        <div className="flex items-center gap-1 mt-2 text-xs font-medium text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity">
+          Clique para ver
+          <ChevronRight className="w-3 h-3" />
+        </div>
+      )}
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="group bg-white rounded-xl p-4 border border-gray-200 hover:border-pink-300 hover:shadow-md transition-all cursor-pointer"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      {content}
     </div>
   );
 }

@@ -67,6 +67,26 @@ export async function getPartnerDashboardStats(): Promise<PartnerDashboardStats>
 }
 
 // ============================================================
+// Check Client Access (verificação de acesso)
+// ============================================================
+
+export interface CheckAccessResponse {
+  has_access: boolean;
+  email: string;
+  client_name: string | null;
+  children: Array<{ id: string; name: string; has_access: boolean }>;
+  message: string;
+}
+
+/**
+ * Verifica se cliente já tem acesso ao Baby Book
+ * Se tiver, a entrega não consome crédito
+ */
+export async function checkClientAccess(email: string): Promise<CheckAccessResponse> {
+  return apiClient.get<CheckAccessResponse>(`${API_BASE}/check-access?email=${encodeURIComponent(email)}`);
+}
+
+// ============================================================
 // Credits & Packages
 // ============================================================
 

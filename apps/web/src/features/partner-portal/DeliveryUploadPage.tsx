@@ -124,24 +124,16 @@ export function DeliveryUploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          <button
-            onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar à Entrega
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Adicionar Fotos</h1>
+      <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Adicionar Fotos
+          </h1>
           <p className="text-gray-500 mt-1">
             Entrega: {delivery.title || delivery.client_name || "Sem título"}
           </p>
         </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Current Stats */}
         <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
           <div className="flex items-center justify-between">

@@ -44,6 +44,8 @@ from babybook_api.schemas.partner_portal import (
     UploadInitRequest,
     UploadInitResponse,
     UploadCompleteRequest,
+    CheckAccessResponse,
+    ChildInfo,
 )
 from babybook_api.storage import (
     StoragePaths,
@@ -342,6 +344,60 @@ async def get_partner_stats(
 
 
 # =============================================================================
+# Check Client Access (verificação de acesso do cliente)
+# =============================================================================
+
+@router.get(
+    "/check-access",
+    response_model=CheckAccessResponse,
+    summary="Verifica se cliente já tem acesso ao Baby Book",
+    description="""
+    Verifica se um e-mail já tem conta no Baby Book.
+    Se tiver, a entrega não consome crédito.
+    
+    Regras de negócio:
+    - 1 crédito = 1 filho com acesso vitalício
+    - Cliente recorrente (mesmo filho) = grátis
+    - Cliente de outro fotógrafo = grátis
+    """,
+)
+async def check_client_access(
+    email: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserSession = Depends(get_current_user),
+) -> CheckAccessResponse:
+    """Verifica se cliente já tem acesso ao Baby Book."""
+    # Garante que é um parceiro válido
+    await get_partner_for_user(db, current_user)
+    
+    # Busca usuário pelo email
+    result = await db.execute(
+        select(User).where(User.email == email.lower())
+    )
+    user = result.scalar_one_or_none()
+    
+    if user:
+        # Usuário existe - tem acesso (pode ser B2C ou via outro fotógrafo)
+        # TODO: Buscar filhos/contas do usuário quando o modelo permitir
+        return CheckAccessResponse(
+            has_access=True,
+            email=email.lower(),
+            client_name=user.name,
+            children=[],  # TODO: Popular com filhos reais do usuário
+            message=f"Cliente já possui acesso ao Baby Book. Esta entrega não consumirá crédito.",
+        )
+    else:
+        # Usuário não existe - novo cliente
+        return CheckAccessResponse(
+            has_access=False,
+            email=email.lower(),
+            client_name=None,
+            children=[],
+            message="Novo cliente. Um crédito será consumido para criar o acesso.",
+        )
+
+
+# =============================================================================
 # Credit Purchase (Compra de Créditos)
 # =============================================================================
 
@@ -440,7 +496,11 @@ async def confirm_credit_purchase(
     summary="Cria nova entrega",
     description="""
     Cria uma nova entrega para um cliente.
-    Desconta 1 crédito do saldo do parceiro.
+    
+    **Regras de crédito:**
+    - Se cliente_email não existir no sistema: consome 1 crédito
+    - Se cliente_email já tiver conta: NÃO consome crédito (grátis)
+    
     Retorna delivery_id para fazer upload dos assets.
     """,
 )
@@ -449,31 +509,48 @@ async def create_delivery(
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
 ) -> DeliveryResponse:
-    """Cria nova entrega."""
+    """Cria nova entrega com crédito condicional."""
     partner = await get_partner_for_user(db, current_user)
     
-    # Verifica saldo
-    if partner.voucher_balance < 1:
+    # Verifica se cliente já tem acesso (crédito condicional)
+    client_has_access = False
+    if request.client_email:
+        result = await db.execute(
+            select(User).where(User.email == request.client_email.lower())
+        )
+        existing_user = result.scalar_one_or_none()
+        client_has_access = existing_user is not None
+    
+    # Verifica saldo apenas se cliente é novo (não tem acesso)
+    if not client_has_access and partner.voucher_balance < 1:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail="Saldo insuficiente. Compre mais créditos."
         )
     
     # Cria delivery
+    title = request.title or f"Ensaio - {request.child_name or request.client_name}"
     delivery = Delivery(
         id=uuid4(),
         partner_id=partner.id,
-        title=request.title or f"Entrega para {request.client_name}",
+        title=title,
         client_name=request.client_name,
         description=request.description,
         event_date=request.event_date,
         status="draft",
-        assets_payload={"files": [], "upload_started": False},
+        assets_payload={
+            "files": [],
+            "upload_started": False,
+            "client_email": request.client_email,
+            "child_name": request.child_name,
+            "credit_consumed": not client_has_access,  # Indica se crédito foi usado
+        },
     )
     db.add(delivery)
     
-    # Desconta crédito
-    partner.voucher_balance -= 1
+    # Desconta crédito apenas se cliente é novo
+    if not client_has_access:
+        partner.voucher_balance -= 1
     
     await db.commit()
     await db.refresh(delivery)

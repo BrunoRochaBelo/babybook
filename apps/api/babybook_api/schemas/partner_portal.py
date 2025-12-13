@@ -96,12 +96,39 @@ class PurchaseCreditsResponse(BaseModel):
 
 
 # =============================================================================
+# Check Access (verificação de acesso do cliente)
+# =============================================================================
+
+class CheckAccessRequest(BaseModel):
+    """Request para verificar se cliente já tem acesso ao Baby Book."""
+    email: EmailStr = Field(..., description="E-mail do responsável")
+
+
+class ChildInfo(BaseModel):
+    """Informações de um filho/conta do cliente."""
+    id: str
+    name: str
+    has_access: bool = True  # Se tem Baby Book ativo
+
+
+class CheckAccessResponse(BaseModel):
+    """Response da verificação de acesso."""
+    has_access: bool = Field(..., description="Se o cliente já tem acesso ao Baby Book")
+    email: str
+    client_name: Optional[str] = None
+    children: list[ChildInfo] = Field(default_factory=list, description="Filhos com Baby Book")
+    message: str = Field(..., description="Mensagem para exibir no frontend")
+
+
+# =============================================================================
 # Deliveries
 # =============================================================================
 
 class CreateDeliveryRequest(BaseModel):
     """Request para criar nova entrega."""
-    client_name: str = Field(..., min_length=2, max_length=200, description="Nome do cliente")
+    client_name: str = Field(..., min_length=2, max_length=200, description="Nome do responsável")
+    client_email: Optional[EmailStr] = Field(None, description="E-mail do responsável (para verificar acesso)")
+    child_name: Optional[str] = Field(None, max_length=200, description="Nome da criança")
     title: Optional[str] = Field(None, max_length=200, description="Título da entrega")
     description: Optional[str] = Field(None, description="Descrição opcional")
     event_date: Optional[datetime] = Field(None, description="Data do evento (parto, ensaio, etc)")

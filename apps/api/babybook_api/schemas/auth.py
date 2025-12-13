@@ -11,6 +11,7 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     csrf_token: str
+    remember_me: bool = False  # Se True, sessão dura 30 dias; senão, dura session_ttl_hours
 
 
 class RegisterRequest(BaseModel):

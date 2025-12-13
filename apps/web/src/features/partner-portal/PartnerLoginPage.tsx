@@ -21,6 +21,7 @@ export function PartnerLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -37,7 +38,13 @@ export function PartnerLoginPage() {
     }
 
     try {
-      await loginMutation.mutateAsync({ email: email.trim(), password });
+      // Enviamos rememberMe para o backend definir a duração do cookie de sessão
+      // Boas práticas: não armazenamos credenciais no client, apenas uma flag
+      await loginMutation.mutateAsync({ 
+        email: email.trim(), 
+        password,
+        rememberMe,
+      });
       
       // Force refetch user profile from mock/API to get correct role
       const profileData = await queryClient.fetchQuery({
@@ -179,6 +186,8 @@ export function PartnerLoginPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
                   />
                   <span className="text-gray-600">Lembrar de mim</span>

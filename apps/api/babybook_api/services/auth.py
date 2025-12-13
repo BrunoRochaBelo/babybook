@@ -35,11 +35,16 @@ async def create_session(
     *,
     user_agent: str | None,
     client_ip: str | None,
+    remember_me: bool = False,
 ) -> Session:
     validate_csrf_token(csrf_token)
 
     token = new_session_token()
-    expires_at = datetime.utcnow() + timedelta(hours=settings.session_ttl_hours)
+    # Se remember_me, sessão dura 30 dias; senão, usa o padrão
+    if remember_me:
+        expires_at = datetime.utcnow() + timedelta(days=30)
+    else:
+        expires_at = datetime.utcnow() + timedelta(hours=settings.session_ttl_hours)
 
     session = Session(
         account_id=user.account_id,
@@ -60,7 +65,9 @@ async def revoke_session(db: AsyncSession, session: Session) -> None:
     await db.flush()
 
 
-def apply_session_cookie(response: Response, token: str) -> None:
+def apply_session_cookie(response: Response, token: str, remember_me: bool = False) -> None:
+    # Se remember_me, cookie dura 30 dias; senão, usa o padrão
+    max_age = 30 * 24 * 3600 if remember_me else settings.session_ttl_hours * 3600
     response.set_cookie(
         SESSION_COOKIE_NAME,
         token,
@@ -68,7 +75,7 @@ def apply_session_cookie(response: Response, token: str) -> None:
         secure=settings.session_cookie_secure,
         samesite="lax",
         path="/",
-        max_age=settings.session_ttl_hours * 3600,
+        max_age=max_age,
     )
 
 
