@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "pnpm@9.12.0",
   "scripts": {
+    "prepare": "husky",
     "dev:web": "pnpm --filter @babybook/web run dev",
     "dev:landig": "pnpm --filter @babybook/landingpage dev",
     "dev:landing": "pnpm --filter @babybook/landingpage dev",
@@ -27,13 +28,15 @@
     "dev:all:lite": "node ./scripts/dev-all-lite.js",
     "setup:py:win": "powershell -NoProfile -Command \"python -m venv .venv; & .\\.venv\\Scripts\\Activate.ps1; .\\.venv\\Scripts\\python -m pip install --upgrade pip; .\\.venv\\Scripts\\python -m pip install -e apps/api -e apps/workers\"",
     "setup:py:unix": "bash -lc \"python -m venv .venv || true; source .venv/bin/activate || true; python -m pip install --upgrade pip; python -m pip install -e apps/api -e apps/workers\"",
-    "bootstrap": "node ./scripts/bootstrap.js"
+    "bootstrap": "node ./scripts/bootstrap.js",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "concurrently": "^8.2.1",
     "eslint": "^9.7.0",
+    "husky": "^9.1.7",
     "prettier": "^3.3.2",
-    "typescript": "^5.5.4",
-    "concurrently": "^8.2.1"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
     "@types/react": "^18.3.3",
