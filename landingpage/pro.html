@@ -570,6 +570,14 @@
       border-radius: 12px;
       z-index: -1;
     }
+
+    /* === ACTIVE NAV LINK === */
+    .nav-link.nav-link-active {
+      color: #fca5a5;
+      /* text-pink-300 */
+      font-weight: 600;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
   </style>
 </head>
 
@@ -584,11 +592,11 @@
         </div>
       </div>
       <div class="hidden md:flex items-center gap-3 justify-center flex-1 text-sm text-slate-200">
-        <a href="#dor" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Problema</a>
-        <a href="#beneficios" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Benefícios</a>
-        <a href="#valor" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Valor</a>
-        <a href="#pacotes" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Pacotes</a>
-        <a href="#faq" class="hover:text-pink-300 px-3 py-2 rounded-full transition-colors">FAQ</a>
+        <a href="#dor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Problema</a>
+        <a href="#beneficios" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Benefícios</a>
+        <a href="#valor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Valor</a>
+        <a href="#pacotes" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Pacotes</a>
+        <a href="#faq" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">FAQ</a>
       </div>
       <div class="ml-auto flex items-center gap-3">
         <a href="javascript:navigateToApp('/pro/login')" class="text-sm text-slate-200 hover:text-white px-3 py-2 rounded-full transition-colors">Entrar</a>
@@ -1849,6 +1857,76 @@
       }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
 
       newRevealElements.forEach(el => observer.observe(el));
+    })();
+
+    // ===== ACTIVE NAVIGATION HIGHLIGHT =====
+    (function initActiveNavigation() {
+      const navLinks = document.querySelectorAll('.nav-link');
+      const sections = new Map();
+
+      // Mapeia links para seções
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          const sectionId = href.substring(1);
+          const section = document.getElementById(sectionId);
+          if (section) {
+            sections.set(sectionId, section);
+          }
+        }
+      });
+
+      // ADICIONADO: Observar também a seção Hero para saber quando desmarcar os outros itens
+      const heroSection = document.getElementById('hero-pro');
+      if (heroSection) {
+        sections.set('hero-pro', heroSection);
+      }
+
+      if (sections.size === 0) return;
+
+      const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -60% 0px', // Trigger quando seção está 20% visível do topo
+        threshold: [0, 0.25, 0.5, 0.75, 1]
+      };
+
+      let currentActiveId = null;
+
+      const observer = new IntersectionObserver((entries) => {
+        // Encontra a seção mais visível dentre todas as observadas (incluindo Hero)
+        let maxRatio = 0;
+        let mostVisibleId = null;
+
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+            maxRatio = entry.intersectionRatio;
+            mostVisibleId = entry.target.id;
+          }
+        });
+
+        // Se encontrou uma seção visível (seja do menu ou Hero), atualiza
+        if (mostVisibleId && mostVisibleId !== currentActiveId) {
+          currentActiveId = mostVisibleId;
+          updateActiveLink(mostVisibleId);
+        }
+      }, observerOptions);
+
+      sections.forEach(section => observer.observe(section));
+
+      function updateActiveLink(activeId) {
+        navLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          const linkId = href.substring(1);
+
+          if (linkId === activeId) {
+            link.classList.add('nav-link-active');
+            link.setAttribute('aria-current', 'page');
+          } else {
+            link.classList.remove('nav-link-active');
+            link.removeAttribute('aria-current');
+          }
+        });
+      }
     })();
 
     console.log('🚀 Baby Book PRO - Interactive effects loaded');
