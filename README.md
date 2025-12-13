@@ -304,3 +304,7 @@ docker compose --profile web-prod up web-prod
 O container usa pps/web/Dockerfile para buildar o bundle e serve o app em http://localhost:4173 apontando para a API/storage do compose.
 
 > Dica: para que o apps/web encontre os derivados no ambiente real/local, defina `VITE_MEDIA_BASE_URL` com o host do bucket (ex.: `http://localhost:9000`).
+
+## Segurança (segredos e histórico)
+- Execute `pre-commit install` para habilitar o hook de _secret scanning_ baseado em `detect-secrets` (baseline em `.secrets.baseline`). Commits com novos segredos serão bloqueados.
+- O passo a passo para limpar o histórico e remover o segredo exposto (Company Email Password) está documentado em `docs/security-remediation.md`.

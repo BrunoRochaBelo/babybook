@@ -10,6 +10,7 @@ Thumbs.db
 *.log
 *.pyc
 __pycache__/
+.env
 .env.local
 .env.*
 !.env.example
@@ -20,3 +21,12 @@ __pycache__/
 /tests/e2e/test-results/
 /tests/e2e/playwright-report/
 /tests/e2e/.auth-state.json
+config.js
+config.local.js
+config.secret.js
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.der
