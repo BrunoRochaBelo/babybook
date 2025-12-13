@@ -610,6 +610,11 @@ class Delivery(TimestampMixin, Base):
     )
     assets_transferred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
+    # Arquivamento pelo fotógrafo (soft delete - não afeta visualização do cliente)
+    # Quando preenchido, a entrega fica oculta na listagem do fotógrafo
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
     delivery_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
 
     partner: Mapped[Partner] = relationship(back_populates="deliveries")

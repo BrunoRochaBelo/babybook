@@ -125,6 +125,15 @@ export function DeliveryUploadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        {/* Back Navigation */}
+        <Link
+          to={`/partner/deliveries/${deliveryId}`}
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Voltar à entrega</span>
+        </Link>
+
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">

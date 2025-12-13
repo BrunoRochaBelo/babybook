@@ -183,11 +183,56 @@ class DeliveryDetailResponse(BaseModel):
 # Upload
 # =============================================================================
 
+# Limite de 100MB por arquivo (100 * 1024 * 1024)
+MAX_UPLOAD_SIZE_BYTES = 104_857_600
+
+# Content types permitidos para upload
+ALLOWED_CONTENT_TYPES = {
+    # Imagens
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/heic",
+    "image/heif",
+    # Vídeos
+    "video/mp4",
+    "video/quicktime",
+    "video/webm",
+}
+
+
 class UploadInitRequest(BaseModel):
     """Request para iniciar upload de arquivo."""
-    filename: str = Field(..., description="Nome do arquivo")
+    filename: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=255, 
+        description="Nome do arquivo (será sanitizado)"
+    )
     content_type: str = Field(..., description="MIME type do arquivo")
-    size_bytes: int = Field(..., description="Tamanho em bytes")
+    size_bytes: int = Field(
+        ..., 
+        gt=0, 
+        le=MAX_UPLOAD_SIZE_BYTES, 
+        description=f"Tamanho em bytes (máx {MAX_UPLOAD_SIZE_BYTES // 1024 // 1024}MB)"
+    )
+
+    @property
+    def is_valid_content_type(self) -> bool:
+        """Verifica se o content_type é permitido."""
+        return self.content_type in ALLOWED_CONTENT_TYPES
+    
+    @property
+    def sanitized_filename(self) -> str:
+        """Retorna filename sanitizado (remove caracteres perigosos)."""
+        import re
+        # Remove caracteres perigosos, mantém apenas alfanuméricos, -, _, .
+        name = re.sub(r'[^\w\-\.]', '_', self.filename)
+        # Remove múltiplos underscores consecutivos
+        name = re.sub(r'_+', '_', name)
+        # Limita tamanho
+        return name[:200] if len(name) > 200 else name
 
 
 class UploadInitResponse(BaseModel):
@@ -200,11 +245,11 @@ class UploadInitResponse(BaseModel):
 
 class UploadCompleteRequest(BaseModel):
     """Request para confirmar upload concluído."""
-    upload_id: str
-    key: str
-    filename: str
-    content_type: str
-    size_bytes: int
+    upload_id: str = Field(..., min_length=1, max_length=100)
+    key: str = Field(..., min_length=1, max_length=500)
+    filename: str = Field(..., min_length=1, max_length=255)
+    content_type: str = Field(..., max_length=100)
+    size_bytes: int = Field(..., gt=0, le=MAX_UPLOAD_SIZE_BYTES)
 
 
 # =============================================================================

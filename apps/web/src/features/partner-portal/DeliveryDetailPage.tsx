@@ -135,6 +135,15 @@ export function DeliveryDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Back Navigation */}
+        <Link
+          to="/partner/deliveries"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Voltar às entregas</span>
+        </Link>
+
         {/* Page Header */}
         <div className="flex items-start justify-between mb-6">
           <div>

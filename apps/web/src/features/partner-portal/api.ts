@@ -124,6 +124,7 @@ export async function purchaseCredits(
  */
 export async function listDeliveries(params?: {
   status?: string;
+  include_archived?: boolean;
   limit?: number;
   offset?: number;
 }): Promise<{ deliveries: Delivery[]; total: number }> {
@@ -171,6 +172,19 @@ export async function updateDelivery(
  */
 export async function deleteDelivery(deliveryId: string): Promise<void> {
   return apiClient.delete(`${API_BASE}/deliveries/${deliveryId}`);
+}
+
+/**
+ * Archive or unarchive a delivery
+ * This is a soft delete - hides from photographer but doesn't affect client
+ */
+export async function archiveDelivery(
+  deliveryId: string,
+  archive: boolean = true,
+): Promise<{ success: boolean; archived: boolean; message: string }> {
+  return apiClient.patch(
+    `${API_BASE}/deliveries/${deliveryId}/archive?archive=${archive}`,
+  );
 }
 
 // ============================================================

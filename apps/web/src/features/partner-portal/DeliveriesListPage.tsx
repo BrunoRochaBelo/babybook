@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   Search,
@@ -19,8 +19,11 @@ import {
   CheckCircle2,
   Gift,
   ArrowLeft,
+  Archive,
+  ArchiveRestore,
+  X,
 } from "lucide-react";
-import { listDeliveries } from "./api";
+import { listDeliveries, archiveDelivery } from "./api";
 import type { Delivery, DeliveryStatus } from "./types";
 
 function formatDate(dateString: string): string {
@@ -87,7 +90,9 @@ type FilterStatus = "all" | DeliveryStatus;
 
 export function DeliveriesListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [includeArchived, setIncludeArchived] = useState(false);
   
   // Ler filtro da URL (ex: /partner/deliveries?status=ready)
   const searchParams = new URLSearchParams(window.location.search);
@@ -108,12 +113,22 @@ export function DeliveriesListPage() {
 
   // Query
   const { data, isLoading } = useQuery({
-    queryKey: ["partner", "deliveries", statusFilter],
+    queryKey: ["partner", "deliveries", statusFilter, includeArchived],
     queryFn: () =>
       listDeliveries({
         status: statusFilter !== "all" ? statusFilter : undefined,
+        include_archived: includeArchived,
         limit: 50,
       }),
+  });
+
+  // Mutation para arquivar
+  const archiveMutation = useMutation({
+    mutationFn: ({ id, archive }: { id: string; archive: boolean }) =>
+      archiveDelivery(id, archive),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["partner", "deliveries"] });
+    },
   });
 
   const deliveries = data?.deliveries || [];
@@ -181,9 +196,20 @@ export function DeliveriesListPage() {
               <option value="pending_upload">Aguardando upload</option>
               <option value="ready">Pronta</option>
               <option value="delivered">Entregue</option>
-              <option value="archived">Arquivada</option>
             </select>
           </div>
+
+          {/* Show Archived Checkbox */}
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={(e) => setIncludeArchived(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+            />
+            <Archive className="w-4 h-4" />
+            <span>Mostrar arquivadas</span>
+          </label>
         </div>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -216,7 +242,14 @@ export function DeliveriesListPage() {
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="divide-y divide-gray-100">
               {filteredDeliveries.map((delivery) => (
-                <DeliveryRow key={delivery.id} delivery={delivery} />
+                <DeliveryRow
+                  key={delivery.id}
+                  delivery={delivery}
+                  onArchive={(archive) =>
+                    archiveMutation.mutate({ id: delivery.id, archive })
+                  }
+                  isArchiving={archiveMutation.isPending && archiveMutation.variables?.id === delivery.id}
+                />
               ))}
             </div>
           </div>
@@ -232,13 +265,49 @@ export function DeliveriesListPage() {
 
 interface DeliveryRowProps {
   delivery: Delivery;
+  onArchive: (archive: boolean) => void;
+  isArchiving: boolean;
 }
 
-function DeliveryRow({ delivery }: DeliveryRowProps) {
+function DeliveryRow({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
+  // Determina se está arquivada baseando-se no status ou campo archived_at
+  // O backend retorna entregas arquivadas apenas quando include_archived=true
+  const [showConfirm, setShowConfirm] = useState(false);
+  
+  // Considera arquivada se status é "archived" ou se veio da lista com include_archived
+  // TODO: Backend deve retornar campo is_archived quando disponível
+  const isArchived = delivery.status === "archived";
+
+  const handleArchiveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isArchived) {
+      // Desarquivar sem confirmação
+      onArchive(false);
+    } else {
+      // Mostrar confirmação antes de arquivar
+      setShowConfirm(true);
+    }
+  };
+
+  const handleConfirmArchive = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowConfirm(false);
+    onArchive(true);
+  };
+
+  const handleCancelArchive = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowConfirm(false);
+  };
+
   return (
     <Link
       to={`/partner/deliveries/${delivery.id}`}
-      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+      className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${isArchived ? "opacity-60" : ""}`}
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -259,13 +328,51 @@ function DeliveryRow({ delivery }: DeliveryRowProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         <StatusBadge status={delivery.status} />
         {delivery.voucher_code && (
           <span className="hidden sm:inline text-xs font-mono bg-gray-100 px-2 py-1 rounded">
             {delivery.voucher_code}
           </span>
         )}
+        
+        {/* Botão de Arquivar/Desarquivar */}
+        {showConfirm ? (
+          // Confirmação inline
+          <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1">
+            <span className="text-xs text-yellow-700 mr-1">Arquivar?</span>
+            <button
+              onClick={handleConfirmArchive}
+              className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
+              title="Confirmar"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleCancelArchive}
+              className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors"
+              title="Cancelar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleArchiveClick}
+            disabled={isArchiving}
+            title={isArchived ? "Desarquivar entrega" : "Arquivar entrega (não afeta o cliente)"}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isArchiving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isArchived ? (
+              <ArchiveRestore className="w-4 h-4" />
+            ) : (
+              <Archive className="w-4 h-4" />
+            )}
+          </button>
+        )}
+        
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </div>
     </Link>

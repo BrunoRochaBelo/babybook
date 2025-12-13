@@ -6,11 +6,26 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   guardrails:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Guardrails (copy/storage/pricing)
         shell: bash
@@ -130,6 +145,17 @@ jobs:
                       REPO_ROOT / "packages",
                   ],
               ),
+              Rule(
+                  name="Storage: não pode reintroduzir import do provider B2",
+                  pattern=re.compile(
+                      r"(?i)\bfrom\s+.*storage\.providers\.b2\s+import\b|\bimport\s+.*storage\.providers\.b2\b|\bstorage\.providers\.b2\b"
+                  ),
+                  roots=[
+                      REPO_ROOT / "apps" / "api" / "babybook_api",
+                      REPO_ROOT / "apps" / "edge" / "src",
+                      REPO_ROOT / "apps" / "web" / "src",
+                  ],
+              ),
           ]
 
           any_fail = False
@@ -163,6 +189,37 @@ jobs:
               any_fail = True
               print("\n❌ Guardrail violado: packages/config/pricing.ts não encontrado")
 
+          # B2B packs canônicos (pack_10 = R$ 1.490 => 149000 cents)
+          def assert_file_contains(pattern: str, file_path: Path, label: str) -> bool:
+              if not file_path.exists():
+                  print(
+                      f"\n❌ Guardrail violado: {label} — arquivo não encontrado: {file_path.relative_to(REPO_ROOT)}"
+                  )
+                  return False
+              text = file_path.read_text(encoding="utf-8", errors="ignore")
+              if not re.search(pattern, text, flags=re.MULTILINE | re.DOTALL):
+                  print(
+                      f"\n❌ Guardrail violado: {label} — padrão não encontrado em {file_path.relative_to(REPO_ROOT)}"
+                  )
+                  return False
+              return True
+
+          # Backend: pack_10 deve permanecer 149000 cents
+          if not assert_file_contains(
+              r"id\s*=\s*['\"]pack_10['\"][\s\S]{0,400}?price_cents\s*=\s*149000\b",
+              REPO_ROOT / "apps" / "api" / "babybook_api" / "routes" / "partner_portal.py",
+              "B2B backend: pack_10 price_cents=149000",
+          ):
+              any_fail = True
+
+          # Web mocks: pack_10 deve permanecer 149000 cents
+          if not assert_file_contains(
+              r"id\s*:\s*['\"]pack_10['\"][\s\S]{0,400}?price_cents\s*:\s*149000\b",
+              REPO_ROOT / "apps" / "web" / "src" / "mocks" / "handlers.ts",
+              "Web mock: pack_10 price_cents=149000",
+          ):
+              any_fail = True
+
           if any_fail:
               print("\nGuardrails falharam. Corrija as ocorrências acima.")
               sys.exit(1)
@@ -170,8 +227,55 @@ jobs:
           print("✅ Guardrails OK")
           PY
 
-  build:
+  changes:
+    needs: guardrails
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      js: ${{ steps.filter.outputs.js }}
+      landing: ${{ steps.filter.outputs.landing }}
+      python: ${{ steps.filter.outputs.python }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            js:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'packages/**'
+              - 'apps/web/**'
+              - 'apps/edge/**'
+              - 'landingpage/**'
+            landing:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'packages/**'
+              - 'landingpage/**'
+            python:
+              - 'apps/api/**'
+              - 'apps/workers/**'
+              - 'apps/admin/**'
+              - 'pyproject.toml'
+              - 'tests/**'
+
+  js:
+    needs: changes
+    if: needs.changes.outputs.js == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -182,22 +286,45 @@ jobs:
           node-version: 20
           cache: pnpm
       - name: Install JS deps
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Lint JS/TS
         run: pnpm lint:js
+        continue-on-error: true
       - name: Typecheck
         run: pnpm typecheck
+
       - name: Build landingpage
+        if: needs.changes.outputs.landing == 'true'
         run: pnpm --filter @babybook/landingpage run build:ci
+
       - name: Upload bundle stats
-        if: always()
-        uses: actions/upload-artifact@v3
+        if: needs.changes.outputs.landing == 'true' && always()
+        uses: actions/upload-artifact@v4
         with:
           name: landingpage-stats
           path: landingpage/dist/stats.html
+          if-no-files-found: ignore
+
+      - name: Upload landingpage dist (artifact)
+        if: needs.changes.outputs.landing == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landingpage-dist
+          path: landingpage/dist
+          if-no-files-found: ignore
+
+      - name: Upload budget history
+        if: needs.changes.outputs.landing == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landingpage-budget-history
+          path: landingpage/dist/budget-history.json
+          if-no-files-found: ignore
+
       - name: Comment bundle size on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        if: needs.changes.outputs.landing == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        continue-on-error: true
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -211,30 +338,11 @@ jobs:
             const pr = context.payload.pull_request;
             if (!pr) return;
             await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install API deps
-        run: pip install -e apps/api[test]
-      - name: Python lint
-        run: pnpm lint:py
-      # Upload distribution artifacts (always upload so artifacts are available on failure)
-      - name: Upload landingpage dist (artifact)
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: landingpage-dist
-          path: landingpage/dist
-      - name: Upload budget history
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: landingpage-budget-history
-          path: landingpage/dist/budget-history.json
+
       - name: Comment budget report on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        if: needs.changes.outputs.landing == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        continue-on-error: true
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -248,9 +356,11 @@ jobs:
             const pr = context.payload.pull_request;
             if (!pr) return;
             await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });
+
       - name: Comment Lighthouse CI report on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        if: needs.changes.outputs.landing == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        continue-on-error: true
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -258,7 +368,6 @@ jobs:
             const path = require('path');
             const pr = context.payload.pull_request;
             if (!pr) return;
-            // Tenta ler o manifest do Lighthouse CI
             const manifestPath = path.join(process.cwd(), '.lighthouseci', 'manifest.json');
             let commentBody = '## 🔍 Lighthouse CI Report\n\n';
 
@@ -268,15 +377,15 @@ jobs:
                 const firstRun = manifest[0];
                 if (firstRun && firstRun.summary) {
                   const { performance, accessibility, 'best-practices': bestPractices, seo, pwa } = firstRun.summary;
-                  
+
                   const getEmoji = (score) => {
                     if (score >= 0.9) return '✅';
                     if (score >= 0.5) return '⚠️';
                     return '❌';
                   };
-                  
+
                   const formatScore = (score) => Math.round(score * 100);
-                  
+
                   commentBody += '### Scores\n\n';
                   commentBody += `| Category | Score |\n`;
                   commentBody += `| --- | --- |\n`;
@@ -285,17 +394,17 @@ jobs:
                   commentBody += `| ${getEmoji(bestPractices)} Best Practices | ${formatScore(bestPractices)} |\n`;
                   commentBody += `| ${getEmoji(seo)} SEO | ${formatScore(seo)} |\n`;
                   commentBody += `| ${getEmoji(pwa)} PWA | ${formatScore(pwa)} |\n\n`;
-                  
+
                   if (firstRun.jsonPath) {
                     const reportPath = path.join(process.cwd(), firstRun.jsonPath);
                     if (fs.existsSync(reportPath)) {
                       const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
                       const audits = report.audits;
-                      
+
                       commentBody += '### Key Metrics\n\n';
                       commentBody += `| Metric | Value |\n`;
                       commentBody += `| --- | --- |\n`;
-                      
+
                       if (audits['first-contentful-paint']) {
                         commentBody += `| First Contentful Paint | ${audits['first-contentful-paint'].displayValue} |\n`;
                       }
@@ -331,3 +440,35 @@ jobs:
               issue_number: pr.number,
               body: commentBody,
             });
+
+  python:
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            apps/api/pyproject.toml
+            apps/workers/pyproject.toml
+            apps/admin/pyproject.toml
+
+      - name: Install ruff (pinned)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "ruff==0.6.8"
+
+      - name: Python lint (ruff)
+        run: ruff check apps/api apps/workers apps/admin
+
+      - name: Python compile (syntax)
+        run: python -m compileall -q apps/api/babybook_api

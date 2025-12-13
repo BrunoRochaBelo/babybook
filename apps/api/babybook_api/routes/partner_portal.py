@@ -573,6 +573,7 @@ async def create_delivery(
 )
 async def list_partner_deliveries(
     status_filter: Optional[str] = None,
+    include_archived: bool = False,
     limit: int = 20,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
@@ -583,6 +584,10 @@ async def list_partner_deliveries(
     
     query = select(Delivery).where(Delivery.partner_id == partner.id)
     
+    # Por padrão, não mostra entregas arquivadas
+    if not include_archived:
+        query = query.where(Delivery.archived_at.is_(None))
+    
     if status_filter:
         query = query.where(Delivery.status == status_filter)
     
@@ -591,8 +596,10 @@ async def list_partner_deliveries(
     result = await db.execute(query)
     deliveries = result.scalars().all()
     
-    # Conta total
+    # Conta total (respeitando filtros)
     count_query = select(func.count(Delivery.id)).where(Delivery.partner_id == partner.id)
+    if not include_archived:
+        count_query = count_query.where(Delivery.archived_at.is_(None))
     if status_filter:
         count_query = count_query.where(Delivery.status == status_filter)
     total = (await db.execute(count_query)).scalar() or 0
@@ -661,6 +668,54 @@ async def get_delivery_detail(
     )
 
 
+@router.patch(
+    "/deliveries/{delivery_id}/archive",
+    summary="Arquiva ou desarquiva uma entrega",
+    description="""
+    Arquiva uma entrega (soft delete do fotógrafo).
+    
+    **IMPORTANTE:** Isso só oculta a entrega da listagem do fotógrafo.
+    O cliente continua tendo acesso às fotos normalmente.
+    
+    Para desarquivar, chame novamente com archive=false.
+    """,
+)
+async def archive_delivery(
+    delivery_id: str,
+    archive: bool = True,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserSession = Depends(get_current_user),
+) -> dict:
+    """Arquiva ou desarquiva uma entrega."""
+    partner = await get_partner_for_user(db, current_user)
+    
+    result = await db.execute(
+        select(Delivery).where(
+            and_(Delivery.id == delivery_id, Delivery.partner_id == partner.id)
+        )
+    )
+    delivery = result.scalar_one_or_none()
+    
+    if not delivery:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Entrega não encontrada"
+        )
+    
+    if archive:
+        delivery.archived_at = datetime.utcnow()
+    else:
+        delivery.archived_at = None
+    
+    await db.commit()
+    
+    return {
+        "success": True,
+        "archived": archive,
+        "message": "Entrega arquivada" if archive else "Entrega desarquivada",
+    }
+
+
 # =============================================================================
 # Upload (Client-Side Direct Upload)
 # =============================================================================
@@ -706,14 +761,21 @@ async def init_upload(
             detail="Entrega não aceita mais uploads"
         )
     
+    # Valida content_type permitido
+    if not request.is_valid_content_type:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Tipo de arquivo não permitido: {request.content_type}. Apenas imagens e vídeos são aceitos."
+        )
+    
     # Usa PartnerStorageService para preparar upload
     # Arquivos vão para tmp/uploads/ primeiro (lifecycle de 1 dia)
     upload_info = await storage.init_partner_upload(
         partner_id=str(partner.id),
         delivery_id=delivery_id,
-        filename=request.filename,
-        content_type=request.content_type or "application/octet-stream",
-        size_bytes=request.size_bytes or 0,
+        filename=request.sanitized_filename,  # Usa filename sanitizado
+        content_type=request.content_type,
+        size_bytes=request.size_bytes,
     )
     
     # Atualiza status
