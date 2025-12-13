@@ -22,7 +22,8 @@ __pycache__/
 /tests/e2e/playwright-report/
 /tests/e2e/.auth-state.json
 config.js
-config.*.js
+config.local.js
+config.secret.js
 *.pem
 *.key
 *.p12
