@@ -24,6 +24,8 @@ from babybook_api.schemas.assets import (
 )
 from babybook_api.services.queue import QueuePublisher, get_queue_publisher
 from babybook_api.settings import settings
+from babybook_api.storage import get_cold_storage
+from babybook_api.uploads.file_validation import validate_magic_bytes
 
 router = APIRouter()
 
@@ -152,6 +154,41 @@ async def complete_upload(
 
     if len(payload.etags) != session.part_count:
         raise AppError(status_code=400, code="upload.parts.mismatch", message="Partes incompletas.")
+
+    # Validation: Magic Bytes & Size
+    # Verifica se o arquivo enviado corresponde ao tipo e tamanho declarados.
+    try:
+        storage = await get_cold_storage()
+        
+        # 1. Valida tamanho real no storage vs declarado
+        info = await storage.get_object_info(asset.key_original)
+        if info is None:
+            raise AppError(status_code=404, code="upload.file.not_found", message="Arquivo nao encontrado no storage.")
+        
+        # Permite pequena margem de erro apenas se for multipart complexo, mas idealmente deve ser exato.
+        # Para segurança estrita: deve ser exato.
+        if info.size != session.size_bytes:
+             raise ValueError(f"Tamanho incorreto. Esperado: {session.size_bytes}, Real: {info.size}")
+
+        # 2. Valida Magic Bytes (assinatura)
+        # Lê os primeiros 512 bytes para verificação de assinatura
+        header = await storage.get_object_range(asset.key_original, start=0, end=511)
+        validate_magic_bytes(
+            declared_content_type=asset.mime,
+            header=header,
+            # Não passamos allowed_content_types aqui pois a lista global pode ser restrita demais
+            # para o B2C (que pode aceitar mais tipos no futuro). O importante é bater com o mime.
+        )
+    except Exception as e:
+        # Se falhar, marcamos como falha e retornamos erro
+        asset.status = "failed"
+        session.status = "failed"
+        await db.commit()
+        raise AppError(
+            status_code=400,
+            code="upload.validation.failed",
+            message=f"Validacao do arquivo falhou: {str(e)}"
+        )
 
     session.status = "completed"
     session.completed_at = datetime.utcnow()

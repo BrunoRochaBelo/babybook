@@ -18,7 +18,7 @@ from uuid import uuid4
 import secrets
 import string
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select, func, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,6 +56,7 @@ from babybook_api.storage import (
     PartnerStorageService,
 )
 from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.settings import settings
 
 router = APIRouter()
@@ -167,9 +168,16 @@ CREDIT_PACKAGES: list[CreditPackage] = [
 )
 async def partner_onboarding(
     request: PartnerOnboardingRequest,
+    req: Request,
     db: AsyncSession = Depends(get_db),
 ) -> PartnerOnboardingResponse:
     """Cadastro de novo parceiro (fotógrafo)."""
+    # Rate Limit: 5 por hora por IP (evita spam de contas)
+    await enforce_rate_limit(
+        bucket="partner:onboarding:ip",
+        limit="5/hour",
+        identity=get_client_ip(req)
+    )
 
     # Normaliza email para evitar duplicidade por variação de caixa/espaços
     normalized_email = request.email.strip().lower()
@@ -279,6 +287,7 @@ async def update_partner_profile(
     _: None = Depends(require_csrf_token),
 ) -> PartnerProfileResponse:
     """Atualiza o perfil do parceiro logado."""
+    await enforce_rate_limit(bucket="partner:profile:update:user", limit="10/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     # Atualiza campos se fornecidos
@@ -446,6 +455,7 @@ async def purchase_credits(
     _: None = Depends(require_csrf_token),
 ) -> PurchaseCreditsResponse:
     """Inicia compra de pacote de créditos."""
+    await enforce_rate_limit(bucket="partner:credits:purchase:user", limit="10/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     # Busca pacote
@@ -541,6 +551,7 @@ async def create_delivery(
     _: None = Depends(require_csrf_token),
 ) -> DeliveryResponse:
     """Cria nova entrega com crédito condicional."""
+    await enforce_rate_limit(bucket="partner:deliveries:create:user", limit="30/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     # Verifica se cliente já tem acesso (crédito condicional)
@@ -725,6 +736,7 @@ async def archive_delivery(
     _: None = Depends(require_csrf_token),
 ) -> dict:
     """Arquiva ou desarquiva uma entrega."""
+    await enforce_rate_limit(bucket="partner:deliveries:archive:user", limit="30/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     result = await db.execute(
