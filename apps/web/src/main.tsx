@@ -37,9 +37,7 @@ const shouldEnableMocks =
   (import.meta.env.DEV || import.meta.env.MODE === "test");
 
 const AuthBootstrapper = ({ children }: PropsWithChildren) => {
-  const { data, isLoading, isError } = useUserProfile({
-    enabled: !shouldEnableMocks,
-  });
+  const { data, isLoading, isError } = useUserProfile();
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const setLoading = useAuthStore((state) => state.setLoading);
@@ -55,7 +53,7 @@ const AuthBootstrapper = ({ children }: PropsWithChildren) => {
   }, [data, login]);
 
   useEffect(() => {
-    if (!shouldEnableMocks && isError) {
+    if (isError) {
       logout();
     }
   }, [isError, logout]);
@@ -90,7 +88,7 @@ startApp();
 
 function seedMockQueryData(client: QueryClient) {
   client.setQueryData(["children"], mockChildren);
-  client.setQueryData(["user-profile"], mockUser);
+
   mockChildren.forEach((child) => {
     client.setQueryData(
       ["moments", child.id],

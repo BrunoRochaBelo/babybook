@@ -84,13 +84,13 @@ export function DeliveryUploadPage() {
 
   if (error || !delivery) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">Entrega não encontrada</p>
+          <p className="text-red-600 dark:text-red-400 mb-4">Entrega não encontrada</p>
           <Link
             to="/partner/deliveries"
-            className="text-pink-600 hover:underline"
+            className="text-pink-600 dark:text-pink-400 hover:underline"
           >
             Voltar às entregas
           </Link>
@@ -102,13 +102,13 @@ export function DeliveryUploadPage() {
   // Não permitir upload se já tem voucher
   if (delivery.voucher_code) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl p-8 max-w-md text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md text-center border border-gray-200 dark:border-gray-700">
           <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Entrega Finalizada
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Não é possível adicionar fotos após o voucher ser gerado.
           </p>
           <Link
@@ -123,12 +123,12 @@ export function DeliveryUploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
         {/* Back Navigation */}
         <Link
           to={`/partner/deliveries/${deliveryId}`}
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar à entrega</span>
@@ -136,31 +136,31 @@ export function DeliveryUploadPage() {
 
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Adicionar Fotos
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Entrega: {delivery.title || delivery.client_name || "Sem título"}
           </p>
         </div>
         {/* Current Stats */}
-        <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                <Image className="w-5 h-5 text-pink-600" />
+              <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center">
+                <Image className="w-5 h-5 text-pink-600 dark:text-pink-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Fotos na entrega</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Fotos na entrega</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {delivery.assets_count}
                 </p>
               </div>
             </div>
             {completedCount > 0 && (
               <div className="text-right">
-                <p className="text-sm text-gray-500">Enviadas agora</p>
-                <p className="text-xl font-bold text-green-600">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Enviadas agora</p>
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">
                   +{completedCount}
                 </p>
               </div>
@@ -172,7 +172,7 @@ export function DeliveryUploadPage() {
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-8 text-center hover:border-pink-400 transition-colors cursor-pointer"
+          className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >
           <input
@@ -183,11 +183,11 @@ export function DeliveryUploadPage() {
             onChange={handleFileSelect}
             className="hidden"
           />
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">
+          <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-300 font-medium">
             Arraste as fotos ou clique para selecionar
           </p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
             JPG, PNG, WEBP • Até 20MB por arquivo
           </p>
         </div>
@@ -196,11 +196,11 @@ export function DeliveryUploadPage() {
         {uploads.length > 0 && (
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Uploads ({completedCount}/{totalCount})
               </h2>
               {isUploading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   {totalProgress}%
                 </div>
@@ -211,19 +211,19 @@ export function DeliveryUploadPage() {
               {uploads.map((upload) => (
                 <div
                   key={upload.id}
-                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                  className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
                 >
-                  <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                    <Image className="w-4 h-4 text-gray-400" />
+                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+                    <Image className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {upload.file.name}
                     </p>
                     {upload.status === "error" ? (
-                      <p className="text-xs text-red-500">{upload.error}</p>
+                      <p className="text-xs text-red-500 dark:text-red-400">{upload.error}</p>
                     ) : (
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="mt-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
                             upload.status === "complete"
@@ -241,7 +241,7 @@ export function DeliveryUploadPage() {
                   {upload.status === "error" && (
                     <button
                       onClick={() => retryUpload(upload.id)}
-                      className="p-1 text-gray-400 hover:text-pink-600"
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
@@ -252,7 +252,7 @@ export function DeliveryUploadPage() {
                   )}
                   <button
                     onClick={() => removeUpload(upload.id)}
-                    className="p-1 text-gray-400 hover:text-red-600"
+                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -266,7 +266,7 @@ export function DeliveryUploadPage() {
         <div className="mt-8 flex gap-4">
           <button
             onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
-            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
           >
             Cancelar
           </button>

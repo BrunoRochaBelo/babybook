@@ -154,7 +154,7 @@ export function PartnerRegisterPage() {
       {/* Progress bar and circles */}
       <div className="relative flex items-center justify-between">
         {/* Background line */}
-        <div className="absolute left-0 right-0 top-6 h-0.5 bg-gray-200 mx-6 sm:mx-8" />
+        <div className="absolute left-0 right-0 top-6 h-0.5 bg-gray-200 dark:bg-gray-600 mx-6 sm:mx-8" />
         
         {/* Progress line (animated) */}
         <div 
@@ -175,13 +175,13 @@ export function PartnerRegisterPage() {
               <div
                 className={`
                   relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center
-                  transition-all duration-300 ease-out bg-white
+                  transition-all duration-300 ease-out
                   ${
                     isCompleted
-                      ? "bg-pink-500 text-white shadow-lg shadow-pink-200"
+                      ? "bg-pink-500 text-white shadow-lg shadow-pink-200 dark:shadow-pink-900/50"
                       : isCurrent
-                        ? "bg-pink-100 text-pink-600 ring-4 ring-pink-50 border-2 border-pink-300"
-                        : "bg-gray-100 text-gray-400 border-2 border-gray-200"
+                        ? "bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-400 ring-4 ring-pink-50 dark:ring-pink-900/40 border-2 border-pink-300 dark:border-pink-500"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-2 border-gray-200 dark:border-gray-600"
                   }
                 `}
               >
@@ -201,7 +201,7 @@ export function PartnerRegisterPage() {
                 className={`
                   mt-2 text-[10px] sm:text-xs font-medium text-center leading-tight
                   transition-colors duration-300 px-1
-                  ${isCurrent ? "text-pink-600" : isCompleted ? "text-pink-500" : "text-gray-400"}
+                  ${isCurrent ? "text-pink-600 dark:text-pink-400" : isCompleted ? "text-pink-500 dark:text-pink-400" : "text-gray-400 dark:text-gray-500"}
                 `}
               >
                 {step.title}
@@ -219,7 +219,7 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Seu Nome *
         </label>
@@ -229,7 +229,7 @@ export function PartnerRegisterPage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Como você gostaria de ser chamado"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
           autoComplete="name"
           autoFocus
         />
@@ -238,10 +238,10 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="studioName"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Nome do Estúdio{" "}
-          <span className="text-gray-400 font-normal">(opcional)</span>
+          <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
         </label>
         <input
           id="studioName"
@@ -249,9 +249,9 @@ export function PartnerRegisterPage() {
           value={studioName}
           onChange={(e) => setStudioName(e.target.value)}
           placeholder="Ex: Studio Encanto Fotografia"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
-        <p className="mt-1.5 text-xs text-gray-500">
+        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
           Este nome aparecerá para seus clientes no app
         </p>
       </div>
@@ -264,7 +264,7 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           E-mail *
         </label>
@@ -274,11 +274,11 @@ export function PartnerRegisterPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="seu@email.com"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
           autoComplete="email"
           autoFocus
         />
-        <p className="mt-1.5 text-xs text-gray-500">
+        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
           Usaremos este e-mail para login e comunicações importantes
         </p>
       </div>
@@ -286,10 +286,10 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="phone"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           WhatsApp{" "}
-          <span className="text-gray-400 font-normal">(opcional)</span>
+          <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
         </label>
         <input
           id="phone"
@@ -297,10 +297,10 @@ export function PartnerRegisterPage() {
           value={phone}
           onChange={(e) => setPhone(formatPhone(e.target.value))}
           placeholder="(11) 99999-9999"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
           autoComplete="tel"
         />
-        <p className="mt-1.5 text-xs text-gray-500">
+        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
           Para suporte prioritário e notificações rápidas
         </p>
       </div>
@@ -313,7 +313,7 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="password"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Senha *
         </label>
@@ -324,14 +324,14 @@ export function PartnerRegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mínimo 8 caracteres"
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12 placeholder:text-gray-400 dark:placeholder:text-gray-500"
             autoComplete="new-password"
             autoFocus
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           >
             {showPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -353,7 +353,7 @@ export function PartnerRegisterPage() {
                       : password.length >= 8
                         ? "bg-yellow-500"
                         : "bg-red-400"
-                    : "bg-gray-200"
+                    : "bg-gray-200 dark:bg-gray-600"
                 }`}
               />
             ))}
@@ -364,7 +364,7 @@ export function PartnerRegisterPage() {
       <div>
         <label
           htmlFor="confirmPassword"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Confirmar Senha *
         </label>
@@ -375,13 +375,13 @@ export function PartnerRegisterPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repita a senha"
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12 placeholder:text-gray-400 dark:placeholder:text-gray-500"
             autoComplete="new-password"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           >
             {showConfirmPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -409,20 +409,20 @@ export function PartnerRegisterPage() {
       </div>
 
       <div className="pt-2">
-        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
           <input
             id="terms"
             type="checkbox"
             checked={acceptTerms}
             onChange={(e) => setAcceptTerms(e.target.checked)}
-            className="w-4 h-4 mt-0.5 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+            className="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-pink-500 focus:ring-pink-500 dark:bg-gray-700"
           />
-          <label htmlFor="terms" className="text-sm text-gray-600">
+          <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
             Li e aceito os{" "}
             <Link
               to="/termos"
               target="_blank"
-              className="text-pink-600 hover:text-pink-700 underline"
+              className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
             >
               Termos de Uso
             </Link>{" "}
@@ -430,7 +430,7 @@ export function PartnerRegisterPage() {
             <Link
               to="/privacidade"
               target="_blank"
-              className="text-pink-600 hover:text-pink-700 underline"
+              className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
             >
               Política de Privacidade
             </Link>
@@ -455,7 +455,7 @@ export function PartnerRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col">
       {/* CSS Animation */}
       <style>{`
         @keyframes fadeIn {
@@ -469,29 +469,29 @@ export function PartnerRegisterPage() {
 
       {/* Header */}
       <header className="p-4">
-        <Link to="/pro" className="inline-flex items-center gap-2">
+        <a href="http://localhost:3000/pro.html" className="inline-flex items-center gap-2">
           <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
             <Heart className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">
-            Baby Book <span className="text-pink-600">Pro</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">
+            Baby Book <span className="text-pink-600 dark:text-pink-400">Pro</span>
           </span>
-        </Link>
+        </a>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-6 sm:p-4 sm:py-8">
         <div className="w-full max-w-md sm:max-w-lg">
-          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-5 sm:p-8 border border-gray-100 dark:border-gray-700">
             {/* Header */}
             <div className="text-center mb-4 sm:mb-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-pink-100 rounded-full mb-3">
-                <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-pink-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-pink-100 dark:bg-pink-900/50 rounded-full mb-3">
+                <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-pink-600 dark:text-pink-400" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 Criar Conta de Parceiro
               </h1>
-              <p className="text-gray-500 mt-1 text-xs sm:text-sm">
+              <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs sm:text-sm">
                 Passo {currentStep} de 3 — {STEPS[currentStep - 1].title}
               </p>
             </div>
@@ -501,7 +501,7 @@ export function PartnerRegisterPage() {
 
             {/* Error Alert */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <p className="text-sm">{error}</p>
               </div>
@@ -518,7 +518,7 @@ export function PartnerRegisterPage() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-gray-100 text-gray-700 text-sm sm:text-base font-medium rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
+                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm sm:text-base font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span className="hidden xs:inline">Voltar</span>
@@ -561,19 +561,19 @@ export function PartnerRegisterPage() {
 
             {/* Benefits List - only show on first step */}
             {currentStep === 1 && (
-              <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
-                <p className="text-sm font-medium text-green-800 mb-2">
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-100 dark:border-green-800">
+                <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
                   Ao se cadastrar você ganha:
                 </p>
                 <ul className="space-y-1">
-                  <li className="flex items-center gap-2 text-sm text-green-700">
+                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                     <CheckCircle2 className="w-4 h-4" />1 crédito de boas-vindas
                   </li>
-                  <li className="flex items-center gap-2 text-sm text-green-700">
+                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                     <CheckCircle2 className="w-4 h-4" />
                     Acesso ao Portal do Parceiro
                   </li>
-                  <li className="flex items-center gap-2 text-sm text-green-700">
+                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                     <CheckCircle2 className="w-4 h-4" />
                     Suporte prioritário
                   </li>
@@ -582,11 +582,11 @@ export function PartnerRegisterPage() {
             )}
 
             {/* Login Link */}
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
               Já tem uma conta?{" "}
               <Link
                 to="/pro/login"
-                className="text-pink-600 hover:text-pink-700 font-medium"
+                className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
               >
                 Entrar
               </Link>
@@ -595,12 +595,12 @@ export function PartnerRegisterPage() {
 
           {/* Back to Home */}
           <div className="text-center mt-6">
-            <Link
-              to="/pro"
-              className="text-gray-500 hover:text-gray-700 text-sm"
+            <a
+              href="http://localhost:3000/pro.html"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
             >
               ← Voltar para Baby Book Pro
-            </Link>
+            </a>
           </div>
         </div>
       </main>

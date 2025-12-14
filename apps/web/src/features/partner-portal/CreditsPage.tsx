@@ -69,35 +69,35 @@ export function CreditsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Comprar Créditos
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Escolha o pacote ideal para suas entregas
           </p>
         </div>
         {/* Current Balance */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Seu saldo atual</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Seu saldo atual</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 {profile?.voucher_balance || 0} créditos
               </p>
             </div>
-            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center">
-              <CreditCard className="w-8 h-8 text-pink-600" />
+            <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
+              <CreditCard className="w-8 h-8 text-pink-600 dark:text-pink-400" />
             </div>
           </div>
         </div>
 
         {/* Package Selection */}
         <div className="space-y-4 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Selecione um pacote
           </h2>
 
@@ -115,18 +115,18 @@ export function CreditsPage() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
         {/* Purchase Button */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-gray-500">Total a pagar</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total a pagar</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {selectedPackage
                   ? formatCurrency(
                       packages?.find((p) => p.id === selectedPackage)
@@ -153,18 +153,18 @@ export function CreditsPage() {
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Você será redirecionado para o Stripe para completar o pagamento de
             forma segura.
           </p>
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
-          <h3 className="font-semibold text-blue-900 mb-2">
+        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
             ℹ️ Como funcionam os créditos?
           </h3>
-          <ul className="text-sm text-blue-800 space-y-2">
+          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
             <li>• Cada crédito permite criar 1 entrega para um cliente</li>
             <li>• Ao finalizar a entrega, um voucher único é gerado</li>
             <li>
@@ -194,14 +194,14 @@ function PackageCard({ package: pkg, selected, onSelect }: PackageCardProps) {
       onClick={onSelect}
       className={`w-full p-6 rounded-xl border-2 text-left transition-all ${
         selected
-          ? "border-pink-500 bg-pink-50 ring-2 ring-pink-200"
-          : "border-gray-200 bg-white hover:border-gray-300"
+          ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20 ring-2 ring-pink-200 dark:ring-pink-700"
+          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
       }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-900">{pkg.name}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
             {pkg.is_popular && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
                 <Star className="w-3 h-3" />
@@ -209,24 +209,24 @@ function PackageCard({ package: pkg, selected, onSelect }: PackageCardProps) {
               </span>
             )}
           </div>
-          <p className="text-gray-600 mt-1">{pkg.voucher_count} vouchers</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{pkg.voucher_count} vouchers</p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatCurrency(pkg.price_cents)}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               ({formatCurrency(pkg.unit_price_cents)}/unidade)
             </span>
           </div>
           {pkg.savings_percent > 0 && (
-            <p className="mt-1 text-sm text-green-600 font-medium">
+            <p className="mt-1 text-sm text-green-600 dark:text-green-400 font-medium">
               Economia de {pkg.savings_percent}%
             </p>
           )}
         </div>
         <div
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-            selected ? "border-pink-500 bg-pink-500" : "border-gray-300"
+            selected ? "border-pink-500 bg-pink-500" : "border-gray-300 dark:border-gray-500"
           }`}
         >
           {selected && <Check className="w-4 h-4 text-white" />}

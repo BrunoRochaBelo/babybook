@@ -104,7 +104,17 @@ const partnerAccount = makeAccount({
 });
 registeredUsers.set(proEmail, partnerAccount);
 
-let activeUser: MockAccount = seededAccount;
+const STORAGE_KEY = "@babybook/mock-user-email";
+
+const getInitialUser = () => {
+  const storedEmail = localStorage.getItem(STORAGE_KEY);
+  if (storedEmail && registeredUsers.has(storedEmail)) {
+    return registeredUsers.get(storedEmail)!;
+  }
+  return seededAccount;
+};
+
+let activeUser: MockAccount = getInitialUser();
 let sessionActive = true;
 
 const profilePayload = (): RawProfile => ({
@@ -275,6 +285,7 @@ export const handlers = [
     }
     activeUser = user;
     sessionActive = true;
+    localStorage.setItem(STORAGE_KEY, email);
     return HttpResponse.text("", { status: 204 });
   }),
   http.post(withBase("/auth/register"), async ({ request }) => {
@@ -317,6 +328,7 @@ export const handlers = [
   }),
   http.post(withBase("/auth/logout"), () => {
     sessionActive = false;
+    localStorage.removeItem(STORAGE_KEY);
     return HttpResponse.text("", { status: 204 });
   }),
   http.get(withBase("/me"), () =>

@@ -5,6 +5,7 @@ import designTokens from "@babybook/config/design-tokens";
 const { colors, fonts, radii } = designTokens;
 
 const config = {
+  darkMode: 'class',
   presets: [sharedConfig],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {

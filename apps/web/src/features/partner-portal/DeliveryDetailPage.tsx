@@ -133,12 +133,12 @@ export function DeliveryDetailPage() {
   const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Back Navigation */}
         <Link
           to="/partner/deliveries"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar às entregas</span>
@@ -147,10 +147,10 @@ export function DeliveryDetailPage() {
         {/* Page Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {delivery.title || delivery.client_name || "Entrega"}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
               {delivery.client_name && `Cliente: ${delivery.client_name} • `}
               Criada em {formatDate(delivery.created_at)}
             </p>
@@ -203,15 +203,15 @@ export function DeliveryDetailPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-500">Arquivos</p>
-            <p className="text-2xl font-bold text-gray-900">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Arquivos</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {delivery.assets_count}
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-500">Status</p>
-            <p className="text-lg font-medium text-gray-900 capitalize">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+            <p className="text-lg font-medium text-gray-900 dark:text-white capitalize">
               {delivery.status === "ready"
                 ? "Pronta"
                 : delivery.status === "delivered"
@@ -221,9 +221,9 @@ export function DeliveryDetailPage() {
                     : delivery.status}
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-500">Voucher</p>
-            <p className="text-lg font-medium text-gray-900">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Voucher</p>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">
               {hasVoucher
                 ? delivery.redeemed_at
                   ? "Resgatado"
@@ -234,14 +234,14 @@ export function DeliveryDetailPage() {
         </div>
 
         {/* Assets Grid */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Arquivos ({delivery.assets_count})
             </h2>
             <Link
               to={`/partner/deliveries/${deliveryId}/upload`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 hover:text-pink-700 font-medium"
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
             >
               <Plus className="w-4 h-4" />
               Adicionar
@@ -250,8 +250,8 @@ export function DeliveryDetailPage() {
 
           {delivery.assets.length === 0 ? (
             <div className="p-8 text-center">
-              <Image className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">Nenhum arquivo enviado ainda</p>
+              <Image className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhum arquivo enviado ainda</p>
               <Link
                 to={`/partner/deliveries/${deliveryId}/upload`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
@@ -265,7 +265,7 @@ export function DeliveryDetailPage() {
               {delivery.assets.map((asset) => (
                 <div
                   key={asset.key}
-                  className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                  className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden"
                 >
                   {/* Thumbnail placeholder */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -381,22 +381,22 @@ function VoucherModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           {showGenerateForm ? (
             <>
-              <h2 className="text-xl font-bold text-gray-900 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 Gerar Voucher
               </h2>
 
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 Isso irá consumir <strong>1 crédito</strong> do seu saldo. O
                 voucher será único para esta entrega.
               </p>
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Nome do Beneficiário
                   </label>
                   <input
@@ -404,11 +404,11 @@ function VoucherModal({
                     value={beneficiaryName}
                     onChange={(e) => setBeneficiaryName(e.target.value)}
                     placeholder="Nome que aparecerá no cartão"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Mensagem (opcional)
                   </label>
                   <textarea
@@ -416,13 +416,13 @@ function VoucherModal({
                     onChange={(e) => setMessage(e.target.value)}
                     rows={3}
                     placeholder="Uma mensagem especial para o cliente..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
                   {error}
                 </div>
               )}
@@ -430,7 +430,7 @@ function VoucherModal({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancelar
                 </button>
@@ -460,7 +460,7 @@ function VoucherModal({
             </>
           ) : cardData ? (
             <>
-              <h2 className="text-xl font-bold text-gray-900 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 Cartão-Convite
               </h2>
 
@@ -469,7 +469,7 @@ function VoucherModal({
 
               <button
                 onClick={onClose}
-                className="w-full mt-6 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="w-full mt-6 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Fechar
               </button>

@@ -52,7 +52,7 @@ import { SettingsPage } from "@/pages/SettingsPage";
 
 export function AppRouter() {
   return (
-    <Router>
+    <Router future={{ v7_relativeSplatPath: true }}>
       <Routes>
         {/* Main app routes with layout */}
         <Route

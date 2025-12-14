@@ -101,7 +101,13 @@ const parseErrorPayload = (payload: unknown): ApiErrorPayload | undefined => {
 
 const handleErrorRedirects = (status: number, code?: string) => {
   if (status === 401) {
-    window.location.assign("/login");
+    const currentPath = window.location.pathname;
+    if (
+      !currentPath.includes("/login") &&
+      !currentPath.includes("/auth")
+    ) {
+      window.location.assign(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+    }
   }
   if (status === 402 && code === "quota.recurrent_limit.exceeded") {
     // TODO: wire to upsell store when available

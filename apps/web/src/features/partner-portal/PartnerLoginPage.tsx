@@ -93,39 +93,39 @@ export function PartnerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col">
       {/* Header */}
       <header className="p-4">
-        <Link to="/pro" className="inline-flex items-center gap-2">
+        <a href="http://localhost:3000/pro.html" className="inline-flex items-center gap-2">
           <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
             <Heart className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">
-            Baby Book <span className="text-pink-600">Pro</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">
+            Baby Book <span className="text-pink-600 dark:text-pink-400">Pro</span>
           </span>
-        </Link>
+        </a>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 rounded-full mb-4">
-                <Camera className="w-8 h-8 text-pink-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 dark:bg-pink-900/50 rounded-full mb-4">
+                <Camera className="w-8 h-8 text-pink-600 dark:text-pink-400" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Portal do Parceiro
               </h1>
-              <p className="text-gray-500 mt-2">
+              <p className="text-gray-500 dark:text-gray-400 mt-2">
                 Entre na sua conta para gerenciar suas entregas
               </p>
             </div>
 
             {/* Error Alert */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <p className="text-sm">{error}</p>
               </div>
@@ -136,7 +136,7 @@ export function PartnerLoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   E-mail
                 </label>
@@ -146,7 +146,7 @@ export function PartnerLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   autoComplete="email"
                 />
               </div>
@@ -154,7 +154,7 @@ export function PartnerLoginPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Senha
                 </label>
@@ -165,13 +165,13 @@ export function PartnerLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-12"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-12 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -183,15 +183,29 @@ export function PartnerLoginPage() {
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
-                  />
-                  <span className="text-gray-600">Lembrar de mim</span>
-                </label>
+                <button
+                  type="button"
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${rememberMe 
+                      ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300" 
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }
+                  `}
+                >
+                  <span>Lembrar de mim</span>
+                  {/* Toggle indicator */}
+                  <div className={`
+                    relative w-8 h-4 rounded-full transition-colors
+                    ${rememberMe ? "bg-pink-500" : "bg-gray-300 dark:bg-gray-500"}
+                  `}>
+                    <div className={`
+                      absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform
+                      ${rememberMe ? "translate-x-4" : "translate-x-0.5"}
+                    `} />
+                  </div>
+                </button>
                 <Link
                   to="/forgot-password"
                   className="text-pink-600 hover:text-pink-700 font-medium"
@@ -217,11 +231,11 @@ export function PartnerLoginPage() {
             </form>
 
             {/* Register Link */}
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
               Ainda não tem conta?{" "}
               <Link
                 to="/pro/register"
-                className="text-pink-600 hover:text-pink-700 font-medium"
+                className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
               >
                 Cadastre-se grátis
               </Link>
@@ -230,12 +244,12 @@ export function PartnerLoginPage() {
 
           {/* Back to Home */}
           <div className="text-center mt-6">
-            <Link
-              to="/pro"
-              className="text-gray-500 hover:text-gray-700 text-sm"
+            <a
+              href="http://localhost:3000/pro.html"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
             >
               ← Voltar para Baby Book Pro
-            </Link>
+            </a>
           </div>
         </div>
       </main>

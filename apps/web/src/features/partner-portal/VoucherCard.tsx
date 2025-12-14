@@ -185,7 +185,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
         <div className="flex gap-2">
           <button
             onClick={handleCopyCode}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             {copied ? (
               <>
@@ -201,7 +201,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
           </button>
           <button
             onClick={handleCopyUrl}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <Share2 className="w-4 h-4" />
             Copiar Link
@@ -247,7 +247,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
       </div>
 
       {/* Tip */}
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
         💡 Dica: Baixe o cartão e envie pelo WhatsApp ou imprima para entregar
         pessoalmente!
       </p>

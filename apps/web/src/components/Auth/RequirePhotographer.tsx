@@ -5,7 +5,7 @@
  * Usado para proteger as rotas do Portal do Parceiro.
  */
 
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -70,12 +70,12 @@ export function RequirePhotographer({ children }: RequirePhotographerProps) {
             conosco.
           </p>
           <div className="flex gap-3 justify-center">
-            <a
-              href="/jornada"
+            <Link
+              to="/pro/login"
               className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
             >
-              Ir para o Baby Book
-            </a>
+              Fazer login
+            </Link>
           </div>
         </div>
       </div>

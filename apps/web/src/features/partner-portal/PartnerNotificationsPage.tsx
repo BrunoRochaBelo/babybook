@@ -6,8 +6,9 @@
  */
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   Bell,
   Check,
   CheckCheck,
@@ -96,13 +97,14 @@ const notificationIcons: Record<NotificationType, typeof Bell> = {
 };
 
 const notificationColors: Record<NotificationType, string> = {
-  voucher_redeemed: "bg-purple-100 text-purple-600",
-  credits_added: "bg-green-100 text-green-600",
-  delivery_ready: "bg-blue-100 text-blue-600",
-  system: "bg-gray-100 text-gray-600",
+  voucher_redeemed: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400",
+  credits_added: "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400",
+  delivery_ready: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400",
+  system: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
 };
 
 export function PartnerNotificationsPage() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
@@ -123,15 +125,24 @@ export function PartnerNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        {/* Back Navigation */}
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Voltar</span>
+        </button>
+
         {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Notificações
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {unreadCount > 0
                 ? `${unreadCount} não lida${unreadCount > 1 ? "s" : ""}`
                 : "Todas as notificações lidas"}
@@ -141,7 +152,7 @@ export function PartnerNotificationsPage() {
             <button
               onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-pink-600 hover:text-pink-700 font-medium disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium disabled:opacity-50"
             >
               {isMarkingAll ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -154,14 +165,14 @@ export function PartnerNotificationsPage() {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           {notifications.length === 0 ? (
             <div className="p-12 text-center">
-              <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Nenhuma notificação ainda</p>
+              <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">Nenhuma notificação ainda</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {notifications.map((notification) => {
                 const Icon = notificationIcons[notification.type];
                 const colorClass = notificationColors[notification.type];
@@ -171,8 +182,8 @@ export function PartnerNotificationsPage() {
                     className={cn(
                       "flex items-start gap-4 p-4 transition-colors",
                       notification.unread
-                        ? "bg-pink-50/50 hover:bg-pink-50"
-                        : "hover:bg-gray-50",
+                        ? "bg-pink-50/50 dark:bg-pink-900/20 hover:bg-pink-50 dark:hover:bg-pink-900/30"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-700/50",
                       notification.link && "cursor-pointer"
                     )}
                   >
@@ -194,8 +205,8 @@ export function PartnerNotificationsPage() {
                             className={cn(
                               "text-sm",
                               notification.unread
-                                ? "font-semibold text-gray-900"
-                                : "font-medium text-gray-700"
+                                ? "font-semibold text-gray-900 dark:text-white"
+                                : "font-medium text-gray-700 dark:text-gray-300"
                             )}
                           >
                             {notification.title}
@@ -204,11 +215,11 @@ export function PartnerNotificationsPage() {
                             <span className="w-2 h-2 bg-pink-500 rounded-full" />
                           )}
                         </div>
-                        <span className="text-xs text-gray-400 flex-shrink-0">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
                           {notification.time}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                         {notification.description}
                       </p>
                     </div>
@@ -221,7 +232,7 @@ export function PartnerNotificationsPage() {
                           e.stopPropagation();
                           handleMarkAsRead(notification.id);
                         }}
-                        className="p-1.5 text-gray-400 hover:text-pink-500 transition-colors flex-shrink-0"
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-pink-500 transition-colors flex-shrink-0"
                         title="Marcar como lida"
                       >
                         <Check className="w-4 h-4" />
@@ -249,8 +260,8 @@ export function PartnerNotificationsPage() {
         </div>
 
         {/* Info */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-          <p className="text-sm text-blue-800">
+        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
+          <p className="text-sm text-blue-800 dark:text-blue-300">
             <strong>Dica:</strong> As notificações são mantidas por 30 dias. 
             Notificações mais antigas são removidas automaticamente.
           </p>

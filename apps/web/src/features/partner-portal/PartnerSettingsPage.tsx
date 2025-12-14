@@ -133,20 +133,29 @@ export function PartnerSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        {/* Back Navigation */}
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Voltar</span>
+        </button>
+
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Configurações do Perfil
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Gerencie as informações do seu estúdio
           </p>
         </div>
         {/* Success Message */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-700">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-3 text-green-700 dark:text-green-300">
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
             <p>Alterações salvas com sucesso!</p>
           </div>
@@ -154,7 +163,7 @@ export function PartnerSettingsPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <p>{error}</p>
             <button onClick={() => setError(null)} className="ml-auto">
@@ -165,14 +174,14 @@ export function PartnerSettingsPage() {
 
         <form onSubmit={handleSubmit}>
           {/* Logo Section */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Logo do Estúdio
             </h2>
             <div className="flex items-center gap-6">
               <div className="relative">
                 {logoUrl ? (
-                  <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600">
                     <img
                       src={logoUrl}
                       alt="Logo"
@@ -187,8 +196,8 @@ export function PartnerSettingsPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-24 h-24 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-400" />
+                  <div className="w-24 h-24 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                    <Camera className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   </div>
                 )}
               </div>
@@ -203,12 +212,12 @@ export function PartnerSettingsPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <Upload className="w-4 h-4" />
                   Escolher Imagem
                 </button>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   JPG ou PNG até 2MB. Recomendado: 200x200 pixels
                 </p>
               </div>
@@ -216,15 +225,15 @@ export function PartnerSettingsPage() {
           </div>
 
           {/* Profile Fields */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Informações do Perfil
             </h2>
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Seu Nome *
                 </label>
@@ -234,14 +243,14 @@ export function PartnerSettingsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Seu nome completo"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="studioName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Nome do Estúdio
                 </label>
@@ -251,9 +260,9 @@ export function PartnerSettingsPage() {
                   value={studioName}
                   onChange={(e) => setStudioName(e.target.value)}
                   placeholder="Ex: Studio Encanto Fotografia"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Este nome aparecerá nos cartões-convite dos seus clientes
                 </p>
               </div>
@@ -261,7 +270,7 @@ export function PartnerSettingsPage() {
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   WhatsApp
                 </label>
@@ -271,21 +280,21 @@ export function PartnerSettingsPage() {
                   value={phone}
                   onChange={(e) => setPhone(formatPhone(e.target.value))}
                   placeholder="(11) 99999-9999"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   E-mail
                 </label>
                 <input
                   type="email"
                   value={profile?.email || ""}
                   disabled
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   O e-mail não pode ser alterado
                 </p>
               </div>
@@ -293,14 +302,14 @@ export function PartnerSettingsPage() {
           </div>
 
           {/* Account Info */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Informações da Conta
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500">Status</p>
-                <p className="font-medium text-gray-900 capitalize">
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                <p className="font-medium text-gray-900 dark:text-white capitalize">
                   {profile?.status === "approved"
                     ? "✓ Aprovado"
                     : profile?.status === "pending"
@@ -308,9 +317,9 @@ export function PartnerSettingsPage() {
                       : profile?.status}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500">Saldo de Créditos</p>
-                <p className="font-medium text-gray-900">
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Saldo de Créditos</p>
+                <p className="font-medium text-gray-900 dark:text-white">
                   {profile?.voucher_balance || 0} créditos
                 </p>
               </div>
