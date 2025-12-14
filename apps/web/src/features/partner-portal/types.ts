@@ -46,16 +46,24 @@ export interface CreditPackage {
   id: string;
   name: string;
   voucher_count: number;
+  // Preço do cartão (condição padrão do gateway)
   price_cents: number;
+  // Preço no PIX (à vista). Pode vir vazio em ambientes legados.
+  pix_price_cents?: number;
   unit_price_cents: number;
   savings_percent: number;
   is_popular: boolean;
 }
 
+export type CreditPaymentMethod = "pix" | "card";
+
 export interface PurchaseCreditsResponse {
   checkout_id: string;
   checkout_url: string;
   package: CreditPackage;
+  payment_method: CreditPaymentMethod;
+  amount_cents: number;
+  max_installments_no_interest: number;
   expires_at: string;
 }
 
@@ -68,11 +76,20 @@ export interface Delivery {
   title: string;
   client_name: string | null;
   status: DeliveryStatus;
+  // Arquivamento (soft delete do fotógrafo)
+  is_archived?: boolean;
+  archived_at?: string | null;
   assets_count: number;
   voucher_code: string | null;
   created_at: string;
   redeemed_at: string | null;
   redeemed_by: string | null;
+}
+
+export interface DeliveryAggregations {
+  total: number;
+  archived: number;
+  by_status: Partial<Record<DeliveryStatus, number>> & Record<string, number>;
 }
 
 export interface DeliveryDetail extends Delivery {
@@ -100,8 +117,8 @@ export type DeliveryStatus =
 
 export interface CreateDeliveryRequest {
   client_name: string;
-  client_email?: string;  // E-mail do responsável (para verificar acesso)
-  child_name?: string;    // Nome da criança
+  client_email?: string; // E-mail do responsável (para verificar acesso)
+  child_name?: string; // Nome da criança
   title?: string;
   description?: string;
   event_date?: string;

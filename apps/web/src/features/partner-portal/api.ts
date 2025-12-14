@@ -10,9 +10,11 @@ import type {
   Partner,
   Delivery,
   DeliveryDetail,
+  DeliveryAggregations,
   CreateDeliveryRequest,
   PartnerDashboardStats,
   CreditPackage,
+  CreditPaymentMethod,
   PurchaseCreditsResponse,
   UploadInitRequest,
   UploadInitResponse,
@@ -106,11 +108,13 @@ export async function getCreditPackages(): Promise<CreditPackage[]> {
  */
 export async function purchaseCredits(
   packageId: string,
+  paymentMethod: CreditPaymentMethod,
 ): Promise<PurchaseCreditsResponse> {
   return apiClient.post<PurchaseCreditsResponse>(
     `${API_BASE}/credits/purchase`,
     {
       package_id: packageId,
+      payment_method: paymentMethod,
     },
   );
 }
@@ -127,11 +131,16 @@ export async function listDeliveries(params?: {
   include_archived?: boolean;
   limit?: number;
   offset?: number;
-}): Promise<{ deliveries: Delivery[]; total: number }> {
-  return apiClient.get<{ deliveries: Delivery[]; total: number }>(
-    `${API_BASE}/deliveries`,
-    { searchParams: params },
-  );
+}): Promise<{
+  deliveries: Delivery[];
+  total: number;
+  aggregations?: DeliveryAggregations;
+}> {
+  return apiClient.get<{
+    deliveries: Delivery[];
+    total: number;
+    aggregations?: DeliveryAggregations;
+  }>(`${API_BASE}/deliveries`, { searchParams: params });
 }
 
 /**

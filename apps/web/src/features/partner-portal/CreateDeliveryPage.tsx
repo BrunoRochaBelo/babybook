@@ -7,7 +7,7 @@
  * 3. Gerar voucher
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -29,6 +29,8 @@ import {
 import { createDelivery, checkClientAccess } from "./api";
 import { usePartnerUpload } from "./usePartnerUpload";
 import type { CreateDeliveryRequest } from "./types";
+import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
+import { PartnerPage } from "@/layouts/PartnerPage";
 
 type Step = "client" | "upload" | "review";
 
@@ -38,6 +40,27 @@ export function CreateDeliveryPage() {
   const [currentStep, setCurrentStep] = useState<Step>("client");
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  usePartnerPageHeader(
+    useMemo(() => {
+      const stepLabel =
+        currentStep === "client"
+          ? "Cliente"
+          : currentStep === "upload"
+            ? "Upload"
+            : "Revisar";
+
+      return {
+        title: "Nova entrega",
+        backTo: "/partner/deliveries",
+        backLabel: "Voltar às entregas",
+        badge: {
+          text: stepLabel,
+          tone: "info",
+        },
+      };
+    }, [currentStep]),
+  );
 
   // Form state
   const [clientName, setClientName] = useState("");
@@ -67,7 +90,7 @@ export function CreateDeliveryPage() {
         childName: response.client_name || undefined,
         message: response.message,
       });
-      
+
       // Se tiver nome do cliente, preenche automaticamente
       if (response.client_name && !clientName) {
         setClientName(response.client_name);
@@ -119,115 +142,113 @@ export function CreateDeliveryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
-        {/* Back Navigation */}
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Voltar</span>
-        </button>
+    <PartnerPage size="narrow">
+      {/* Back Navigation */}
+      <button
+        onClick={() => navigate(-1)}
+        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Voltar</span>
+      </button>
 
-        {/* Page Header with Progress Steps */}
-        <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Nova Entrega
-          </h1>
+      {/* Page Header with Progress Steps */}
+      <div className="mb-6">
+        <h1 className="hidden md:block text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          Nova Entrega
+        </h1>
 
-          {/* Progress Steps */}
-          <div className="flex items-center gap-4">
-            <StepIndicator
-              step={1}
-              label="Cliente"
-              active={currentStep === "client"}
-              completed={currentStep !== "client"}
-            />
-            <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700">
-              <div
-                className={`h-full bg-pink-500 transition-all ${
-                  currentStep === "client"
-                    ? "w-0"
-                    : currentStep === "upload"
-                      ? "w-1/2"
-                      : "w-full"
-                }`}
-              />
-            </div>
-            <StepIndicator
-              step={2}
-              label="Upload"
-              active={currentStep === "upload"}
-              completed={currentStep === "review"}
-            />
-            <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700">
-              <div
-                className={`h-full bg-pink-500 transition-all ${
-                  currentStep === "review" ? "w-full" : "w-0"
-                }`}
-              />
-            </div>
-            <StepIndicator
-              step={3}
-              label="Revisar"
-              active={currentStep === "review"}
-              completed={false}
+        {/* Progress Steps */}
+        <div className="flex items-center gap-4">
+          <StepIndicator
+            step={1}
+            label="Cliente"
+            active={currentStep === "client"}
+            completed={currentStep !== "client"}
+          />
+          <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700">
+            <div
+              className={`h-full bg-pink-500 transition-all ${
+                currentStep === "client"
+                  ? "w-0"
+                  : currentStep === "upload"
+                    ? "w-1/2"
+                    : "w-full"
+              }`}
             />
           </div>
+          <StepIndicator
+            step={2}
+            label="Upload"
+            active={currentStep === "upload"}
+            completed={currentStep === "review"}
+          />
+          <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700">
+            <div
+              className={`h-full bg-pink-500 transition-all ${
+                currentStep === "review" ? "w-full" : "w-0"
+              }`}
+            />
+          </div>
+          <StepIndicator
+            step={3}
+            label="Revisar"
+            active={currentStep === "review"}
+            completed={false}
+          />
         </div>
-        {/* Error */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{error}</p>
-            <button onClick={() => setError(null)} className="ml-auto">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+      </div>
+      {/* Error */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p>{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
-        {/* Step Content */}
-        {currentStep === "client" && (
-          <ClientStep
-            clientName={clientName}
-            setClientName={setClientName}
-            clientEmail={clientEmail}
-            setClientEmail={setClientEmail}
-            childName={childName}
-            setChildName={setChildName}
-            title={title}
-            setTitle={setTitle}
-            description={description}
-            setDescription={setDescription}
-            eventDate={eventDate}
-            setEventDate={setEventDate}
-            accessStatus={accessStatus}
-            isCheckingAccess={isCheckingAccess}
-            onCheckAccess={handleCheckAccess}
-            onNext={handleCreateDelivery}
-            isLoading={createMutation.isPending}
-          />
-        )}
+      {/* Step Content */}
+      {currentStep === "client" && (
+        <ClientStep
+          clientName={clientName}
+          setClientName={setClientName}
+          clientEmail={clientEmail}
+          setClientEmail={setClientEmail}
+          childName={childName}
+          setChildName={setChildName}
+          title={title}
+          setTitle={setTitle}
+          description={description}
+          setDescription={setDescription}
+          eventDate={eventDate}
+          setEventDate={setEventDate}
+          accessStatus={accessStatus}
+          isCheckingAccess={isCheckingAccess}
+          onCheckAccess={handleCheckAccess}
+          onNext={handleCreateDelivery}
+          isLoading={createMutation.isPending}
+        />
+      )}
 
-        {currentStep === "upload" && deliveryId && (
-          <UploadStep
-            deliveryId={deliveryId}
-            onNext={() => setCurrentStep("review")}
-            onBack={() => setCurrentStep("client")}
-          />
-        )}
+      {currentStep === "upload" && deliveryId && (
+        <UploadStep
+          deliveryId={deliveryId}
+          onNext={() => setCurrentStep("review")}
+          onBack={() => setCurrentStep("client")}
+        />
+      )}
 
-        {currentStep === "review" && deliveryId && (
-          <ReviewStep
-            deliveryId={deliveryId}
-            clientName={clientName}
-            onComplete={handleComplete}
-            onBack={() => setCurrentStep("upload")}
-          />
-        )}
-      </main>
-    </div>
+      {currentStep === "review" && deliveryId && (
+        <ReviewStep
+          deliveryId={deliveryId}
+          clientName={clientName}
+          onComplete={handleComplete}
+          onBack={() => setCurrentStep("upload")}
+        />
+      )}
+    </PartnerPage>
   );
 }
 
@@ -575,7 +596,8 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
         return e.returnValue;
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
-      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+      return () =>
+        window.removeEventListener("beforeunload", handleBeforeUnload);
     }
   }, [isUploading]);
 
@@ -586,13 +608,15 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
     <div className="space-y-6">
       {/* Card de Status Global */}
       {totalCount > 0 && (
-        <div className={`rounded-xl p-4 border-2 transition-all ${
-          isUploading 
-            ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700" 
-            : hasErrors
-              ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700"
-              : "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700"
-        }`}>
+        <div
+          className={`rounded-xl p-4 border-2 transition-all ${
+            isUploading
+              ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700"
+              : hasErrors
+                ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700"
+                : "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700"
+          }`}
+        >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               {isUploading ? (
@@ -614,28 +638,28 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
                     ? `Enviando ${pendingCount} ${pendingCount === 1 ? "arquivo" : "arquivos"}...`
                     : hasErrors
                       ? `${errorCount} ${errorCount === 1 ? "erro" : "erros"} no upload`
-                      : `${completedCount} ${completedCount === 1 ? "arquivo enviado" : "arquivos enviados"}!`
-                  }
+                      : `${completedCount} ${completedCount === 1 ? "arquivo enviado" : "arquivos enviados"}!`}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {isUploading 
+                  {isUploading
                     ? "Não feche esta página"
                     : hasErrors
                       ? "Clique em ↻ para tentar novamente"
-                      : "Você pode adicionar mais fotos ou continuar"
-                  }
+                      : "Você pode adicionar mais fotos ou continuar"}
                 </p>
               </div>
             </div>
             {isUploading && (
-              <span className="text-lg font-bold text-blue-600">{totalProgress}%</span>
+              <span className="text-lg font-bold text-blue-600">
+                {totalProgress}%
+              </span>
             )}
           </div>
-          
+
           {/* Barra de Progresso Global */}
           {isUploading && (
             <div className="h-2 bg-blue-100 dark:bg-blue-800 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-blue-500 transition-all duration-300 ease-out"
                 style={{ width: `${totalProgress}%` }}
               />
@@ -649,8 +673,8 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
         <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-3 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
           <p className="text-sm text-amber-800 dark:text-amber-200">
-            <strong>Aguarde!</strong> Os arquivos estão sendo comprimidos e enviados. 
-            Não feche esta página até o upload concluir.
+            <strong>Aguarde!</strong> Os arquivos estão sendo comprimidos e
+            enviados. Não feche esta página até o upload concluir.
           </p>
         </div>
       )}
@@ -658,17 +682,22 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
       {/* Drop Zone */}
       <div
         onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
         onDragLeave={() => setIsDragging(false)}
         className={`bg-white dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed transition-all text-center ${
-          isDragging 
-            ? "border-pink-400 bg-pink-50 dark:bg-pink-900/20 scale-[1.02]" 
+          isDragging
+            ? "border-pink-400 bg-pink-50 dark:bg-pink-900/20 scale-[1.02]"
             : "border-gray-300 dark:border-gray-600 hover:border-pink-300 dark:hover:border-pink-500"
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-4 transition-colors ${
-          isDragging ? "text-pink-500" : "text-gray-400 dark:text-gray-500"
-        }`} />
+        <Upload
+          className={`w-12 h-12 mx-auto mb-4 transition-colors ${
+            isDragging ? "text-pink-500" : "text-gray-400 dark:text-gray-500"
+          }`}
+        />
         <p className="text-gray-600 dark:text-gray-300 mb-2">
           {isDragging ? "Solte as fotos aqui!" : "Arraste fotos aqui ou"}
         </p>
@@ -699,11 +728,13 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
             <p className="font-medium text-gray-900 dark:text-white">
               {completedCount} de {totalCount} arquivos enviados
             </p>
-            {totalCount > 0 && !isUploading && completedCount === totalCount && (
-              <span className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-medium">
-                ✓ Todos enviados
-              </span>
-            )}
+            {totalCount > 0 &&
+              !isUploading &&
+              completedCount === totalCount && (
+                <span className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-medium">
+                  ✓ Todos enviados
+                </span>
+              )}
           </div>
 
           <div className="max-h-64 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
@@ -711,14 +742,20 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
               <div
                 key={upload.id}
                 className={`flex items-center gap-4 p-3 ${
-                  upload.status === "error" ? "bg-red-50 dark:bg-red-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  upload.status === "error"
+                    ? "bg-red-50 dark:bg-red-900/20"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
                 }`}
               >
-                <div className={`w-10 h-10 rounded flex items-center justify-center ${
-                  upload.status === "complete" ? "bg-green-100 dark:bg-green-900/50" :
-                  upload.status === "error" ? "bg-red-100 dark:bg-red-900/50" :
-                  "bg-gray-100 dark:bg-gray-700"
-                }`}>
+                <div
+                  className={`w-10 h-10 rounded flex items-center justify-center ${
+                    upload.status === "complete"
+                      ? "bg-green-100 dark:bg-green-900/50"
+                      : upload.status === "error"
+                        ? "bg-red-100 dark:bg-red-900/50"
+                        : "bg-gray-100 dark:bg-gray-700"
+                  }`}
+                >
                   {upload.status === "complete" ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   ) : upload.status === "error" ? (
@@ -773,15 +810,16 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
                       <RefreshCw className="w-4 h-4" />
                     </button>
                   )}
-                  {upload.status !== "uploading" && upload.status !== "compressing" && (
-                    <button
-                      onClick={() => removeUpload(upload.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remover"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  {upload.status !== "uploading" &&
+                    upload.status !== "compressing" && (
+                      <button
+                        onClick={() => removeUpload(upload.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remover"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                 </div>
               </div>
             ))}
@@ -845,7 +883,9 @@ function ReviewStep({
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Entrega Criada!</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          Entrega Criada!
+        </h2>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
           A entrega para <strong>{clientName}</strong> foi criada com sucesso.
         </p>

@@ -5,7 +5,7 @@ Pydantic models for Partner Portal API requests and responses.
 """
 
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 from pydantic import BaseModel, Field, EmailStr
 
 
@@ -76,15 +76,28 @@ class CreditPackage(BaseModel):
     id: str
     name: str
     voucher_count: int = Field(..., description="Quantidade de vouchers")
-    price_cents: int = Field(..., description="Preço em centavos (BRL)")
+    # Nota: price_cents é o preço do cartão (condição padrão no gateway).
+    # Quando existir incentivo ao PIX, o frontend pode exibir pix_price_cents.
+    price_cents: int = Field(..., description="Preço em centavos (BRL) no cartão")
+    pix_price_cents: Optional[int] = Field(
+        None,
+        description="Preço em centavos (BRL) no PIX (à vista). Se ausente, o frontend pode aplicar fallback.",
+    )
     unit_price_cents: int = Field(..., description="Preço por unidade em centavos")
     savings_percent: int = Field(0, description="Percentual de economia")
     is_popular: bool = Field(False, description="Destaque como mais popular")
 
 
+PaymentMethod = Literal["pix", "card"]
+
+
 class PurchaseCreditsRequest(BaseModel):
     """Request para compra de créditos."""
     package_id: str = Field(..., description="ID do pacote a comprar")
+    payment_method: PaymentMethod = Field(
+        "card",
+        description="Forma de pagamento. 'pix' (à vista) ou 'card' (cartão, com parcelamento no checkout).",
+    )
 
 
 class PurchaseCreditsResponse(BaseModel):
@@ -92,6 +105,12 @@ class PurchaseCreditsResponse(BaseModel):
     checkout_id: str
     checkout_url: str
     package: CreditPackage
+    payment_method: PaymentMethod
+    amount_cents: int = Field(..., description="Valor a pagar, em centavos (BRL), para o método selecionado")
+    max_installments_no_interest: int = Field(
+        3,
+        description="Máximo de parcelas sem juros (quando payment_method='card')",
+    )
     expires_at: datetime
 
 
@@ -140,6 +159,8 @@ class DeliveryResponse(BaseModel):
     title: str
     client_name: Optional[str] = None
     status: str
+    is_archived: bool = Field(False, description="Se a entrega está arquivada (soft delete do fotógrafo)")
+    archived_at: Optional[datetime] = Field(None, description="Quando foi arquivada (se aplicável)")
     assets_count: int
     voucher_code: Optional[str] = None
     created_at: datetime
@@ -147,10 +168,21 @@ class DeliveryResponse(BaseModel):
     redeemed_by: Optional[str] = None
 
 
+class DeliveryAggregationsResponse(BaseModel):
+    """Agregações para o painel de listagem."""
+    total: int = Field(..., description="Total de entregas (inclui arquivadas)")
+    archived: int = Field(..., description="Total de entregas arquivadas")
+    by_status: dict[str, int] = Field(
+        default_factory=dict,
+        description="Contagem de entregas ativas (não arquivadas) por status",
+    )
+
+
 class DeliveryListResponse(BaseModel):
     """Lista de entregas."""
     deliveries: list[DeliveryResponse]
     total: int
+    aggregations: Optional[DeliveryAggregationsResponse] = None
 
 
 class DeliveryAssetInfo(BaseModel):
@@ -171,6 +203,8 @@ class DeliveryDetailResponse(BaseModel):
     description: Optional[str] = None
     event_date: Optional[datetime] = None
     status: str
+    is_archived: bool = Field(False, description="Se a entrega está arquivada (soft delete do fotógrafo)")
+    archived_at: Optional[datetime] = Field(None, description="Quando foi arquivada (se aplicável)")
     assets_count: int
     assets: list[dict] = Field(default_factory=list)
     voucher_code: Optional[str] = None

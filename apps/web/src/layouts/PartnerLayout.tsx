@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeft,
   Bell,
   ChevronDown,
   CreditCard,
@@ -29,6 +30,11 @@ import { useLogout } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
 import { useTheme } from "@/hooks/useTheme";
 import { getPartnerProfile } from "@/features/partner-portal/api";
+import {
+  PartnerPageHeaderContext,
+  type PartnerPageHeaderBadgeTone,
+  type PartnerPageHeaderConfig,
+} from "@/layouts/partnerPageHeader";
 
 const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
@@ -60,6 +66,10 @@ export function PartnerLayout() {
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
+
+  const [pageHeader, setPageHeader] = useState<PartnerPageHeaderConfig | null>(
+    null,
+  );
 
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
@@ -96,8 +106,7 @@ export function PartnerLayout() {
     if (isNotificationsOpen || isUserMenuOpen) {
       // Use 'click' instead of 'pointerdown' to avoid race condition with onClick handlers
       document.addEventListener("click", handleClickOutside);
-      return () =>
-        document.removeEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [isNotificationsOpen, isUserMenuOpen]);
 
@@ -115,6 +124,22 @@ export function PartnerLayout() {
   };
 
   const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length;
+
+  const badgeToneClass = (tone?: PartnerPageHeaderBadgeTone) => {
+    switch (tone) {
+      case "success":
+        return "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300";
+      case "warning":
+        return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300";
+      case "info":
+        return "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300";
+      case "purple":
+        return "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300";
+      case "neutral":
+      default:
+        return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
@@ -147,7 +172,7 @@ export function PartnerLayout() {
                       "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
                         ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
                     )
                   }
                 >
@@ -171,7 +196,7 @@ export function PartnerLayout() {
                     "relative p-2 rounded-lg transition-colors",
                     isNotificationsOpen
                       ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white"
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white",
                   )}
                   aria-label="Notificações"
                 >
@@ -200,7 +225,8 @@ export function PartnerLayout() {
                           key={notification.id}
                           className={cn(
                             "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer",
-                            notification.unread && "bg-pink-50/50 dark:bg-pink-900/20"
+                            notification.unread &&
+                              "bg-pink-50/50 dark:bg-pink-900/20",
                           )}
                         >
                           <div className="flex items-start gap-3">
@@ -247,7 +273,7 @@ export function PartnerLayout() {
                     "flex items-center gap-2 p-1.5 pr-3 rounded-lg transition-colors",
                     isUserMenuOpen
                       ? "bg-gray-100 dark:bg-gray-700"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
                   )}
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
@@ -286,7 +312,9 @@ export function PartnerLayout() {
 
                     {/* Theme Selector */}
                     <div className="border-t border-gray-100 dark:border-gray-700 py-2 px-4">
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Tema</p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        Tema
+                      </p>
                       <div className="grid grid-cols-3 gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                         <button
                           type="button"
@@ -296,7 +324,7 @@ export function PartnerLayout() {
                             "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
                             theme === "light"
                               ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
                           <Sun className="w-3.5 h-3.5" />
@@ -310,7 +338,7 @@ export function PartnerLayout() {
                             "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
                             theme === "dark"
                               ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
                           <Moon className="w-3.5 h-3.5" />
@@ -324,7 +352,7 @@ export function PartnerLayout() {
                             "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
                             theme === "system"
                               ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
                           <Monitor className="w-3.5 h-3.5" />
@@ -378,7 +406,7 @@ export function PartnerLayout() {
                       "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                       isActive
                         ? "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700",
                     )
                   }
                 >
@@ -392,9 +420,52 @@ export function PartnerLayout() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        <Outlet />
-      </main>
+      <PartnerPageHeaderContext.Provider value={{ setHeader: setPageHeader }}>
+        <main className="flex-1">
+          {/* Page header (mobile sticky) */}
+          {pageHeader ? (
+            <div className="md:hidden sticky top-16 z-30 border-b border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/80 backdrop-blur">
+              <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3">
+                {pageHeader.backTo ? (
+                  <Link
+                    to={pageHeader.backTo}
+                    aria-label={pageHeader.backLabel || "Voltar"}
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Link>
+                ) : null}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {pageHeader.title}
+                    </p>
+                    {pageHeader.badge?.text ? (
+                      <span
+                        className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium flex-shrink-0",
+                          badgeToneClass(pageHeader.badge.tone),
+                        )}
+                      >
+                        {pageHeader.badge.text}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                {pageHeader.actions ? (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {pageHeader.actions}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          <Outlet />
+        </main>
+      </PartnerPageHeaderContext.Provider>
     </div>
   );
 }

@@ -5,7 +5,7 @@
  * Reutiliza o hook usePartnerUpload.
  */
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -21,11 +21,31 @@ import {
 } from "lucide-react";
 import { getDelivery } from "./api";
 import { usePartnerUpload } from "./usePartnerUpload";
+import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
+import { PartnerPage } from "@/layouts/PartnerPage";
+import {
+  PartnerEmptyState,
+  PartnerErrorState,
+  PartnerLoadingState,
+} from "@/layouts/partnerStates";
 
 export function DeliveryUploadPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  usePartnerPageHeader(
+    useMemo(
+      () => ({
+        title: "Adicionar fotos",
+        backTo: deliveryId
+          ? `/partner/deliveries/${deliveryId}`
+          : "/partner/deliveries",
+        backLabel: "Voltar à entrega",
+      }),
+      [deliveryId],
+    ),
+  );
 
   // Query delivery details
   const {
@@ -75,211 +95,213 @@ export function DeliveryUploadPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
-      </div>
-    );
+    return <PartnerLoadingState size="narrow" label="Carregando entrega…" />;
   }
 
   if (error || !delivery) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 dark:text-red-400 mb-4">Entrega não encontrada</p>
-          <Link
-            to="/partner/deliveries"
-            className="text-pink-600 dark:text-pink-400 hover:underline"
-          >
-            Voltar às entregas
-          </Link>
-        </div>
-      </div>
+      <PartnerErrorState
+        size="narrow"
+        title="Entrega não encontrada"
+        description="Não encontramos essa entrega (ou você não tem acesso a ela)."
+        primaryAction={{
+          label: "Voltar às entregas",
+          to: "/partner/deliveries",
+        }}
+      />
     );
   }
 
   // Não permitir upload se já tem voucher
   if (delivery.voucher_code) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md text-center border border-gray-200 dark:border-gray-700">
-          <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Entrega Finalizada
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Não é possível adicionar fotos após o voucher ser gerado.
-          </p>
-          <Link
-            to={`/partner/deliveries/${deliveryId}`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-          >
-            Ver Entrega
-          </Link>
-        </div>
-      </div>
+      <PartnerEmptyState
+        size="narrow"
+        tone="warning"
+        icon={AlertCircle}
+        title="Entrega finalizada"
+        description="Não é possível adicionar fotos após o voucher ser gerado."
+        primaryAction={{
+          label: "Ver entrega",
+          to: deliveryId
+            ? `/partner/deliveries/${deliveryId}`
+            : "/partner/deliveries",
+        }}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
-        {/* Back Navigation */}
-        <Link
-          to={`/partner/deliveries/${deliveryId}`}
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Voltar à entrega</span>
-        </Link>
+    <PartnerPage size="narrow">
+      {/* Back Navigation */}
+      <Link
+        to={`/partner/deliveries/${deliveryId}`}
+        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Voltar à entrega</span>
+      </Link>
 
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Adicionar Fotos
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Entrega: {delivery.title || delivery.client_name || "Sem título"}
-          </p>
-        </div>
-        {/* Current Stats */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center">
-                <Image className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Fotos na entrega</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {delivery.assets_count}
-                </p>
-              </div>
+      {/* Page Header */}
+      <div className="hidden md:block mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          Adicionar Fotos
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
+          Entrega: {delivery.title || delivery.client_name || "Sem título"}
+        </p>
+      </div>
+
+      <div className="md:hidden mb-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Entrega:{" "}
+          <span className="font-medium text-gray-700 dark:text-gray-200">
+            {delivery.title || delivery.client_name || "Sem título"}
+          </span>
+        </p>
+      </div>
+      {/* Current Stats */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center">
+              <Image className="w-5 h-5 text-pink-600 dark:text-pink-400" />
             </div>
-            {completedCount > 0 && (
-              <div className="text-right">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Enviadas agora</p>
-                <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                  +{completedCount}
-                </p>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Fotos na entrega
+              </p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {delivery.assets_count}
+              </p>
+            </div>
+          </div>
+          {completedCount > 0 && (
+            <div className="text-right">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Enviadas agora
+              </p>
+              <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                +{completedCount}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Upload Zone */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+        <p className="text-gray-600 dark:text-gray-300 font-medium">
+          Arraste as fotos ou clique para selecionar
+        </p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+          JPG, PNG, WEBP • Até 20MB por arquivo
+        </p>
+      </div>
+
+      {/* Upload Progress */}
+      {uploads.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Uploads ({completedCount}/{totalCount})
+            </h2>
+            {isUploading && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {totalProgress}%
               </div>
             )}
           </div>
-        </div>
 
-        {/* Upload Zone */}
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300 font-medium">
-            Arraste as fotos ou clique para selecionar
-          </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-            JPG, PNG, WEBP • Até 20MB por arquivo
-          </p>
-        </div>
-
-        {/* Upload Progress */}
-        {uploads.length > 0 && (
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Uploads ({completedCount}/{totalCount})
-              </h2>
-              {isUploading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {totalProgress}%
+          <div className="space-y-2">
+            {uploads.map((upload) => (
+              <div
+                key={upload.id}
+                className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+                  <Image className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              {uploads.map((upload) => (
-                <div
-                  key={upload.id}
-                  className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
-                >
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-                    <Image className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {upload.file.name}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {upload.file.name}
+                  </p>
+                  {upload.status === "error" ? (
+                    <p className="text-xs text-red-500 dark:text-red-400">
+                      {upload.error}
                     </p>
-                    {upload.status === "error" ? (
-                      <p className="text-xs text-red-500 dark:text-red-400">{upload.error}</p>
-                    ) : (
-                      <div className="mt-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all ${
-                            upload.status === "complete"
-                              ? "bg-green-500"
-                              : "bg-pink-500"
-                          }`}
-                          style={{ width: `${upload.progress}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  {upload.status === "complete" && (
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <div className="mt-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${
+                          upload.status === "complete"
+                            ? "bg-green-500"
+                            : "bg-pink-500"
+                        }`}
+                        style={{ width: `${upload.progress}%` }}
+                      />
+                    </div>
                   )}
-                  {upload.status === "error" && (
-                    <button
-                      onClick={() => retryUpload(upload.id)}
-                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                  )}
-                  {(upload.status === "compressing" ||
-                    upload.status === "uploading") && (
-                    <Loader2 className="w-4 h-4 animate-spin text-pink-500" />
-                  )}
-                  <button
-                    onClick={() => removeUpload(upload.id)}
-                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
-              ))}
-            </div>
+                {upload.status === "complete" && (
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                )}
+                {upload.status === "error" && (
+                  <button
+                    onClick={() => retryUpload(upload.id)}
+                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                )}
+                {(upload.status === "compressing" ||
+                  upload.status === "uploading") && (
+                  <Loader2 className="w-4 h-4 animate-spin text-pink-500" />
+                )}
+                <button
+                  onClick={() => removeUpload(upload.id)}
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
           </div>
-        )}
-
-        {/* Actions */}
-        <div className="mt-8 flex gap-4">
-          <button
-            onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
-            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
-            disabled={isUploading}
-            className="flex-1 px-4 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 font-medium"
-          >
-            {isUploading ? "Aguarde..." : "Concluir"}
-          </button>
         </div>
-      </main>
-    </div>
+      )}
+
+      {/* Actions */}
+      <div className="mt-8 flex gap-4">
+        <button
+          onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
+          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
+          disabled={isUploading}
+          className="flex-1 px-4 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 font-medium"
+        >
+          {isUploading ? "Aguarde..." : "Concluir"}
+        </button>
+      </div>
+    </PartnerPage>
   );
 }
 

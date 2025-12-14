@@ -622,6 +622,7 @@ export interface MockDelivery {
   status: "draft" | "pending_upload" | "ready" | "completed";
   assetsCount: number;
   voucherCode: string | null;
+  archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -675,6 +676,7 @@ export const mockDeliveries: MockDelivery[] = [
     status: "pending_upload",
     assetsCount: 0,
     voucherCode: null,
+    archivedAt: "2024-12-13T10:00:00Z",
     createdAt: "2024-12-12T09:00:00Z",
     updatedAt: "2024-12-12T09:00:00Z",
   },

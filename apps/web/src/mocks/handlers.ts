@@ -230,6 +230,12 @@ const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
 const mutableDeliveries: MockDelivery[] = [...mockDeliveries];
 
+const normalizeDeliveryStatus = (delivery: MockDelivery) => {
+  if (delivery.archivedAt) return "archived";
+  if (delivery.status === "completed") return "delivered";
+  return delivery.status;
+};
+
 const toDeliveryResponse = (delivery: MockDelivery) => ({
   id: delivery.id,
   partner_id: delivery.partnerId,
@@ -237,9 +243,11 @@ const toDeliveryResponse = (delivery: MockDelivery) => ({
   client_name: delivery.clientName,
   description: delivery.description,
   event_date: delivery.eventDate,
-  status: delivery.status,
+  status: normalizeDeliveryStatus(delivery),
   assets_count: delivery.assetsCount,
   voucher_code: delivery.voucherCode,
+  is_archived: Boolean(delivery.archivedAt),
+  archived_at: delivery.archivedAt ?? null,
   created_at: delivery.createdAt,
   updated_at: delivery.updatedAt,
 });
@@ -527,23 +535,25 @@ export const handlers = [
         { status: 403 },
       );
     }
-    const deliveries = mockDeliveries;
+    const deliveries = mutableDeliveries;
     return HttpResponse.json({
       voucher_balance: mockPartner.voucherBalance,
       total_deliveries: deliveries.length,
       ready_deliveries: deliveries.filter((d) => d.status === "ready").length,
-      delivered_deliveries: deliveries.filter((d) => d.status === "completed")
-        .length,
+      delivered_deliveries: deliveries.filter(
+        (d) => normalizeDeliveryStatus(d) === "delivered",
+      ).length,
       total_vouchers: deliveries.filter((d) => d.voucherCode).length,
-      redeemed_vouchers: deliveries.filter((d) => d.status === "completed")
-        .length,
+      redeemed_vouchers: deliveries.filter(
+        (d) => normalizeDeliveryStatus(d) === "delivered",
+      ).length,
       pending_vouchers: deliveries.filter((d) => d.status === "ready").length,
       total_assets: deliveries.reduce((sum, d) => sum + d.assetsCount, 0),
     });
   }),
 
   // Partner deliveries list
-  http.get(withBase("/partner/deliveries"), () => {
+  http.get(withBase("/partner/deliveries"), ({ request }) => {
     if (!sessionActive) return sessionRequiredResponse();
     if (activeUser.role !== "photographer") {
       return HttpResponse.json(
@@ -556,9 +566,62 @@ export const handlers = [
         { status: 403 },
       );
     }
+
+    const url = new URL(request.url);
+    const statusFilter = url.searchParams.get("status") ?? undefined;
+    const includeArchivedParam =
+      url.searchParams.get("include_archived") ?? "false";
+    const includeArchived =
+      includeArchivedParam === "true" || includeArchivedParam === "1";
+
+    const limitRaw = url.searchParams.get("limit") ?? "20";
+    const offsetRaw = url.searchParams.get("offset") ?? "0";
+    const limit = Math.max(
+      1,
+      Math.min(100, Number.parseInt(limitRaw, 10) || 20),
+    );
+    const offset = Math.max(0, Number.parseInt(offsetRaw, 10) || 0);
+
+    const totalAll = mutableDeliveries.length;
+    const archivedCount = mutableDeliveries.filter((d) =>
+      Boolean(d.archivedAt),
+    ).length;
+
+    const byStatus: Record<string, number> = {
+      draft: 0,
+      pending_upload: 0,
+      processing: 0,
+      ready: 0,
+      delivered: 0,
+    };
+
+    for (const d of mutableDeliveries) {
+      if (d.archivedAt) continue;
+      const s = normalizeDeliveryStatus(d);
+      if (typeof byStatus[s] === "number") byStatus[s] += 1;
+    }
+
+    const shouldIncludeArchived =
+      includeArchived || statusFilter === "archived";
+
+    const filtered = mutableDeliveries.filter((d) => {
+      const s = normalizeDeliveryStatus(d);
+      if (!shouldIncludeArchived && s === "archived") return false;
+      if (statusFilter && s !== statusFilter) return false;
+      return true;
+    });
+
+    const total = filtered.length;
+    const page = filtered.slice(offset, offset + limit);
+
     return HttpResponse.json({
-      deliveries: mutableDeliveries.map(toDeliveryResponse),
-      total: mutableDeliveries.length,
+      deliveries: page.map(toDeliveryResponse),
+      total,
+      aggregations: {
+        total: totalAll,
+        archived: archivedCount,
+        by_status: byStatus,
+      },
     });
   }),
 
@@ -632,6 +695,7 @@ export const handlers = [
         name: "Pacote Inicial",
         voucher_count: 5,
         price_cents: 85000, // R$ 850
+        pix_price_cents: 78000, // R$ 780
         unit_price_cents: 17000, // R$ 170/unid
         savings_percent: 0,
         is_popular: false,
@@ -641,6 +705,7 @@ export const handlers = [
         name: "Pacote Profissional",
         voucher_count: 10,
         price_cents: 149000, // R$ 1.490
+        pix_price_cents: 135000, // R$ 1.350
         unit_price_cents: 14900, // R$ 149/unid
         savings_percent: 12,
         is_popular: true,
@@ -650,6 +715,7 @@ export const handlers = [
         name: "Pacote Estúdio",
         voucher_count: 25,
         price_cents: 322500, // R$ 3.225
+        pix_price_cents: 287500, // R$ 2.875
         unit_price_cents: 12900, // R$ 129/unid
         savings_percent: 24,
         is_popular: false,
@@ -671,35 +737,58 @@ export const handlers = [
         { status: 403 },
       );
     }
-    const body = (await request.json()) as { package_id: string };
+    const body = (await request.json()) as {
+      package_id: string;
+      payment_method?: "pix" | "card";
+    };
+
+    const paymentMethod = body.payment_method ?? "card";
 
     // Package lookup based on real backend values
     const packages: Record<
       string,
-      { name: string; voucher_count: number; price_cents: number }
+      {
+        name: string;
+        voucher_count: number;
+        price_cents: number;
+        pix_price_cents: number;
+      }
     > = {
-      pack_5: { name: "Pacote Inicial", voucher_count: 5, price_cents: 85000 },
+      pack_5: {
+        name: "Pacote Inicial",
+        voucher_count: 5,
+        price_cents: 85000,
+        pix_price_cents: 78000,
+      },
       pack_10: {
         name: "Pacote Profissional",
         voucher_count: 10,
         price_cents: 149000,
+        pix_price_cents: 135000,
       },
       pack_25: {
         name: "Pacote Estúdio",
         voucher_count: 25,
         price_cents: 322500,
+        pix_price_cents: 287500,
       },
     };
     const pkg = packages[body.package_id] || packages["pack_5"];
 
+    const amount_cents =
+      paymentMethod === "pix" ? pkg.pix_price_cents : pkg.price_cents;
+
     // In mock mode, redirect back to partner dashboard with success
     return HttpResponse.json({
       checkout_id: `chk_${nanoid(16)}`,
-      checkout_url: `/partner?credits_added=true&package=${body.package_id}`,
+      checkout_url: `/partner?credits_added=true&package=${body.package_id}&method=${paymentMethod}`,
       package: {
         id: body.package_id,
         ...pkg,
       },
+      payment_method: paymentMethod,
+      amount_cents,
+      max_installments_no_interest: 3,
       expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min
     });
   }),

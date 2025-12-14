@@ -40,6 +40,7 @@ from babybook_api.schemas.partner_portal import (
     DeliveryResponse,
     DeliveryDetailResponse,
     DeliveryListResponse,
+    DeliveryAggregationsResponse,
     GenerateVoucherCardRequest,
     VoucherCardResponse,
     UploadInitRequest,
@@ -122,12 +123,24 @@ async def get_partner_for_user(db: AsyncSession, user: UserSession) -> Partner:
 # Credit Packages (Pacotes de Créditos)
 # =============================================================================
 
+# Regra de pricing (docs: Modelagem_Produto / Arquitetura_do_Sistema):
+# - PIX deve ser mais barato (à vista) e recomendado.
+# - Cartão existe por conveniência; preço maior para absorver custo do parcelamento.
+# - Subsidiamos apenas até 3x sem juros.
+PIX_DISCOUNT_PER_VOUCHER_CENTS = 1400  # R$ 14,00 por voucher (ex.: 149 -> 135 no lote 10)
+MAX_INSTALLMENTS_NO_INTEREST = 3
+
+
+def _pix_price_cents_for(package: CreditPackage) -> int:
+    return max(0, package.price_cents - (package.voucher_count * PIX_DISCOUNT_PER_VOUCHER_CENTS))
+
 CREDIT_PACKAGES: list[CreditPackage] = [
     CreditPackage(
         id="pack_5",
         name="Pacote Inicial",
         voucher_count=5,
-        price_cents=85000,  # R$ 850
+        price_cents=85000,  # R$ 850 (cartão)
+        pix_price_cents=85000 - (5 * PIX_DISCOUNT_PER_VOUCHER_CENTS),  # R$ 780 (PIX)
         unit_price_cents=17000,  # R$ 170/unid
         savings_percent=0,
     ),
@@ -135,7 +148,8 @@ CREDIT_PACKAGES: list[CreditPackage] = [
         id="pack_10",
         name="Pacote Profissional",
         voucher_count=10,
-        price_cents=149000,  # R$ 1.490
+        price_cents=149000,  # R$ 1.490 (cartão)
+        pix_price_cents=149000 - (10 * PIX_DISCOUNT_PER_VOUCHER_CENTS),  # R$ 1.350 (PIX)
         unit_price_cents=14900,  # R$ 149/unid
         savings_percent=12,
         is_popular=True,
@@ -144,7 +158,8 @@ CREDIT_PACKAGES: list[CreditPackage] = [
         id="pack_25",
         name="Pacote Estúdio",
         voucher_count=25,
-        price_cents=322500,  # R$ 3.225
+        price_cents=322500,  # R$ 3.225 (cartão)
+        pix_price_cents=322500 - (25 * PIX_DISCOUNT_PER_VOUCHER_CENTS),  # R$ 2.875 (PIX)
         unit_price_cents=12900,  # R$ 129/unid
         savings_percent=24,
     ),
@@ -466,18 +481,31 @@ async def purchase_credits(
             detail="Pacote não encontrado"
         )
     
+    payment_method = request.payment_method
+    if payment_method == "pix":
+        amount_cents = package.pix_price_cents if package.pix_price_cents is not None else _pix_price_cents_for(package)
+    else:
+        amount_cents = package.price_cents
+
     # TODO: Integrar com Stripe/Pagar.me
     # Por enquanto, simula checkout
     checkout_id = f"chk_{uuid4().hex[:16]}"
-    
+
     # Em produção: criar sessão de checkout no gateway
     # e retornar a URL do gateway
-    checkout_url = f"/partner/checkout/{checkout_id}?package={package.id}"
-    
+    checkout_url = (
+        f"/partner/checkout/{checkout_id}?package={package.id}"
+        f"&method={payment_method}"
+        f"&amount_cents={amount_cents}"
+    )
+
     return PurchaseCreditsResponse(
         checkout_id=checkout_id,
         checkout_url=checkout_url,
         package=package,
+        payment_method=payment_method,
+        amount_cents=amount_cents,
+        max_installments_no_interest=MAX_INSTALLMENTS_NO_INTEREST,
         expires_at=datetime.utcnow() + timedelta(hours=1),
     )
 
@@ -528,6 +556,15 @@ async def confirm_credit_purchase(
 # =============================================================================
 # Deliveries (Entregas)
 # =============================================================================
+
+def _normalize_partner_delivery_status(raw_status: str | None) -> str:
+    """Normaliza status legados para o vocabulário do partner portal."""
+    if not raw_status:
+        return "draft"
+    # Em outras rotas do sistema, 'completed' é usado para entrega resgatada.
+    if raw_status == "completed":
+        return "delivered"
+    return raw_status
 
 @router.post(
     "/deliveries",
@@ -629,15 +666,39 @@ async def list_partner_deliveries(
 ) -> DeliveryListResponse:
     """Lista entregas do parceiro."""
     partner = await get_partner_for_user(db, current_user)
+
+    base_where = [Delivery.partner_id == partner.id]
+    active_where = [*base_where, Delivery.archived_at.is_(None)]
+    archived_where = [*base_where, Delivery.archived_at.is_not(None)]
+
+    # Agregações (independentes de status_filter/limit/offset)
+    total_all = (await db.execute(select(func.count(Delivery.id)).where(*base_where))).scalar() or 0
+    archived_count = (await db.execute(select(func.count(Delivery.id)).where(*archived_where))).scalar() or 0
+
+    by_status_rows = (
+        await db.execute(
+            select(Delivery.status, func.count(Delivery.id))
+            .where(*active_where)
+            .group_by(Delivery.status)
+        )
+    ).all()
+    by_status: dict[str, int] = {}
+    for raw_status, count in by_status_rows:
+        normalized = _normalize_partner_delivery_status(raw_status)
+        by_status[normalized] = by_status.get(normalized, 0) + int(count or 0)
     
-    query = select(Delivery).where(Delivery.partner_id == partner.id)
+    query = select(Delivery).where(*base_where)
     
     # Por padrão, não mostra entregas arquivadas
     if not include_archived:
         query = query.where(Delivery.archived_at.is_(None))
     
     if status_filter:
-        query = query.where(Delivery.status == status_filter)
+        # Normaliza filtro do frontend (ex.: delivered) para possíveis valores no banco.
+        if status_filter == "delivered":
+            query = query.where(Delivery.status.in_(["delivered", "completed"]))
+        else:
+            query = query.where(Delivery.status == status_filter)
     
     query = query.order_by(Delivery.created_at.desc()).offset(offset).limit(limit)
     
@@ -645,11 +706,14 @@ async def list_partner_deliveries(
     deliveries = result.scalars().all()
     
     # Conta total (respeitando filtros)
-    count_query = select(func.count(Delivery.id)).where(Delivery.partner_id == partner.id)
+    count_query = select(func.count(Delivery.id)).where(*base_where)
     if not include_archived:
         count_query = count_query.where(Delivery.archived_at.is_(None))
     if status_filter:
-        count_query = count_query.where(Delivery.status == status_filter)
+        if status_filter == "delivered":
+            count_query = count_query.where(Delivery.status.in_(["delivered", "completed"]))
+        else:
+            count_query = count_query.where(Delivery.status == status_filter)
     total = (await db.execute(count_query)).scalar() or 0
     
     return DeliveryListResponse(
@@ -658,7 +722,9 @@ async def list_partner_deliveries(
                 id=str(d.id),
                 title=d.title,
                 client_name=d.client_name,
-                status=d.status,
+                status=_normalize_partner_delivery_status(d.status),
+                is_archived=d.archived_at is not None,
+                archived_at=d.archived_at,
                 assets_count=len(d.assets_payload.get("files", [])) if d.assets_payload else 0,
                 voucher_code=d.generated_voucher_code,
                 created_at=d.created_at,
@@ -668,6 +734,11 @@ async def list_partner_deliveries(
             for d in deliveries
         ],
         total=total,
+        aggregations=DeliveryAggregationsResponse(
+            total=total_all,
+            archived=archived_count,
+            by_status=by_status,
+        ),
     )
 
 
@@ -706,7 +777,9 @@ async def get_delivery_detail(
         client_name=delivery.client_name,
         description=delivery.description,
         event_date=delivery.event_date,
-        status=delivery.status,
+        status=_normalize_partner_delivery_status(delivery.status),
+        is_archived=delivery.archived_at is not None,
+        archived_at=delivery.archived_at,
         assets_count=len(files),
         assets=files,
         voucher_code=delivery.generated_voucher_code,

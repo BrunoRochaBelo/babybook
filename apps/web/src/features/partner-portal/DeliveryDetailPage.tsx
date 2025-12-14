@@ -7,22 +7,22 @@
  * - Download do cartão-convite
  */
 
-import { useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Image,
   Trash2,
   Loader2,
-  Download,
-  Share2,
   Ticket,
+  QrCode,
+  Plus,
   Copy,
   Check,
-  QrCode,
-  AlertCircle,
-  Plus,
+  Calendar,
+  User,
+  ChevronDown,
 } from "lucide-react";
 import { getDelivery, generateVoucherCard, deleteDeliveryAsset } from "./api";
 import { VoucherCard } from "./VoucherCard";
@@ -30,7 +30,17 @@ import type {
   DeliveryDetail,
   VoucherCardData,
   GenerateVoucherCardRequest,
+  DeliveryStatus,
 } from "./types";
+import {
+  PartnerPageHeaderAction,
+  usePartnerPageHeader,
+} from "@/layouts/partnerPageHeader";
+import { PartnerPage } from "@/layouts/PartnerPage";
+import {
+  PartnerErrorState,
+  PartnerLoadingState,
+} from "@/layouts/partnerStates";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -38,6 +48,79 @@ function formatDate(dateString: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+function formatDateTime(dateString: string): string {
+  return new Date(dateString).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getStatusLabel(status: DeliveryStatus): string {
+  switch (status) {
+    case "draft":
+      return "Rascunho";
+    case "pending_upload":
+      return "Aguardando upload";
+    case "processing":
+      return "Processando";
+    case "ready":
+      return "Pronta";
+    case "delivered":
+      return "Entregue";
+    case "archived":
+      return "Arquivada";
+    default:
+      return status;
+  }
+}
+
+function StatusBadge({ status }: { status: DeliveryStatus }) {
+  const tone =
+    status === "ready"
+      ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
+      : status === "delivered"
+        ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+        : status === "processing"
+          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+          : status === "pending_upload"
+            ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+            : status === "archived"
+              ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${tone}`}
+    >
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+async function copyToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 function formatFileSize(bytes: number): string {
@@ -50,12 +133,11 @@ function formatFileSize(bytes: number): string {
 
 export function DeliveryDetailPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [voucherCard, setVoucherCard] = useState<VoucherCardData | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
 
   // Query
   const {
@@ -67,6 +149,61 @@ export function DeliveryDetailPage() {
     queryFn: () => getDelivery(deliveryId!),
     enabled: !!deliveryId,
   });
+
+  usePartnerPageHeader(
+    useMemo(() => {
+      if (!deliveryId) return null;
+      if (error) return null;
+
+      const title = delivery
+        ? delivery.title || delivery.client_name || "Entrega"
+        : "Entrega";
+
+      const hasVoucherLocal = Boolean(delivery?.voucher_code);
+      const canGenerateVoucherLocal = Boolean(
+        delivery && delivery.assets_count > 0 && !hasVoucherLocal,
+      );
+
+      const tone = (status?: DeliveryStatus) => {
+        switch (status) {
+          case "ready":
+            return "success" as const;
+          case "delivered":
+            return "purple" as const;
+          case "processing":
+            return "info" as const;
+          case "pending_upload":
+            return "warning" as const;
+          default:
+            return "neutral" as const;
+        }
+      };
+
+      // UX: ação sticky só quando há um próximo passo claro.
+      // Se já existe voucher, o CTA principal fica concentrado na seção "Voucher".
+      const actions = canGenerateVoucherLocal ? (
+        <PartnerPageHeaderAction
+          label="Gerar voucher"
+          tone="primary"
+          onClick={() => setShowVoucherModal(true)}
+          icon={<Ticket className="w-4 h-4" />}
+        />
+      ) : null;
+
+      return {
+        title,
+        backTo: "/partner/deliveries",
+        backLabel: "Voltar às entregas",
+        badge: delivery?.status
+          ? {
+              text: getStatusLabel(delivery.status),
+              tone: tone(delivery.status),
+            }
+          : undefined,
+        actions,
+      };
+    }, [delivery, deliveryId, error]),
+  );
 
   // Delete asset mutation
   const deleteAssetMutation = useMutation({
@@ -88,150 +225,276 @@ export function DeliveryDetailPage() {
     },
   });
 
-  const handleCopyCode = async () => {
-    if (voucherCard?.voucher_code) {
-      await navigator.clipboard.writeText(voucherCard.voucher_code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleCopyUrl = async () => {
-    if (voucherCard?.redeem_url) {
-      await navigator.clipboard.writeText(voucherCard.redeem_url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
-      </div>
-    );
+    return <PartnerLoadingState label="Carregando entrega…" />;
   }
 
   if (error || !delivery) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">Entrega não encontrada</p>
-          <Link
-            to="/partner/deliveries"
-            className="text-pink-600 hover:underline"
-          >
-            Voltar às entregas
-          </Link>
-        </div>
-      </div>
+      <PartnerErrorState
+        title="Entrega não encontrada"
+        description="Não encontramos essa entrega (ou você não tem acesso a ela)."
+        primaryAction={{
+          label: "Voltar às entregas",
+          to: "/partner/deliveries",
+        }}
+      />
     );
   }
 
   const hasVoucher = !!delivery.voucher_code;
   const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;
 
+  const deliveryUrl = useMemo(() => {
+    return new URL(
+      `/partner/deliveries/${deliveryId}`,
+      window.location.origin,
+    ).toString();
+  }, [deliveryId]);
+
+  // Nota de UX: evitamos repetir informações/ações do voucher em múltiplos lugares.
+  // Tudo relacionado a voucher fica concentrado na seção "Voucher".
+
+  // Auto-clear do feedback de copy
+  useEffect(() => {
+    if (!copiedMessage) return;
+    const t = window.setTimeout(() => setCopiedMessage(null), 1600);
+    return () => window.clearTimeout(t);
+  }, [copiedMessage]);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+    <>
+      <PartnerPage>
         {/* Back Navigation */}
         <Link
           to="/partner/deliveries"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+          className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar às entregas</span>
         </Link>
 
+        {/* Mobile meta (evita duplicar o header grande) */}
+        <div className="md:hidden mb-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {delivery.client_name ? (
+              <>
+                <span className="font-medium text-gray-700 dark:text-gray-200">
+                  {delivery.client_name}
+                </span>
+                {" • "}
+              </>
+            ) : null}
+            Criada em {formatDate(delivery.created_at)}
+          </p>
+        </div>
+
         {/* Page Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {delivery.title || delivery.client_name || "Entrega"}
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              {delivery.client_name && `Cliente: ${delivery.client_name} • `}
-              Criada em {formatDate(delivery.created_at)}
-            </p>
+        <div className="hidden md:flex items-start justify-between gap-4 mb-6">
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <h1 className="min-w-0 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                {delivery.title || delivery.client_name || "Entrega"}
+              </h1>
+              <StatusBadge status={delivery.status} />
+            </div>
+
+            <div className="mt-1 flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {delivery.client_name ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <User className="w-4 h-4" />
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      {delivery.client_name}
+                    </span>
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4" />
+                  Criada em {formatDate(delivery.created_at)}
+                </span>
+              </div>
+
+              <div className="text-xs">
+                ID: <span className="font-mono">{delivery.id}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {hasVoucher ? (
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            {canGenerateVoucher ? (
               <button
+                type="button"
                 onClick={() => setShowVoucherModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-              >
-                <QrCode className="w-4 h-4" />
-                Ver Voucher
-              </button>
-            ) : canGenerateVoucher ? (
-              <button
-                onClick={() => setShowVoucherModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
               >
                 <Ticket className="w-4 h-4" />
-                Gerar Voucher
+                Gerar voucher
               </button>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium opacity-70 cursor-not-allowed"
+                title="Envie pelo menos 1 arquivo para habilitar a geração do voucher"
+              >
+                <Ticket className="w-4 h-4" />
+                Gerar voucher
+              </button>
+            )}
           </div>
         </div>
+
+        {copiedMessage ? (
+          <div className="mb-4 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200">
+            {copiedMessage}
+          </div>
+        ) : null}
+
+        {/* Detalhes & ações (recolhível) */}
+        <details className="mb-6 group rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <summary className="list-none cursor-pointer px-4 py-3 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 rounded-xl">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              Detalhes e ações
+            </span>
+            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
+          </summary>
+
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">ID</p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p
+                    className="text-sm font-mono text-gray-900 dark:text-white truncate"
+                    title={delivery.id}
+                  >
+                    {delivery.id}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const ok = await copyToClipboard(delivery.id);
+                      setCopiedMessage(
+                        ok ? "ID copiado" : "Não foi possível copiar",
+                      );
+                    }}
+                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors text-xs font-medium"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copiar
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Link da entrega
+                </p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p
+                    className="text-sm text-gray-900 dark:text-white truncate"
+                    title={deliveryUrl}
+                  >
+                    {deliveryUrl}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const ok = await copyToClipboard(deliveryUrl);
+                      setCopiedMessage(
+                        ok ? "Link copiado" : "Não foi possível copiar",
+                      );
+                    }}
+                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors text-xs font-medium"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copiar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
         {/* Voucher Info (if exists) */}
         {hasVoucher && (
-          <div className="mb-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 text-white">
-            <div className="flex items-center justify-between">
+          <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <p className="text-pink-100 text-sm">Código do Voucher</p>
-                <p className="text-2xl font-mono font-bold mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Voucher
+                </p>
+                <p className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white">
                   {delivery.voucher_code}
                 </p>
-                {delivery.redeemed_at && (
-                  <p className="text-pink-100 text-sm mt-2">
-                    Resgatado em {formatDate(delivery.redeemed_at)}
-                  </p>
-                )}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {delivery.redeemed_at
+                    ? `Resgatado em ${formatDateTime(delivery.redeemed_at)}`
+                    : "Ainda não resgatado"}
+                </p>
               </div>
-              <button
-                onClick={() => setShowVoucherModal(true)}
-                className="px-4 py-2 bg-white text-pink-600 rounded-lg hover:bg-pink-50 transition-colors font-medium"
-              >
-                Ver Cartão
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowVoucherModal(true)}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                >
+                  <QrCode className="w-4 h-4" />
+                  Abrir cartão
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!delivery.voucher_code) return;
+                    const ok = await copyToClipboard(delivery.voucher_code);
+                    setCopiedMessage(
+                      ok ? "Voucher copiado" : "Não foi possível copiar",
+                    );
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copiar
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Arquivos</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {delivery.assets_count}
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-            <p className="text-lg font-medium text-gray-900 dark:text-white capitalize">
-              {delivery.status === "ready"
-                ? "Pronta"
-                : delivery.status === "delivered"
-                  ? "Entregue"
-                  : delivery.status === "draft"
-                    ? "Rascunho"
-                    : delivery.status}
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Voucher</p>
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
-              {hasVoucher
-                ? delivery.redeemed_at
-                  ? "Resgatado"
-                  : "Ativo"
-                : "Não gerado"}
-            </p>
-          </div>
-        </div>
+        {/* Informações */}
+        {(delivery.description || delivery.event_date) && (
+          <details className="mb-6 group rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <summary className="list-none cursor-pointer px-4 py-3 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 rounded-xl">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                Informações
+              </span>
+              <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {delivery.event_date ? (
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Data do evento
+                  </p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {formatDate(delivery.event_date)}
+                  </p>
+                </div>
+              ) : null}
+              {delivery.description ? (
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Descrição
+                  </p>
+                  <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                    {delivery.description}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </details>
+        )}
 
         {/* Assets Grid */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -239,19 +502,27 @@ export function DeliveryDetailPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Arquivos ({delivery.assets_count})
             </h2>
-            <Link
-              to={`/partner/deliveries/${deliveryId}/upload`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Adicionar
-            </Link>
+            {!hasVoucher ? (
+              <Link
+                to={`/partner/deliveries/${deliveryId}/upload`}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar
+              </Link>
+            ) : (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Entrega finalizada (não é possível adicionar)
+              </span>
+            )}
           </div>
 
           {delivery.assets.length === 0 ? (
             <div className="p-8 text-center">
               <Image className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhum arquivo enviado ainda</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Nenhum arquivo enviado ainda
+              </p>
               <Link
                 to={`/partner/deliveries/${deliveryId}/upload`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
@@ -261,47 +532,46 @@ export function DeliveryDetailPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
               {delivery.assets.map((asset) => (
                 <div
                   key={asset.key}
-                  className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden"
+                  className="group relative rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3"
                 >
-                  {/* Thumbnail placeholder */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image className="w-8 h-8 text-gray-400" />
-                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                        <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p
+                          className="text-sm font-medium text-gray-900 dark:text-white truncate"
+                          title={asset.filename}
+                        >
+                          {asset.filename}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatFileSize(asset.size_bytes)} •{" "}
+                          {formatDateTime(asset.uploaded_at)}
+                        </p>
+                      </div>
+                    </div>
 
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => {
-                        if (confirm("Remover este arquivo?")) {
-                          deleteAssetMutation.mutate({ key: asset.key });
+                    {!hasVoucher ? (
+                      <AssetDeleteAction
+                        disabled={deleteAssetMutation.isPending}
+                        onConfirm={() =>
+                          deleteAssetMutation.mutate({ key: asset.key })
                         }
-                      }}
-                      className="p-2 bg-white/20 rounded-full hover:bg-white/30 text-white"
-                      title="Remover"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent">
-                    <p className="text-xs text-white truncate">
-                      {asset.filename}
-                    </p>
-                    <p className="text-xs text-white/70">
-                      {formatFileSize(asset.size_bytes)}
-                    </p>
+                      />
+                    ) : null}
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </main>
+      </PartnerPage>
 
       {/* Voucher Modal */}
       {showVoucherModal && (
@@ -311,9 +581,6 @@ export function DeliveryDetailPage() {
           isGenerating={generateVoucherMutation.isPending}
           error={generateVoucherMutation.error?.message}
           onGenerate={(request) => generateVoucherMutation.mutate(request)}
-          onCopyCode={handleCopyCode}
-          onCopyUrl={handleCopyUrl}
-          copied={copied}
           onClose={() => {
             setShowVoucherModal(false);
             if (!delivery.voucher_code && voucherCard) {
@@ -325,7 +592,72 @@ export function DeliveryDetailPage() {
           }}
         />
       )}
-    </div>
+    </>
+  );
+}
+
+function AssetDeleteAction({
+  disabled,
+  onConfirm,
+}: {
+  disabled: boolean;
+  onConfirm: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (confirming) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1">
+        <span className="text-[11px] text-yellow-800 dark:text-yellow-200 hidden sm:inline">
+          Remover?
+        </span>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setConfirming(false);
+            onConfirm();
+          }}
+          className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 disabled:opacity-50"
+          title="Confirmar"
+          aria-label="Confirmar remoção"
+        >
+          <Check className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setConfirming(false);
+          }}
+          className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-200"
+          title="Cancelar"
+          aria-label="Cancelar remoção"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setConfirming(true);
+      }}
+      className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+      title="Remover arquivo"
+      aria-label="Remover arquivo"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
   );
 }
 
@@ -339,9 +671,6 @@ interface VoucherModalProps {
   isGenerating: boolean;
   error?: string;
   onGenerate: (request: GenerateVoucherCardRequest) => void;
-  onCopyCode: () => void;
-  onCopyUrl: () => void;
-  copied: boolean;
   onClose: () => void;
 }
 
@@ -351,9 +680,6 @@ function VoucherModal({
   isGenerating,
   error,
   onGenerate,
-  onCopyCode,
-  onCopyUrl,
-  copied,
   onClose,
 }: VoucherModalProps) {
   const [beneficiaryName, setBeneficiaryName] = useState(

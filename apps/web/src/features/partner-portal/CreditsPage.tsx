@@ -5,11 +5,12 @@
  * Integra com Stripe Checkout
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   CreditCard,
+  QrCode,
   Check,
   Loader2,
   ArrowLeft,
@@ -17,7 +18,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getPartnerProfile, getCreditPackages, purchaseCredits } from "./api";
-import type { CreditPackage } from "./types";
+import type { CreditPackage, CreditPaymentMethod } from "./types";
+import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
+import { PartnerPage } from "@/layouts/PartnerPage";
+import { PartnerLoadingState } from "@/layouts/partnerStates";
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -26,10 +30,44 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100);
 }
 
+const PIX_DISCOUNT_PER_VOUCHER_CENTS = 1400; // R$ 14 (docs: 149 -> 135 por voucher no lote 10)
+const MAX_INSTALLMENTS_NO_INTEREST = 3;
+
+function getPixPriceCents(pkg: CreditPackage): number {
+  if (typeof pkg.pix_price_cents === "number") return pkg.pix_price_cents;
+  return Math.max(
+    0,
+    pkg.price_cents - pkg.voucher_count * PIX_DISCOUNT_PER_VOUCHER_CENTS,
+  );
+}
+
+function approxInstallmentCents(
+  totalCents: number,
+  installments: number,
+): number {
+  if (installments <= 0) return totalCents;
+  return Math.round(totalCents / installments);
+}
+
+function centsPerVoucher(totalCents: number, voucherCount: number): number {
+  return Math.round(totalCents / Math.max(1, voucherCount));
+}
+
 export function CreditsPage() {
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] =
+    useState<CreditPaymentMethod>("pix");
   const [error, setError] = useState<string | null>(null);
+
+  usePartnerPageHeader(
+    useMemo(
+      () => ({
+        title: "Créditos",
+      }),
+      [],
+    ),
+  );
 
   // Queries
   const { data: profile } = useQuery({
@@ -44,7 +82,8 @@ export function CreditsPage() {
 
   // Purchase mutation
   const purchaseMutation = useMutation({
-    mutationFn: (packageId: string) => purchaseCredits(packageId),
+    mutationFn: (input: { packageId: string; method: CreditPaymentMethod }) =>
+      purchaseCredits(input.packageId, input.method),
     onSuccess: (data) => {
       // Redirect to Stripe Checkout
       window.location.href = data.checkout_url;
@@ -57,151 +96,331 @@ export function CreditsPage() {
   const handlePurchase = () => {
     if (!selectedPackage) return;
     setError(null);
-    purchaseMutation.mutate(selectedPackage);
+    purchaseMutation.mutate({
+      packageId: selectedPackage,
+      method: paymentMethod,
+    });
   };
 
+  const selectedPkg = selectedPackage
+    ? packages?.find((p) => p.id === selectedPackage)
+    : undefined;
+
+  const totals = selectedPkg
+    ? {
+        pix: getPixPriceCents(selectedPkg),
+        card: selectedPkg.price_cents,
+      }
+    : null;
+
+  const selectedTotalCents = totals
+    ? paymentMethod === "pix"
+      ? totals.pix
+      : totals.card
+    : 0;
+
+  const selectedPixSavingsCents = totals ? totals.card - totals.pix : 0;
+  const selectedPixSavingsPerVoucherCents = selectedPkg
+    ? centsPerVoucher(selectedPixSavingsCents, selectedPkg.voucher_count)
+    : 0;
+
   if (loadingPackages) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
-      </div>
-    );
+    return <PartnerLoadingState label="Carregando pacotes…" />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Comprar Créditos
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Escolha o pacote ideal para suas entregas
-          </p>
+    <PartnerPage>
+      {/* Page Header */}
+      <div className="hidden md:block mb-6">
+        <button
+          onClick={() => navigate("/partner")}
+          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-3"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao portal
+        </button>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          Comprar Créditos
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Escolha o pacote ideal para suas entregas
+        </p>
+      </div>
+
+      <div className="md:hidden mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Comprar créditos para gerar vouchers e finalizar entregas.
+        </p>
+      </div>
+      {/* Current Balance */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Seu saldo atual
+            </p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              {profile?.voucher_balance || 0} créditos
+            </p>
+          </div>
+          <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
+            <CreditCard className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+          </div>
         </div>
-        {/* Current Balance */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Seu saldo atual</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                {profile?.voucher_balance || 0} créditos
-              </p>
+      </div>
+
+      {/* Pricing / Payment Info (no redundant controls) */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Preço e pagamento
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          PIX tem o melhor preço (à vista). Cartão oferece conveniência e pode
+          parcelar.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-4">
+            <div className="flex items-start gap-3">
+              <QrCode className="w-5 h-5 text-pink-600 dark:text-pink-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  PIX (à vista)
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                  Valor final menor e confirmação rápida.
+                </p>
+              </div>
             </div>
-            <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
-              <CreditCard className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+          </div>
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-4">
+            <div className="flex items-start gap-3">
+              <CreditCard className="w-5 h-5 text-pink-600 dark:text-pink-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Cartão
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                  Até {MAX_INSTALLMENTS_NO_INTEREST}x sem juros. Acima disso, o
+                  checkout exibirá juros e total antes de confirmar.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Package Selection */}
-        <div className="space-y-4 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Selecione um pacote
-          </h2>
-
-          <div className="grid gap-4">
-            {packages?.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                package={pkg}
-                selected={selectedPackage === pkg.id}
-                onSelect={() => setSelectedPackage(pkg.id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{error}</p>
+        {selectedPkg && totals && (
+          <div className="mt-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              No pacote selecionado:{" "}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {paymentMethod === "pix" ? "PIX" : "Cartão"}
+              </span>
+              {paymentMethod === "pix" ? (
+                <span className="text-green-700 dark:text-green-300">
+                  {" "}
+                  • economize {formatCurrency(selectedPixSavingsCents)} (
+                  {formatCurrency(selectedPixSavingsPerVoucherCents)}/voucher)
+                </span>
+              ) : (
+                <span className="text-gray-600 dark:text-gray-300">
+                  {" "}
+                  • no PIX sai por {formatCurrency(totals.pix)} (economize{" "}
+                  {formatCurrency(selectedPixSavingsCents)})
+                </span>
+              )}
+            </p>
           </div>
         )}
+      </div>
 
-        {/* Purchase Button */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total a pagar</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {selectedPackage
-                  ? formatCurrency(
-                      packages?.find((p) => p.id === selectedPackage)
-                        ?.price_cents || 0,
-                    )
-                  : "-"}
-              </p>
-            </div>
-            <button
-              onClick={handlePurchase}
-              disabled={!selectedPackage || purchaseMutation.isPending}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {purchaseMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5" />
-                  Pagar com Stripe
-                </>
-              )}
-            </button>
+      {/* Package Selection */}
+      <div className="space-y-4 mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Selecione um pacote
+        </h2>
+
+        <div className="grid gap-4">
+          {packages?.map((pkg) => (
+            <PackageCard
+              key={pkg.id}
+              package={pkg}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              selected={selectedPackage === pkg.id}
+              onSelect={() => setSelectedPackage(pkg.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Purchase Button */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Total a pagar
+            </p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {selectedPkg ? formatCurrency(selectedTotalCents) : "-"}
+            </p>
+            {selectedPkg && totals && (
+              <div className="mt-1 space-y-1">
+                {paymentMethod === "pix" ? (
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Economia vs cartão:{" "}
+                    {formatCurrency(totals.card - totals.pix)}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
+                      {formatCurrency(
+                        approxInstallmentCents(
+                          totals.card,
+                          MAX_INSTALLMENTS_NO_INTEREST,
+                        ),
+                      )}{" "}
+                      sem juros
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      No PIX: {formatCurrency(totals.pix)} (economize{" "}
+                      {formatCurrency(totals.card - totals.pix)})
+                    </p>
+                  </>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {paymentMethod === "pix"
+                    ? "PIX é à vista."
+                    : "Cartão: parcelas e juros (se houver) serão mostrados no checkout."}
+                </p>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Você será redirecionado para o Stripe para completar o pagamento de
-            forma segura.
-          </p>
+          <button
+            onClick={handlePurchase}
+            disabled={!selectedPackage || purchaseMutation.isPending}
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {purchaseMutation.isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>
+                {paymentMethod === "pix" ? (
+                  <QrCode className="w-5 h-5" />
+                ) : (
+                  <CreditCard className="w-5 h-5" />
+                )}
+                {paymentMethod === "pix" ? "Pagar via PIX" : "Pagar com cartão"}
+              </>
+            )}
+          </button>
         </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Você será redirecionado para o checkout para completar o pagamento de
+          forma segura (PIX ou cartão).
+        </p>
+      </div>
 
-        {/* Info Section */}
-        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
-            ℹ️ Como funcionam os créditos?
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-            <li>• Cada crédito permite criar 1 entrega para um cliente</li>
-            <li>• Ao finalizar a entrega, um voucher único é gerado</li>
-            <li>
-              • O cliente resgata o voucher para criar sua conta Baby Book
-            </li>
-            <li>• Créditos não expiram</li>
-          </ul>
-        </div>
-      </main>
-    </div>
+      {/* Info Section */}
+      <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
+        <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
+          ℹ️ Como funcionam os créditos?
+        </h3>
+        <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+          <li>• Cada crédito permite criar 1 entrega para um cliente</li>
+          <li>• Ao finalizar a entrega, um voucher único é gerado</li>
+          <li>• O cliente resgata o voucher para criar sua conta Baby Book</li>
+          <li>• Créditos não expiram</li>
+        </ul>
+      </div>
+    </PartnerPage>
   );
 }
 
 // =============================================================================
 // Package Card Component
 // =============================================================================
-
 interface PackageCardProps {
   package: CreditPackage;
+  paymentMethod: CreditPaymentMethod;
+  onPaymentMethodChange: (method: CreditPaymentMethod) => void;
   selected: boolean;
   onSelect: () => void;
 }
 
-function PackageCard({ package: pkg, selected, onSelect }: PackageCardProps) {
+function PackageCard({
+  package: pkg,
+  paymentMethod,
+  onPaymentMethodChange,
+  selected,
+  onSelect,
+}: PackageCardProps) {
+  const pixTotal = getPixPriceCents(pkg);
+  const cardTotal = pkg.price_cents;
+  const activeTotal = paymentMethod === "pix" ? pixTotal : cardTotal;
+
+  const savingsCents = cardTotal - pixTotal;
+  const savingsPerVoucherCents = centsPerVoucher(
+    savingsCents,
+    pkg.voucher_count,
+  );
+
+  const activeUnit = centsPerVoucher(activeTotal, pkg.voucher_count);
+  const pixUnit = centsPerVoucher(pixTotal, pkg.voucher_count);
+  const cardUnit = centsPerVoucher(cardTotal, pkg.voucher_count);
+
+  const otherMethod: CreditPaymentMethod =
+    paymentMethod === "pix" ? "card" : "pix";
+  const otherTotal = otherMethod === "pix" ? pixTotal : cardTotal;
+  const otherUnit = otherMethod === "pix" ? pixUnit : cardUnit;
+
+  const selectCard = () => {
+    onSelect();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectCard();
+    }
+  };
+
   return (
-    <button
-      onClick={onSelect}
-      className={`w-full p-6 rounded-xl border-2 text-left transition-all ${
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={selectCard}
+      onKeyDown={handleKeyDown}
+      className={`w-full rounded-xl border-2 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-pink-300 dark:focus-visible:ring-pink-700 ${
         selected
           ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20 ring-2 ring-pink-200 dark:ring-pink-700"
           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div
+        className={`flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ${
+          selected ? "p-6" : "p-5"
+        }`}
+      >
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
+            <h3
+              className={`font-semibold text-gray-900 dark:text-white ${
+                selected ? "text-lg" : "text-base"
+              }`}
+            >
+              {pkg.name}
+            </h3>
             {pkg.is_popular && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
                 <Star className="w-3 h-3" />
@@ -209,30 +428,170 @@ function PackageCard({ package: pkg, selected, onSelect }: PackageCardProps) {
               </span>
             )}
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{pkg.voucher_count} vouchers</p>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(pkg.price_cents)}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              ({formatCurrency(pkg.unit_price_cents)}/unidade)
-            </span>
+
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            {pkg.voucher_count} vouchers
+          </p>
+
+          <div className="mt-3">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {paymentMethod === "pix"
+                ? "Total no PIX (à vista)"
+                : `Total no cartão (até ${MAX_INSTALLMENTS_NO_INTEREST}x s/ juros)`}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span
+                className={`font-bold text-gray-900 dark:text-white ${
+                  selected ? "text-2xl" : "text-xl"
+                }`}
+              >
+                {formatCurrency(activeTotal)}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                ({formatCurrency(activeUnit)}/voucher)
+              </span>
+            </div>
+
+            {/* Compact secondary line (shown for all cards) */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
+              {paymentMethod === "pix" ? (
+                <>
+                  <span>
+                    No cartão:{" "}
+                    <span className="font-medium">
+                      {formatCurrency(cardTotal)}
+                    </span>
+                  </span>
+                  {savingsCents > 0 ? (
+                    <span className="text-green-700 dark:text-green-300">
+                      • economize {formatCurrency(savingsCents)}
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Até {MAX_INSTALLMENTS_NO_INTEREST}x sem juros
+                  </span>
+                  <span>
+                    • No PIX:{" "}
+                    <span className="font-medium">
+                      {formatCurrency(pixTotal)}
+                    </span>
+                  </span>
+                  {savingsCents > 0 ? (
+                    <span className="text-green-700 dark:text-green-300">
+                      (economize {formatCurrency(savingsCents)})
+                    </span>
+                  ) : null}
+                </>
+              )}
+            </div>
+
+            {/* Expanded controls/details only for the selected card */}
+            {selected && (
+              <div className="mt-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Forma de pagamento
+                  </p>
+                  <div className="flex w-full sm:w-auto rounded-xl border border-gray-200 dark:border-gray-700 p-1 bg-gray-50 dark:bg-gray-900/30">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPaymentMethodChange("pix");
+                        onSelect();
+                      }}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        paymentMethod === "pix"
+                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      } flex-1 justify-center sm:flex-none sm:justify-start`}
+                      aria-pressed={paymentMethod === "pix"}
+                    >
+                      <QrCode className="w-4 h-4" />
+                      PIX
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPaymentMethodChange("card");
+                        onSelect();
+                      }}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        paymentMethod === "card"
+                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      } flex-1 justify-center sm:flex-none sm:justify-start`}
+                      aria-pressed={paymentMethod === "card"}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Cartão
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Comparativo:{" "}
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {otherMethod === "pix" ? "PIX" : "Cartão"}
+                    </span>
+                    {": "}
+                    <span className="font-medium">
+                      {formatCurrency(otherTotal)}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {" "}
+                      ({formatCurrency(otherUnit)}/voucher)
+                    </span>
+                    {otherMethod === "pix" && savingsCents > 0 ? (
+                      <span className="text-green-700 dark:text-green-300">
+                        {" "}
+                        • economize {formatCurrency(savingsCents)} (
+                        {formatCurrency(savingsPerVoucherCents)}/voucher)
+                      </span>
+                    ) : null}
+                  </p>
+
+                  {paymentMethod === "card" && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
+                      {formatCurrency(
+                        approxInstallmentCents(
+                          cardTotal,
+                          MAX_INSTALLMENTS_NO_INTEREST,
+                        ),
+                      )}{" "}
+                      sem juros. Acima disso, juros e total aparecem no
+                      checkout.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
           {pkg.savings_percent > 0 && (
-            <p className="mt-1 text-sm text-green-600 dark:text-green-400 font-medium">
-              Economia de {pkg.savings_percent}%
+            <p className="mt-3 text-xs text-green-700 dark:text-green-300 font-medium">
+              Desconto por volume: {pkg.savings_percent}%
             </p>
           )}
         </div>
+
         <div
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-            selected ? "border-pink-500 bg-pink-500" : "border-gray-300 dark:border-gray-500"
+          className={`w-6 h-6 self-end sm:self-auto flex-shrink-0 rounded-full border-2 flex items-center justify-center ${
+            selected
+              ? "border-pink-500 bg-pink-500"
+              : "border-gray-300 dark:border-gray-500"
           }`}
         >
           {selected && <Check className="w-4 h-4 text-white" />}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
