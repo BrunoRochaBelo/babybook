@@ -7,6 +7,9 @@ coverage/
 .wrangler/
 .DS_Store
 Thumbs.db
+*.db
+*.sqlite
+*.sqlite3
 *.tmp
 *.swp
 *.swo
