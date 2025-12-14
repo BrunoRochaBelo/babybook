@@ -8,15 +8,20 @@
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Camera, Eye, EyeOff, Loader2, AlertCircle, Heart } from "lucide-react";
-import { useLogin, useUserProfile } from "@/hooks/api";
+import { useLogin } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
 import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { userProfileSchema } from "@babybook/contracts";
 
 export function PartnerLoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLogin();
   const queryClient = useQueryClient();
   const login = useAuthStore((s) => s.login);
+  const proUrl =
+    (import.meta.env.VITE_LANDINGPAGE_PRO_URL as string | undefined) ??
+    "/pro.html";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,39 +45,19 @@ export function PartnerLoginPage() {
     try {
       // Enviamos rememberMe para o backend definir a duração do cookie de sessão
       // Boas práticas: não armazenamos credenciais no client, apenas uma flag
-      await loginMutation.mutateAsync({ 
-        email: email.trim(), 
+      await loginMutation.mutateAsync({
+        email: email.trim(),
         password,
         rememberMe,
       });
-      
-      // Force refetch user profile from mock/API to get correct role
-      const profileData = await queryClient.fetchQuery({
-        queryKey: ["user-profile"],
-        queryFn: async () => {
-          // Use the API path - MSW intercepts /api/me
-          const response = await fetch("/api/me", {
-            credentials: "include",
-          });
-          if (!response.ok) throw new Error("Failed to fetch profile");
-          return response.json();
-        },
-        staleTime: 0, // Force fresh fetch
+
+      // Força refresh do cache e busca perfil usando o mesmo client (cookies + redirects + parsing)
+      queryClient.removeQueries({ queryKey: ["user-profile"] });
+      const profileData = await apiClient.get("/me", {
+        schema: userProfileSchema,
       });
-      
-      // Update auth store with the fetched profile
-      if (profileData) {
-        login({
-          id: profileData.id,
-          email: profileData.email,
-          name: profileData.name,
-          locale: profileData.locale ?? "pt-BR",
-          role: profileData.role ?? "owner",
-          hasPurchased: profileData.has_purchased ?? false,
-          onboardingCompleted: profileData.onboarding_completed ?? false,
-        });
-      }
-      
+      login(profileData);
+
       // Navigate to redirect URL if available, otherwise go to partner portal
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get("redirectTo") ?? "/partner";
@@ -96,12 +81,17 @@ export function PartnerLoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col">
       {/* Header */}
       <header className="p-4">
-        <a href="http://localhost:3000/pro.html" className="inline-flex items-center gap-2">
+        <a
+          href={proUrl}
+          className="inline-flex items-center gap-2"
+          rel="noreferrer"
+        >
           <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
             <Heart className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold text-gray-900 dark:text-white">
-            Baby Book <span className="text-pink-600 dark:text-pink-400">Pro</span>
+            Baby Book{" "}
+            <span className="text-pink-600 dark:text-pink-400">Pro</span>
           </span>
         </a>
       </header>
@@ -188,22 +178,27 @@ export function PartnerLoginPage() {
                   onClick={() => setRememberMe(!rememberMe)}
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${rememberMe 
-                      ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300" 
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    ${
+                      rememberMe
+                        ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                     }
                   `}
                 >
                   <span>Lembrar de mim</span>
                   {/* Toggle indicator */}
-                  <div className={`
+                  <div
+                    className={`
                     relative w-8 h-4 rounded-full transition-colors
                     ${rememberMe ? "bg-pink-500" : "bg-gray-300 dark:bg-gray-500"}
-                  `}>
-                    <div className={`
+                  `}
+                  >
+                    <div
+                      className={`
                       absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform
                       ${rememberMe ? "translate-x-4" : "translate-x-0.5"}
-                    `} />
+                    `}
+                    />
                   </div>
                 </button>
                 <Link

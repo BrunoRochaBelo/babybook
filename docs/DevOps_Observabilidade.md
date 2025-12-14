@@ -239,8 +239,14 @@ Desvantagem: Mais complexo de gerenciar a rotação de certificados.
 ### 4.4. Cabeçalhos (CSP/HSTS) e Cookies
 
 CSP estrita no Edge; report-only opcional em novas regras.
-HSTS na API; X-Frame-Options implícito via frame-ancestors 'none'.
-Cookie: \_\_Host-session; HttpOnly; Secure; Path=/; SameSite=None (pois a API está em subdomínio, ver §2.1).
+HSTS na API e no frontend (quando servido via HTTPS); X-Frame-Options implícito via frame-ancestors 'none'.
+Cookie: \_\_Host-session; HttpOnly; Secure (em staging/prod); Path=/; SameSite=Lax (padrão atual). Se, no futuro, for necessário um fluxo cross-site, reavaliar SameSite=None + CSRF obrigatório + CORS pinado.
+
+#### 4.4.1. Proteção de Host header e IP real (proxy)
+
+- **Host allowlist**: em staging/prod a API deve validar o `Host` contra uma allowlist (ex.: `ALLOWED_HOSTS=api.babybook.com`). Isso reduz risco de Host header attacks e confusão em redirects.
+- **X-Forwarded-For anti-spoof**: a API só deve confiar em `X-Forwarded-For` quando a conexão vier de um proxy confiável (lista `TRUSTED_PROXY_IPS`), evitando spoof de IP em rate limit, auditoria e detecção de abuso.
+- **Edge cache**: conteúdo autenticado (ex.: arquivos privados) não deve ser cacheado como `public, s-maxage` compartilhado. Use `Cache-Control: private` (ou `no-store` quando aplicável) e `Vary: Authorization` para evitar vazamento via cache.
 
 ### 4.5. CSRF, CORS e Same-Site (A Implicação da Topologia)
 

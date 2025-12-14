@@ -16,6 +16,36 @@ import {
 } from "./mocks/data";
 import "./index.css";
 
+// Aplica tema o mais cedo possível (sem inline <script> no index.html).
+// Mantém o comportamento de escolher entre light/dark/system com base em localStorage.
+function applyInitialTheme() {
+  try {
+    const THEME_KEY = "babybook-theme";
+    const stored = localStorage.getItem(THEME_KEY);
+    const theme =
+      stored === "light" || stored === "dark" || stored === "system"
+        ? stored
+        : "system";
+
+    let effectiveTheme = theme;
+    if (theme === "system") {
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    if (effectiveTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  } catch {
+    // best-effort
+  }
+}
+
+applyInitialTheme();
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

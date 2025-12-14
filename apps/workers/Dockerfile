@@ -17,6 +17,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 ENV PYTHONPATH=/app/apps/workers
 
+# Security: run as non-root
+RUN groupadd -r app && useradd -r -g app -d /app -s /usr/sbin/nologin app \
+    && chown -R app:app /app
+
+USER app
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import app.main" || exit 1

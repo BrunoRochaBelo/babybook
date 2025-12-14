@@ -171,7 +171,7 @@ export function FullscreenMediaViewer({
     if (!url) return;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { referrerPolicy: "no-referrer" });
       const blob = await response.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);

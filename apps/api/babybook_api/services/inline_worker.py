@@ -21,5 +21,7 @@ async def process_inline_job(session: AsyncSession, *, kind: str, payload: dict)
         return
     asset.status = "ready"
     asset.viewer_accessible = True
-    await session.flush()
+    # Este processamento simula um job (unidade de trabalho). Persistimos aqui
+    # para que o efeito seja observável mesmo fora do escopo do request.
+    await session.commit()
 

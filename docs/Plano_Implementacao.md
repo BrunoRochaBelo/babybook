@@ -56,6 +56,44 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
 - Billing: entidades `order/purchase` com `amount_gross`, `gateway_fee`, `tax_effective`, `pce_reserved`; pricing dual R$297 (cartão, até 3x) / R$279 (PIX); B2B (lote 10) R$1.350 (PIX) / R$1.490 (cartão, até 3x). Webhook HMAC idempotente aplicando entitlements.
 - Landing/pricing: LP consome `packages/config/pricing.ts`; CTAs diferenciados PIX vs Cartão; tracking de conversão por canal (UTM); B2B âncoras na LP e fluxo /resgatar.
 
+#### Integração real de pagamento (MVP — gateway + webhook)
+
+Objetivo: substituir simulação/"confirm" manual por um fluxo real e auditável, com consistência e idempotência.
+
+1. **Definição do gateway e método**
+   - Escolher gateway (ex.: Stripe, Pagar.me, Mercado Pago) e fechar o recorte do MVP: **Cartão (até 3x)** e **PIX**.
+   - Decidir o modelo de checkout: hosted checkout vs. payment intent + UI própria.
+
+2. **Entidade persistente de checkout / payment intent**
+   - Criar entidade (ex.: `billing_checkout`) com:
+     - `id`, `account_id` (ou `partner_id` em B2B), `kind` (B2C upsell / B2B lote), `amount`, `currency`, `method_requested`, `status` (created|pending|paid|failed|canceled),
+     - `gateway` + `gateway_intent_id`, `idempotency_key` (única), `metadata` (normalizada) e timestamps.
+   - Regra: **1 checkout ativo por conta** por tipo (evita double-pay e confusão na UI).
+
+3. **Endpoints de criação e consulta**
+   - `POST /billing/checkout` (CSRF + Idempotency-Key): cria checkout e retorna URL/token do gateway.
+   - `GET /billing/checkout/{id}`: estado atual (para polling leve se necessário).
+   - (Opcional) `POST /billing/checkout/{id}/cancel` para UX e limpeza.
+
+4. **Webhook assinado + idempotência forte**
+   - `POST /webhooks/payment`:
+     - Validar assinatura (secret por ambiente via `BILLING_WEBHOOK_SECRET`).
+     - Idempotência por `event_id` do gateway (unique no DB) + lock transacional (`SELECT ... FOR UPDATE`) no checkout.
+     - Mapear evento → estado final (`paid`/`failed`) e emitir efeitos **uma única vez**.
+
+5. **Efeitos transacionais (entitlements / vouchers / reconciliação)**
+   - B2C: aplicar entitlements no `account` (flags/quotas), registrar `purchase` e `usage_event_queue`.
+   - B2B: creditar lote/vouchers, registrar `purchase` e vincular ao parceiro.
+   - Garantir consistência: se falhar no meio, deve ser retry-safe (idempotente).
+
+6. **Remoção/aposentadoria do “confirm manual” fora de dev**
+   - Em `ENV=local` pode existir um endpoint de simulação (feature flag), mas em staging/prod deve estar desabilitado (404).
+
+7. **Critérios de pronto (DoD)**
+   - Testes: webhook inválido → 401; replay de webhook → 200 sem duplicar efeitos; checkout duplicado com mesma idempotency key → retorna o mesmo resultado.
+   - Observabilidade: logs estruturados com `checkout_id`, `event_id`, `account_id_hash` e `trace_id`.
+   - Segurança: sem CSRF em webhooks; CSRF obrigatório nos endpoints de UI; segredos não-default em staging/prod.
+
 ### 4) Upload de mídia
 
 - **Cliente**: ffmpeg.wasm em Web Worker; heurística `SharedArrayBuffer` + `deviceMemory>=4GB` + size<500MB → compressão local (720p H.265); barra unificada (0-30% compressão, 30-100% upload); Wake Lock + beforeunload guard.
@@ -177,7 +215,8 @@ Referências canônicas: `docs/Dossie_Execucao.md`, `docs/Arquitetura_do_Sistema
    - Pricing dual na LP, CTAs PIX/cartão e tracking UTM.
 
 4. **Fase 3 — Quotas, upsell e billing**
-   - `v_effective_quotas`, erros 402/413; entitlements por webhook HMAC; pricing dual e B2B; UI de upsell/usage.
+   - `v_effective_quotas`, erros 402/413; UI de upsell/usage.
+   - **Integração real de pagamento (MVP)**: checkout persistente + webhook assinado e idempotente aplicando entitlements (B2C) e créditos/lotes (B2B).
    - GET /me/usage completo; banners Quota/Upsell; tratamento 402 → modal.
 
 5. **Fase 4 — Compartilhamento, guestbook, saúde/cofre**

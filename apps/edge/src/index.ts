@@ -15,7 +15,6 @@
  */
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import { cors } from "hono/cors";
 import { z } from "zod";
 
 import { fileRoutes } from "./routes/files";
@@ -33,13 +32,42 @@ type Bindings = {
   R2_ENDPOINT?: string;
   // JWT secret (same as backend)
   JWT_SECRET: string;
+
+  // Optional: comma-separated allowlist of origins for CORS
+  CORS_ALLOWED_ORIGINS?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Middleware
 app.use("*", logger());
-app.use("*", cors());
+
+// Security headers (baseline)
+app.use("*", async (c, next) => {
+  await next();
+
+  // HSTS: apenas quando a resposta é servida via HTTPS (ambiente real do worker)
+  // Em dev/local, isso tende a não aplicar (protocol http) e evita efeitos colaterais.
+  try {
+    const url = new URL(c.req.url);
+    if (url.protocol === "https:") {
+      c.header(
+        "Strict-Transport-Security",
+        "max-age=31536000; includeSubDomains; preload",
+      );
+    }
+  } catch {
+    // ignore
+  }
+
+  // Best-effort: aplica em respostas JSON/HTML e também em arquivos proxied.
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  c.header(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=()",
+  );
+});
 
 // =============================================================================
 // Health Check

@@ -55,6 +55,29 @@ python -m uvicorn babybook_api.main:app --app-dir apps/api --reload --port 8000
   pytest -q
   ```
 
+## Configuração por ambiente (staging/prod) — fail-fast
+
+Este serviço usa `apps/api/babybook_api/settings.py` e **falha no startup** em `ENV=staging|production` se detectar configuração insegura.
+
+Variáveis importantes:
+
+- `ENV`: `staging` ou `production`
+- `SECRET_KEY`: segredo forte (não-default)
+- `SERVICE_API_TOKEN`: token de service account (não-default)
+- `BILLING_WEBHOOK_SECRET`: segredo do webhook do gateway (não-default)
+- `SESSION_COOKIE_SECURE=true`
+- `FRONTEND_URL` (https)
+- `PUBLIC_BASE_URL` (https)
+- `UPLOAD_URL_BASE` (https)
+- `CORS_ORIGINS` (lista JSON, sem localhost, https)
+  - Ex.: `CORS_ORIGINS=["https://app.babybook.com"]`
+- `ALLOWED_HOSTS` (lista JSON, **obrigatória** em staging/prod; sem `*`/localhost)
+  - Ex.: `ALLOWED_HOSTS=["api.babybook.com"]`
+- `TRUSTED_PROXY_IPS` (lista JSON de IPs/CIDR dos proxies confiáveis)
+  - Ex.: `TRUSTED_PROXY_IPS=["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"]`
+
+Observação: `TRUSTED_PROXY_IPS` é o que impede spoof de `X-Forwarded-For` (rate limit/auditoria). Se você não estiver atrás de proxy (ou não usa `X-Forwarded-For`), pode manter vazio.
+
 ## Guia para Agentes de IA (contribuição automatizada)
 
 Regras para qualquer automação (bots/agents) que gere PRs neste serviço FastAPI:

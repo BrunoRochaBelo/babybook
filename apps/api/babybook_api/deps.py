@@ -20,3 +20,8 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         yield session
     finally:
         await session.close()
+
+
+# Compat: alguns routers mais antigos importam `get_db`.
+# Mantemos como alias de `get_db_session` para não quebrar imports.
+get_db = get_db_session

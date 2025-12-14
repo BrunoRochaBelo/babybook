@@ -12,7 +12,11 @@ def test_oauth_dev_authorize_creates_session_and_redirects(client: TestClient, p
     assert "Mock OAuth consent" in resp.text or "Mock OAuth" in resp.text
 
     # Step 2: POST authorize (simulate user consenting)
-    resp2 = client.post(f"/auth/{provider}/authorize", data={"action": "authorize", "state": "/jornada"}, allow_redirects=False)
+    resp2 = client.post(
+        f"/auth/{provider}/authorize",
+        data={"action": "authorize", "state": "/jornada"},
+        follow_redirects=False,
+    )
     # Should redirect to callback
     assert resp2.status_code in (302, 307)
     # Follow redirect to callback
@@ -20,7 +24,7 @@ def test_oauth_dev_authorize_creates_session_and_redirects(client: TestClient, p
     location = resp2.headers.get("location")
     assert "/auth/" in location or location.startswith("/")
     # Now call the callback result; for test client we'll call the callback directly
-    callback_resp = client.get(location, allow_redirects=False)
+    callback_resp = client.get(location, follow_redirects=False)
     assert callback_resp.status_code in (302, 307)
     assert "__Host-session" in client.cookies
     me = client.get("/me/")

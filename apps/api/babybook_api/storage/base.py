@@ -115,6 +115,14 @@ class StorageProvider(ABC):
     async def get_object(self, key: str) -> bytes:
         """Baixa um objeto do storage"""
         ...
+
+    @abstractmethod
+    async def get_object_range(self, key: str, *, start: int, end: int) -> bytes:
+        """Baixa um range (bytes=start-end) de um objeto do storage.
+
+        Útil para validação de assinaturas (magic bytes) sem baixar o arquivo inteiro.
+        """
+        ...
     
     @abstractmethod
     async def get_object_info(self, key: str) -> ObjectInfo | None:

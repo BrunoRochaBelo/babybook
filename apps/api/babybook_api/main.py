@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .errors import (
     AppError,
@@ -46,6 +47,9 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(TraceIdMiddleware)
+    # Protege contra Host header attacks / cache poisoning via Host.
+    # Em staging/prod, ALLOWED_HOSTS é obrigatório e não permite wildcard.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

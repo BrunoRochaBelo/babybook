@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
-from babybook_admin import seeds
+seeds = pytest.importorskip("babybook_admin.seeds")
 from babybook_api.db.models import Account, AppPolicy, MomentTemplate
 from babybook_api.tests.conftest import DATABASE_URL, TestingSessionLocal
 

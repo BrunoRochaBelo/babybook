@@ -41,6 +41,8 @@ from babybook_api.storage.paths import (
     require_uuid,
 )
 
+from babybook_api.uploads.file_validation import validate_magic_bytes
+
 
 @dataclass
 class PartnerUploadTarget:
@@ -69,6 +71,13 @@ class CopyResult:
     dest_key: str
     success: bool
     error: str | None = None
+
+
+class PartnerUploadValidationError(ValueError):
+    def __init__(self, *, code: str, message: str, status_code: int = 400) -> None:
+        super().__init__(message)
+        self.code = code
+        self.status_code = status_code
 
 
 class PartnerStorageService:
@@ -132,6 +141,15 @@ class PartnerStorageService:
             key=tmp_path.path,
             content_type=content_type,
             expires_in=expires_in,
+            # Observação: PUT presigned não garante enforcement de tamanho no S3.
+            # Mesmo assim, passamos para permitir evolução futura do provider.
+            content_length_range=(0, int(size_bytes)),
+            metadata={
+                "declared-content-type": content_type,
+                "declared-size-bytes": str(int(size_bytes)),
+                "partner-id": partner_id,
+                "delivery-id": delivery_id,
+            },
         )
         
         return PartnerUploadTarget(
@@ -141,6 +159,95 @@ class PartnerStorageService:
             expires_at=presigned.expires_at,
             content_type=content_type,
         )
+
+    async def validate_tmp_upload(
+        self,
+        *,
+        tmp_key: str,
+        declared_content_type: str,
+        declared_size_bytes: int,
+        max_size_bytes: int,
+        allowed_content_types: set[str] | None = None,
+    ) -> ObjectInfo:
+        """Valida um arquivo recém enviado em tmp/ antes de movê-lo para partners/.
+
+        - Confere tamanho real via HEAD.
+        - Valida assinatura do arquivo (magic bytes) lendo apenas os primeiros bytes.
+        - Em caso de falha, tenta deletar o objeto temporário (best-effort).
+        """
+        info = await self.storage.get_object_info(tmp_key)
+        if info is None:
+            raise PartnerUploadValidationError(
+                code="upload.tmp.not_found",
+                message="Arquivo temporário não encontrado no storage",
+                status_code=404,
+            )
+
+        if info.size <= 0:
+            # Objetos com size=0 são suspeitos (upload interrompido) e não valem a pena persistir.
+            try:
+                await self.storage.delete_object(tmp_key)
+            except Exception:
+                pass
+            raise PartnerUploadValidationError(
+                code="upload.size.invalid",
+                message="Upload inválido (tamanho zero)",
+                status_code=400,
+            )
+
+        if info.size > max_size_bytes:
+            try:
+                await self.storage.delete_object(tmp_key)
+            except Exception:
+                pass
+            raise PartnerUploadValidationError(
+                code="upload.size.exceeded",
+                message="Arquivo excede o tamanho máximo permitido",
+                status_code=413,
+            )
+
+        # Bate tamanho declarado pelo cliente com o tamanho real do objeto.
+        if declared_size_bytes and info.size != int(declared_size_bytes):
+            try:
+                await self.storage.delete_object(tmp_key)
+            except Exception:
+                pass
+            raise PartnerUploadValidationError(
+                code="upload.size.mismatch",
+                message="Tamanho do arquivo não corresponde ao informado",
+                status_code=400,
+            )
+
+        # Validação de magic bytes (sem baixar o arquivo inteiro)
+        try:
+            header = await self.storage.get_object_range(tmp_key, start=0, end=511)
+            validate_magic_bytes(
+                declared_content_type=declared_content_type,
+                header=header,
+                allowed_content_types=allowed_content_types,
+            )
+        except PartnerUploadValidationError:
+            raise
+        except ValueError as exc:
+            # Erro de validação de assinatura/content-type
+            try:
+                await self.storage.delete_object(tmp_key)
+            except Exception:
+                pass
+            raise PartnerUploadValidationError(
+                code="upload.signature.invalid",
+                message=str(exc) or "Assinatura do arquivo inválida",
+                status_code=400,
+            ) from exc
+        except Exception as exc:
+            # Falha inesperada ao ler/validar. Não promover o arquivo.
+            raise PartnerUploadValidationError(
+                code="upload.validation.failed",
+                message="Falha ao validar o arquivo enviado",
+                status_code=400,
+            ) from exc
+
+        return info
     
     async def confirm_partner_upload(
         self,

@@ -9,6 +9,7 @@ Jobs are queued to Cloudflare Queues and processed by workers with ffmpeg.
 
 from datetime import datetime
 from typing import Optional
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
@@ -16,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.deps import get_db
 from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.settings import settings
 from babybook_api.schemas.media_processing import (
     TranscodeJobRequest,
     ImageOptimizeJobRequest,
@@ -33,6 +35,56 @@ router = APIRouter()
 # In-memory job store (replace with Redis/DB in production)
 # This is a simplified implementation - production would use a persistent store
 _job_store: dict[str, dict] = {}
+
+
+def _validate_callback_url(callback_url: Optional[str]) -> Optional[str]:
+    """Valida callback_url para evitar SSRF.
+
+    Regra atual (conservadora): permite apenas URLs absolutas apontando para o MESMO
+    host do FRONTEND_URL (settings.frontend_url). Em staging/prod isso implica https.
+
+    Obs: hoje callback_url é apenas armazenado (não é chamado). Ainda assim, validar
+    desde já evita que esse campo vire vetor de SSRF quando o worker passar a executar callbacks.
+    """
+    if callback_url is None:
+        return None
+
+    raw = callback_url.strip()
+    if raw == "":
+        return None
+
+    parsed = urlparse(raw)
+
+    allowed_schemes = {"http", "https"} if settings.app_env == "local" else {"https"}
+    if parsed.scheme not in allowed_schemes:
+        raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    if not parsed.netloc or parsed.hostname is None:
+        raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    # Bloqueia credenciais na URL (ex.: https://user:pass@host)
+    if parsed.username or parsed.password:
+        raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    frontend_host = urlparse(settings.frontend_url).hostname
+    if not frontend_host:
+        # Guardrail: frontend_url deve ser válido; se não for, rejeita callbacks
+        raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    if parsed.hostname.lower() != frontend_host.lower():
+        raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    # Se houver porta explícita, deve bater com a do FRONTEND_URL (quando definida)
+    frontend_port = urlparse(settings.frontend_url).port
+    if parsed.port is not None:
+        if frontend_port is not None and parsed.port != frontend_port:
+            raise HTTPException(status_code=400, detail="Invalid callback_url")
+        if frontend_port is None:
+            default_port = 443 if parsed.scheme == "https" else 80
+            if parsed.port != default_port:
+                raise HTTPException(status_code=400, detail="Invalid callback_url")
+
+    return raw
 
 
 def generate_job_id() -> str:
@@ -135,7 +187,7 @@ async def queue_transcode_job(
         source_key=request.source_key,
         options=options,
         priority=request.priority,
-        callback_url=request.callback_url,
+        callback_url=_validate_callback_url(request.callback_url),
         user_id=str(current_user.id),
     )
     
@@ -185,7 +237,7 @@ async def queue_image_optimize_job(
         source_key=request.source_key,
         options=options,
         priority=request.priority,
-        callback_url=request.callback_url,
+        callback_url=_validate_callback_url(request.callback_url),
         user_id=str(current_user.id),
     )
     

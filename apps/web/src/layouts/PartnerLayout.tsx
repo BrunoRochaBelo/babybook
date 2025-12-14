@@ -121,9 +121,9 @@ export function PartnerLayout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 relative">
             {/* Logo & Brand */}
-            <div className="flex items-center gap-8">
+            <div className="flex items-center">
               <Link
                 to="/partner"
                 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
@@ -133,29 +133,29 @@ export function PartnerLayout() {
                   Baby Book <span className="text-pink-500">PRO</span>
                 </span>
               </Link>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-1">
-                {NAV_LINKS.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.end}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
-                      )
-                    }
-                  >
-                    <link.icon className="w-4 h-4" />
-                    {link.label}
-                  </NavLink>
-                ))}
-              </nav>
             </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+              {NAV_LINKS.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                    )
+                  }
+                >
+                  <link.icon className="w-4 h-4" />
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">

@@ -89,6 +89,17 @@ class MinIOProvider(StorageProvider):
         response = await self._client.get_object(Bucket=self.config.bucket, Key=key)
         async with response["Body"] as stream:
             return await stream.read()
+
+    async def get_object_range(self, key: str, *, start: int, end: int) -> bytes:
+        if start < 0 or end < 0 or end < start:
+            raise ValueError("Range inválido")
+        response = await self._client.get_object(
+            Bucket=self.config.bucket,
+            Key=key,
+            Range=f"bytes={start}-{end}",
+        )
+        async with response["Body"] as stream:
+            return await stream.read()
     
     async def get_object_info(self, key: str) -> ObjectInfo | None:
         try:

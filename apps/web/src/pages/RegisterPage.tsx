@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import MicrosoftIcon from "@/components/icons/MicrosoftIcon";
 import AppleIcon from "@/components/icons/AppleIcon";
+import { sanitizeRedirectTo } from "@/lib/redirect";
 
 export function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const params = new URLSearchParams(window.location.search);
-  const redirectTo = params.get("redirectTo") ?? "/jornada";
+  const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/jornada");
   const apiBaseUrl = (
     import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
   ).replace(/\/+$/, "");
@@ -31,7 +32,10 @@ export function RegisterPage() {
     try {
       await register.mutateAsync({ email, password, name });
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirectTo") || "/jornada";
+      const redirectTo = sanitizeRedirectTo(
+        params.get("redirectTo"),
+        "/jornada",
+      );
       navigate(redirectTo);
     } catch (err) {
       console.error(err);

@@ -29,6 +29,7 @@ import {
   VaultDocumentKind,
 } from "@babybook/contracts";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useAuthStore } from "@/store/auth";
 
 type CreateChildInput = {
   name: string;
@@ -157,12 +158,17 @@ export const useCreateMoment = () => {
 export const useLogin = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { 
-      email: string; 
+    mutationFn: async (payload: {
+      email: string;
       password: string;
       rememberMe?: boolean;
     }) => {
       const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+
+      // Persistimos o token que ficará pareado com a sessão criada.
+      // Ele será enviado via header (X-CSRF-Token) nas requisições mutáveis.
+      useAuthStore.getState().setCsrfToken(csrf.csrf_token);
+
       await apiClient.post("/auth/login", {
         email: payload.email,
         password: payload.password,
@@ -188,6 +194,9 @@ export const useRegister = () => {
       name?: string;
     }) => {
       const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+
+      useAuthStore.getState().setCsrfToken(csrf.csrf_token);
+
       await apiClient.post("/auth/register", {
         email: payload.email,
         password: payload.password,

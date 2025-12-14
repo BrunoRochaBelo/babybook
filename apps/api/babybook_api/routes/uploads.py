@@ -14,6 +14,7 @@ from babybook_api.db.models import Account, Asset, UploadSession
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.observability import get_trace_id
+from babybook_api.rate_limit import enforce_rate_limit
 from babybook_api.schemas.assets import (
     AssetKind,
     UploadCompleteRequest,
@@ -52,6 +53,7 @@ async def init_upload(
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> UploadInitResponse:
+    await enforce_rate_limit(bucket="uploads:init:user", limit="60/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
     stmt = select(Asset).where(
         Asset.account_id == account_id,
@@ -127,6 +129,7 @@ async def complete_upload(
     db: AsyncSession = Depends(get_db_session),
     queue: QueuePublisher = Depends(get_queue_publisher),
 ) -> UploadCompleteResponse:
+    await enforce_rate_limit(bucket="uploads:complete:user", limit="120/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
     stmt = (
         select(UploadSession)

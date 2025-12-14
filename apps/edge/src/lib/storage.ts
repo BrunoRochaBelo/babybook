@@ -86,6 +86,8 @@ export async function fetchAndTransform(
   signedRequest: Request,
   objectKey: string,
   cacheMaxAge: number = 14400,
+  corsAllowOrigin: string | null = "*",
+  cacheScope: "public" | "private" | "no-store" = "public",
 ): Promise<Response> {
   const response = await fetch(signedRequest);
 
@@ -97,18 +99,36 @@ export async function fetchAndTransform(
   const newHeaders = new Headers(response.headers);
 
   // Set cache headers
-  // - public: Can be cached by CDN/browser
-  // - max-age: Client cache duration
-  // - s-maxage: CDN cache duration (can be different)
-  newHeaders.set(
-    "Cache-Control",
-    `public, max-age=${cacheMaxAge}, s-maxage=${cacheMaxAge}`,
-  );
+  // Observação de segurança:
+  // - Conteúdo protegido (ex.: u/*, partners/*) NÃO deve ser cacheado como public/s-maxage
+  //   para evitar cache compartilhado indevido em CDN/proxies.
+  if (cacheScope === "no-store") {
+    newHeaders.set("Cache-Control", "no-store");
+  } else if (cacheScope === "private") {
+    newHeaders.set("Cache-Control", `private, max-age=${cacheMaxAge}`);
+    // Ajuda caches intermediários a não compartilhar resposta entre credenciais.
+    // (Não é uma garantia universal, mas é um sinal importante.)
+    newHeaders.append("Vary", "Authorization");
+  } else {
+    // public
+    // - public: Can be cached by CDN/browser
+    // - max-age: Client cache duration
+    // - s-maxage: CDN cache duration
+    newHeaders.set(
+      "Cache-Control",
+      `public, max-age=${cacheMaxAge}, s-maxage=${cacheMaxAge}`,
+    );
+  }
 
-  // CORS headers (allow access from any origin)
-  newHeaders.set("Access-Control-Allow-Origin", "*");
-  newHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
-  newHeaders.set("Access-Control-Allow-Headers", "Authorization, Range");
+  // CORS headers
+  if (corsAllowOrigin) {
+    newHeaders.set("Access-Control-Allow-Origin", corsAllowOrigin);
+    if (corsAllowOrigin !== "*") {
+      newHeaders.append("Vary", "Origin");
+    }
+    newHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    newHeaders.set("Access-Control-Allow-Headers", "Authorization, Range");
+  }
   newHeaders.set(
     "Access-Control-Expose-Headers",
     "Content-Length, Content-Range, Accept-Ranges",

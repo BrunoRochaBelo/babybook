@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from fastapi import Cookie, Depends, Header
+from starlette import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -69,3 +70,26 @@ async def get_current_user(
         locale=user.locale,
         role=user.role,
     )
+
+
+async def require_csrf_token(
+    session: SessionModel = Depends(get_current_session),
+    csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
+) -> None:
+    """Exige CSRF token para requisições mutáveis (cookie-based session).
+
+    O token precisa ser enviado fora do cookie (header), e precisa bater com o
+    token armazenado na sessão.
+    """
+    if not csrf_token:
+        raise AppError(
+            status_code=status.HTTP_403_FORBIDDEN,
+            code="auth.csrf.missing",
+            message="Token CSRF obrigatorio.",
+        )
+    if csrf_token != session.csrf_token:
+        raise AppError(
+            status_code=status.HTTP_403_FORBIDDEN,
+            code="auth.csrf.invalid",
+            message="Token CSRF invalido.",
+        )

@@ -217,6 +217,9 @@ export async function uploadFileToPresignedUrl(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
+    // Importante: upload para storage via URL presignada não deve enviar cookies.
+    xhr.withCredentials = false;
+
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
         onProgress(Math.round((e.loaded / e.total) * 100));

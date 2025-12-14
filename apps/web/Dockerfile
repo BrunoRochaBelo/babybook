@@ -16,7 +16,7 @@ ENV VITE_ENABLE_MSW=false
 
 RUN pnpm --filter @babybook/web build
 
-FROM nginx:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 
 COPY apps/web/docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html

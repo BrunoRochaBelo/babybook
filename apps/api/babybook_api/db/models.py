@@ -529,7 +529,9 @@ class Voucher(TimestampMixin, Base):
     """
     __tablename__ = "vouchers"
     __table_args__ = (
-        Index("ix_vouchers_code", "code"),
+        # Mantemos um único índice/constraint de unicidade para evitar
+        # duplicidade na geração do schema (ex.: testes com SQLite via create_all).
+        Index("ix_vouchers_code", "code", unique=True),
         Index("ix_vouchers_status_expires", "status", "expires_at"),
     )
 
@@ -539,7 +541,7 @@ class Voucher(TimestampMixin, Base):
         ForeignKey("partners.id", ondelete="CASCADE"),
         index=True,
     )
-    code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    code: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(voucher_status_enum, default="available")
     discount_cents: Mapped[int] = mapped_column(Integer, default=0)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

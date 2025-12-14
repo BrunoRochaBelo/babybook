@@ -7,6 +7,7 @@ import GoogleIcon from "@/components/icons/GoogleIcon";
 import MicrosoftIcon from "@/components/icons/MicrosoftIcon";
 import AppleIcon from "@/components/icons/AppleIcon";
 import { cn } from "@/lib/utils";
+import { sanitizeRedirectTo } from "@/lib/redirect";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const params = new URLSearchParams(window.location.search);
-  const redirectTo = params.get("redirectTo") ?? "/jornada";
+  const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/jornada");
   const isDev = import.meta.env.DEV;
   const devEmail = import.meta.env.VITE_DEV_USER_EMAIL ?? "bruno@example.com";
   const devPassword = import.meta.env.VITE_DEV_USER_PASSWORD ?? "password";
@@ -34,7 +35,10 @@ export function LoginPage() {
     try {
       await login.mutateAsync({ email, password });
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirectTo") || "/jornada";
+      const redirectTo = sanitizeRedirectTo(
+        params.get("redirectTo"),
+        "/jornada",
+      );
       navigate(redirectTo);
     } catch (err) {
       // TODO: show error

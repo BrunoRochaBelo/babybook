@@ -20,11 +20,12 @@ import string
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, func, and_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from babybook_api.deps import get_db
-from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
 from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User
 from babybook_api.schemas.partner_portal import (
     PartnerOnboardingRequest,
@@ -44,15 +45,18 @@ from babybook_api.schemas.partner_portal import (
     UploadInitRequest,
     UploadInitResponse,
     UploadCompleteRequest,
+    ALLOWED_CONTENT_TYPES,
+    MAX_UPLOAD_SIZE_BYTES,
     CheckAccessResponse,
     ChildInfo,
 )
 from babybook_api.storage import (
-    StoragePaths,
-    secure_filename,
+    tmp_upload_path,
     get_partner_storage,
     PartnerStorageService,
 )
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.settings import settings
 
 router = APIRouter()
 
@@ -88,7 +92,7 @@ async def get_partner_for_user(db: AsyncSession, user: UserSession) -> Partner:
         )
     
     result = await db.execute(
-        select(Partner).where(Partner.user_id == user.user_id)
+        select(Partner).where(Partner.user_id == user.id)
     )
     partner = result.scalar_one_or_none()
     
@@ -166,10 +170,13 @@ async def partner_onboarding(
     db: AsyncSession = Depends(get_db),
 ) -> PartnerOnboardingResponse:
     """Cadastro de novo parceiro (fotógrafo)."""
+
+    # Normaliza email para evitar duplicidade por variação de caixa/espaços
+    normalized_email = request.email.strip().lower()
     
     # Verifica se email já existe
     existing_user = await db.execute(
-        select(User).where(User.email == request.email)
+        select(User).where(User.email == normalized_email)
     )
     if existing_user.scalar_one_or_none():
         raise HTTPException(
@@ -178,7 +185,7 @@ async def partner_onboarding(
         )
     
     existing_partner = await db.execute(
-        select(Partner).where(Partner.email == request.email)
+        select(Partner).where(Partner.email == normalized_email)
     )
     if existing_partner.scalar_one_or_none():
         raise HTTPException(
@@ -191,7 +198,7 @@ async def partner_onboarding(
     
     user = User(
         id=uuid4(),
-        email=request.email,
+        email=normalized_email,
         password_hash=hash_password(request.password),
         name=request.name,
         role="photographer",
@@ -203,7 +210,7 @@ async def partner_onboarding(
         id=uuid4(),
         user_id=user.id,
         name=request.name,
-        email=request.email,
+        email=normalized_email,
         slug=generate_slug(request.studio_name or request.name),
         company_name=request.studio_name,
         phone=request.phone,
@@ -211,8 +218,17 @@ async def partner_onboarding(
         voucher_balance=0,
     )
     db.add(partner)
-    
-    await db.commit()
+
+    # Proteção extra contra corrida: se houver UNIQUE constraint no banco,
+    # evita 500 e retorna mensagem amigável.
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este e-mail já está cadastrado"
+        )
     
     return PartnerOnboardingResponse(
         success=True,
@@ -260,6 +276,7 @@ async def update_partner_profile(
     request: PartnerProfileUpdateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> PartnerProfileResponse:
     """Atualiza o perfil do parceiro logado."""
     partner = await get_partner_for_user(db, current_user)
@@ -367,13 +384,13 @@ async def check_client_access(
     current_user: UserSession = Depends(get_current_user),
 ) -> CheckAccessResponse:
     """Verifica se cliente já tem acesso ao Baby Book."""
+    await enforce_rate_limit(bucket="partner:check-access:user", limit="60/minute", identity=current_user.id)
     # Garante que é um parceiro válido
     await get_partner_for_user(db, current_user)
     
     # Busca usuário pelo email
-    result = await db.execute(
-        select(User).where(User.email == email.lower())
-    )
+    normalized_email = email.strip().lower()
+    result = await db.execute(select(User).where(User.email == normalized_email))
     user = result.scalar_one_or_none()
     
     if user:
@@ -381,8 +398,9 @@ async def check_client_access(
         # TODO: Buscar filhos/contas do usuário quando o modelo permitir
         return CheckAccessResponse(
             has_access=True,
-            email=email.lower(),
-            client_name=user.name,
+            email=normalized_email,
+            # Evita expor PII (nome) e reduzir enumeração via API
+            client_name=None,
             children=[],  # TODO: Popular com filhos reais do usuário
             message=f"Cliente já possui acesso ao Baby Book. Esta entrega não consumirá crédito.",
         )
@@ -390,7 +408,7 @@ async def check_client_access(
         # Usuário não existe - novo cliente
         return CheckAccessResponse(
             has_access=False,
-            email=email.lower(),
+            email=normalized_email,
             client_name=None,
             children=[],
             message="Novo cliente. Um crédito será consumido para criar o acesso.",
@@ -425,6 +443,7 @@ async def purchase_credits(
     request: PurchaseCreditsRequest,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> PurchaseCreditsResponse:
     """Inicia compra de pacote de créditos."""
     partner = await get_partner_for_user(db, current_user)
@@ -463,8 +482,15 @@ async def confirm_credit_purchase(
     package_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> dict:
     """Confirma compra e adiciona créditos (sandbox/dev)."""
+    # Em produção, este endpoint deve ser substituído por webhook assinado do gateway.
+    if settings.app_env != "local":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Confirmação manual de créditos permitida apenas em ambiente local"
+        )
     partner = await get_partner_for_user(db, current_user)
     
     package = next((p for p in CREDIT_PACKAGES if p.id == package_id), None)
@@ -474,14 +500,18 @@ async def confirm_credit_purchase(
             detail="Pacote não encontrado"
         )
     
-    # Adiciona créditos
-    partner.voucher_balance += package.voucher_count
+    # Adiciona créditos com lock para evitar corrida
+    result = await db.execute(
+        select(Partner).where(Partner.id == partner.id).with_for_update()
+    )
+    locked_partner = result.scalar_one()
+    locked_partner.voucher_balance += package.voucher_count
     await db.commit()
     
     return {
         "success": True,
         "credits_added": package.voucher_count,
-        "new_balance": partner.voucher_balance,
+        "new_balance": locked_partner.voucher_balance,
     }
 
 
@@ -508,6 +538,7 @@ async def create_delivery(
     request: CreateDeliveryRequest,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> DeliveryResponse:
     """Cria nova entrega com crédito condicional."""
     partner = await get_partner_for_user(db, current_user)
@@ -521,12 +552,19 @@ async def create_delivery(
         existing_user = result.scalar_one_or_none()
         client_has_access = existing_user is not None
     
-    # Verifica saldo apenas se cliente é novo (não tem acesso)
-    if not client_has_access and partner.voucher_balance < 1:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Saldo insuficiente. Compre mais créditos."
+    # Se precisar consumir crédito, vamos validar + debitar com lock transacional
+    # (evita condição de corrida/double-spend em voucher_balance)
+    if not client_has_access:
+        result = await db.execute(
+            select(Partner).where(Partner.id == partner.id).with_for_update()
         )
+        locked_partner = result.scalar_one()
+        if locked_partner.voucher_balance < 1:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Saldo insuficiente. Compre mais créditos."
+            )
+        locked_partner.voucher_balance -= 1
     
     # Cria delivery
     title = request.title or f"Ensaio - {request.child_name or request.client_name}"
@@ -549,8 +587,7 @@ async def create_delivery(
     db.add(delivery)
     
     # Desconta crédito apenas se cliente é novo
-    if not client_has_access:
-        partner.voucher_balance -= 1
+    # (já debitado acima sob lock)
     
     await db.commit()
     await db.refresh(delivery)
@@ -685,6 +722,7 @@ async def archive_delivery(
     archive: bool = True,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> dict:
     """Arquiva ou desarquiva uma entrega."""
     partner = await get_partner_for_user(db, current_user)
@@ -738,8 +776,10 @@ async def init_upload(
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
     storage: PartnerStorageService = Depends(get_partner_storage),
+    _: None = Depends(require_csrf_token),
 ) -> UploadInitResponse:
     """Inicia upload de arquivo para entrega."""
+    await enforce_rate_limit(bucket="partner:deliveries:upload:init:user", limit="60/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     result = await db.execute(
@@ -773,15 +813,20 @@ async def init_upload(
     upload_info = await storage.init_partner_upload(
         partner_id=str(partner.id),
         delivery_id=delivery_id,
-        filename=request.sanitized_filename,  # Usa filename sanitizado
+        # Usa o filename original; o storage aplica secure_filename de forma consistente
+        filename=request.filename,
         content_type=request.content_type,
         size_bytes=request.size_bytes,
     )
     
-    # Atualiza status
+    # Atualiza status sem sobrescrever metadados existentes em assets_payload
     if delivery.status == "draft":
         delivery.status = "pending_upload"
-        delivery.assets_payload = {"files": [], "upload_started": True}
+
+    assets_payload = delivery.assets_payload or {}
+    assets_payload.setdefault("files", [])
+    assets_payload["upload_started"] = True
+    delivery.assets_payload = assets_payload
     
     await db.commit()
     
@@ -807,8 +852,10 @@ async def complete_upload(
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
     storage: PartnerStorageService = Depends(get_partner_storage),
+    _: None = Depends(require_csrf_token),
 ) -> dict:
     """Confirma que o upload foi concluído e move para pasta permanente."""
+    await enforce_rate_limit(bucket="partner:deliveries:upload:complete:user", limit="120/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
     
     result = await db.execute(
@@ -824,6 +871,43 @@ async def complete_upload(
             detail="Entrega não encontrada"
         )
     
+    # Valida que a key recebida bate com o upload_id + filename esperado.
+    # Isso reduz risco de "swap" de key/filename para copiar um objeto diferente.
+    try:
+        expected_tmp_key = tmp_upload_path(request.upload_id, request.filename).path
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="upload_id ou filename inválido"
+        )
+
+    if request.key != expected_tmp_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Key do upload não corresponde ao arquivo esperado"
+        )
+
+    # Validação server-side do objeto em tmp/ antes de promover para partners/.
+    # Protege contra:
+    # - Content-Type spoofing (ex.: executável disfarçado de JPG)
+    # - Upload de arquivo maior do que o declarado/permitido
+    try:
+        await storage.validate_tmp_upload(
+            tmp_key=expected_tmp_key,
+            declared_content_type=request.content_type or "application/octet-stream",
+            declared_size_bytes=request.size_bytes,
+            max_size_bytes=MAX_UPLOAD_SIZE_BYTES,
+            allowed_content_types=set(ALLOWED_CONTENT_TYPES),
+        )
+    except Exception as exc:
+        # PartnerUploadValidationError carrega status_code próprio, mas evitamos
+        # acoplar o router diretamente a esse tipo.
+        status_code = getattr(exc, "status_code", None)
+        message = str(exc) or "Arquivo inválido"
+        if isinstance(status_code, int):
+            raise HTTPException(status_code=status_code, detail=message)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+
     # Move arquivo de tmp/ para partners/ usando server-side copy
     final_path = await storage.confirm_partner_upload(
         partner_id=str(partner.id),
@@ -835,6 +919,7 @@ async def complete_upload(
     
     # Adiciona arquivo à lista
     assets_payload = delivery.assets_payload or {"files": []}
+    assets_payload.setdefault("files", [])
     assets_payload["files"].append({
         "upload_id": request.upload_id,
         "key": final_path.path,  # Usa a key final, não a temporária
@@ -868,6 +953,7 @@ async def finalize_delivery(
     request: GenerateVoucherCardRequest,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
 ) -> VoucherCardResponse:
     """Finaliza entrega e gera voucher + dados do cartão."""
     partner = await get_partner_for_user(db, current_user)

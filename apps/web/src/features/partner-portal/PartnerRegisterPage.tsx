@@ -39,6 +39,9 @@ const STEPS = [
 ] as const;
 
 export function PartnerRegisterPage() {
+  const proUrl =
+    (import.meta.env.VITE_LANDINGPAGE_PRO_URL as string | undefined) ??
+    "/pro.html";
   const navigate = useNavigate();
 
   // Step state
@@ -155,22 +158,25 @@ export function PartnerRegisterPage() {
       <div className="relative flex items-center justify-between">
         {/* Background line */}
         <div className="absolute left-0 right-0 top-6 h-0.5 bg-gray-200 dark:bg-gray-600 mx-6 sm:mx-8" />
-        
+
         {/* Progress line (animated) */}
-        <div 
+        <div
           className="absolute left-0 top-6 h-0.5 bg-pink-500 transition-all duration-500 ease-out mx-6 sm:mx-8"
-          style={{ 
-            width: `calc(${((currentStep - 1) / (STEPS.length - 1)) * 100}% - ${currentStep === 1 ? '0px' : currentStep === 3 ? '0px' : '0px'})`,
+          style={{
+            width: `calc(${((currentStep - 1) / (STEPS.length - 1)) * 100}% - ${currentStep === 1 ? "0px" : currentStep === 3 ? "0px" : "0px"})`,
           }}
         />
-        
+
         {STEPS.map((step) => {
           const StepIcon = step.icon;
           const isCompleted = currentStep > step.id;
           const isCurrent = currentStep === step.id;
 
           return (
-            <div key={step.id} className="flex flex-col items-center z-10 flex-1">
+            <div
+              key={step.id}
+              className="flex flex-col items-center z-10 flex-1"
+            >
               {/* Step circle */}
               <div
                 className={`
@@ -195,7 +201,7 @@ export function PartnerRegisterPage() {
                   <span className="absolute inset-0 rounded-full animate-ping bg-pink-400 opacity-20" />
                 )}
               </div>
-              
+
               {/* Step label */}
               <span
                 className={`
@@ -241,7 +247,9 @@ export function PartnerRegisterPage() {
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Nome do Estúdio{" "}
-          <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+          <span className="text-gray-400 dark:text-gray-500 font-normal">
+            (opcional)
+          </span>
         </label>
         <input
           id="studioName"
@@ -289,7 +297,9 @@ export function PartnerRegisterPage() {
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           WhatsApp{" "}
-          <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+          <span className="text-gray-400 dark:text-gray-500 font-normal">
+            (opcional)
+          </span>
         </label>
         <input
           id="phone"
@@ -417,11 +427,15 @@ export function PartnerRegisterPage() {
             onChange={(e) => setAcceptTerms(e.target.checked)}
             className="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-pink-500 focus:ring-pink-500 dark:bg-gray-700"
           />
-          <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
+          <label
+            htmlFor="terms"
+            className="text-sm text-gray-600 dark:text-gray-400"
+          >
             Li e aceito os{" "}
             <Link
               to="/termos"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
             >
               Termos de Uso
@@ -430,6 +444,7 @@ export function PartnerRegisterPage() {
             <Link
               to="/privacidade"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
             >
               Política de Privacidade
@@ -469,12 +484,17 @@ export function PartnerRegisterPage() {
 
       {/* Header */}
       <header className="p-4">
-        <a href="http://localhost:3000/pro.html" className="inline-flex items-center gap-2">
+        <a
+          href={proUrl}
+          className="inline-flex items-center gap-2"
+          rel="noreferrer"
+        >
           <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
             <Heart className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold text-gray-900 dark:text-white">
-            Baby Book <span className="text-pink-600 dark:text-pink-400">Pro</span>
+            Baby Book{" "}
+            <span className="text-pink-600 dark:text-pink-400">Pro</span>
           </span>
         </a>
       </header>
@@ -544,13 +564,17 @@ export function PartnerRegisterPage() {
                     {registerMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                        <span className="hidden sm:inline">Criando conta...</span>
+                        <span className="hidden sm:inline">
+                          Criando conta...
+                        </span>
                         <span className="sm:hidden">Aguarde...</span>
                       </>
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span className="hidden sm:inline">Criar Conta Grátis</span>
+                        <span className="hidden sm:inline">
+                          Criar Conta Grátis
+                        </span>
                         <span className="sm:hidden">Criar Conta</span>
                       </>
                     )}

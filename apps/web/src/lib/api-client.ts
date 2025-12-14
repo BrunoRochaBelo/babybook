@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiErrorSchema, ApiErrorPayload } from "@babybook/contracts";
+import { useAuthStore } from "../store/auth";
 
 const rawEnableMocks = (
   import.meta.env.VITE_ENABLE_MSW ??
@@ -102,11 +103,10 @@ const parseErrorPayload = (payload: unknown): ApiErrorPayload | undefined => {
 const handleErrorRedirects = (status: number, code?: string) => {
   if (status === 401) {
     const currentPath = window.location.pathname;
-    if (
-      !currentPath.includes("/login") &&
-      !currentPath.includes("/auth")
-    ) {
-      window.location.assign(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+    if (!currentPath.includes("/login") && !currentPath.includes("/auth")) {
+      window.location.assign(
+        `/login?redirectTo=${encodeURIComponent(currentPath)}`,
+      );
     }
   }
   if (status === 402 && code === "quota.recurrent_limit.exceeded") {
@@ -125,6 +125,16 @@ async function doFetch<T>(
     ...(options.headers ?? {}),
   };
 
+  // Proteção CSRF para sessão baseada em cookie:
+  // envia token fora do cookie em métodos mutáveis.
+  const method = options.method ?? "GET";
+  if (method !== "GET" && !headers["X-CSRF-Token"]) {
+    const csrfToken = useAuthStore.getState().csrfToken;
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
   let body: BodyInit | undefined;
   if (options.body instanceof FormData) {
     body = options.body;
@@ -134,7 +144,7 @@ async function doFetch<T>(
   }
 
   const response = await fetch(url, {
-    method: options.method ?? "GET",
+    method,
     headers,
     body,
     credentials: "include",

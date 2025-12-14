@@ -1,11 +1,13 @@
 import asyncio
 import sys
+import os
 from pathlib import Path
 from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
@@ -30,11 +32,22 @@ async def override_get_db_session() -> AsyncSession:
 app.dependency_overrides[get_db_session] = override_get_db_session
 
 DEFAULT_EMAIL = "ana@example.com"
-DEFAULT_PASSWORD = "senha123"
+# DEFAULT_PASSWORD should not be a hardcoded secret in source control.
+# Allow override via environment var for CI/dev convenience.
+DEFAULT_PASSWORD = os.environ.get("DEFAULT_PASSWORD", "test-password")
 
 
 async def _reset_db() -> None:
     async with engine.begin() as conn:
+        # SQLite às vezes mantém índices entre drop/create no mesmo arquivo.
+        # Limpamos índices não-internos para garantir um schema limpo por teste.
+        result = await conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'")
+        )
+        for row in result:
+            index_name = row[0]
+            # quote defensivo
+            await conn.execute(text(f'DROP INDEX IF EXISTS "{index_name}"'))
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 

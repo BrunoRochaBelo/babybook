@@ -83,6 +83,8 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
 
    (Edite .env.local se precisar, mas os defaults devem funcionar para o Docker.)
 
+Nota (staging/prod): a API possui guardrails e **falha no startup** se estiver com configuração insegura. Garanta que, nos ambientes não-locais, estejam definidos `ENV`, `ALLOWED_HOSTS`, `SECRET_KEY`, `SERVICE_API_TOKEN`, `BILLING_WEBHOOK_SECRET`, `SESSION_COOKIE_SECURE=true`, `CORS_ORIGINS` (sem localhost) e URLs públicas em https.
+
 3. Instale TODAS as dependências (Node/Python) e rode o codegen da API:
    ```bash
    pnpm install

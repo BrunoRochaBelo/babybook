@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .api_client import patch_asset
+from .file_validation import validate_file_on_disk
 from .settings import WorkerSettings, get_settings
 from .storage import StorageClient
 from .types import AssetJobPayload, VariantData, log_prefix
@@ -32,6 +33,25 @@ async def transcode_video(payload: dict[str, Any], metadata: dict[str, Any]) -> 
     try:
         source_path = tmpdir / "source"
         await storage.download_file(bucket=settings.bucket_uploads, key=job.key, destination=source_path)
+
+        # Validação de assinatura (magic bytes) antes de transcodificar.
+        try:
+            validate_file_on_disk(path=source_path, declared_content_type=job.mime or "application/octet-stream")
+        except Exception as exc:
+            logger.warning(
+                "%sArquivo com assinatura inválida para asset %s (mime=%s): %s",
+                prefix,
+                job.asset_id,
+                job.mime,
+                exc,
+            )
+            await patch_asset(job.asset_id, status="failed", error_code="invalid_file_signature", viewer_accessible=False)
+            try:
+                await storage.delete_object(bucket=settings.bucket_uploads, key=job.key)
+            except Exception:
+                pass
+            return
+
         original_key = _canonical_original_key(job)
         await storage.upload_file(
             bucket=settings.bucket_derivatives,

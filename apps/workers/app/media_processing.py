@@ -22,6 +22,7 @@ from typing import Any
 from datetime import datetime
 
 from .api_client import patch_asset
+from .file_validation import validate_file_prefix_on_disk
 from .settings import WorkerSettings, get_settings
 from .storage import StorageClient
 from .types import AssetJobPayload, VariantData, log_prefix
@@ -97,6 +98,24 @@ async def process_transcode_job(payload: dict[str, Any], metadata: dict[str, Any
             destination=source_path,
         )
         logger.info("%sDownloaded source file for job %s", prefix, job_id)
+
+        try:
+            # O payload deste handler não traz o MIME com confiabilidade.
+            # Ainda assim, validar assinatura ajuda a bloquear casos óbvios.
+            validate_file_prefix_on_disk(path=source_path, allowed_prefixes=("video/",))
+        except Exception as exc:
+            logger.warning("%sArquivo com assinatura inválida (fallback transcode) asset=%s: %s", prefix, asset_id, exc)
+            await patch_asset(
+                asset_id,
+                status="failed",
+                error_code="invalid_file_signature",
+                viewer_accessible=False,
+            )
+            try:
+                await storage.delete_object(bucket=settings.bucket_uploads, key=source_key)
+            except Exception:
+                pass
+            return
         
         # Get resolution and quality settings
         res_config = RESOLUTION_PRESETS.get(resolution, RESOLUTION_PRESETS["720p"])
@@ -277,6 +296,22 @@ async def process_image_optimize_job(payload: dict[str, Any], metadata: dict[str
             key=source_key,
             destination=source_path,
         )
+
+        try:
+            validate_file_prefix_on_disk(path=source_path, allowed_prefixes=("image/",))
+        except Exception as exc:
+            logger.warning("%sArquivo com assinatura inválida (image optimize) asset=%s: %s", prefix, asset_id, exc)
+            await patch_asset(
+                asset_id,
+                status="failed",
+                error_code="invalid_file_signature",
+                viewer_accessible=False,
+            )
+            try:
+                await storage.delete_object(bucket=settings.bucket_uploads, key=source_key)
+            except Exception:
+                pass
+            return
         
         variants: list[VariantData] = []
         
@@ -428,6 +463,22 @@ async def process_thumbnail_job(payload: dict[str, Any], metadata: dict[str, Any
             key=source_key,
             destination=source_path,
         )
+
+        try:
+            validate_file_prefix_on_disk(path=source_path, allowed_prefixes=("video/",))
+        except Exception as exc:
+            logger.warning("%sArquivo com assinatura inválida (thumbnail) asset=%s: %s", prefix, asset_id, exc)
+            await patch_asset(
+                asset_id,
+                status="failed",
+                error_code="invalid_file_signature",
+                viewer_accessible=False,
+            )
+            try:
+                await storage.delete_object(bucket=settings.bucket_uploads, key=source_key)
+            except Exception:
+                pass
+            return
         
         output_path = tmpdir / f"thumbnail.{format_type}"
         await _extract_thumbnail(

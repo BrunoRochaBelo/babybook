@@ -19,6 +19,12 @@ COPY apps/api ./apps/api
 RUN python -m pip install --upgrade pip \
     && pip install --no-cache-dir --use-pep517 ./apps/api
 
+# Security: run as non-root
+RUN groupadd -r app && useradd -r -g app -d /app -s /usr/sbin/nologin app \
+    && chown -R app:app /app
+
+USER app
+
 EXPOSE 8000
 
 CMD ["uvicorn", "babybook_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

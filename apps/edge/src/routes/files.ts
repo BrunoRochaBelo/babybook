@@ -18,6 +18,8 @@
 import { Hono } from "hono";
 import { cache } from "hono/cache";
 
+import { getCorsAllowOrigin } from "../lib/cors";
+
 import {
   extractToken,
   verifyJwt,
@@ -45,6 +47,10 @@ interface FileBindings {
   JWT_SECRET: string;
   // Optional: API base URL for validating share tokens
   API_BASE_URL?: string;
+
+  // Optional: comma-separated allowlist of origins for CORS
+  // When undefined/empty, defaults to "*" for backwards compatibility.
+  CORS_ALLOWED_ORIGINS?: string;
 }
 
 const fileRoutes = new Hono<{ Bindings: FileBindings }>();
@@ -61,19 +67,28 @@ fileRoutes.use(
   }),
 );
 
-/**
- * CORS preflight handler
- */
-fileRoutes.options("/*", () => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Range, Content-Type",
-      "Access-Control-Max-Age": "86400",
-    },
-  });
+// Preflight handler com allowlist (se configurada)
+fileRoutes.on("OPTIONS", ["/*"], async (c) => {
+  const originHeader = c.req.header("Origin") ?? null;
+  const allowOrigin = getCorsAllowOrigin(
+    originHeader,
+    c.env.CORS_ALLOWED_ORIGINS,
+  );
+
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Range, Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+
+  if (allowOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowOrigin;
+    if (allowOrigin !== "*") {
+      headers["Vary"] = "Origin";
+    }
+  }
+
+  return new Response(null, { status: 204, headers });
 });
 
 /**
@@ -116,10 +131,17 @@ fileRoutes.get("/*", async (c) => {
 
     // Fetch and transform response
     const cacheMaxAge = getCacheMaxAge(objectKey);
+    const originHeader = c.req.header("Origin") ?? null;
+    const corsAllowOrigin = getCorsAllowOrigin(
+      originHeader,
+      c.env.CORS_ALLOWED_ORIGINS,
+    );
     const response = await fetchAndTransform(
       signedRequest,
       objectKey,
       cacheMaxAge,
+      corsAllowOrigin,
+      objectKey.startsWith("sys/") ? "public" : "private",
     );
 
     return response;
@@ -169,10 +191,29 @@ fileRoutes.on("HEAD", ["/*"], async (c) => {
 
     const response = await fetch(signedRequest);
 
+    const originHeader = c.req.header("Origin") ?? null;
+    const allowOrigin = getCorsAllowOrigin(
+      originHeader,
+      c.env.CORS_ALLOWED_ORIGINS,
+    );
+    const headers = new Headers(response.headers);
+    if (allowOrigin) {
+      headers.set("Access-Control-Allow-Origin", allowOrigin);
+      if (allowOrigin !== "*") {
+        headers.append("Vary", "Origin");
+      }
+      headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+      headers.set("Access-Control-Allow-Headers", "Authorization, Range");
+      headers.set(
+        "Access-Control-Expose-Headers",
+        "Content-Length, Content-Range, Accept-Ranges",
+      );
+    }
+
     // Return only headers, no body
     return new Response(null, {
       status: response.status,
-      headers: response.headers,
+      headers,
     });
   } catch (error) {
     if (error instanceof AuthError) {
