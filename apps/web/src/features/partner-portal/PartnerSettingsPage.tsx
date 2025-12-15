@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -33,6 +33,8 @@ export function PartnerSettingsPage() {
     useMemo(
       () => ({
         title: "Configurações",
+        backTo: "/partner",
+        backLabel: "Voltar",
       }),
       [],
     ),
@@ -142,16 +144,17 @@ export function PartnerSettingsPage() {
 
   return (
     <PartnerPage>
-      {/* Back Navigation */}
+      {/* Desktop Back Navigation */}
       <button
         onClick={() => navigate(-1)}
-        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+        aria-label="Voltar"
+        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Voltar</span>
       </button>
 
-      {/* Page Header */}
+      {/* Desktop Page Header */}
       <div className="hidden md:block mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Configurações do Perfil
@@ -161,6 +164,7 @@ export function PartnerSettingsPage() {
         </p>
       </div>
 
+      {/* Mobile summary - botão voltar via header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Atualize dados do estúdio, logo e informações da conta.

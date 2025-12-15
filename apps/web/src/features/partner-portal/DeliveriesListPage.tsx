@@ -209,18 +209,21 @@ function StatusCounterChip({
       type="button"
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+      role="radio"
+      aria-checked={active}
+      aria-label={title || label}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 whitespace-nowrap ${
         active
-          ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white"
-          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40"
+          ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+          : "bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
       }`}
     >
       <span>{label}</span>
       <span
-        className={`tabular-nums px-1.5 py-0.5 rounded-full ${
+        className={`tabular-nums text-xs ${
           active
-            ? "bg-white/20 dark:bg-gray-900/10"
-            : "bg-gray-100 dark:bg-gray-700"
+            ? "text-white/70 dark:text-gray-900/60"
+            : "text-gray-400 dark:text-gray-500"
         }`}
       >
         {count}
@@ -238,6 +241,8 @@ export function DeliveriesListPage() {
     useMemo(
       () => ({
         title: "Entregas",
+        backTo: "/partner",
+        backLabel: "Voltar ao portal",
         actions: (
           <PartnerPageHeaderAction
             to="/partner/deliveries/new"
@@ -273,6 +278,7 @@ export function DeliveriesListPage() {
   const [previewDeliveryId, setPreviewDeliveryId] = useState<string | null>(
     null,
   );
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 
   const [presets, setPresets] = useState<DeliveriesFilterPreset[]>(() =>
     safeLoadPresets(),
@@ -694,16 +700,17 @@ export function DeliveriesListPage() {
 
   return (
     <PartnerPage>
-      {/* Back Navigation */}
+      {/* Desktop Back Navigation */}
       <button
         onClick={() => navigate("/partner")}
-        className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-4"
+        aria-label="Voltar ao portal do parceiro"
+        className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
       >
         <ArrowLeft className="w-4 h-4" />
         Voltar ao portal
       </button>
 
-      {/* Mobile summary (evita duplicação do header) */}
+      {/* Mobile summary - O botão voltar mobile é renderizado pelo header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">
           Minhas entregas
@@ -726,7 +733,7 @@ export function DeliveriesListPage() {
         </p>
       </div>
 
-      {/* Page Header */}
+      {/* Desktop Header */}
       <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
@@ -751,257 +758,321 @@ export function DeliveriesListPage() {
         </div>
         <Link
           to="/partner/deliveries/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           <Plus className="w-5 h-5" />
           <span className="hidden sm:inline">Nova Entrega</span>
-          <span className="sm:hidden">Nova</span>
-        </Link>
+      </Link>
       </div>
 
-      {/* Filtros rápidos (contadores) + presets */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-4">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar [-mx-1 px-1] pb-1">
-            <StatusCounterChip
-              label="Tudo"
-              count={statusCounters.totalAll}
-              active={includeArchived && statusFilter === "all"}
-              onClick={() => {
-                setIncludeArchived(true);
-                setStatusFilter("all");
-              }}
-            />
-            <StatusCounterChip
-              label="Ativas"
-              count={statusCounters.activeTotal}
-              active={!includeArchived && statusFilter === "all"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("all");
-              }}
-            />
-
-            <span className="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
-
-            <StatusCounterChip
-              label={statusConfig.draft.shortLabel}
-              title={statusConfig.draft.label}
-              count={statusCounters.byStatus.draft}
-              active={statusFilter === "draft"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("draft");
-              }}
-            />
-            <StatusCounterChip
-              label={statusConfig.pending_upload.shortLabel}
-              title={statusConfig.pending_upload.label}
-              count={statusCounters.byStatus.pending_upload}
-              active={statusFilter === "pending_upload"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("pending_upload");
-              }}
-            />
-            <StatusCounterChip
-              label={statusConfig.processing.shortLabel}
-              title={statusConfig.processing.label}
-              count={statusCounters.byStatus.processing}
-              active={statusFilter === "processing"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("processing");
-              }}
-            />
-            <StatusCounterChip
-              label={statusConfig.ready.shortLabel}
-              title={statusConfig.ready.label}
-              count={statusCounters.byStatus.ready}
-              active={statusFilter === "ready"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("ready");
-              }}
-            />
-            <StatusCounterChip
-              label={statusConfig.delivered.shortLabel}
-              title={statusConfig.delivered.label}
-              count={statusCounters.byStatus.delivered}
-              active={statusFilter === "delivered"}
-              onClick={() => {
-                setIncludeArchived(false);
-                setStatusFilter("delivered");
-              }}
-            />
-
-            <span className="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
-
-            <StatusCounterChip
-              label="Arq."
-              title="Arquivadas"
-              count={statusCounters.archivedCount}
-              active={includeArchived && statusFilter === "archived"}
-              onClick={() => {
-                setIncludeArchived(true);
-                setStatusFilter("archived");
-              }}
-            />
-          </div>
-
-          <p className="sm:hidden text-[11px] text-gray-500 dark:text-gray-400 px-1 -mt-1">
-            Deslize para ver mais status
-          </p>
-
-          <details className="group rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-900/20">
-            <summary className="list-none cursor-pointer px-3 py-2 flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                <Bookmark className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                Presets de filtros
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
-            </summary>
-
-            <div className="px-3 pb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <select
-                  value={selectedPresetId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedPresetId(id);
-                    const preset = presets.find((p) => p.id === id);
-                    if (preset) applyPreset(preset);
-                  }}
-                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  aria-label="Preset de filtros"
-                >
-                  <option value="">Selecionar preset…</option>
-                  {presets.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-
-                {isCreatingPreset ? (
-                  <div className="flex flex-1 items-center gap-2">
-                    <input
-                      value={newPresetName}
-                      onChange={(e) => setNewPresetName(e.target.value)}
-                      placeholder="Nome do preset…"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={createPreset}
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600 transition-colors"
-                      title="Salvar preset"
-                      aria-label="Salvar preset"
-                    >
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsCreatingPreset(false);
-                        setNewPresetName("");
-                      }}
-                      className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
-                      title="Cancelar"
-                      aria-label="Cancelar"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 sm:ml-auto">
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingPreset(true)}
-                      className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
-                      title="Salvar os filtros atuais como novo preset"
-                      aria-label="Salvar como novo preset"
-                    >
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!selectedPreset}
-                      onClick={upsertSelectedPreset}
-                      className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors disabled:opacity-50"
-                      title="Atualizar o preset selecionado"
-                      aria-label="Atualizar preset"
-                    >
-                      <Bookmark className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!selectedPreset}
-                      onClick={deleteSelectedPreset}
-                      className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-200 transition-colors disabled:opacity-50"
-                      title="Excluir preset"
-                      aria-label="Excluir preset"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 mb-3">
+      {/* Search + Sort */}
+      <div className="flex items-center gap-2 mb-4">
         {/* Search */}
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por cliente, título ou código..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            placeholder="Buscar..."
+            className="w-full pl-9 pr-8 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm"
           />
           {searchTerm && (
             <button
               type="button"
               onClick={() => setSearchTerm("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               aria-label="Limpar busca"
-              title="Limpar"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-2 w-full md:w-64">
-          <ArrowUpDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortOption)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            aria-label="Ordenar"
-          >
-            <option value="newest">Mais recentes</option>
-            <option value="oldest">Mais antigas</option>
-            <option value="status">Por status</option>
-            <option value="client">Por cliente</option>
-          </select>
-        </div>
+        {/* Sort - Desktop (select) */}
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortOption)}
+          className="hidden md:block px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm min-w-[140px]"
+          aria-label="Ordenar"
+        >
+          <option value="newest">Mais recentes</option>
+          <option value="oldest">Mais antigas</option>
+          <option value="status">Por status</option>
+          <option value="client">Por cliente</option>
+        </select>
+
+        {/* Sort - Mobile (icon button that opens modal) */}
+        <button
+          type="button"
+          onClick={() => setIsSortModalOpen(true)}
+          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          aria-label="Ordenar"
+          title="Ordenar"
+        >
+          <ArrowUpDown className="w-4 h-4" />
+        </button>
       </div>
 
-      {hasAnyFiltersActive ? (
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
+      {/* Status Chips (ghost style, inline) */}
+      <div className="mb-3">
+        <div className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1" role="radiogroup" aria-label="Filtrar entregas por status">
+          <StatusCounterChip
+            label="Tudo"
+            title="Todas as entregas (ativas + arquivadas)"
+            count={statusCounters.totalAll}
+            active={includeArchived && statusFilter === "all"}
+            onClick={() => {
+              setIncludeArchived(true);
+              setStatusFilter("all");
+            }}
+          />
+          <StatusCounterChip
+            label="Ativas"
+            title="Entregas ativas (não arquivadas)"
+            count={statusCounters.activeTotal}
+            active={!includeArchived && statusFilter === "all"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("all");
+            }}
+          />
+
+          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+
+          <StatusCounterChip
+            label={statusConfig.draft.shortLabel}
+            title={statusConfig.draft.label}
+            count={statusCounters.byStatus.draft}
+            active={statusFilter === "draft"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("draft");
+            }}
+          />
+          <StatusCounterChip
+            label={statusConfig.pending_upload.shortLabel}
+            title={statusConfig.pending_upload.label}
+            count={statusCounters.byStatus.pending_upload}
+            active={statusFilter === "pending_upload"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("pending_upload");
+            }}
+          />
+          <StatusCounterChip
+            label={statusConfig.processing.shortLabel}
+            title={statusConfig.processing.label}
+            count={statusCounters.byStatus.processing}
+            active={statusFilter === "processing"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("processing");
+            }}
+          />
+          <StatusCounterChip
+            label={statusConfig.ready.shortLabel}
+            title={statusConfig.ready.label}
+            count={statusCounters.byStatus.ready}
+            active={statusFilter === "ready"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("ready");
+            }}
+          />
+          <StatusCounterChip
+            label={statusConfig.delivered.shortLabel}
+            title={statusConfig.delivered.label}
+            count={statusCounters.byStatus.delivered}
+            active={statusFilter === "delivered"}
+            onClick={() => {
+              setIncludeArchived(false);
+              setStatusFilter("delivered");
+            }}
+          />
+
+          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+
+          <StatusCounterChip
+            label="Arq."
+            title="Arquivadas"
+            count={statusCounters.archivedCount}
+            active={includeArchived && statusFilter === "archived"}
+            onClick={() => {
+              setIncludeArchived(true);
+              setStatusFilter("archived");
+            }}
+          />
+
+          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+
+          <button
+            type="button"
+            onClick={() => {
+              const details = document.getElementById("presets-details");
+              if (details) {
+                (details as HTMLDetailsElement).open = !(details as HTMLDetailsElement).open;
+              }
+            }}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+              selectedPresetId
+                ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300"
+                : "bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+            title="Presets de filtros"
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Presets</span>
+          </button>
+        </div>
+
+        <p className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center mt-1" aria-hidden="true">
+          ← Deslize →
+        </p>
+      </div>
+
+      {/* Presets Dropdown (hidden by default) */}
+      <details id="presets-details" className="mb-3 group">
+        <summary className="sr-only">Presets de filtros</summary>
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <select
+              value={selectedPresetId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedPresetId(id);
+                const preset = presets.find((p) => p.id === id);
+                if (preset) applyPreset(preset);
+              }}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              aria-label="Preset de filtros"
+            >
+              <option value="">Selecionar preset…</option>
+              {presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+
+            {isCreatingPreset ? (
+              <div className="flex items-center gap-2">
+                <input
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  placeholder="Nome..."
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={createPreset}
+                  className="p-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600"
+                  title="Salvar"
+                >
+                  <Save className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreatingPreset(false);
+                    setNewPresetName("");
+                  }}
+                  className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                  title="Cancelar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingPreset(true)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  title="Salvar filtros atuais"
+                >
+                  <Save className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!selectedPreset}
+                  onClick={upsertSelectedPreset}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
+                  title="Atualizar preset"
+                >
+                  <Bookmark className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!selectedPreset}
+                  onClick={deleteSelectedPreset}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
+                  title="Excluir preset"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </details>
+
+      {/* Sort Modal (Mobile) */}
+      {isSortModalOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="text-xs text-gray-500 dark:text-gray-400 break-words sm:truncate"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsSortModalOpen(false)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl p-4 pb-8 animate-in slide-in-from-bottom">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Ordenar por
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsSortModalOpen(false)}
+                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-1">
+              {[
+                { value: "newest", label: "Mais recentes" },
+                { value: "oldest", label: "Mais antigas" },
+                { value: "status", label: "Por status" },
+                { value: "client", label: "Por cliente" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSort(option.value as SortOption);
+                    setIsSortModalOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg text-left text-sm font-medium transition-colors ${
+                    sort === option.value
+                      ? "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasAnyFiltersActive ? (
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
+          <div
+            className="text-xs text-gray-500 dark:text-gray-400 flex-1 min-w-0 truncate"
             title={activeFiltersSummaryDisplay.full}
           >
             <span className="font-medium text-gray-700 dark:text-gray-200">
-              Filtros ativos:
+              Filtros:
             </span>{" "}
             {activeFiltersSummaryDisplay.text}
           </div>
@@ -1015,21 +1086,26 @@ export function DeliveriesListPage() {
               setVoucherFilter("all");
               setRedeemedFilter("all");
             }}
-            className="sm:ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
             Limpar
           </button>
         </div>
       ) : null}
 
-      <details className="mb-6 group">
+      <details className="mb-3 group">
         <summary className="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
           <span className="inline-flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             Filtros avançados
+            {(voucherFilter !== "all" || redeemedFilter !== "all") && (
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold">
+                {(voucherFilter !== "all" ? 1 : 0) + (redeemedFilter !== "all" ? 1 : 0)}
+              </span>
+            )}
           </span>
-          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
+          <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180" />
         </summary>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block">
@@ -1340,7 +1416,7 @@ function DeliveryTableRow({
             <div className="font-medium text-gray-900 dark:text-white truncate">
               {delivery.title || delivery.client_name || "Sem título"}
             </div>
-            <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
               ID: {delivery.id}
             </div>
           </div>

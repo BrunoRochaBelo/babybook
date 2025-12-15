@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   CreditCard,
@@ -64,6 +64,8 @@ export function CreditsPage() {
     useMemo(
       () => ({
         title: "Créditos",
+        backTo: "/partner",
+        backLabel: "Voltar ao portal",
       }),
       [],
     ),
@@ -130,11 +132,12 @@ export function CreditsPage() {
 
   return (
     <PartnerPage>
-      {/* Page Header */}
+      {/* Desktop Header */}
       <div className="hidden md:block mb-6">
         <button
           onClick={() => navigate("/partner")}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-3"
+          aria-label="Voltar ao portal"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-3 focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar ao portal
@@ -147,6 +150,7 @@ export function CreditsPage() {
         </p>
       </div>
 
+      {/* Mobile summary - botão voltar via header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Comprar créditos para gerar vouchers e finalizar entregas.

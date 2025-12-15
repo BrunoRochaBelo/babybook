@@ -145,6 +145,8 @@ export function PartnerNotificationsPage() {
     useMemo(
       () => ({
         title: "Notificações",
+        backTo: "/partner",
+        backLabel: "Voltar",
         actions:
           unreadCount > 0 ? (
             <PartnerPageHeaderAction
@@ -168,16 +170,18 @@ export function PartnerNotificationsPage() {
 
   return (
     <PartnerPage size="narrow">
-      {/* Back Navigation */}
+
+      {/* Desktop Back Navigation */}
       <button
         onClick={() => navigate(-1)}
-        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+        aria-label="Voltar"
+        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Voltar</span>
       </button>
 
-      {/* Page Header */}
+      {/* Desktop Page Header */}
       <div className="hidden md:flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
