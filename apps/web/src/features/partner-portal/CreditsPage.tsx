@@ -22,6 +22,7 @@ import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
 import { PartnerLoadingState } from "@/layouts/partnerStates";
+import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -134,14 +135,7 @@ export function CreditsPage() {
     <PartnerPage>
       {/* Desktop Header */}
       <div className="hidden md:block mb-6">
-        <button
-          onClick={() => navigate("/partner")}
-          aria-label="Voltar ao portal"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-3 focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao portal
-        </button>
+        <PartnerBackButton to="/partner" label="Voltar ao portal" />
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Comprar Créditos
         </h1>
@@ -157,7 +151,7 @@ export function CreditsPage() {
         </p>
       </div>
       {/* Current Balance */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -174,7 +168,7 @@ export function CreditsPage() {
       </div>
 
       {/* Package Selection */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-4 mb-8 animate-in fade-in-0 slide-in-from-bottom-3 duration-500 delay-100">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           Selecione um pacote
         </h2>

@@ -57,6 +57,82 @@
   --bb-color-border: rgba(245, 241, 236, 0.24);
 }
 
+/* =============================================================================
+   Partner Portal Design Tokens
+   ============================================================================= */
+
+:root {
+  /* Partner Primary Color (Pink) */
+  --partner-primary: #ec4899;
+  --partner-primary-hover: #db2777;
+  --partner-primary-light: #fdf2f8;
+  --partner-primary-dark: #9d174d;
+  
+  /* Partner Surfaces */
+  --partner-surface: #ffffff;
+  --partner-surface-elevated: #ffffff;
+  --partner-bg: #f9fafb;
+  
+  /* Partner Text */
+  --partner-text: #111827;
+  --partner-text-muted: #6b7280;
+  --partner-text-subtle: #9ca3af;
+  
+  /* Partner Borders */
+  --partner-border: #e5e7eb;
+  --partner-border-hover: #f9a8d4;
+  
+  /* Partner Spacing */
+  --partner-space-xs: 0.25rem;
+  --partner-space-sm: 0.5rem;
+  --partner-space-md: 1rem;
+  --partner-space-lg: 1.5rem;
+  --partner-space-xl: 2rem;
+  
+  /* Partner Radius */
+  --partner-radius-sm: 0.5rem;
+  --partner-radius-md: 0.75rem;
+  --partner-radius-lg: 1rem;
+  --partner-radius-xl: 1.5rem;
+  
+  /* Partner Shadows */
+  --partner-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --partner-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --partner-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Partner Transitions */
+  --partner-transition-fast: 150ms ease;
+  --partner-transition-normal: 200ms ease;
+  --partner-transition-slow: 300ms ease;
+}
+
+.dark {
+  /* Partner Primary Color (Pink) - Dark Mode */
+  --partner-primary: #f472b6;
+  --partner-primary-hover: #ec4899;
+  --partner-primary-light: rgba(244, 114, 182, 0.1);
+  --partner-primary-dark: #be185d;
+  
+  /* Partner Surfaces - Dark Mode */
+  --partner-surface: #1f2937;
+  --partner-surface-elevated: #374151;
+  --partner-bg: #111827;
+  
+  /* Partner Text - Dark Mode */
+  --partner-text: #f9fafb;
+  --partner-text-muted: #9ca3af;
+  --partner-text-subtle: #6b7280;
+  
+  /* Partner Borders - Dark Mode */
+  --partner-border: #374151;
+  --partner-border-hover: #be185d;
+  
+  /* Partner Shadows - Dark Mode */
+  --partner-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --partner-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --partner-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+}
+
 body {
   margin: 0;
   min-height: 100vh;

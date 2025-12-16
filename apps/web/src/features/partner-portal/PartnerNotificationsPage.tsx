@@ -8,7 +8,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Bell,
   Check,
   CheckCheck,
@@ -25,6 +24,7 @@ import {
   usePartnerPageHeader,
 } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
+import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 // Tipo de notificação
 type NotificationType =
@@ -170,45 +170,38 @@ export function PartnerNotificationsPage() {
 
   return (
     <PartnerPage size="narrow">
-
-      {/* Desktop Back Navigation */}
-      <button
-        onClick={() => navigate(-1)}
-        aria-label="Voltar"
-        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Voltar</span>
-      </button>
-
-      {/* Desktop Page Header */}
-      <div className="hidden md:flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Notificações
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {unreadCount > 0
-              ? `${unreadCount} não lida${unreadCount > 1 ? "s" : ""}`
-              : "Todas as notificações lidas"}
-          </p>
+      {/* Desktop Header */}
+      <div className="hidden md:block mb-6">
+        <PartnerBackButton label="Voltar" />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              Notificações
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {unreadCount > 0
+                ? `${unreadCount} não lida${unreadCount > 1 ? "s" : ""}`
+                : "Todas as notificações lidas"}
+            </p>
+          </div>
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllAsRead}
+              disabled={isMarkingAll}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium disabled:opacity-50 transition-colors"
+            >
+              {isMarkingAll ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCheck className="w-4 h-4" />
+              )}
+              Marcar todas como lidas
+            </button>
+          )}
         </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllAsRead}
-            disabled={isMarkingAll}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium disabled:opacity-50"
-          >
-            {isMarkingAll ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCheck className="w-4 h-4" />
-            )}
-            Marcar todas como lidas
-          </button>
-        )}
       </div>
 
+      {/* Mobile summary */}
       <div className="md:hidden mb-4">
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {unreadCount > 0

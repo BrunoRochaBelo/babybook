@@ -9,20 +9,19 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
   Camera,
   Save,
   Loader2,
-  AlertCircle,
-  CheckCircle2,
   Upload,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
 import { PartnerLoadingState } from "@/layouts/partnerStates";
+import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 export function PartnerSettingsPage() {
   const navigate = useNavigate();
@@ -45,8 +44,6 @@ export function PartnerSettingsPage() {
   const [phone, setPhone] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   // Query
   const { data: profile, isLoading } = useQuery({
@@ -73,11 +70,10 @@ export function PartnerSettingsPage() {
     ) => updatePartnerProfile(updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partner", "profile"] });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success("Alterações salvas com sucesso!");
     },
     onError: (err) => {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Erro ao salvar alterações",
       );
     },
@@ -85,11 +81,9 @@ export function PartnerSettingsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
 
     if (!name.trim()) {
-      setError("Nome é obrigatório");
+      toast.error("Nome é obrigatório");
       return;
     }
 
@@ -108,12 +102,12 @@ export function PartnerSettingsPage() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        setError("Selecione uma imagem válida");
+        toast.error("Selecione uma imagem válida");
         return;
       }
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        setError("A imagem deve ter no máximo 2MB");
+        toast.error("A imagem deve ter no máximo 2MB");
         return;
       }
       setLogoFile(file);
@@ -144,18 +138,9 @@ export function PartnerSettingsPage() {
 
   return (
     <PartnerPage>
-      {/* Desktop Back Navigation */}
-      <button
-        onClick={() => navigate(-1)}
-        aria-label="Voltar"
-        className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Voltar</span>
-      </button>
-
-      {/* Desktop Page Header */}
+      {/* Desktop Header */}
       <div className="hidden md:block mb-6">
+        <PartnerBackButton label="Voltar" />
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Configurações do Perfil
         </h1>
@@ -170,24 +155,6 @@ export function PartnerSettingsPage() {
           Atualize dados do estúdio, logo e informações da conta.
         </p>
       </div>
-      {/* Success Message */}
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-3 text-green-700 dark:text-green-300">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-          <p>Alterações salvas com sucesso!</p>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>{error}</p>
-          <button onClick={() => setError(null)} className="ml-auto">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit}>
         {/* Logo Section */}

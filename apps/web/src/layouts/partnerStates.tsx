@@ -131,8 +131,16 @@ function StateBody({
 }) {
   const styles = toneStyles(tone);
 
+  // Cores do círculo do ícone baseado no tone
+  const iconCircleClass =
+    tone === "danger"
+      ? "bg-red-100 dark:bg-red-900/30"
+      : tone === "warning"
+        ? "bg-yellow-100 dark:bg-yellow-900/30"
+        : "bg-gray-100 dark:bg-gray-700";
+
   const wrapClass =
-    variant === "page" ? "bg-white dark:bg-gray-800 rounded-xl border p-8" : "";
+    variant === "page" ? "bg-white dark:bg-gray-800 rounded-2xl border shadow-lg p-8" : "";
 
   const innerClass =
     variant === "page" ? "max-w-md mx-auto text-center" : "text-center";
@@ -142,25 +150,39 @@ function StateBody({
   return (
     <div className={cn(wrapClass, styles.border)}>
       <div className={cn(innerClass, padClass)}>
+        {/* Ícone grande em círculo */}
         {Icon ? (
-          <Icon className={cn("w-12 h-12 mx-auto mb-4", styles.icon)} />
+          <div
+            className={cn(
+              "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+              iconCircleClass,
+            )}
+          >
+            <Icon className={cn("w-8 h-8", styles.icon)} />
+          </div>
         ) : null}
-        <h2 className={cn("text-lg font-semibold", styles.title)}>{title}</h2>
+
+        {/* Título */}
+        <h2 className={cn("text-xl font-bold mb-2", styles.title)}>{title}</h2>
+
+        {/* Descrição */}
         {description ? (
-          <p className={cn("mt-2 text-sm", styles.description)}>
+          <p className={cn("text-sm mb-4", styles.description)}>
             {description}
           </p>
         ) : null}
 
-        {children ? <div className="mt-4">{children}</div> : null}
+        {/* Conteúdo adicional (ex: detalhes do erro) */}
+        {children ? <div className="mb-4">{children}</div> : null}
 
+        {/* Botões de ação */}
         {actions?.primary || actions?.secondary ? (
-          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2">
-            {actions.primary ? (
-              <PrimaryAction action={actions.primary} />
-            ) : null}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             {actions.secondary ? (
               <SecondaryAction action={actions.secondary} />
+            ) : null}
+            {actions.primary ? (
+              <PrimaryAction action={actions.primary} />
             ) : null}
           </div>
         ) : null}

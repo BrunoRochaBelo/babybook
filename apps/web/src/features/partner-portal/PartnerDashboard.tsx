@@ -36,6 +36,8 @@ import {
   usePartnerPageHeader,
 } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
+import { StatCard } from "@/layouts/StatCard";
+import { PartnerErrorState } from "@/layouts/partnerStates";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -220,40 +222,17 @@ export function PartnerDashboard() {
       "Não foi possível carregar o dashboard.";
 
     return (
-      <PartnerPage>
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                Ops — tivemos um problema
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                {message}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleRetry}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <RefreshCcw className="w-4 h-4" />
-                  Tentar novamente
-                </button>
-                <Link
-                  to="/partner/deliveries"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600"
-                >
-                  <Package className="w-4 h-4" />
-                  Ir para entregas
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </PartnerPage>
+      <PartnerErrorState
+        variant="page"
+        title="Ops! Algo deu errado"
+        description={message}
+        onRetry={handleRetry}
+        secondaryAction={{
+          label: "Ir para entregas",
+          to: "/partner/deliveries",
+          icon: Package,
+        }}
+      />
     );
   }
 
@@ -303,8 +282,8 @@ export function PartnerDashboard() {
       </div>
 
       {/* Credit Balance Card - Destaque principal */}
-      <div className="mb-6 sm:mb-8">
-        <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg">
+      <div className="mb-6 sm:mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+        <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -331,7 +310,7 @@ export function PartnerDashboard() {
             </div>
             <Link
               to="/partner/credits"
-              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-white text-pink-600 rounded-xl hover:bg-pink-50 transition-colors font-semibold shadow-sm"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-white text-pink-600 rounded-xl hover:bg-pink-50 active:scale-[0.98] transition-all font-semibold shadow-sm"
             >
               <CreditCard className="w-5 h-5" />
               <span className="hidden sm:inline">Comprar Créditos</span>
@@ -347,7 +326,7 @@ export function PartnerDashboard() {
           {pendingUpload && (
             <Link
               to={`/partner/deliveries/${pendingUpload.id}/upload`}
-              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
+              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:shadow-sm active:scale-[0.98] transition-all"
             >
               <div className="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-800/50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
@@ -367,7 +346,7 @@ export function PartnerDashboard() {
           {(stats?.ready_deliveries || 0) > 0 && (
             <Link
               to="/partner/deliveries?status=ready"
-              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-900/30 hover:shadow-sm active:scale-[0.98] transition-all"
             >
               <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-800/50 flex items-center justify-center flex-shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -387,7 +366,7 @@ export function PartnerDashboard() {
           {hasLowCredits && (
             <Link
               to="/partner/credits"
-              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800/50 hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors"
+              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800/50 hover:bg-pink-100 dark:hover:bg-pink-900/30 hover:shadow-sm active:scale-[0.98] transition-all"
             >
               <div className="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-800/50 flex items-center justify-center flex-shrink-0">
                 <AlertCircle className="w-4 h-4 text-pink-600 dark:text-pink-400" />
@@ -401,10 +380,10 @@ export function PartnerDashboard() {
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-pink-600 dark:text-pink-400 flex-shrink-0" />
-            </Link>
-          )}
-        </div>
-      )}
+          </Link>
+        )}
+      </div>
+    )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -491,8 +470,6 @@ export function PartnerDashboard() {
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400">
                       {delivery.client_name && <span>{delivery.client_name}</span>}
                       <span>•</span>
-                      <span>{delivery.assets_count} arquivos</span>
-                      <span>•</span>
                       <span>{formatDate(delivery.created_at)}</span>
                     </div>
                     {delivery.voucher_code && (
@@ -514,7 +491,6 @@ export function PartnerDashboard() {
                     <th className="text-left font-medium px-4 py-2.5">Entrega</th>
                     <th className="text-left font-medium px-4 py-2.5">Cliente</th>
                     <th className="text-left font-medium px-4 py-2.5">Status</th>
-                    <th className="text-right font-medium px-4 py-2.5">Arquivos</th>
                     <th className="text-left font-medium px-4 py-2.5">Criada em</th>
                     <th className="text-left font-medium px-4 py-2.5">Voucher</th>
                   </tr>
@@ -537,9 +513,6 @@ export function PartnerDashboard() {
                       <td className="px-4 py-3">
                         <DeliveryStatusBadge status={delivery.status} />
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300 tabular-nums">
-                        {delivery.assets_count}
-                      </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                         {formatDate(delivery.created_at)}
                       </td>
@@ -561,79 +534,6 @@ export function PartnerDashboard() {
         )}
       </div>
     </PartnerPage>
-  );
-}
-
-// =============================================================================
-// Sub-components
-// =============================================================================
-
-interface StatCardProps {
-  icon: typeof Package;
-  label: string;
-  value: number;
-  color: "blue" | "green" | "purple" | "pink";
-  to?: string;
-  description?: string;
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
-  to,
-  description,
-}: StatCardProps) {
-  const colorClasses = {
-    blue: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
-    green:
-      "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400",
-    purple:
-      "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
-    pink: "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400",
-  };
-
-  const content = (
-    <>
-      <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[color]} mb-3`}
-      >
-        <Icon className="w-5 h-5" />
-      </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">
-        {value}
-      </p>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-      {description && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          {description}
-        </p>
-      )}
-      {to && (
-        <div className="flex items-center gap-1 mt-2 text-xs font-medium text-pink-600 dark:text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity">
-          Clique para ver
-          <ChevronRight className="w-3 h-3" />
-        </div>
-      )}
-    </>
-  );
-
-  if (to) {
-    return (
-      <Link
-        to={to}
-        className="group bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md transition-all cursor-pointer"
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-      {content}
-    </div>
   );
 }
 

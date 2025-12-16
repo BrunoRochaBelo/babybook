@@ -46,6 +46,7 @@ import {
   PartnerEmptyState,
   PartnerLoadingState,
 } from "@/layouts/partnerStates";
+import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -700,16 +701,6 @@ export function DeliveriesListPage() {
 
   return (
     <PartnerPage>
-      {/* Desktop Back Navigation */}
-      <button
-        onClick={() => navigate("/partner")}
-        aria-label="Voltar ao portal do parceiro"
-        className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500 rounded-lg px-1 -ml-1"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Voltar ao portal
-      </button>
-
       {/* Mobile summary - O botão voltar mobile é renderizado pelo header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -734,35 +725,38 @@ export function DeliveriesListPage() {
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Minhas Entregas
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {aggregations ? (
-              <>
-                <span className="font-medium text-gray-700 dark:text-gray-200">
-                  {aggregations.total}
-                </span>{" "}
-                no total •{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-200">
-                  {aggregations.archived}
-                </span>{" "}
-                arquivadas
-              </>
-            ) : (
-              <>{total} entregas</>
-            )}
-          </p>
+      <div className="hidden md:block mb-6">
+        <PartnerBackButton to="/partner" label="Voltar ao portal" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              Minhas Entregas
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {aggregations ? (
+                <>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                    {aggregations.total}
+                  </span>{" "}
+                  no total •{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                    {aggregations.archived}
+                  </span>{" "}
+                  arquivadas
+                </>
+              ) : (
+                <>{total} entregas</>
+              )}
+            </p>
+          </div>
+          <Link
+            to="/partner/deliveries/new"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Nova Entrega</span>
+          </Link>
         </div>
-        <Link
-          to="/partner/deliveries/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Nova Entrega</span>
-      </Link>
       </div>
 
       {/* Search + Sort */}
@@ -775,6 +769,7 @@ export function DeliveriesListPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar..."
+            data-search-input="true"
             className="w-full pl-9 pr-8 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm"
           />
           {searchTerm && (
@@ -1217,9 +1212,6 @@ export function DeliveriesListPage() {
                       <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
                         Status
                       </th>
-                      <th className="sticky top-0 z-10 text-right font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Arquivos
-                      </th>
                       <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
                         Criada em
                       </th>
@@ -1335,8 +1327,6 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          <span>{delivery.assets_count} arquivos</span>
-          <span className="mx-1">•</span>
           <span>{formatDate(delivery.created_at)}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -1429,9 +1419,6 @@ function DeliveryTableRow({
       </td>
       <td className="px-4 py-2.5">
         <StatusBadge status={displayStatus} />
-      </td>
-      <td className="px-4 py-2.5 text-right text-gray-700 dark:text-gray-200 tabular-nums">
-        {delivery.assets_count}
       </td>
       <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
         {formatDate(delivery.created_at)}

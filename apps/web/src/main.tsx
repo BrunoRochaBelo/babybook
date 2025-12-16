@@ -15,6 +15,7 @@ import {
   mockMoments,
   mockUser,
 } from "./mocks/data";
+import { Toaster } from "sonner";
 import "./index.css";
 
 // Aplica tema o mais cedo possível (sem inline <script> no index.html).
@@ -113,6 +114,17 @@ async function startApp() {
           </QueryClientProvider>
         </I18nProvider>
       </ErrorBoundary>
+      <Toaster
+        position="top-right"
+        expand={false}
+        richColors
+        closeButton
+        toastOptions={{
+          classNames: {
+            toast: "font-sans",
+          },
+        }}
+      />
     </React.StrictMode>,
   );
 }

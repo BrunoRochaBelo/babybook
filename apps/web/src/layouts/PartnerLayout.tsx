@@ -35,6 +35,7 @@ import {
   type PartnerPageHeaderBadgeTone,
   type PartnerPageHeaderConfig,
 } from "@/layouts/partnerPageHeader";
+import { usePartnerKeyboardShortcuts } from "@/hooks/usePartnerKeyboardShortcuts";
 
 const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
@@ -66,6 +67,9 @@ export function PartnerLayout() {
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
+
+  // Enable keyboard shortcuts for the portal
+  usePartnerKeyboardShortcuts();
 
   const [pageHeader, setPageHeader] = useState<PartnerPageHeaderConfig | null>(
     null,
