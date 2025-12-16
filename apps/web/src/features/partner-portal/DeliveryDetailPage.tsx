@@ -289,133 +289,35 @@ export function DeliveryDetailPage() {
           </p>
         </div>
 
-        {/* Page Header */}
-        <div className="hidden md:flex items-start justify-between gap-4 mb-6">
-          <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="min-w-0 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                {delivery.title || delivery.client_name || "Entrega"}
-              </h1>
-              <StatusBadge status={delivery.status} />
-            </div>
-
-            <div className="mt-1 flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                {delivery.client_name ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <User className="w-4 h-4" />
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
-                      {delivery.client_name}
-                    </span>
-                  </span>
-                ) : null}
-                <span className="inline-flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
-                  Criada em {formatDate(delivery.created_at)}
-                </span>
-              </div>
-
-              <div className="text-xs">
-                ID: <span className="font-mono">{delivery.id}</span>
-              </div>
-            </div>
+        {/* Desktop Page Header */}
+        <div className="hidden md:block mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {delivery.title || delivery.client_name || "Entrega"}
+            </h1>
+            <StatusBadge status={delivery.status} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            {canGenerateVoucher ? (
-              <button
-                type="button"
-                onClick={() => setShowVoucherModal(true)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
-              >
-                <Ticket className="w-4 h-4" />
-                Gerar voucher
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium opacity-70 cursor-not-allowed"
-                title="Envie pelo menos 1 arquivo para habilitar a geração do voucher"
-              >
-                <Ticket className="w-4 h-4" />
-                Gerar voucher
-              </button>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+            {delivery.client_name && (
+              <span className="inline-flex items-center gap-1.5">
+                <User className="w-4 h-4" />
+                <span className="text-gray-700 dark:text-gray-200">{delivery.client_name}</span>
+              </span>
             )}
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              {formatDate(delivery.created_at)}
+            </span>
           </div>
         </div>
 
-        {copiedMessage ? (
-          <div className="mb-4 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200">
+        {copiedMessage && (
+          <div className="mb-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+            <Check className="w-4 h-4" />
             {copiedMessage}
           </div>
-        ) : null}
-
-        {/* Detalhes & ações (recolhível) */}
-        <details className="mb-6 group rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <summary className="list-none cursor-pointer px-4 py-3 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 rounded-xl">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              Detalhes e ações
-            </span>
-            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
-          </summary>
-
-          <div className="px-4 pb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400">ID</p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <p
-                    className="text-sm font-mono text-gray-900 dark:text-white truncate"
-                    title={delivery.id}
-                  >
-                    {delivery.id}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const ok = await copyToClipboard(delivery.id);
-                      setCopiedMessage(
-                        ok ? "ID copiado" : "Não foi possível copiar",
-                      );
-                    }}
-                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors text-xs font-medium"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copiar
-                  </button>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Link da entrega
-                </p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <p
-                    className="text-sm text-gray-900 dark:text-white truncate"
-                    title={deliveryUrl}
-                  >
-                    {deliveryUrl}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const ok = await copyToClipboard(deliveryUrl);
-                      setCopiedMessage(
-                        ok ? "Link copiado" : "Não foi possível copiar",
-                      );
-                    }}
-                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors text-xs font-medium"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copiar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </details>
+        )}
 
         {/* Voucher Info (if exists) */}
         {hasVoucher && (
@@ -462,38 +364,21 @@ export function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Informações */}
+        {/* Informações adicionais (inline) */}
         {(delivery.description || delivery.event_date) && (
-          <details className="mb-6 group rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <summary className="list-none cursor-pointer px-4 py-3 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 rounded-xl">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                Informações
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {delivery.event_date ? (
-                <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Data do evento
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatDate(delivery.event_date)}
-                  </p>
-                </div>
-              ) : null}
-              {delivery.description ? (
-                <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Descrição
-                  </p>
-                  <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
-                    {delivery.description}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </details>
+          <div className="mb-6 flex flex-wrap gap-4 text-sm">
+            {delivery.event_date && (
+              <div className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span>Evento: <span className="font-medium text-gray-900 dark:text-white">{formatDate(delivery.event_date)}</span></span>
+              </div>
+            )}
+            {delivery.description && (
+              <div className="text-gray-600 dark:text-gray-300">
+                <span className="text-gray-400">Descrição:</span> {delivery.description}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Assets Grid */}

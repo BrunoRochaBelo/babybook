@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@babybook/i18n";
 import { AppRouter } from "./app/router";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { enableMockServiceWorker } from "./mocks/init";
 import { useUserProfile } from "./hooks/api";
 import { useAuthStore } from "./store/auth";
@@ -103,13 +104,15 @@ async function startApp() {
 
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthBootstrapper>
-            <AppRouter />
-          </AuthBootstrapper>
-        </QueryClientProvider>
-      </I18nProvider>
+      <ErrorBoundary>
+        <I18nProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthBootstrapper>
+              <AppRouter />
+            </AuthBootstrapper>
+          </QueryClientProvider>
+        </I18nProvider>
+      </ErrorBoundary>
     </React.StrictMode>,
   );
 }

@@ -173,69 +173,6 @@ export function CreditsPage() {
         </div>
       </div>
 
-      {/* Pricing / Payment Info (no redundant controls) */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Preço e pagamento
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          PIX tem o melhor preço (à vista). Cartão oferece conveniência e pode
-          parcelar.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-4">
-            <div className="flex items-start gap-3">
-              <QrCode className="w-5 h-5 text-pink-600 dark:text-pink-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  PIX (à vista)
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  Valor final menor e confirmação rápida.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-4">
-            <div className="flex items-start gap-3">
-              <CreditCard className="w-5 h-5 text-pink-600 dark:text-pink-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  Cartão
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  Até {MAX_INSTALLMENTS_NO_INTEREST}x sem juros. Acima disso, o
-                  checkout exibirá juros e total antes de confirmar.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {selectedPkg && totals && (
-          <div className="mt-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              No pacote selecionado:{" "}
-              <span className="font-medium text-gray-900 dark:text-white">
-                {paymentMethod === "pix" ? "PIX" : "Cartão"}
-              </span>
-              {paymentMethod === "pix" ? (
-                <span className="text-green-700 dark:text-green-300">
-                  {" "}
-                  • economize {formatCurrency(selectedPixSavingsCents)} (
-                  {formatCurrency(selectedPixSavingsPerVoucherCents)}/voucher)
-                </span>
-              ) : (
-                <span className="text-gray-600 dark:text-gray-300">
-                  {" "}
-                  • no PIX sai por {formatCurrency(totals.pix)} (economize{" "}
-                  {formatCurrency(selectedPixSavingsCents)})
-                </span>
-              )}
-            </p>
-          </div>
-        )}
-      </div>
-
       {/* Package Selection */}
       <div className="space-y-4 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
