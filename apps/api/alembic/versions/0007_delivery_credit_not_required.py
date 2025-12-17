@@ -1,6 +1,6 @@
 """Add 'not_required' to delivery credit status enum
 
-Revision ID: 0007_delivery_credit_not_required
+Revision ID: 0007_delivery_credit_not_req
 Revises: 0006_assets_unique_child_sha
 Create Date: 2025-12-17
 
@@ -16,7 +16,7 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = "0007_delivery_credit_not_required"
+revision = "0007_delivery_credit_not_req"
 down_revision = "0006_assets_unique_child_sha"
 branch_labels = None
 depends_on = None

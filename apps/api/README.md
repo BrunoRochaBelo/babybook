@@ -49,6 +49,36 @@ python -m uvicorn babybook_api.main:app --app-dir apps/api --reload --port 8000
   - `alembic upgrade head`
   - `alembic downgrade -1`
 
+### Bootstrap do zero (Postgres)
+
+Este Alembic agora consegue subir um banco **vazio** do zero via `alembic upgrade head`.
+
+- A migration `0000_core_schema` cria o schema core (accounts/users/assets/etc.)
+- As migrations `0001+` criam/evoluem as tabelas B2B2C (partners/deliveries/vouchers/etc.) e ajustes incrementais.
+
+### Nota sobre revision IDs encurtados (compat)
+
+Para evitar erro com `alembic_version.version_num` limitado a `VARCHAR(32)`, alguns revision IDs foram encurtados:
+
+- `0004_child_pce_credit_status_ledger` → `0004_child_pce_credit_ledger`
+- `0007_delivery_credit_not_required` → `0007_delivery_credit_not_req`
+
+Se você tiver um banco antigo que gravou os IDs longos em `alembic_version`, será necessário **stampar** o banco para o novo ID (ou atualizar `alembic_version` manualmente) antes de rodar upgrades futuros.
+
+Mapeamento:
+
+- `0004_child_pce_credit_status_ledger` → `0004_child_pce_credit_ledger`
+- `0007_delivery_credit_not_required` → `0007_delivery_credit_not_req`
+
+Em Postgres, o ajuste manual típico é (execute com cuidado):
+
+- Atualizar 0004:
+  - `UPDATE alembic_version SET version_num='0004_child_pce_credit_ledger' WHERE version_num='0004_child_pce_credit_status_ledger';`
+- Atualizar 0007:
+  - `UPDATE alembic_version SET version_num='0007_delivery_credit_not_req' WHERE version_num='0007_delivery_credit_not_required';`
+
+Observação: em bases provisionadas com o default do Alembic (`alembic_version.version_num VARCHAR(32)`), esses IDs longos normalmente **nem chegam a ser gravados** (o upgrade falha antes). Nesse caso, basta usar a versão atual das migrations e rodar `alembic upgrade head` normalmente.
+
 ## Execução de testes
 
 - Executar teste rápido:

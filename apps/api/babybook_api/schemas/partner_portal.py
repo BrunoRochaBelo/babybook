@@ -128,15 +128,24 @@ class ChildInfo(BaseModel):
     """Informações de um filho/conta do cliente."""
     id: str
     name: str
-    has_access: bool = True  # Se tem Baby Book ativo
+    has_access: bool = True  # Se este Child tem Baby Book ativo (licença por criança)
 
 
 class CheckAccessResponse(BaseModel):
     """Response da verificação de acesso."""
-    has_access: bool = Field(..., description="Se o cliente já tem acesso ao Baby Book")
+    has_access: bool = Field(
+        ...,
+        description=(
+            "Se o cliente já possui conta no Baby Book (para entrega sem voucher). "
+            "O acesso/licença é por criança e vem em children[].has_access."
+        ),
+    )
     email: str
     client_name: Optional[str] = None
-    children: list[ChildInfo] = Field(default_factory=list, description="Filhos com Baby Book")
+    children: list[ChildInfo] = Field(
+        default_factory=list,
+        description="Filhos do cliente e se cada um tem Baby Book ativo (licença por criança)",
+    )
     message: str = Field(..., description="Mensagem para exibir no frontend")
 
 

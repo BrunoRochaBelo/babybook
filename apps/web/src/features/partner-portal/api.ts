@@ -81,8 +81,10 @@ export interface CheckAccessResponse {
 }
 
 /**
- * Verifica se cliente já tem acesso ao Baby Book
- * Se tiver, a entrega não consome crédito
+ * Verifica se o e-mail já possui conta no Baby Book.
+ * - Se NÃO tiver conta: será necessário gerar voucher (onboarding).
+ * - Se tiver conta: o fotógrafo pode criar entrega sem voucher (direct import).
+ *   O custo é por criança e será decidido na importação (EXISTING_CHILD grátis; NEW_CHILD 1 crédito).
  */
 export async function checkClientAccess(
   email: string,

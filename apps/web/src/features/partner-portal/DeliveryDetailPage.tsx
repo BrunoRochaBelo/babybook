@@ -619,12 +619,12 @@ function VoucherModal({
 
               {isDirectImport ? (
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Este cliente <strong>já tem acesso</strong> ao Baby Book. Por
+                  Este cliente <strong>já tem conta</strong> no Baby Book. Por
                   isso, <strong>não precisamos de voucher</strong>.
                   <br />
                   Ao finalizar, geramos um <strong>link de importação</strong>:
                   <br />• se o cliente importar em um{" "}
-                  <strong>bebê existente</strong>, não há cobrança;
+                  <strong>filho com acesso</strong>, não há cobrança;
                   <br />• se o cliente criar um <strong>novo Baby Book</strong>,
                   será consumido <strong>1 crédito</strong>.
                 </p>

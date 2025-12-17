@@ -71,14 +71,12 @@ export function CreateDeliveryPage() {
   const [eventDate, setEventDate] = useState("");
 
   // Access verification state
-  const [accessStatus, setAccessStatus] = useState<{
-    hasAccess: boolean;
-    childName?: string;
-    message: string;
-  } | null>(null);
+  const [accessStatus, setAccessStatus] = useState<AccessCheckResult | null>(
+    null,
+  );
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 
-  // Verifica se cliente já tem acesso usando API real
+  // Verifica se o e-mail já possui conta no Baby Book (licença por criança)
   const handleCheckAccess = async () => {
     setIsCheckingAccess(true);
     setAccessStatus(null);
@@ -88,6 +86,11 @@ export function CreateDeliveryPage() {
       setAccessStatus({
         hasAccess: response.has_access,
         childName: response.client_name || undefined,
+        children: (response.children || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          hasAccess: c.has_access,
+        })),
         message: response.message,
       });
 
@@ -99,6 +102,7 @@ export function CreateDeliveryPage() {
       setAccessStatus({
         hasAccess: false,
         message: "Erro ao verificar acesso. Tente novamente.",
+        children: [],
       });
     }
 
@@ -314,6 +318,7 @@ interface ClientStepProps {
 interface AccessCheckResult {
   hasAccess: boolean;
   childName?: string;
+  children: Array<{ id: string; name: string; hasAccess: boolean }>;
   message: string;
 }
 
@@ -337,6 +342,68 @@ function ClientStep({
   isLoading,
 }: ClientStepProps) {
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail);
+
+  const costEstimate = useMemo(() => {
+    if (!accessStatus) return null;
+
+    // Novo cliente (sem conta): voucher será necessário.
+    if (!accessStatus.hasAccess) {
+      return {
+        tone: "info" as const,
+        title: "Estimativa de custo",
+        icon: CreditCard,
+        headline: "1 crédito (onboarding)",
+        detail:
+          "Como o cliente ainda não tem conta, o voucher é necessário para criar o primeiro Baby Book.",
+      };
+    }
+
+    const typed = childName.trim().toLowerCase();
+    const children = accessStatus.children || [];
+
+    if (!typed) {
+      return {
+        tone: "neutral" as const,
+        title: "Estimativa de custo",
+        icon: AlertCircle,
+        headline: "Depende do filho escolhido",
+        detail:
+          "Se o cliente importar para um filho com acesso, é grátis. Se criar um novo Baby Book, custa 1 crédito.",
+      };
+    }
+
+    const matched = children.find((c) => c.name.trim().toLowerCase() === typed);
+    if (matched?.hasAccess) {
+      return {
+        tone: "success" as const,
+        title: "Estimativa de custo",
+        icon: Gift,
+        headline: "Provável grátis",
+        detail:
+          "Esse filho já tem acesso. Se o cliente importar para ele, não há cobrança.",
+      };
+    }
+
+    if (matched && !matched.hasAccess) {
+      return {
+        tone: "warning" as const,
+        title: "Estimativa de custo",
+        icon: CreditCard,
+        headline: "Provável 1 crédito",
+        detail:
+          "Esse filho existe, mas ainda não tem acesso. Se o cliente criar um novo Baby Book na importação, será cobrado 1 crédito.",
+      };
+    }
+
+    return {
+      tone: "warning" as const,
+      title: "Estimativa de custo",
+      icon: CreditCard,
+      headline: "Provável 1 crédito",
+      detail:
+        "Não encontramos esse nome na lista de filhos. Se for um novo filho, criar Baby Book custa 1 crédito (o cliente ainda pode escolher um filho com acesso na importação).",
+    };
+  }, [accessStatus, childName]);
 
   return (
     <div className="space-y-6">
@@ -402,15 +469,71 @@ function ClientStep({
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-green-800 dark:text-green-200">
-                    🎉 Cliente já tem acesso!
+                    Cliente já tem conta no Baby Book
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                     {accessStatus.message}
                   </p>
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
                     <Gift className="w-4 h-4" />
-                    Esta entrega não consome crédito
+                    Entrega sem voucher (custo por criança)
                   </div>
+
+                  {accessStatus.children.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-green-800 dark:text-green-200 mb-2">
+                        Filhos encontrados
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {accessStatus.children.map((c) => {
+                          const cls = c.hasAccess
+                            ? "bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800"
+                            : "bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800";
+                          return (
+                            <button
+                              type="button"
+                              key={c.id}
+                              onClick={() => setChildName(c.name)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cls} hover:opacity-90 transition-opacity`}
+                              title={
+                                c.hasAccess
+                                  ? "Clique para preencher o nome da criança (acesso ativo)"
+                                  : "Clique para preencher o nome da criança (sem acesso)"
+                              }
+                            >
+                              {c.name}
+                              {c.hasAccess ? " (acesso)" : " (sem acesso)"}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-2 text-xs text-green-700 dark:text-green-300">
+                        Dica: importar em um filho com acesso é grátis. Criar
+                        novo filho custa 1 crédito.
+                      </p>
+                    </div>
+                  )}
+
+                  {costEstimate && (
+                    <div className="mt-4 p-3 rounded-lg bg-white/70 dark:bg-gray-900/20 border border-green-200/60 dark:border-green-800/40">
+                      <div className="flex items-start gap-2">
+                        {(() => {
+                          const Icon = costEstimate.icon;
+                          return (
+                            <Icon className="w-4 h-4 mt-0.5 text-green-700 dark:text-green-300" />
+                          );
+                        })()}
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-green-900 dark:text-green-100">
+                            {costEstimate.title}: {costEstimate.headline}
+                          </p>
+                          <p className="text-xs text-green-800/90 dark:text-green-200/90 mt-1">
+                            {costEstimate.detail}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -427,8 +550,29 @@ function ClientStep({
                   </p>
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
                     <CreditCard className="w-4 h-4" />
-                    Será consumido 1 crédito
+                    Voucher será gerado (1 crédito no primeiro Baby Book)
                   </div>
+
+                  {costEstimate && (
+                    <div className="mt-4 p-3 rounded-lg bg-white/70 dark:bg-gray-900/20 border border-blue-200/60 dark:border-blue-800/40">
+                      <div className="flex items-start gap-2">
+                        {(() => {
+                          const Icon = costEstimate.icon;
+                          return (
+                            <Icon className="w-4 h-4 mt-0.5 text-blue-700 dark:text-blue-300" />
+                          );
+                        })()}
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                            {costEstimate.title}: {costEstimate.headline}
+                          </p>
+                          <p className="text-xs text-blue-800/90 dark:text-blue-200/90 mt-1">
+                            {costEstimate.detail}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

@@ -1,7 +1,7 @@
 """Add child_id to assets for child-centric quota attribution
 
 Revision ID: 0005_assets_child_id
-Revises: 0004_child_pce_credit_status_ledger
+Revises: 0004_child_pce_credit_ledger
 Create Date: 2025-12-17
 
 Rationale:
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "0005_assets_child_id"
-down_revision = "0004_child_pce_credit_status_ledger"
+down_revision = "0004_child_pce_credit_ledger"
 branch_labels = None
 depends_on = None
 

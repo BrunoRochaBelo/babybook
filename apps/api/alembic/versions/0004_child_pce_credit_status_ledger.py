@@ -1,6 +1,6 @@
 """Child-centric PCE/quota + delivery credit lifecycle + partner ledger
 
-Revision ID: 0004_child_pce_credit_status_ledger
+Revision ID: 0004_child_pce_credit_ledger
 Revises: 0003_delivery_archived_at
 Create Date: 2025-12-17
 
@@ -17,10 +17,11 @@ from __future__ import annotations
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
-revision = "0004_child_pce_credit_status_ledger"
+revision = "0004_child_pce_credit_ledger"
 down_revision = "0003_delivery_archived_at"
 branch_labels = None
 depends_on = None
@@ -39,7 +40,12 @@ def upgrade() -> None:
         ),
     )
 
-    child_pce_status_enum = sa.Enum("paid", "unpaid", name="child_pce_status_enum")
+    child_pce_status_enum = postgresql.ENUM(
+        "paid",
+        "unpaid",
+        name="child_pce_status_enum",
+        create_type=False,
+    )
     child_pce_status_enum.create(op.get_bind(), checkfirst=True)
     op.add_column(
         "children",
@@ -53,11 +59,12 @@ def upgrade() -> None:
     )
 
     # --- Deliveries: credit lifecycle ---
-    delivery_credit_status_enum = sa.Enum(
+    delivery_credit_status_enum = postgresql.ENUM(
         "reserved",
         "consumed",
         "refunded",
         name="delivery_credit_status_enum",
+        create_type=False,
     )
     delivery_credit_status_enum.create(op.get_bind(), checkfirst=True)
     op.add_column(
@@ -78,11 +85,12 @@ def upgrade() -> None:
     )
 
     # --- Partner Ledger (audit trail) ---
-    partner_ledger_type_enum = sa.Enum(
+    partner_ledger_type_enum = postgresql.ENUM(
         "reservation",
         "refund",
         "purchase",
         name="partner_ledger_type_enum",
+        create_type=False,
     )
     partner_ledger_type_enum.create(op.get_bind(), checkfirst=True)
 

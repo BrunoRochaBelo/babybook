@@ -400,7 +400,8 @@ async def get_partner_stats(
     summary="Verifica se cliente já tem acesso ao Baby Book",
     description="""
     Verifica se um e-mail já tem conta no Baby Book.
-    Se tiver, a entrega não consome crédito.
+    Se tiver conta, o fotógrafo pode criar uma entrega sem voucher (direct import).
+    O custo (se houver) é decidido na importação, por criança (late binding).
     
     Regras de negócio:
     - 1 crédito = 1 filho com acesso vitalício
@@ -430,41 +431,41 @@ async def check_client_access(
             email=normalized_email,
             client_name=None,
             children=[],
-            message="Novo cliente. Um crédito será consumido para criar o acesso.",
+            message="Novo cliente (sem conta). Será necessário gerar voucher para onboarding. Se o cliente criar um novo Filho, custa 1 crédito.",
         )
 
-    # Usuário existe. No Golden Record, "ter acesso" significa ter pelo menos um Child com PCE pago.
+    # Usuário existe (cliente já está na plataforma). Listamos filhos e o acesso é por criança.
     rows = await db.execute(
         select(Child)
         .where(
             Child.account_id == user.account_id,
             Child.deleted_at.is_(None),
-            Child.pce_status == "paid",
         )
         .order_by(Child.created_at.asc())
         .limit(50)
     )
-    paid_children = rows.scalars().all()
+    all_children = rows.scalars().all()
 
-    children = [ChildInfo(id=str(c.id), name=c.name, has_access=True) for c in paid_children]
+    children = [
+        ChildInfo(id=str(c.id), name=c.name, has_access=(c.pce_status == "paid"))
+        for c in all_children
+    ]
 
-    if paid_children:
-        return CheckAccessResponse(
-            has_access=True,
-            email=normalized_email,
-            # Evita expor PII (nome) e reduzir enumeração via API
-            client_name=None,
-            children=children,
-            message="Cliente já possui acesso ao Baby Book. Esta entrega não consumirá crédito.",
-        )
+    has_paid_child = any(c.pce_status == "paid" for c in all_children)
 
-    # Conta existe mas sem livro pago (ex.: cadastro incompleto). Trata como "sem acesso".
+    if has_paid_child:
+        msg = "Cliente já tem conta e pelo menos 1 Filho com acesso. Entrega para esse Filho é grátis; para novo Filho custa 1 crédito."
+    else:
+        msg = "Cliente já tem conta, mas ainda não tem Filho com acesso. Se importar criando um novo Filho, custa 1 crédito."
+
     return CheckAccessResponse(
-        has_access=False,
+        # Mantemos o campo por compatibilidade com o frontend: aqui significa "cliente já tem conta".
+        has_access=True,
         email=normalized_email,
+        # Evita expor PII (nome) e reduzir enumeração via API
         client_name=None,
-        children=[],
-        message="Cliente possui conta, mas ainda não tem um Baby Book ativo. Um crédito será consumido para criar o acesso.",
+        children=children,
+        message=msg,
     )
 
 
@@ -625,30 +626,22 @@ async def create_delivery(
     normalized_client_email: str | None = request.client_email.strip().lower() if request.client_email else None
 
     # Golden Record: "voucher só quando necessário".
-    # Se o cliente já tem um Child com PCE pago, não há necessidade de voucher nem de crédito.
+    # Regra confirmada: licença/acesso é por criança (Child).
+    # Ainda assim, se o cliente já possui CONTA (User existe), não precisamos de voucher:
+    # - o cliente importa autenticado e escolhe EXISTING_CHILD (grátis) ou NEW_CHILD (1 crédito)
     existing_target_account_id = None
-    client_has_access = False
+    client_has_account = False
     if normalized_client_email:
         user_row = await db.execute(select(User).where(User.email == normalized_client_email))
         existing_user = user_row.scalar_one_or_none()
         if existing_user is not None:
-            paid_child_row = await db.execute(
-                select(Child.id)
-                .where(
-                    Child.account_id == existing_user.account_id,
-                    Child.deleted_at.is_(None),
-                    Child.pce_status == "paid",
-                )
-                .limit(1)
-            )
-            if paid_child_row.scalar_one_or_none() is not None:
-                client_has_access = True
-                existing_target_account_id = existing_user.account_id
+            client_has_account = True
+            existing_target_account_id = existing_user.account_id
 
     credit_status = "reserved"
     credit_reserved = True
 
-    if client_has_access:
+    if client_has_account:
         # Não reserva crédito; a entrega será importada pelo próprio cliente no app.
         credit_status = "not_required"
         credit_reserved = False
@@ -682,13 +675,13 @@ async def create_delivery(
             "client_email": normalized_client_email,
             "child_name": request.child_name,
             "credit_reserved": credit_reserved,
-            "direct_import": client_has_access,
+            "direct_import": client_has_account,
         },
         target_account_id=existing_target_account_id,
     )
     db.add(delivery)
 
-    if not client_has_access:
+    if not client_has_account:
         db.add(
             PartnerLedger(
                 id=uuid4(),

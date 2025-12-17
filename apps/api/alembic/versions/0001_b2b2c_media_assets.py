@@ -1,17 +1,18 @@
 """Create B2B2C and media assets tables
 
 Revision ID: 0001_b2b2c_media_assets
-Revises: 
+Revises: 0000_core_schema
 Create Date: 2025-12-09
 """
 from __future__ import annotations
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "0001_b2b2c_media_assets"
-down_revision = None
+down_revision = "0000_core_schema"
 branch_labels = None
 depends_on = None
 
@@ -19,21 +20,23 @@ depends_on = None
 def upgrade() -> None:
     bind = op.get_bind()
 
-    partner_status_enum = sa.Enum(
+    partner_status_enum = postgresql.ENUM(
         "pending_approval",
         "active",
         "inactive",
         "suspended",
         name="partner_status_enum",
+        create_type=False,
     )
-    voucher_status_enum = sa.Enum(
+    voucher_status_enum = postgresql.ENUM(
         "available",
         "redeemed",
         "expired",
         "revoked",
         name="voucher_status_enum",
+        create_type=False,
     )
-    delivery_status_enum = sa.Enum(
+    delivery_status_enum = postgresql.ENUM(
         "draft",
         "pending_upload",
         "ready",
@@ -42,12 +45,14 @@ def upgrade() -> None:
         "completed",
         "failed",
         name="delivery_status_enum",
+        create_type=False,
     )
-    media_processing_status_enum = sa.Enum(
+    media_processing_status_enum = postgresql.ENUM(
         "ready",
         "processing",
         "failed",
         name="media_processing_status_enum",
+        create_type=False,
     )
 
     # Cria enums apenas se não existirem (permite rodar em bases já provisionadas)

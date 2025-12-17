@@ -151,16 +151,18 @@ class _FakePartnerStorage:
         ]
 
 
-def test_partner_check_access_requires_paid_child() -> None:
+def test_partner_check_access_reports_account_and_children_access_by_child() -> None:
     # Cria fotógrafo/partner
     user, _partner, password = asyncio.run(_create_partner_user())
     pro_client = TestClient(app)
     _login(pro_client, email=user.email, password=password)
 
-    # Ana existe no seed, mas ainda não tem child pago
+    # Ana existe no seed (conta existe), mas ainda não tem child
     resp = pro_client.get("/partner/check-access", params={"email": "ana@example.com"})
     assert resp.status_code == 200
-    assert resp.json()["has_access"] is False
+    body0 = resp.json()
+    assert body0["has_access"] is True
+    assert body0["children"] == []
 
     # Agora cria um child pago para Ana
     ana = asyncio.run(_get_user_by_email("ana@example.com"))
@@ -170,13 +172,12 @@ def test_partner_check_access_requires_paid_child() -> None:
     assert resp2.status_code == 200
     body = resp2.json()
     assert body["has_access"] is True
-    assert any(c["id"] == str(created.id) for c in body["children"])
+    assert any(c["id"] == str(created.id) and c["has_access"] is True for c in body["children"])
 
 
 def test_partner_create_delivery_direct_import_does_not_debit() -> None:
-    # Cliente (Ana) precisa ter ao menos um child pago
+    # Cliente (Ana) já tem conta (seed), mas não precisa ter child pago para receber entrega sem voucher.
     ana = asyncio.run(_get_user_by_email("ana@example.com"))
-    asyncio.run(_create_paid_child_for_account(ana.account_id, name="Bia"))
 
     user, partner, password = asyncio.run(_create_partner_user(voucher_balance=3))
     pro_client = TestClient(app)

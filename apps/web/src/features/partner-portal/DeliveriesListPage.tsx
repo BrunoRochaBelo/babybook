@@ -152,7 +152,7 @@ function CreditStatusBadge({
         "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200",
       label: "N/A",
       title:
-        "N/A: esta entrega não exige voucher (cliente já tem acesso). A cobrança só ocorre se o cliente criar um novo Baby Book durante a importação.",
+        "N/A: esta entrega é sem voucher (cliente já tem conta). O custo é por criança e só ocorre se o cliente criar um novo Baby Book durante a importação.",
     },
     consumed: {
       className:
