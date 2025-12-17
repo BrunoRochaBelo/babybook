@@ -132,7 +132,7 @@ function StatusBadge({ status }: { status: DeliveryStatus }) {
 function CreditStatusBadge({
   status,
 }: {
-  status?: "reserved" | "consumed" | "refunded" | null;
+  status?: "reserved" | "consumed" | "refunded" | "not_required" | null;
 }) {
   if (!status) return null;
 
@@ -146,6 +146,13 @@ function CreditStatusBadge({
       label: "RESERVED",
       title:
         "RESERVED: crédito reservado (em trânsito). No resgate, vira CONSUMED (novo bebê) ou REFUNDED (bebê existente).",
+    },
+    not_required: {
+      className:
+        "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200",
+      label: "N/A",
+      title:
+        "N/A: esta entrega não exige voucher (cliente já tem acesso). A cobrança só ocorre se o cliente criar um novo Baby Book durante a importação.",
     },
     consumed: {
       className:

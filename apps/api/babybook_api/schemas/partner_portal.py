@@ -160,7 +160,7 @@ class DeliveryResponse(BaseModel):
     title: str
     client_name: Optional[str] = None
     status: str
-    credit_status: Optional[Literal["reserved", "consumed", "refunded"]] = Field(
+    credit_status: Optional[Literal["reserved", "consumed", "refunded", "not_required"]] = Field(
         None,
         description="Status do crédito desta entrega (Golden Record: reserved/consumed/refunded)",
     )
@@ -208,7 +208,7 @@ class DeliveryDetailResponse(BaseModel):
     description: Optional[str] = None
     event_date: Optional[datetime] = None
     status: str
-    credit_status: Optional[Literal["reserved", "consumed", "refunded"]] = Field(
+    credit_status: Optional[Literal["reserved", "consumed", "refunded", "not_required"]] = Field(
         None,
         description="Status do crédito desta entrega (Golden Record: reserved/consumed/refunded)",
     )
@@ -308,10 +308,25 @@ class GenerateVoucherCardRequest(BaseModel):
 
 
 class VoucherCardResponse(BaseModel):
-    """Dados para gerar o cartão digital no frontend."""
-    voucher_code: str
-    redeem_url: str
-    qr_data: str = Field(..., description="Dados para gerar QR Code")
+    """Dados para exibir o "cartão"/link de entrega no portal do parceiro.
+
+    - mode='voucher': entrega para cliente novo (gera voucher + QR)
+    - mode='direct_import': cliente já tem acesso (não gera voucher; entrega via link de import no app)
+    """
+
+    mode: Literal["voucher", "direct_import"] = Field(
+        "voucher",
+        description="Modo de entrega: voucher tradicional ou importação direta para cliente com acesso.",
+    )
+
+    voucher_code: Optional[str] = Field(None, description="Código do voucher (quando mode='voucher')")
+    redeem_url: Optional[str] = Field(None, description="URL pública de resgate (quando mode='voucher')")
+    qr_data: Optional[str] = Field(None, description="Dados para gerar QR Code (quando mode='voucher')")
+
+    import_url: Optional[str] = Field(
+        None,
+        description="Link para importar a entrega no app (quando mode='direct_import').",
+    )
     studio_name: str
     studio_logo_url: Optional[str] = None
     beneficiary_name: Optional[str] = None

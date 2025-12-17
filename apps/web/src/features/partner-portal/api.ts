@@ -285,7 +285,7 @@ export async function generateVoucherCard(
   request: GenerateVoucherCardRequest,
 ): Promise<VoucherCardData> {
   return apiClient.post<VoucherCardData>(
-    `${API_BASE}/deliveries/${deliveryId}/voucher-card`,
+    `${API_BASE}/deliveries/${deliveryId}/finalize`,
     request,
   );
 }

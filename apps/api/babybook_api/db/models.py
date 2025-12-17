@@ -20,6 +20,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -59,6 +60,7 @@ delivery_credit_status_enum = Enum(
     "reserved",
     "consumed",
     "refunded",
+    "not_required",
     name="delivery_credit_status_enum",
 )
 
@@ -238,7 +240,7 @@ class Moment(TimestampMixin, SoftDeleteMixin, Base):
     occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(moment_status_enum, default="draft")
     privacy: Mapped[str] = mapped_column(moment_privacy_enum, default="private")
-    payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    payload: Mapped[dict[str, Any] | None] = mapped_column(MutableDict.as_mutable(JSON), nullable=True, default=dict)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     rev: Mapped[int] = mapped_column(Integer, default=1)
 
@@ -334,7 +336,7 @@ class UploadSession(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(24), default="pending")
     part_size: Mapped[int] = mapped_column(Integer)
     part_count: Mapped[int] = mapped_column(Integer)
-    etags: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True, default=list)
+    etags: Mapped[list[dict[str, Any]] | None] = mapped_column(MutableList.as_mutable(JSON), nullable=True, default=list)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     asset: Mapped[Asset] = relationship(back_populates="upload_sessions")
@@ -354,8 +356,8 @@ class WorkerJob(TimestampMixin, Base):
         nullable=True,
     )
     kind: Mapped[str] = mapped_column(String(120))
-    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-    job_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
+    payload: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSON), default=dict)
+    job_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", MutableDict.as_mutable(JSON), default=dict)
     status: Mapped[str] = mapped_column(String(24), default="pending")
     available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
@@ -460,7 +462,7 @@ class BillingEvent(TimestampMixin, Base):
     pce_reserved: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tax_effective: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    payload: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSON))
 
     account: Mapped[Account] = relationship(back_populates="billing_events")
 
@@ -478,11 +480,11 @@ class MomentTemplate(TimestampMixin, Base):
     key: Mapped[str] = mapped_column(String(120))
     display_name: Mapped[str] = mapped_column(String(160))
     upsell_category: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    limits: Mapped[dict[str, Any]] = mapped_column(JSON)
-    rules: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    prompt_microcopy: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    data_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    ui_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    limits: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSON))
+    rules: Mapped[dict[str, Any] | None] = mapped_column(MutableDict.as_mutable(JSON), nullable=True)
+    prompt_microcopy: Mapped[dict[str, Any] | None] = mapped_column(MutableDict.as_mutable(JSON), nullable=True)
+    data_schema: Mapped[dict[str, Any] | None] = mapped_column(MutableDict.as_mutable(JSON), nullable=True)
+    ui_schema: Mapped[dict[str, Any] | None] = mapped_column(MutableDict.as_mutable(JSON), nullable=True)
     order_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
 
@@ -594,7 +596,12 @@ class Voucher(TimestampMixin, Base):
         ForeignKey("deliveries.id", ondelete="SET NULL"),
         nullable=True,
     )
-    voucher_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
+    voucher_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata",
+        MutableDict.as_mutable(JSON),
+        nullable=True,
+        default=dict,
+    )
 
     partner: Mapped[Partner] = relationship(back_populates="vouchers")
     beneficiary: Mapped["Account | None"] = relationship()
@@ -636,7 +643,11 @@ class Delivery(TimestampMixin, Base):
     
     # Armazena os caminhos dos arquivos no bucket temporário
     # Ex: ["tmp/partner_id/delivery_id/foto1.jpg", ...]
-    assets_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, default=dict)
+    assets_payload: Mapped[dict[str, Any] | None] = mapped_column(
+        MutableDict.as_mutable(JSON),
+        nullable=True,
+        default=dict,
+    )
     
     # Código do voucher gerado automaticamente
     generated_voucher_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
@@ -656,7 +667,12 @@ class Delivery(TimestampMixin, Base):
     # Quando preenchido, a entrega fica oculta na listagem do fotógrafo
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    delivery_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True, default=dict)
+    delivery_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata",
+        MutableDict.as_mutable(JSON),
+        nullable=True,
+        default=dict,
+    )
 
     partner: Mapped[Partner] = relationship(back_populates="deliveries")
     target_account: Mapped["Account | None"] = relationship()

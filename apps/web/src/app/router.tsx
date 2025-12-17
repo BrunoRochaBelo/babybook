@@ -49,6 +49,7 @@ import { AddMomentPage } from "@/pages/AddMomentPage";
 import { SharedMomentPage } from "@/pages/SharedMomentPage";
 // Settings Page
 import { SettingsPage } from "@/pages/SettingsPage";
+import { ImportDeliveryPage } from "@/pages/ImportDeliveryPage";
 
 export function AppRouter() {
   return (
@@ -94,6 +95,10 @@ export function AppRouter() {
             element={<PerfilCriancaPage />}
           />
           <Route path="/configuracoes" element={<SettingsPage />} />
+          <Route
+            path="/jornada/importar-entrega/:deliveryId"
+            element={<ImportDeliveryPage />}
+          />
         </Route>
 
         {/* Redirect root to dashboard */}

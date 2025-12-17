@@ -584,6 +584,9 @@ async def redeem_voucher(
                         )
                     )
                     delivery.credit_status = "refunded"
+                elif delivery.credit_status == "not_required":
+                    # Entrega não exige crédito (modo importação direta / compatibilidade)
+                    pass
                 elif delivery.credit_status == "consumed":
                     raise AppError(
                         status_code=409,
@@ -594,6 +597,9 @@ async def redeem_voucher(
                 # NEW_CHILD ou legado sem action
                 if delivery.credit_status == "reserved":
                     delivery.credit_status = "consumed"
+                elif delivery.credit_status == "not_required":
+                    # Entrega não exige crédito; não há nada a consumir.
+                    pass
                 elif delivery.credit_status == "refunded":
                     raise AppError(
                         status_code=409,

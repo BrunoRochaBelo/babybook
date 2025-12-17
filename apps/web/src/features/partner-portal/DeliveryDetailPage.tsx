@@ -586,12 +586,15 @@ function VoucherModal({
   );
   const [message, setMessage] = useState("");
 
+  const isDirectImport = delivery.credit_status === "not_required";
+
   const hasExistingVoucher = !!delivery.voucher_code;
   const showGenerateForm = !hasExistingVoucher && !voucherCard;
   const cardData =
     voucherCard ||
     (hasExistingVoucher
       ? {
+          mode: "voucher" as const,
           voucher_code: delivery.voucher_code!,
           redeem_url: `${window.location.origin}/resgate/${delivery.voucher_code}`,
           qr_data: `${window.location.origin}/resgate/${delivery.voucher_code}`,
@@ -611,22 +614,35 @@ function VoucherModal({
           {showGenerateForm ? (
             <>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                Gerar Voucher
+                {isDirectImport ? "Gerar link de importação" : "Gerar Voucher"}
               </h2>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Isso irá <strong>reservar 1 crédito</strong> (em trânsito). No
-                resgate:
-                <br />• se o cliente criar um <strong>novo Baby Book</strong>, o
-                crédito vira <strong>CONSUMED</strong>;
-                <br />• se o cliente vincular a um{" "}
-                <strong>bebê existente</strong>, o crédito vira{" "}
-                <strong>REFUNDED</strong> (estorno automático).
-                <br />
-                <span className="inline-block mt-2">
-                  O voucher será único para esta entrega.
-                </span>
-              </p>
+              {isDirectImport ? (
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Este cliente <strong>já tem acesso</strong> ao Baby Book. Por
+                  isso, <strong>não precisamos de voucher</strong>.
+                  <br />
+                  Ao finalizar, geramos um <strong>link de importação</strong>:
+                  <br />• se o cliente importar em um{" "}
+                  <strong>bebê existente</strong>, não há cobrança;
+                  <br />• se o cliente criar um <strong>novo Baby Book</strong>,
+                  será consumido <strong>1 crédito</strong>.
+                </p>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Isso irá <strong>reservar 1 crédito</strong> (em trânsito). No
+                  resgate:
+                  <br />• se o cliente criar um <strong>novo Baby Book</strong>,
+                  o crédito vira <strong>CONSUMED</strong>;
+                  <br />• se o cliente vincular a um{" "}
+                  <strong>bebê existente</strong>, o crédito vira{" "}
+                  <strong>REFUNDED</strong> (estorno automático).
+                  <br />
+                  <span className="inline-block mt-2">
+                    O voucher será único para esta entrega.
+                  </span>
+                </p>
+              )}
 
               <div className="space-y-4 mb-6">
                 <div>
@@ -681,12 +697,12 @@ function VoucherModal({
                   {isGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Gerando...
+                      Finalizando...
                     </>
                   ) : (
                     <>
                       <Ticket className="w-4 h-4" />
-                      Gerar Voucher
+                      {isDirectImport ? "Gerar Link" : "Gerar Voucher"}
                     </>
                   )}
                 </button>

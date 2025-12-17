@@ -31,8 +31,11 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const mode = data.mode ?? "voucher";
+
   const redeemUrl = useMemo(() => {
     try {
+      if (!data.redeem_url) return null;
       const u = new URL(data.redeem_url, window.location.origin);
       // Normaliza para a rota curta e pública (mantemos aliases no router).
       u.pathname = u.pathname.replace(/^\/voucher\/redeem\//, "/resgate/");
@@ -40,9 +43,16 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
       return u.toString();
     } catch {
       // Fallback: se for uma URL relativa ou inválida, não arrisca quebrar.
-      return data.redeem_url;
+      return data.redeem_url ?? null;
     }
   }, [data.redeem_url]);
+
+  const primaryUrl = useMemo(() => {
+    if (mode === "direct_import") {
+      return data.import_url ?? null;
+    }
+    return redeemUrl;
+  }, [data.import_url, mode, redeemUrl]);
 
   const openExternal = useCallback((url: string) => {
     const w = window.open(url, "_blank", "noopener,noreferrer");
@@ -50,6 +60,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
   }, []);
 
   const handleCopyCode = useCallback(async () => {
+    if (!data.voucher_code) return;
     try {
       await navigator.clipboard.writeText(data.voucher_code);
       setCopied(true);
@@ -61,14 +72,15 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
   }, [data.voucher_code, onCopy]);
 
   const handleCopyUrl = useCallback(async () => {
+    if (!primaryUrl) return;
     try {
-      await navigator.clipboard.writeText(redeemUrl);
+      await navigator.clipboard.writeText(primaryUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
-  }, [redeemUrl]);
+  }, [primaryUrl]);
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current) return;
@@ -86,7 +98,8 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
       });
 
       const link = document.createElement("a");
-      link.download = `voucher-${data.voucher_code}.png`;
+      const suffix = data.voucher_code ?? "entrega";
+      link.download = `${mode === "direct_import" ? "entrega" : "voucher"}-${suffix}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
@@ -94,39 +107,42 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
     } finally {
       setIsDownloading(false);
     }
-  }, [data.voucher_code]);
+  }, [data.voucher_code, mode]);
 
   const handleWhatsAppShare = useCallback(() => {
+    const url = primaryUrl ?? "";
+    if (!url) return;
     const message = encodeURIComponent(
       `Presente especial para você!\n\n` +
         `${data.beneficiary_name ? `Olá ${data.beneficiary_name}! ` : ""}` +
-        `Você recebeu acesso ao Baby Book — um álbum digital para guardar as memórias mais preciosas.\n\n` +
-        `Código de resgate: ${data.voucher_code}\n` +
-        `Link: ${redeemUrl}\n\n` +
-        `Se abrir uma tela de login, tudo bem: o código fica salvo e você continua o resgate depois de entrar/criar conta.\n\n` +
+        `Você recebeu um presente no Baby Book — um álbum digital para guardar as memórias mais preciosas.\n\n` +
+        `${mode === "voucher" && data.voucher_code ? `Código de resgate: ${data.voucher_code}\n` : ""}` +
+        `Link: ${url}\n\n` +
+        `${mode === "voucher" ? "Se abrir uma tela de login, tudo bem: o código fica salvo e você continua o resgate depois de entrar/criar conta.\n\n" : "Se abrir uma tela de login, entre na sua conta e finalize a importação.\n\n"}` +
         `${data.message ? `Mensagem do fotógrafo: "${data.message}"\n\n` : ""}` +
         `Com carinho, ${data.studio_name || "seu fotógrafo"}`,
     );
     openExternal(`https://wa.me/?text=${message}`);
-  }, [data, openExternal, redeemUrl]);
+  }, [data, mode, openExternal, primaryUrl]);
 
   const handleEmailShare = useCallback(() => {
+    const url = primaryUrl ?? "";
+    if (!url) return;
     const subject = encodeURIComponent(
       `🎁 Presente especial: seu Baby Book está pronto!`,
     );
     const body = encodeURIComponent(
       `Olá${data.beneficiary_name ? ` ${data.beneficiary_name}` : ""}!\n\n` +
-        `Você recebeu um presente muito especial: acesso ao Baby Book, ` +
-        `um álbum digital para guardar as memórias mais preciosas dos primeiros anos de vida.\n\n` +
-        `🔑 Seu código de resgate: ${data.voucher_code}\n\n` +
-        `📱 Para acessar, clique no link: ${redeemUrl}\n\n` +
-        `Se o link abrir uma tela de login, não se preocupe: o código fica salvo e você continua depois de entrar/criar conta.\n\n` +
+        `Você recebeu um presente muito especial no Baby Book.\n\n` +
+        `${mode === "voucher" && data.voucher_code ? `🔑 Seu código de resgate: ${data.voucher_code}\n\n` : ""}` +
+        `📱 Para acessar, clique no link: ${url}\n\n` +
+        `${mode === "voucher" ? "Se o link abrir uma tela de login, não se preocupe: o código fica salvo e você continua depois de entrar/criar conta.\n\n" : "Se o link abrir uma tela de login, entre na sua conta e finalize a importação.\n\n"}` +
         `${data.message ? `Mensagem do fotógrafo:\n"${data.message}"\n\n` : ""}` +
         `📷 ${data.assets_count} fotos estão esperando por você!\n\n` +
         `Com carinho,\n${data.studio_name || "Seu fotógrafo"}`,
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  }, [data, redeemUrl]);
+  }, [data, mode, primaryUrl]);
 
   return (
     <div className="space-y-6">
@@ -154,25 +170,33 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
         {/* QR Code */}
         <div className="flex justify-center mb-6">
           <div className="bg-white p-4 rounded-xl shadow-sm">
-            <QRCodeSVG
-              value={redeemUrl}
-              size={160}
-              level="M"
-              includeMargin={false}
-              fgColor="#1f2937"
-            />
+            {primaryUrl ? (
+              <QRCodeSVG
+                value={primaryUrl}
+                size={160}
+                level="M"
+                includeMargin={false}
+                fgColor="#1f2937"
+              />
+            ) : (
+              <div className="w-[160px] h-[160px] flex items-center justify-center text-sm text-gray-500">
+                Link indisponível
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Code Display */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <p className="text-center text-gray-600 text-sm mb-2">
-            Seu código de resgate:
-          </p>
-          <p className="text-center text-2xl font-mono font-bold text-pink-600 tracking-wider">
-            {data.voucher_code}
-          </p>
-        </div>
+        {/* Code Display (apenas no modo voucher) */}
+        {mode === "voucher" && data.voucher_code && (
+          <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <p className="text-center text-gray-600 text-sm mb-2">
+              Seu código de resgate:
+            </p>
+            <p className="text-center text-2xl font-mono font-bold text-pink-600 tracking-wider">
+              {data.voucher_code}
+            </p>
+          </div>
+        )}
 
         {/* Info */}
         <p className="text-center text-gray-600 text-sm">
@@ -194,7 +218,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
             Escaneie o QR Code ou acesse:
           </p>
           <p className="text-center text-xs text-pink-600 font-medium mt-1 break-all">
-            {redeemUrl}
+            {primaryUrl ?? ""}
           </p>
         </div>
       </div>
@@ -203,24 +227,29 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
       <div className="space-y-3">
         {/* Copy Actions */}
         <div className="flex gap-2">
-          <button
-            onClick={handleCopyCode}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-green-500" />
-                Copiado!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                Copiar Código
-              </>
-            )}
-          </button>
+          {mode === "voucher" && data.voucher_code ? (
+            <button
+              onClick={handleCopyCode}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-green-500" />
+                  Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  Copiar Código
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="flex-1" />
+          )}
           <button
             onClick={handleCopyUrl}
+            disabled={!primaryUrl}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <Share2 className="w-4 h-4" />

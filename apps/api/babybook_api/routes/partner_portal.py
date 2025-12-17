@@ -14,7 +14,7 @@ Fluxo:
 
 from datetime import datetime, timedelta
 from typing import Optional
-from uuid import uuid4
+from uuid import uuid4, UUID
 import secrets
 import string
 
@@ -26,7 +26,7 @@ from sqlalchemy.orm import selectinload
 
 from babybook_api.deps import get_db
 from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
-from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User, PartnerLedger
+from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User, PartnerLedger, Child
 from babybook_api.schemas.partner_portal import (
     PartnerOnboardingRequest,
     PartnerOnboardingResponse,
@@ -93,8 +93,10 @@ async def get_partner_for_user(db: AsyncSession, user: UserSession) -> Partner:
             detail="Acesso restrito a parceiros"
         )
     
+    # UserSession.id é string; no banco, Partner.user_id é UUID.
+    # Em SQLite (tests) o binder de UUID não aceita string -> convertemos.
     result = await db.execute(
-        select(Partner).where(Partner.user_id == user.id)
+        select(Partner).where(Partner.user_id == UUID(user.id))
     )
     partner = result.scalar_one_or_none()
     
@@ -421,18 +423,7 @@ async def check_client_access(
     result = await db.execute(select(User).where(User.email == normalized_email))
     user = result.scalar_one_or_none()
     
-    if user:
-        # Usuário existe - tem acesso (pode ser B2C ou via outro fotógrafo)
-        # TODO: Buscar filhos/contas do usuário quando o modelo permitir
-        return CheckAccessResponse(
-            has_access=True,
-            email=normalized_email,
-            # Evita expor PII (nome) e reduzir enumeração via API
-            client_name=None,
-            children=[],  # TODO: Popular com filhos reais do usuário
-            message=f"Cliente já possui acesso ao Baby Book. Esta entrega não consumirá crédito.",
-        )
-    else:
+    if not user:
         # Usuário não existe - novo cliente
         return CheckAccessResponse(
             has_access=False,
@@ -441,6 +432,40 @@ async def check_client_access(
             children=[],
             message="Novo cliente. Um crédito será consumido para criar o acesso.",
         )
+
+    # Usuário existe. No Golden Record, "ter acesso" significa ter pelo menos um Child com PCE pago.
+    rows = await db.execute(
+        select(Child)
+        .where(
+            Child.account_id == user.account_id,
+            Child.deleted_at.is_(None),
+            Child.pce_status == "paid",
+        )
+        .order_by(Child.created_at.asc())
+        .limit(50)
+    )
+    paid_children = rows.scalars().all()
+
+    children = [ChildInfo(id=str(c.id), name=c.name, has_access=True) for c in paid_children]
+
+    if paid_children:
+        return CheckAccessResponse(
+            has_access=True,
+            email=normalized_email,
+            # Evita expor PII (nome) e reduzir enumeração via API
+            client_name=None,
+            children=children,
+            message="Cliente já possui acesso ao Baby Book. Esta entrega não consumirá crédito.",
+        )
+
+    # Conta existe mas sem livro pago (ex.: cadastro incompleto). Trata como "sem acesso".
+    return CheckAccessResponse(
+        has_access=False,
+        email=normalized_email,
+        client_name=None,
+        children=[],
+        message="Cliente possui conta, mas ainda não tem um Baby Book ativo. Um crédito será consumido para criar o acesso.",
+    )
 
 
 # =============================================================================
@@ -597,17 +622,48 @@ async def create_delivery(
     await enforce_rate_limit(bucket="partner:deliveries:create:user", limit="30/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
 
-    # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
-    result = await db.execute(
-        select(Partner).where(Partner.id == partner.id).with_for_update()
-    )
-    locked_partner = result.scalar_one()
-    if locked_partner.voucher_balance < 1:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Saldo insuficiente. Compre mais créditos.",
+    normalized_client_email: str | None = request.client_email.strip().lower() if request.client_email else None
+
+    # Golden Record: "voucher só quando necessário".
+    # Se o cliente já tem um Child com PCE pago, não há necessidade de voucher nem de crédito.
+    existing_target_account_id = None
+    client_has_access = False
+    if normalized_client_email:
+        user_row = await db.execute(select(User).where(User.email == normalized_client_email))
+        existing_user = user_row.scalar_one_or_none()
+        if existing_user is not None:
+            paid_child_row = await db.execute(
+                select(Child.id)
+                .where(
+                    Child.account_id == existing_user.account_id,
+                    Child.deleted_at.is_(None),
+                    Child.pce_status == "paid",
+                )
+                .limit(1)
+            )
+            if paid_child_row.scalar_one_or_none() is not None:
+                client_has_access = True
+                existing_target_account_id = existing_user.account_id
+
+    credit_status = "reserved"
+    credit_reserved = True
+
+    if client_has_access:
+        # Não reserva crédito; a entrega será importada pelo próprio cliente no app.
+        credit_status = "not_required"
+        credit_reserved = False
+    else:
+        # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
+        result = await db.execute(
+            select(Partner).where(Partner.id == partner.id).with_for_update()
         )
-    locked_partner.voucher_balance -= 1
+        locked_partner = result.scalar_one()
+        if locked_partner.voucher_balance < 1:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Saldo insuficiente. Compre mais créditos.",
+            )
+        locked_partner.voucher_balance -= 1
     
     # Cria delivery
     title = request.title or f"Ensaio - {request.child_name or request.client_name}"
@@ -619,26 +675,29 @@ async def create_delivery(
         description=request.description,
         event_date=request.event_date,
         status="draft",
-        credit_status="reserved",
+        credit_status=credit_status,
         assets_payload={
             "files": [],
             "upload_started": False,
-            "client_email": request.client_email,
+            "client_email": normalized_client_email,
             "child_name": request.child_name,
-            "credit_reserved": True,
+            "credit_reserved": credit_reserved,
+            "direct_import": client_has_access,
         },
+        target_account_id=existing_target_account_id,
     )
     db.add(delivery)
 
-    db.add(
-        PartnerLedger(
-            id=uuid4(),
-            partner_id=partner.id,
-            amount=-1,
-            type="reservation",
-            description=f"reservation delivery={delivery.id}",
+    if not client_has_access:
+        db.add(
+            PartnerLedger(
+                id=uuid4(),
+                partner_id=partner.id,
+                amount=-1,
+                type="reservation",
+                description=f"reservation delivery={delivery.id}",
+            )
         )
-    )
     
     await db.commit()
     await db.refresh(delivery)
@@ -1040,7 +1099,7 @@ async def complete_upload(
     """,
 )
 async def finalize_delivery(
-    delivery_id: str,
+    delivery_id: UUID,
     request: GenerateVoucherCardRequest,
     db: AsyncSession = Depends(get_db),
     current_user: UserSession = Depends(get_current_user),
@@ -1076,11 +1135,35 @@ async def finalize_delivery(
             detail="Adicione pelo menos um arquivo antes de finalizar"
         )
     
-    # Gera código do voucher
+    # Se a entrega não exige crédito (cliente já tem acesso), não geramos voucher.
+    # O cliente importa no app (autenticado) e escolhe EXISTING_CHILD ou NEW_CHILD.
+    if delivery.credit_status == "not_required":
+        delivery.generated_voucher_code = None
+        delivery.status = "ready"
+        delivery.beneficiary_name = request.beneficiary_name
+        await db.commit()
+
+        import_url = f"{settings.frontend_url}/jornada/importar-entrega/{delivery.id}"
+        return VoucherCardResponse(
+            mode="direct_import",
+            voucher_code=None,
+            redeem_url=None,
+            qr_data=None,
+            import_url=import_url,
+            studio_name=partner.company_name or partner.name,
+            studio_logo_url=partner.logo_url,
+            beneficiary_name=request.beneficiary_name,
+            message=request.message
+            or f"O {partner.company_name or partner.name} preparou suas fotos! Abra o link e importe no seu Baby Book.",
+            assets_count=len(assets_payload["files"]),
+            expires_at=None,
+        )
+
+    # Fluxo padrão: gera código do voucher
     prefix = request.voucher_prefix or partner.company_name or partner.name
     prefix = prefix[:8].upper().replace(" ", "")
     voucher_code = generate_voucher_code(prefix)
-    
+
     # Cria voucher
     voucher = Voucher(
         id=uuid4(),
@@ -1092,22 +1175,24 @@ async def finalize_delivery(
         uses_limit=1,
     )
     db.add(voucher)
-    
+
     # Atualiza delivery
     delivery.generated_voucher_code = voucher_code
     delivery.status = "ready"
     delivery.beneficiary_name = request.beneficiary_name
-    
+
     await db.commit()
-    
+
     # Retorna dados para gerar o cartão no frontend
-    redeem_url = f"https://babybook.com.br/resgatar?code={voucher_code}"
+    redeem_url = f"{settings.frontend_url}/resgatar?code={voucher_code}"
     qr_data = redeem_url
-    
+
     return VoucherCardResponse(
+        mode="voucher",
         voucher_code=voucher_code,
         redeem_url=redeem_url,
         qr_data=qr_data,
+        import_url=None,
         studio_name=partner.company_name or partner.name,
         studio_logo_url=partner.logo_url,
         beneficiary_name=request.beneficiary_name,

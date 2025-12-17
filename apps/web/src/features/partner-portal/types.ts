@@ -88,7 +88,11 @@ export interface Delivery {
   redeemed_by: string | null;
 }
 
-export type DeliveryCreditStatus = "reserved" | "consumed" | "refunded";
+export type DeliveryCreditStatus =
+  | "reserved"
+  | "consumed"
+  | "refunded"
+  | "not_required";
 
 export interface DeliveryAggregations {
   total: number;
@@ -165,9 +169,11 @@ export interface GenerateVoucherCardRequest {
 }
 
 export interface VoucherCardData {
-  voucher_code: string;
-  redeem_url: string;
-  qr_data: string;
+  mode?: "voucher" | "direct_import";
+  voucher_code: string | null;
+  redeem_url: string | null;
+  qr_data: string | null;
+  import_url?: string | null;
   studio_name: string;
   studio_logo_url: string | null;
   beneficiary_name: string | null;

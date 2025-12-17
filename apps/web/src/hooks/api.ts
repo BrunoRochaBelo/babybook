@@ -4,6 +4,8 @@ import { nanoid } from "nanoid";
 import {
   Child,
   childSchema,
+  DeliveryImportResponse,
+  deliveryImportResponseSchema,
   GuestbookEntry,
   guestbookEntrySchema,
   healthMeasurementSchema,
@@ -20,6 +22,8 @@ import {
   paginatedHealthVaccinesSchema,
   paginatedMomentsSchema,
   paginatedVaultDocumentsSchema,
+  PendingDeliveries,
+  pendingDeliveriesSchema,
   QuotaUsage,
   quotaUsageSchema,
   UserProfile,
@@ -97,6 +101,61 @@ export const useCreateChild = () => {
       );
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["children"] });
+    },
+  });
+};
+
+export const usePendingDirectDeliveries = (options?: { enabled?: boolean }) =>
+  useQuery({
+    queryKey: ["pending-direct-deliveries"],
+    enabled: options?.enabled ?? true,
+    queryFn: async (): Promise<PendingDeliveries> => {
+      return apiClient.get("/me/deliveries/pending", {
+        schema: pendingDeliveriesSchema,
+      });
+    },
+  });
+
+export const useImportDirectDelivery = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      deliveryId: string;
+      action:
+        | { type: "EXISTING_CHILD"; childId: string }
+        | { type: "NEW_CHILD"; childName?: string };
+    }): Promise<DeliveryImportResponse> => {
+      const idempotency_key = nanoid();
+      if (payload.action.type === "EXISTING_CHILD") {
+        return apiClient.post(
+          `/me/deliveries/${payload.deliveryId}/import`,
+          {
+            idempotency_key,
+            action: {
+              type: "EXISTING_CHILD",
+              child_id: payload.action.childId,
+            },
+          },
+          { schema: deliveryImportResponseSchema },
+        );
+      }
+      return apiClient.post(
+        `/me/deliveries/${payload.deliveryId}/import`,
+        {
+          idempotency_key,
+          action: {
+            type: "NEW_CHILD",
+            child_name: payload.action.childName,
+          },
+        },
+        { schema: deliveryImportResponseSchema },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["pending-direct-deliveries"],
+      });
       queryClient.invalidateQueries({ queryKey: ["children"] });
     },
   });

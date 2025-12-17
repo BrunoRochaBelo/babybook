@@ -319,6 +319,65 @@ export const userProfileSchema = rawUserProfileSchema.transform((profile) => ({
 
 export type UserProfile = z.infer<typeof userProfileSchema>;
 
+// ============================================================
+// Direct Partner Deliveries (sem voucher)
+// ============================================================
+
+const rawPendingDeliveryItemSchema = z.object({
+  delivery_id: z.string().uuid(),
+  partner_name: z.string().nullable().optional(),
+  title: z.string(),
+  assets_count: z.number().int().nonnegative().optional(),
+  created_at: isoDateSchema,
+});
+
+export const pendingDeliveryItemSchema = rawPendingDeliveryItemSchema.transform(
+  (d) => ({
+    deliveryId: d.delivery_id,
+    partnerName: d.partner_name ?? null,
+    title: d.title,
+    assetsCount: d.assets_count ?? 0,
+    createdAt: d.created_at,
+  }),
+);
+
+export type PendingDeliveryItem = z.infer<typeof pendingDeliveryItemSchema>;
+
+export const pendingDeliveriesSchema = z
+  .object({
+    items: z.array(rawPendingDeliveryItemSchema),
+    total: z.number().int().nonnegative(),
+  })
+  .transform(({ items, total }) => ({
+    items: items.map((it) => pendingDeliveryItemSchema.parse(it)),
+    total,
+  }));
+
+export type PendingDeliveries = z.infer<typeof pendingDeliveriesSchema>;
+
+const rawDeliveryImportResponseSchema = z.object({
+  success: z.boolean().optional(),
+  delivery_id: z.string().uuid(),
+  assets_transferred: z.number().int().nonnegative().optional(),
+  child_id: z.string().uuid(),
+  moment_id: z.string().uuid(),
+  message: z.string(),
+});
+
+export const deliveryImportResponseSchema =
+  rawDeliveryImportResponseSchema.transform((r) => ({
+    success: r.success ?? true,
+    deliveryId: r.delivery_id,
+    assetsTransferred: r.assets_transferred ?? 0,
+    childId: r.child_id,
+    momentId: r.moment_id,
+    message: r.message,
+  }));
+
+export type DeliveryImportResponse = z.infer<
+  typeof deliveryImportResponseSchema
+>;
+
 export const assetVariantInputSchema = z.object({
   preset: z.string().max(80),
   key: z.string().max(255),
