@@ -5,8 +5,8 @@
  * Lista todas as notificações com opções de marcar como lida.
  */
 
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Bell,
   Check,
@@ -15,8 +15,6 @@ import {
   Gift,
   Loader2,
   Package,
-  Ticket,
-  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -121,25 +119,24 @@ const notificationColors: Record<NotificationType, string> = {
 };
 
 export function PartnerNotificationsPage() {
-  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  const handleMarkAsRead = (id: string) => {
+  const handleMarkAsRead = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, unread: false } : n)),
     );
-  };
+  }, []);
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     setIsMarkingAll(true);
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
     setIsMarkingAll(false);
-  };
+  }, []);
 
   usePartnerPageHeader(
     useMemo(
@@ -282,6 +279,7 @@ export function PartnerNotificationsPage() {
                       }}
                       className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-pink-500 transition-colors flex-shrink-0"
                       title="Marcar como lida"
+                      aria-label="Marcar como lida"
                     >
                       <Check className="w-4 h-4" />
                     </button>

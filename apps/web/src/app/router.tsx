@@ -111,6 +111,8 @@ export function AppRouter() {
         />
         <Route path="/resgatar" element={<VoucherRedemptionPage />} />
         <Route path="/resgatar/:code" element={<VoucherRedemptionPage />} />
+        <Route path="/resgate" element={<VoucherRedemptionPage />} />
+        <Route path="/resgate/:code" element={<VoucherRedemptionPage />} />
 
         {/* Share Page - Public (for viral loop) */}
         <Route path="/share/:token" element={<SharedMomentPage />} />
@@ -140,11 +142,23 @@ export function AppRouter() {
           <Route path="/partner" element={<PartnerDashboard />} />
           <Route path="/partner/credits" element={<CreditsPage />} />
           <Route path="/partner/settings" element={<PartnerSettingsPage />} />
-          <Route path="/partner/notifications" element={<PartnerNotificationsPage />} />
+          <Route
+            path="/partner/notifications"
+            element={<PartnerNotificationsPage />}
+          />
           <Route path="/partner/deliveries" element={<DeliveriesListPage />} />
-          <Route path="/partner/deliveries/new" element={<CreateDeliveryPage />} />
-          <Route path="/partner/deliveries/:deliveryId" element={<DeliveryDetailPage />} />
-          <Route path="/partner/deliveries/:deliveryId/upload" element={<DeliveryUploadPage />} />
+          <Route
+            path="/partner/deliveries/new"
+            element={<CreateDeliveryPage />}
+          />
+          <Route
+            path="/partner/deliveries/:deliveryId"
+            element={<DeliveryDetailPage />}
+          />
+          <Route
+            path="/partner/deliveries/:deliveryId/upload"
+            element={<DeliveryUploadPage />}
+          />
         </Route>
 
         {/* 404 */}

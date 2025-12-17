@@ -173,6 +173,21 @@ Regra de produto: o checkout B2B não deve prometer "melhor preço" no cartão; 
 4. **O "Primeiro Valor" (Onboarding):** Imediatamente após o resgate, ela é direcionada para o mesmo Passo 4 da Jornada A (Nome do Bebê, Data de Nascimento).
 5. **O HUD (Engajamento):** A jornada converge com a Jornada A.
 
+**Atualização (Golden Record — Child-Centric + Risco de Misclick):**
+
+No novo modelo, o resgate precisa decidir _onde_ as memórias serão anexadas: em um **Livro existente (Child)** ou em um **novo Livro**.
+
+- Se Ana já possui um Livro do bebê (PCE pago), o resgate deve incentivar agressivamente a opção **“Adicionar ao Livro existente”**.
+- Criar um novo Livro deve existir, mas como opção secundária (ex.: “Não é este bebê? Criar novo Livro”).
+
+**Por quê (negócio/infra):** um novo Child dispara uma nova quota de 2 GiB e um novo PCE; logo, é o único evento que deve “consumir assento” no B2B.
+
+**Requisito de UX (obrigatório):**
+
+- A UI deve listar filhos/livros existentes com destaque (card grande, foto, nome e data), com CTA primário **“Adicionar aqui”**.
+- O CTA **“Criar novo Livro”** deve ser visualmente secundário (outline / link).
+- Se houver alto grau de confiança (ex.: e-mail já tem 1 filho “Bento”), mostrar um banner: **“Encontramos o álbum do Bento. Quer adicionar aqui?”**
+
 ## O "Momento Aha!" (O Gatilho da Retenção)
 
 O "Momento Aha!" não é quando Ana preenche o primeiro momento. Isso é apenas "tarefa concluída" (Recompensa 3).

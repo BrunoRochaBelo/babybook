@@ -32,6 +32,19 @@ export interface VoucherValidationResult {
 export interface VoucherRedemptionRequest {
   code: string;
   account_id?: string; // If already logged in
+  /**
+   * Chave de idempotência para tornar o resgate resiliente a duplo clique/retry.
+   */
+  idempotency_key?: string;
+  /**
+   * Late binding: define se o resgate deve vincular a um bebê existente
+   * ou criar um novo Baby Book.
+   */
+  action?: "EXISTING_CHILD" | "NEW_CHILD";
+  /**
+   * Obrigatório quando action=EXISTING_CHILD.
+   */
+  child_id?: string;
   create_account?: {
     email: string;
     name: string;
@@ -52,6 +65,8 @@ export type RedemptionStep =
   | "input"
   | "validation"
   | "account"
+  | "decision"
+  | "hard_stop"
   | "confirmation"
   | "success"
   | "error";

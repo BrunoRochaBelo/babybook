@@ -11,6 +11,7 @@ AssetScope = Literal["moment", "guestbook", "vault", "pod_preview", "health"]
 
 
 class UploadInitRequest(BaseModel):
+    child_id: UUID
     filename: str = Field(..., max_length=255)
     size: int = Field(..., gt=0)
     mime: str = Field(..., max_length=180)

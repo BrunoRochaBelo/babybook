@@ -17,7 +17,12 @@ import {
   Star,
   AlertCircle,
 } from "lucide-react";
-import { getPartnerProfile, getCreditPackages, purchaseCredits } from "./api";
+import {
+  getPartnerProfile,
+  getPartnerDashboardStats,
+  getCreditPackages,
+  purchaseCredits,
+} from "./api";
 import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
@@ -76,6 +81,11 @@ export function CreditsPage() {
   const { data: profile } = useQuery({
     queryKey: ["partner", "profile"],
     queryFn: getPartnerProfile,
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["partner", "stats"],
+    queryFn: getPartnerDashboardStats,
   });
 
   const { data: packages, isLoading: loadingPackages } = useQuery({
@@ -155,10 +165,14 @@ export function CreditsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Seu saldo atual
+              Seus créditos
             </p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {profile?.voucher_balance || 0} créditos
+              {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}{" "}
+              disponíveis
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              {stats?.reserved_credits ?? 0} reservados/em trânsito
             </p>
           </div>
           <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
@@ -272,9 +286,17 @@ export function CreditsPage() {
           ℹ️ Como funcionam os créditos?
         </h3>
         <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-          <li>• Cada crédito permite criar 1 entrega para um cliente</li>
-          <li>• Ao finalizar a entrega, um voucher único é gerado</li>
-          <li>• O cliente resgata o voucher para criar sua conta Baby Book</li>
+          <li>
+            • Ao gerar um voucher, <strong>1 crédito fica RESERVED</strong> (em
+            trânsito)
+          </li>
+          <li>
+            • No resgate: novo Baby Book → <strong>CONSUMED</strong>; bebê
+            existente → <strong>REFUNDED</strong> (estorno automático)
+          </li>
+          <li>
+            • O voucher é único por entrega e dá acesso às fotos daquele ensaio
+          </li>
           <li>• Créditos não expiram</li>
         </ul>
       </div>

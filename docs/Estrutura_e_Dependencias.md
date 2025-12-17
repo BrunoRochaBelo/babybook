@@ -866,12 +866,19 @@ Alterar o banco (apps/api/db/models.py) exige uma migração. Este é um process
 Gerar Migração:
 
 ```bash
-# Dentro do workspace da API
+# Dentro do workspace da API (apps/api)
+cd apps/api
 alembic revision --autogenerate -m "Adiciona tabela capsule_items"
 ```
 
-Revisar Script: Abra o arquivo gerado em apps/api/db/migrations/versions/ e revise o código Python. O autogenerate pode errar.
-Testar Local: Rode a migração no seu Docker local: alembic upgrade head.
+Revisar Script: Abra o arquivo gerado em `apps/api/alembic/versions/` e revise o código Python. O autogenerate pode errar.
+Testar Local: Rode a migração no seu Docker local:
+
+```bash
+cd apps/api
+alembic upgrade head
+```
+
 Commit: Commite ambos (models.py e o script de migração) no mesmo PR.
 
 ### 15.2.1. Migrações Zero-Downtime (Obrigatório)

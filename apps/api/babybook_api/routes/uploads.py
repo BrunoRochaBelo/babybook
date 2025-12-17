@@ -5,12 +5,12 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.db.models import Account, Asset, UploadSession
+from babybook_api.db.models import Account, Asset, Child, UploadSession
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.observability import get_trace_id
@@ -45,6 +45,18 @@ async def _get_account(db: AsyncSession, account_id: uuid.UUID) -> Account:
     return account
 
 
+async def _get_child_or_404(db: AsyncSession, *, account_id: uuid.UUID, child_id: uuid.UUID) -> Child:
+    stmt = select(Child).where(
+        Child.id == child_id,
+        Child.account_id == account_id,
+        Child.deleted_at.is_(None),
+    )
+    child = (await db.execute(stmt)).scalar_one_or_none()
+    if child is None:
+        raise AppError(status_code=404, code="child.not_found", message="Crianca nao encontrada.")
+    return child
+
+
 @router.post(
     "/init",
     response_model=UploadInitResponse,
@@ -59,6 +71,7 @@ async def init_upload(
     account_id = uuid.UUID(current_user.account_id)
     stmt = select(Asset).where(
         Asset.account_id == account_id,
+        Asset.child_id == payload.child_id,
         Asset.sha256 == payload.sha256,
         Asset.status != "failed",
     )
@@ -71,7 +84,19 @@ async def init_upload(
         )
 
     account = await _get_account(db, account_id)
-    if account.storage_bytes_used + payload.size > (account.plan_storage_bytes or settings.quota_storage_bytes):
+
+    # Quota enforcement (child-centric, always)
+    child = await _get_child_or_404(db, account_id=account_id, child_id=payload.child_id)
+    stmt_used = (
+        select(func.coalesce(func.sum(Asset.size_bytes), 0))
+        .where(
+            Asset.account_id == account_id,
+            Asset.child_id == child.id,
+            Asset.status != "failed",
+        )
+    )
+    bytes_used = (await db.execute(stmt_used)).scalar_one()
+    if bytes_used + payload.size > child.storage_quota_bytes:
         raise AppError(status_code=413, code="quota.bytes.exceeded", message="Quota de armazenamento excedida.")
 
     kind: AssetKind = payload.kind or _infer_kind(payload.mime)
@@ -79,6 +104,7 @@ async def init_upload(
     asset = Asset(
         id=asset_id,
         account_id=account_id,
+        child_id=payload.child_id,
         kind=kind,
         status="queued",
         mime=payload.mime,
@@ -155,40 +181,38 @@ async def complete_upload(
     if len(payload.etags) != session.part_count:
         raise AppError(status_code=400, code="upload.parts.mismatch", message="Partes incompletas.")
 
-    # Validation: Magic Bytes & Size
-    # Verifica se o arquivo enviado corresponde ao tipo e tamanho declarados.
-    try:
-        storage = await get_cold_storage()
-        
-        # 1. Valida tamanho real no storage vs declarado
-        info = await storage.get_object_info(asset.key_original)
-        if info is None:
-            raise AppError(status_code=404, code="upload.file.not_found", message="Arquivo nao encontrado no storage.")
-        
-        # Permite pequena margem de erro apenas se for multipart complexo, mas idealmente deve ser exato.
-        # Para segurança estrita: deve ser exato.
-        if info.size != session.size_bytes:
-             raise ValueError(f"Tamanho incorreto. Esperado: {session.size_bytes}, Real: {info.size}")
+    if settings.upload_validation_enabled:
+        # Validation: Magic Bytes & Size
+        # Verifica se o arquivo enviado corresponde ao tipo e tamanho declarados.
+        try:
+            storage = await get_cold_storage()
 
-        # 2. Valida Magic Bytes (assinatura)
-        # Lê os primeiros 512 bytes para verificação de assinatura
-        header = await storage.get_object_range(asset.key_original, start=0, end=511)
-        validate_magic_bytes(
-            declared_content_type=asset.mime,
-            header=header,
-            # Não passamos allowed_content_types aqui pois a lista global pode ser restrita demais
-            # para o B2C (que pode aceitar mais tipos no futuro). O importante é bater com o mime.
-        )
-    except Exception as e:
-        # Se falhar, marcamos como falha e retornamos erro
-        asset.status = "failed"
-        session.status = "failed"
-        await db.commit()
-        raise AppError(
-            status_code=400,
-            code="upload.validation.failed",
-            message=f"Validacao do arquivo falhou: {str(e)}"
-        )
+            # 1. Valida tamanho real no storage vs declarado
+            info = await storage.get_object_info(asset.key_original)
+            if info is None:
+                raise AppError(status_code=404, code="upload.file.not_found", message="Arquivo nao encontrado no storage.")
+
+            # Para segurança estrita: deve ser exato.
+            if info.size != session.size_bytes:
+                raise ValueError(f"Tamanho incorreto. Esperado: {session.size_bytes}, Real: {info.size}")
+
+            # 2. Valida Magic Bytes (assinatura)
+            # Lê os primeiros 512 bytes para verificação de assinatura
+            header = await storage.get_object_range(asset.key_original, start=0, end=511)
+            validate_magic_bytes(
+                declared_content_type=asset.mime,
+                header=header,
+            )
+        except Exception as e:
+            # Se falhar, marcamos como falha e retornamos erro
+            asset.status = "failed"
+            session.status = "failed"
+            await db.commit()
+            raise AppError(
+                status_code=400,
+                code="upload.validation.failed",
+                message=f"Validacao do arquivo falhou: {str(e)}",
+            )
 
     session.status = "completed"
     session.completed_at = datetime.utcnow()

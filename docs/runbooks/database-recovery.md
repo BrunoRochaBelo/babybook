@@ -290,4 +290,4 @@ engine = create_async_engine(
 - Neon Docs: https://neon.tech/docs
 - Neon Dashboard: https://console.neon.tech
 - Database: `apps/api/babybook_api/db/`
-- Migrations: `apps/admin/alembic/`
+- Migrations (fonte canônica): `apps/api/alembic/`

@@ -129,6 +129,51 @@ function StatusBadge({ status }: { status: DeliveryStatus }) {
   );
 }
 
+function CreditStatusBadge({
+  status,
+}: {
+  status?: "reserved" | "consumed" | "refunded" | null;
+}) {
+  if (!status) return null;
+
+  const cfg: Record<
+    NonNullable<typeof status>,
+    { className: string; label: string; title: string }
+  > = {
+    reserved: {
+      className:
+        "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200",
+      label: "RESERVED",
+      title:
+        "RESERVED: crédito reservado (em trânsito). No resgate, vira CONSUMED (novo bebê) ou REFUNDED (bebê existente).",
+    },
+    consumed: {
+      className:
+        "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200",
+      label: "CONSUMED",
+      title:
+        "CONSUMED: crédito consumido (novo Baby Book criado/contabilizado).",
+    },
+    refunded: {
+      className:
+        "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300",
+      label: "REFUNDED",
+      title:
+        "REFUNDED: crédito estornado (cliente vinculou a um bebê existente).",
+    },
+  };
+
+  const c = cfg[status];
+  return (
+    <span
+      title={c.title}
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide ${c.className}`}
+    >
+      {c.label}
+    </span>
+  );
+}
+
 function isDeliveryArchived(delivery: Delivery): boolean {
   return (
     Boolean(delivery.is_archived ?? delivery.archived_at) ||
@@ -811,7 +856,11 @@ export function DeliveriesListPage() {
 
       {/* Status Chips (ghost style, inline) */}
       <div className="mb-3">
-        <div className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1" role="radiogroup" aria-label="Filtrar entregas por status">
+        <div
+          className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1"
+          role="radiogroup"
+          aria-label="Filtrar entregas por status"
+        >
           <StatusCounterChip
             label="Tudo"
             title="Todas as entregas (ativas + arquivadas)"
@@ -906,7 +955,9 @@ export function DeliveriesListPage() {
             onClick={() => {
               const details = document.getElementById("presets-details");
               if (details) {
-                (details as HTMLDetailsElement).open = !(details as HTMLDetailsElement).open;
+                (details as HTMLDetailsElement).open = !(
+                  details as HTMLDetailsElement
+                ).open;
               }
             }}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
@@ -921,7 +972,10 @@ export function DeliveriesListPage() {
           </button>
         </div>
 
-        <p className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center mt-1" aria-hidden="true">
+        <p
+          className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center mt-1"
+          aria-hidden="true"
+        >
           ← Deslize →
         </p>
       </div>
@@ -1096,7 +1150,8 @@ export function DeliveriesListPage() {
             Filtros avançados
             {(voucherFilter !== "all" || redeemedFilter !== "all") && (
               <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold">
-                {(voucherFilter !== "all" ? 1 : 0) + (redeemedFilter !== "all" ? 1 : 0)}
+                {(voucherFilter !== "all" ? 1 : 0) +
+                  (redeemedFilter !== "all" ? 1 : 0)}
               </span>
             )}
           </span>
@@ -1322,7 +1377,10 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
             </p>
           </div>
         </div>
-        <StatusBadge status={displayStatus} />
+        <div className="flex flex-col items-end gap-1">
+          <StatusBadge status={displayStatus} />
+          <CreditStatusBadge status={delivery.credit_status} />
+        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
@@ -1418,7 +1476,10 @@ function DeliveryTableRow({
         </span>
       </td>
       <td className="px-4 py-2.5">
-        <StatusBadge status={displayStatus} />
+        <div className="flex flex-col gap-1">
+          <StatusBadge status={displayStatus} />
+          <CreditStatusBadge status={delivery.credit_status} />
+        </div>
       </td>
       <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
         {formatDate(delivery.created_at)}

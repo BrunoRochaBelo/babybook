@@ -19,7 +19,7 @@ Este documento lista tudo o que ficou pendente após a atualização da document
   - Índices essenciais presentes: `idx_deliveries_partner`, `idx_vouchers_lookup`, `idx_assets_processing`.
   - Alembic revision passa nos testes de migração (upgrade/downgrade localmente).
 - Sugestão de implementação:
-  - Criar arquivo de migration em `apps/api/alembic/versions` (ou conforme layout do projeto).
+  - Criar arquivo de migration em `apps/api/alembic/versions` (local canônico do projeto).
   - Usar tipos SQL compatíveis com Neon/Postgres (JSONB para payloads, UUIDs quando aplicável).
   - Incluir constraints FK e unique (p.ex. `vouchers.code` como PK ou unique).
 - Estimativa: 1-2 horas.

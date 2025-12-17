@@ -237,8 +237,9 @@ export function PartnerDashboard() {
   }
 
   const deliveries = deliveriesData?.deliveries || [];
-  const voucherBalance = stats?.voucher_balance || 0;
-  const hasLowCredits = voucherBalance <= 2;
+  const availableCredits = stats?.voucher_balance || 0;
+  const reservedCredits = stats?.reserved_credits || 0;
+  const hasLowCredits = availableCredits <= 2;
   const pendingUpload = deliveries.find((d) => d.status === "pending_upload");
 
   return (
@@ -288,7 +289,7 @@ export function PartnerDashboard() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-pink-100 text-xs sm:text-sm font-medium uppercase tracking-wide">
-                  Saldo de Créditos
+                  Créditos
                 </p>
                 {hasLowCredits ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 text-white border border-white/20">
@@ -296,16 +297,34 @@ export function PartnerDashboard() {
                   </span>
                 ) : null}
               </div>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl sm:text-4xl font-bold">
-                  {voucherBalance}
-                </span>
-                <span className="text-pink-100 text-sm sm:text-base">
-                  vouchers disponíveis
-                </span>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                    Disponível
+                  </p>
+                  <p className="text-2xl font-bold leading-tight">
+                    {availableCredits}
+                  </p>
+                  <p className="text-[11px] text-pink-100">
+                    para novas entregas
+                  </p>
+                </div>
+                <div
+                  className="rounded-xl bg-white/15 border border-white/20 px-3 py-2"
+                  title="Reservado/em trânsito = créditos já separados para entregas criadas. Ao resgatar, o crédito é consumido (novo bebê) ou estornado (bebê existente)."
+                >
+                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                    Reservado
+                  </p>
+                  <p className="text-2xl font-bold leading-tight">
+                    {reservedCredits}
+                  </p>
+                  <p className="text-[11px] text-pink-100">em trânsito</p>
+                </div>
               </div>
-              <p className="text-pink-100 text-xs sm:text-sm mt-2 hidden sm:block">
-                Cada crédito = 1 entrega para cliente
+              <p className="text-pink-100 text-xs sm:text-sm mt-3 hidden sm:block">
+                Transparência do crédito: reservado → consumido/estornado no
+                resgate.
               </p>
             </div>
             <Link
@@ -321,7 +340,9 @@ export function PartnerDashboard() {
       </div>
 
       {/* Alertas Contextuais (só aparecem quando há algo relevante) */}
-      {(pendingUpload || (stats?.ready_deliveries || 0) > 0 || hasLowCredits) && (
+      {(pendingUpload ||
+        (stats?.ready_deliveries || 0) > 0 ||
+        hasLowCredits) && (
         <div className="mb-6 sm:mb-8 flex flex-wrap gap-3">
           {pendingUpload && (
             <Link
@@ -336,7 +357,10 @@ export function PartnerDashboard() {
                   Upload pendente
                 </p>
                 <p className="text-xs text-yellow-600 dark:text-yellow-300 truncate">
-                  {pendingUpload.title || pendingUpload.client_name || "Entrega"} aguarda arquivos
+                  {pendingUpload.title ||
+                    pendingUpload.client_name ||
+                    "Entrega"}{" "}
+                  aguarda arquivos
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
@@ -353,7 +377,10 @@ export function PartnerDashboard() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                  {stats?.ready_deliveries} {stats?.ready_deliveries === 1 ? "entrega pronta" : "entregas prontas"}
+                  {stats?.ready_deliveries}{" "}
+                  {stats?.ready_deliveries === 1
+                    ? "entrega pronta"
+                    : "entregas prontas"}
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-300">
                   Aguardando geração de voucher
@@ -376,14 +403,16 @@ export function PartnerDashboard() {
                   Saldo baixo
                 </p>
                 <p className="text-xs text-pink-600 dark:text-pink-300">
-                  Apenas {voucherBalance} {voucherBalance === 1 ? "crédito" : "créditos"} restante{voucherBalance === 1 ? "" : "s"}
+                  Apenas {availableCredits}{" "}
+                  {availableCredits === 1 ? "crédito" : "créditos"} restante
+                  {availableCredits === 1 ? "" : "s"}
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-pink-600 dark:text-pink-400 flex-shrink-0" />
-          </Link>
-        )}
-      </div>
-    )}
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -468,7 +497,9 @@ export function PartnerDashboard() {
                       <DeliveryStatusBadge status={delivery.status} />
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400">
-                      {delivery.client_name && <span>{delivery.client_name}</span>}
+                      {delivery.client_name && (
+                        <span>{delivery.client_name}</span>
+                      )}
                       <span>•</span>
                       <span>{formatDate(delivery.created_at)}</span>
                     </div>
@@ -488,11 +519,21 @@ export function PartnerDashboard() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400">
                   <tr>
-                    <th className="text-left font-medium px-4 py-2.5">Entrega</th>
-                    <th className="text-left font-medium px-4 py-2.5">Cliente</th>
-                    <th className="text-left font-medium px-4 py-2.5">Status</th>
-                    <th className="text-left font-medium px-4 py-2.5">Criada em</th>
-                    <th className="text-left font-medium px-4 py-2.5">Voucher</th>
+                    <th className="text-left font-medium px-4 py-2.5">
+                      Entrega
+                    </th>
+                    <th className="text-left font-medium px-4 py-2.5">
+                      Cliente
+                    </th>
+                    <th className="text-left font-medium px-4 py-2.5">
+                      Status
+                    </th>
+                    <th className="text-left font-medium px-4 py-2.5">
+                      Criada em
+                    </th>
+                    <th className="text-left font-medium px-4 py-2.5">
+                      Voucher
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -500,7 +541,9 @@ export function PartnerDashboard() {
                     <tr
                       key={delivery.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                      onClick={() => navigate(`/partner/deliveries/${delivery.id}`)}
+                      onClick={() =>
+                        navigate(`/partner/deliveries/${delivery.id}`)
+                      }
                     >
                       <td className="px-4 py-3">
                         <span className="font-medium text-gray-900 dark:text-white">
@@ -522,7 +565,9 @@ export function PartnerDashboard() {
                             {delivery.voucher_code}
                           </span>
                         ) : (
-                          <span className="text-gray-400 dark:text-gray-500">—</span>
+                          <span className="text-gray-400 dark:text-gray-500">
+                            —
+                          </span>
                         )}
                       </td>
                     </tr>

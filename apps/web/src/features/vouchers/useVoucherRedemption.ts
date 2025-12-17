@@ -6,7 +6,6 @@
  */
 
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { validateVoucher, redeemVoucher } from "./api";
 import type {
   RedemptionState,
@@ -27,7 +26,7 @@ const initialState: RedemptionState = {
 export interface UseVoucherRedemptionReturn {
   state: RedemptionState;
   setCode: (code: string) => void;
-  validate: () => Promise<void>;
+  validate: () => Promise<VoucherValidationResult | null>;
   redeem: (
     request?: Partial<VoucherRedemptionRequest>,
   ) => Promise<VoucherRedemptionResult | null>;
@@ -37,7 +36,6 @@ export interface UseVoucherRedemptionReturn {
 
 export function useVoucherRedemption(): UseVoucherRedemptionReturn {
   const [state, setState] = useState<RedemptionState>(initialState);
-  const navigate = useNavigate();
 
   const setCode = useCallback((code: string) => {
     setState((prev) => ({
@@ -47,45 +45,48 @@ export function useVoucherRedemption(): UseVoucherRedemptionReturn {
     }));
   }, []);
 
-  const validate = useCallback(async () => {
-    if (!state.code) {
-      setState((prev) => ({
-        ...prev,
-        error: "Por favor, insira o código do voucher",
-      }));
-      return;
-    }
-
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const result = await validateVoucher(state.code);
-
-      if (result.valid) {
+  const validate =
+    useCallback(async (): Promise<VoucherValidationResult | null> => {
+      if (!state.code) {
         setState((prev) => ({
           ...prev,
-          isLoading: false,
-          validation: result,
-          step: "account", // Go to account creation/login step
+          error: "Por favor, insira o código do voucher",
         }));
-      } else {
+        return null;
+      }
+
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        const result = await validateVoucher(state.code);
+
+        if (result.valid) {
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            validation: result,
+          }));
+          return result;
+        } else {
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: result.error_message ?? "Voucher inválido",
+            step: "error",
+          }));
+          return null;
+        }
+      } catch (error) {
         setState((prev) => ({
           ...prev,
           isLoading: false,
-          error: result.error_message ?? "Voucher inválido",
+          error:
+            error instanceof Error ? error.message : "Erro ao validar voucher",
           step: "error",
         }));
+        return null;
       }
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error:
-          error instanceof Error ? error.message : "Erro ao validar voucher",
-        step: "error",
-      }));
-    }
-  }, [state.code]);
+    }, [state.code]);
 
   const redeem = useCallback(
     async (
@@ -108,11 +109,6 @@ export function useVoucherRedemption(): UseVoucherRedemptionReturn {
             step: "success",
           }));
 
-          // Navigate to the redirect URL after a short delay
-          if (result.redirect_url) {
-            setTimeout(() => navigate(result.redirect_url), 2000);
-          }
-
           return result;
         } else {
           setState((prev) => ({
@@ -134,7 +130,7 @@ export function useVoucherRedemption(): UseVoucherRedemptionReturn {
         return null;
       }
     },
-    [state.code, navigate],
+    [state.code],
   );
 
   const goToStep = useCallback((step: RedemptionStep) => {

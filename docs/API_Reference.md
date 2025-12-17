@@ -205,11 +205,11 @@ O upload de arquivos grandes é feito diretamente para o storage (Cloudflare R2 
 
   ```
   POST /uploads/init
-  Corpo: { "filename": "VID_1234.MP4", "size": 10485760, "mime": "video/mp4", "sha256": "base64:..." }
+  Corpo: { "child_id": "<uuid>", "filename": "VID_1234.MP4", "size": 10485760, "mime": "video/mp4", "sha256": "base64:..." }
   ```
 
   **Ação da API:**
-  - Verifica quota de storage (quota.bytes.exceeded → 413).
+  - Verifica quota de storage **do Child** (quota.bytes.exceeded → 413).
   - Verifica sha256 para deduplicação (conforme Modelo de Dados 5.0).
 
 - **Receber Resposta (API -> Cliente):**
@@ -419,13 +419,182 @@ Atualiza preferências básicas do usuário.
 
 #### GET /me/usage
 
-Retorna o uso atual e limites (cotas) da conta.
+Retorna o uso atual e limites (cotas).
 
-**Nota de Consistência:** Os valores de bytes_used e moments_used são processados de forma assíncrona (conforme Modelo de Dados 7.1). Pode haver um breve atraso (ex: ~60 segundos) entre a conclusão de um upload e a atualização destes contadores. A UI deve tratar isso (ex: exibindo "calculando..."). Este é um trade-off crítico de arquitetura (disponibilidade/performance vs. consistência). A UI deve mitigar isso: se a contagem de bytes_used estiver acima de 95% da quota, a UI deve proativamente re-buscar (refetch) este endpoint após um upload bem-sucedido para obter o valor mais recente antes de permitir o próximo upload.
+- **Obrigatório:** passe `child_id` (query string) para obter `bytes_used/bytes_quota` do **Livro (Child)**.
+- **Sem modo legado:** este endpoint é estritamente **child-centric**.
+
+**Nota de Consistência:**
+
+- `bytes_used` é calculado a partir dos assets atribuídos ao Child (`assets.child_id`) e tende a ser _quase em tempo real_.
 
 **Respostas de Sucesso:** 200 OK (Retorna o objeto Usage).
 
 **Respostas de Erro Comuns:** 401 Unauthorized
+
+### Recurso: Vouchers (B2B2C) — **Late Binding (Golden Record)**
+
+Este recurso implementa o fluxo em dois tempos (Reserva → Confirmação) sem permitir que o parceiro pesquise a base (LGPD).
+
+- **Reserva:** ocorre quando o parceiro cria uma entrega (decrementa saldo e marca a `delivery.credit_status = RESERVED`).
+- **Confirmação:** ocorre no resgate (a mãe decide vincular a um Livro existente ou criar um novo).
+
+#### POST /vouchers/validate
+
+Valida um código de voucher sem consumi-lo.
+
+**Corpo da Requisição:**
+
+```json
+{ "code": "BB-ABCD1234" }
+```
+
+**Respostas de Sucesso:** 200 OK
+
+```json
+{
+  "valid": true,
+  "voucher": {
+    "id": "uuid",
+    "code": "BB-ABCD1234",
+    "partner_id": "uuid",
+    "partner_name": "Estúdio Demo",
+    "delivery_id": "uuid | null",
+    "beneficiary_id": "uuid | null",
+    "expires_at": "2025-12-31T23:59:59Z | null",
+    "uses_left": 1,
+    "max_uses": 1,
+    "is_active": true,
+    "created_at": "2025-12-01T12:00:00Z",
+    "redeemed_at": null
+  },
+  "partner_name": "Estúdio Demo",
+  "delivery_title": "Ensaio Newborn",
+  "assets_count": 42,
+  "error_code": null,
+  "error_message": null
+}
+```
+
+**Respostas de Erro Comuns:**
+
+- 404 Not Found (voucher.not_found)
+- 400 Bad Request (voucher.expired | voucher.not_available)
+
+#### GET /vouchers/check/{code}
+
+Checagem rápida de disponibilidade (útil para UI) baseada na validação.
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{ "available": true, "reason": null }
+```
+
+ou
+
+```json
+{ "available": false, "reason": "voucher.expired" }
+```
+
+#### GET /vouchers/me
+
+Lista vouchers resgatados pelo usuário atual.
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+[
+  {
+    "id": "uuid",
+    "code": "BB-ABCD1234",
+    "partner_id": "uuid",
+    "partner_name": "Estúdio Demo",
+    "delivery_id": "uuid | null",
+    "beneficiary_id": "uuid",
+    "expires_at": "2025-12-31T23:59:59Z | null",
+    "uses_left": 0,
+    "max_uses": 1,
+    "is_active": false,
+    "created_at": "2025-12-01T12:00:00Z",
+    "redeemed_at": "2025-12-10T12:00:00Z"
+  }
+]
+```
+
+#### POST /vouchers/redeem
+
+Resgata um voucher e realiza o vínculo tardio com um Livro (Child).
+
+**Corpo da Requisição:**
+
+```json
+{
+  "code": "BB-ABCD1234",
+  "idempotency_key": "uuid-v4-opcional",
+  "action": {
+    "type": "EXISTING_CHILD",
+    "child_id": "uuid"
+  }
+}
+```
+
+ou
+
+```json
+{
+  "code": "BB-ABCD1234",
+  "action": {
+    "type": "NEW_CHILD",
+    "child_name": "Bento"
+  },
+  "create_account": {
+    "email": "ana@example.com",
+    "name": "Ana",
+    "password": "..."
+  }
+}
+```
+
+> Compatibilidade: clientes legados podem omitir `action`. Nesse caso, a API trata como um resgate equivalente a `NEW_CHILD`.
+
+**Regras de Negócio (Golden Record):**
+
+- Se `action.type = EXISTING_CHILD`:
+  - A API valida que o usuário é guardião do `child_id`.
+  - A API valida que `child.pce_status = PAID`.
+  - Resultado financeiro: `deliveries.credit_status = REFUNDED` + ajuste no saldo do parceiro + registro no extrato.
+
+- Se `action.type = NEW_CHILD`:
+  - A API cria um novo `child` com `storage_quota_bytes = 2 GiB` e `pce_status = PAID`.
+  - Resultado financeiro: `deliveries.credit_status = CONSUMED` (saldo do parceiro não muda, pois já foi debitado na reserva).
+
+**Respostas de Sucesso:** 200 OK
+
+```json
+{
+  "success": true,
+  "voucher_id": "uuid",
+  "child_id": "uuid",
+  "assets_transferred": 42,
+  "message": "Voucher resgatado com sucesso!",
+  "redirect_url": "/app/onboarding"
+}
+```
+
+`redirect_url` pode variar:
+
+- Quando `create_account` foi usado (conta/sessão criada no resgate): `"/app/onboarding"`
+- Quando o usuário já estava autenticado: `"/jornada"`
+
+Observação: a resposta pode incluir campos adicionais para observabilidade/integração (ex.: `delivery_id`, `moment_id`, `csrf_token`).
+
+**Respostas de Erro Comuns:**
+
+- 401 Unauthorized (auth.session.invalid) — quando não há sessão e `create_account` não foi fornecido.
+- 403 Forbidden (child.access.denied)
+- 400 Bad Request (voucher.not_available | voucher.expired | child.pce.unpaid)
+- 409 Conflict (voucher.already_claimed)
 
 ### Recurso: Crianças (Children)
 

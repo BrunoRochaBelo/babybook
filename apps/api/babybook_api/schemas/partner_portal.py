@@ -58,6 +58,7 @@ class PartnerProfileUpdateRequest(BaseModel):
 class PartnerDashboardStatsResponse(BaseModel):
     """Estatísticas do dashboard do parceiro."""
     voucher_balance: int = Field(..., description="Créditos disponíveis")
+    reserved_credits: int = Field(0, description="Créditos reservados/em trânsito (entregas com crédito reservado)")
     total_deliveries: int = Field(..., description="Total de entregas")
     ready_deliveries: int = Field(..., description="Entregas prontas para resgate")
     delivered_deliveries: int = Field(..., description="Entregas resgatadas")
@@ -159,6 +160,10 @@ class DeliveryResponse(BaseModel):
     title: str
     client_name: Optional[str] = None
     status: str
+    credit_status: Optional[Literal["reserved", "consumed", "refunded"]] = Field(
+        None,
+        description="Status do crédito desta entrega (Golden Record: reserved/consumed/refunded)",
+    )
     is_archived: bool = Field(False, description="Se a entrega está arquivada (soft delete do fotógrafo)")
     archived_at: Optional[datetime] = Field(None, description="Quando foi arquivada (se aplicável)")
     assets_count: int
@@ -203,6 +208,10 @@ class DeliveryDetailResponse(BaseModel):
     description: Optional[str] = None
     event_date: Optional[datetime] = None
     status: str
+    credit_status: Optional[Literal["reserved", "consumed", "refunded"]] = Field(
+        None,
+        description="Status do crédito desta entrega (Golden Record: reserved/consumed/refunded)",
+    )
     is_archived: bool = Field(False, description="Se a entrega está arquivada (soft delete do fotógrafo)")
     archived_at: Optional[datetime] = Field(None, description="Quando foi arquivada (se aplicável)")
     assets_count: int

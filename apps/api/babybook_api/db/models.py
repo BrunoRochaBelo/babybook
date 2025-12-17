@@ -53,6 +53,28 @@ delivery_status_enum = Enum(
     "failed",
     name="delivery_status_enum",
 )
+
+# Golden Record: Credit lifecycle on deliveries (reservation/consumption/refund)
+delivery_credit_status_enum = Enum(
+    "reserved",
+    "consumed",
+    "refunded",
+    name="delivery_credit_status_enum",
+)
+
+# Golden Record: PCE status is child-centric
+child_pce_status_enum = Enum(
+    "paid",
+    "unpaid",
+    name="child_pce_status_enum",
+)
+
+partner_ledger_type_enum = Enum(
+    "reservation",
+    "refund",
+    "purchase",
+    name="partner_ledger_type_enum",
+)
 media_processing_status_enum = Enum(
     "ready",
     "processing",
@@ -164,6 +186,13 @@ class Child(TimestampMixin, SoftDeleteMixin, Base):
     birthday: Mapped[date | None] = mapped_column(Date, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Golden Record: quota and PCE are child-centric
+    storage_quota_bytes: Mapped[int] = mapped_column(
+        BigInteger,
+        default=2 * 1024 * 1024 * 1024,
+    )
+    pce_status: Mapped[str] = mapped_column(child_pce_status_enum, default="unpaid")
+
     account: Mapped[Account] = relationship(back_populates="children")
     moments: Mapped[list["Moment"]] = relationship(back_populates="child", cascade="all,delete")
     chapters: Mapped[list["Chapter"]] = relationship(back_populates="child", cascade="all,delete")
@@ -235,10 +264,16 @@ class SeriesOccurrence(TimestampMixin, Base):
 
 class Asset(TimestampMixin, Base):
     __tablename__ = "assets"
-    __table_args__ = (UniqueConstraint("account_id", "sha256", name="uq_asset_account_sha256"),)
+    __table_args__ = (UniqueConstraint("account_id", "child_id", "sha256", name="uq_asset_account_child_sha256"),)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("accounts.id", ondelete="CASCADE"))
+    child_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("children.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     kind: Mapped[str] = mapped_column(asset_kind_enum)
     status: Mapped[str] = mapped_column(asset_status_enum, default="queued")
     scope: Mapped[str] = mapped_column(String(32), default="moment")
@@ -252,6 +287,7 @@ class Asset(TimestampMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
     account: Mapped[Account] = relationship(back_populates="assets")
+    child: Mapped[Child | None] = relationship()
     variants: Mapped[list["AssetVariant"]] = relationship(back_populates="asset", cascade="all,delete-orphan")
     upload_sessions: Mapped[list["UploadSession"]] = relationship(back_populates="asset", cascade="all,delete-orphan")
     vault_documents: Mapped[list["VaultDocument"]] = relationship(back_populates="asset")
@@ -594,6 +630,9 @@ class Delivery(TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     event_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(delivery_status_enum, default="draft")
+
+    # Golden Record: credit lifecycle for this delivery
+    credit_status: Mapped[str] = mapped_column(delivery_credit_status_enum, default="reserved")
     
     # Armazena os caminhos dos arquivos no bucket temporário
     # Ex: ["tmp/partner_id/delivery_id/foto1.jpg", ...]
@@ -627,6 +666,39 @@ class Delivery(TimestampMixin, Base):
         uselist=False,
     )
     assets: Mapped[list["DeliveryAsset"]] = relationship(back_populates="delivery", cascade="all,delete-orphan")
+
+
+class PartnerLedger(Base):
+    """Auditoria de movimentos de crédito do parceiro.
+
+    Exemplos:
+    - reservation: -1 quando uma entrega é criada (crédito reservado)
+    - refund: +1 quando o cliente vincula a um Child existente (estorno)
+    - purchase: +10 quando o parceiro compra um pacote de créditos
+    """
+
+    __tablename__ = "partners_ledger"
+    __table_args__ = (
+        Index("ix_partners_ledger_partner_created", "partner_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    partner_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("partners.id", ondelete="CASCADE"),
+        index=True,
+    )
+    amount: Mapped[int] = mapped_column(Integer)
+    type: Mapped[str] = mapped_column(partner_ledger_type_enum)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=datetime.utcnow,
+    )
+
+    partner: Mapped[Partner] = relationship()
 
 
 class DeliveryAsset(TimestampMixin, Base):

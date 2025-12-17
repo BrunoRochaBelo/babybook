@@ -42,6 +42,8 @@ python -m uvicorn babybook_api.main:app --app-dir apps/api --reload --port 8000
 ## Migrações (Alembic)
 
 - Migrações ficam em `apps/api/alembic/versions`
+- **Fonte canônica**: use sempre este Alembic (`apps/api/alembic.ini`) para o banco compartilhado.
+  - Observação: existem diretórios Alembic legados em outras apps; não use para evitar histórico divergente.
 - Comandos comuns:
   - `alembic revision --autogenerate -m "add partners table"`
   - `alembic upgrade head`

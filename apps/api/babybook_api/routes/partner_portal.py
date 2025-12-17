@@ -26,7 +26,7 @@ from sqlalchemy.orm import selectinload
 
 from babybook_api.deps import get_db
 from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
-from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User
+from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User, PartnerLedger
 from babybook_api.schemas.partner_portal import (
     PartnerOnboardingRequest,
     PartnerOnboardingResponse,
@@ -349,6 +349,9 @@ async def get_partner_stats(
             func.count(Delivery.id).label("total"),
             func.count(Delivery.id).filter(Delivery.status == "ready").label("ready"),
             func.count(Delivery.id).filter(Delivery.status == "delivered").label("delivered"),
+            func.count(Delivery.id)
+            .filter(and_(Delivery.credit_status == "reserved", Delivery.archived_at.is_(None)))
+            .label("reserved"),
         ).where(Delivery.partner_id == partner.id)
     )
     deliveries_stats = deliveries_result.one()
@@ -374,6 +377,7 @@ async def get_partner_stats(
     
     return PartnerDashboardStatsResponse(
         voucher_balance=partner.voucher_balance,
+        reserved_credits=int(deliveries_stats.reserved or 0),
         total_deliveries=deliveries_stats.total,
         ready_deliveries=deliveries_stats.ready,
         delivered_deliveries=deliveries_stats.delivered,
@@ -574,9 +578,11 @@ def _normalize_partner_delivery_status(raw_status: str | None) -> str:
     description="""
     Cria uma nova entrega para um cliente.
     
-    **Regras de crédito:**
-    - Se cliente_email não existir no sistema: consome 1 crédito
-    - Se cliente_email já tiver conta: NÃO consome crédito (grátis)
+    **Regras de crédito (Golden Record / Late Binding):**
+    - Sempre reserva 1 crédito na criação da entrega (debita voucher_balance)
+    - No resgate do voucher, o cliente escolhe:
+      - NEW_CHILD: consome a reserva
+      - EXISTING_CHILD: estorna a reserva (+1)
     
     Retorna delivery_id para fazer upload dos assets.
     """,
@@ -587,32 +593,21 @@ async def create_delivery(
     current_user: UserSession = Depends(get_current_user),
     _: None = Depends(require_csrf_token),
 ) -> DeliveryResponse:
-    """Cria nova entrega com crédito condicional."""
+    """Cria nova entrega com reserva de crédito (late binding)."""
     await enforce_rate_limit(bucket="partner:deliveries:create:user", limit="30/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
-    
-    # Verifica se cliente já tem acesso (crédito condicional)
-    client_has_access = False
-    if request.client_email:
-        result = await db.execute(
-            select(User).where(User.email == request.client_email.lower())
+
+    # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
+    result = await db.execute(
+        select(Partner).where(Partner.id == partner.id).with_for_update()
+    )
+    locked_partner = result.scalar_one()
+    if locked_partner.voucher_balance < 1:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Saldo insuficiente. Compre mais créditos.",
         )
-        existing_user = result.scalar_one_or_none()
-        client_has_access = existing_user is not None
-    
-    # Se precisar consumir crédito, vamos validar + debitar com lock transacional
-    # (evita condição de corrida/double-spend em voucher_balance)
-    if not client_has_access:
-        result = await db.execute(
-            select(Partner).where(Partner.id == partner.id).with_for_update()
-        )
-        locked_partner = result.scalar_one()
-        if locked_partner.voucher_balance < 1:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Saldo insuficiente. Compre mais créditos."
-            )
-        locked_partner.voucher_balance -= 1
+    locked_partner.voucher_balance -= 1
     
     # Cria delivery
     title = request.title or f"Ensaio - {request.child_name or request.client_name}"
@@ -624,18 +619,26 @@ async def create_delivery(
         description=request.description,
         event_date=request.event_date,
         status="draft",
+        credit_status="reserved",
         assets_payload={
             "files": [],
             "upload_started": False,
             "client_email": request.client_email,
             "child_name": request.child_name,
-            "credit_consumed": not client_has_access,  # Indica se crédito foi usado
+            "credit_reserved": True,
         },
     )
     db.add(delivery)
-    
-    # Desconta crédito apenas se cliente é novo
-    # (já debitado acima sob lock)
+
+    db.add(
+        PartnerLedger(
+            id=uuid4(),
+            partner_id=partner.id,
+            amount=-1,
+            type="reservation",
+            description=f"reservation delivery={delivery.id}",
+        )
+    )
     
     await db.commit()
     await db.refresh(delivery)
@@ -645,6 +648,7 @@ async def create_delivery(
         title=delivery.title,
         client_name=delivery.client_name,
         status=delivery.status,
+        credit_status=delivery.credit_status,
         assets_count=0,
         voucher_code=None,
         created_at=delivery.created_at,
@@ -723,6 +727,7 @@ async def list_partner_deliveries(
                 title=d.title,
                 client_name=d.client_name,
                 status=_normalize_partner_delivery_status(d.status),
+                credit_status=d.credit_status,
                 is_archived=d.archived_at is not None,
                 archived_at=d.archived_at,
                 assets_count=len(d.assets_payload.get("files", [])) if d.assets_payload else 0,
@@ -778,6 +783,7 @@ async def get_delivery_detail(
         description=delivery.description,
         event_date=delivery.event_date,
         status=_normalize_partner_delivery_status(delivery.status),
+        credit_status=delivery.credit_status,
         is_archived=delivery.archived_at is not None,
         archived_at=delivery.archived_at,
         assets_count=len(files),

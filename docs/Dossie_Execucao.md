@@ -93,6 +93,11 @@ Nova Estratégia (Valor Percebido):
 | B2B (Parceiro) | R$ 135 | Lote 10 vouchers (PIX)  |              - |
 | B2B (Parceiro) | R$ 149 | Lote 10 vouchers (3x)   |              - |
 
+**Atualização (Golden Record — Licenciamento B2B por “ativação de novo assento”):** no B2B, o parceiro compra **créditos** (lotes). Cada crédito representa **potencialmente 1 novo Livro (Child)** com PCE quitado e quota de 2 GiB.
+
+- **Reserva vs. Consumo:** o sistema _reserva_ 1 crédito quando o parceiro cria uma entrega (para viabilizar o fluxo operacional), mas só _consome_ de fato quando, no resgate, a mãe cria um **novo Child**.
+- **Estorno:** se, no resgate, a mãe vincular a entrega a um **Child existente** (com PCE já pago), o sistema estorna o crédito (saldo volta) e registra auditoria no extrato.
+
 Mecânica de Ancoragem:
 
 - Fotógrafo paga R$ 135 (atacado via PIX/transferência)
@@ -189,14 +194,19 @@ Esta análise incorpora um componente crítico ignorado por 99% dos desenvolvedo
 
 **Regra de Auditoria (Pior Cenário Brasil):** todos os cálculos abaixo assumem **imposto de 15,5%** e **taxas de gateway altas**.
 
-| Canal / Produto  | Condição     | Preço Venda | Imposto (15,5%) | Gateway/Juros  | CAC      | PCE (Fundo) | Infra/Ops | Lucro Líquido  | Meta R$ 60?  |
-| :--------------- | :----------- | :---------- | :-------------- | :------------- | :------- | :---------- | :-------- | :------------- | :----------- |
-| **B2C Cartão**   | 3x Sem Juros | R$ 297,00   | R$ 46,04        | R$ 35,64 (12%) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 85,82**   | ✅ SIM       |
-| **B2C Pix**      | A Vista      | R$ 279,00   | R$ 43,25        | R$ 1,50 (Fixo) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 104,75**  | ✅ SIM       |
-| **B2B Parceiro** | Pix/Transfer | R$ 135,00   | R$ 20,93        | R$ 1,50 (Fixo) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 64,07**   | ✅ SIM       |
-| **B2B Parceiro** | Cartão 3x    | R$ 149,00   | R$ 23,10        | R$ 17,88 (12%) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 59,52\*** | ⚠️ ACEITÁVEL |
+| Canal / Produto      | Condição     | Preço Venda | Imposto (15,5%) | Gateway/Juros  | CAC      | PCE (Fundo) | Infra/Ops | Lucro Líquido  | Meta R$ 60?  |
+| :------------------- | :----------- | :---------- | :-------------- | :------------- | :------- | :---------- | :-------- | :------------- | :----------- |
+| **B2C Cartão**       | 3x Sem Juros | R$ 297,00   | R$ 46,04        | R$ 35,64 (12%) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 85,82**   | ✅ SIM       |
+| **B2C Pix**          | A Vista      | R$ 279,00   | R$ 43,25        | R$ 1,50 (Fixo) | R$ 80,00 | R$ 25,00    | R$ 24,50  | **R$ 104,75**  | ✅ SIM       |
+| **B2B (Novo Livro)** | Pix/Transfer | R$ 135,00   | R$ 20,93        | R$ 1,50 (Fixo) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 64,07**   | ✅ SIM       |
+| **B2B (Novo Livro)** | Cartão 3x    | R$ 149,00   | R$ 23,10        | R$ 17,88 (12%) | R$ 5,00  | R$ 25,00    | R$ 18,50  | **R$ 59,52\*** | ⚠️ ACEITÁVEL |
 
 _Nota sobre B2B Cartão: O lucro de ~R$ 59,52 é aceitável pelo volume e zero CAC recorrente. Ajustar preço para R$ 149,00 no cartão._
+
+**PS (Golden Record — Unit Economics B2B por “Novos Filhos”, não por “Novos Ensaios”):**
+
+- O “evento econômico” relevante do B2B, do ponto de vista de custo marginal e provisionamento, é a criação de um **novo Child** (novo Livro), pois isso dispara **nova quota de 2 GiB** e **novo PCE**.
+- Resgates que apenas vinculam a um Child existente (PCE já pago) têm custo marginal ~0 dentro da quota e, por regra, devem gerar **estorno de crédito** para o parceiro.
 
 #### 4.2 O Segredo do PCE: A Máquina de Perpetuidade
 
@@ -363,6 +373,8 @@ CREATE TABLE deliveries (
     assets_payload JSONB NOT NULL,
     status VARCHAR(20) DEFAULT 'PENDING'
       CHECK (status IN ('PENDING', 'CLAIMED', 'EXPIRED')),
+    credit_status VARCHAR(20) DEFAULT 'RESERVED'
+      CHECK (credit_status IN ('RESERVED', 'CONSUMED', 'REFUNDED')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -375,6 +387,16 @@ CREATE TABLE vouchers (
     redeemed_at TIMESTAMPTZ,
     status VARCHAR(20) DEFAULT 'ACTIVE',
     CONSTRAINT unique_active_code UNIQUE (code)
+);
+
+-- 5. EXTRATO DO PARCEIRO (Auditoria de Reservas/Estornos)
+CREATE TABLE partners_ledger (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  partner_id UUID REFERENCES partners(id),
+  amount INTEGER, -- Ex: -1 (Reserva), +1 (Estorno), +10 (Compra)
+  type VARCHAR(20), -- 'RESERVATION', 'REFUND', 'PURCHASE'
+  description VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 4. ASSETS (Controle de Mídia)
@@ -405,22 +427,32 @@ Endpoint: POST /redeem
 ```
 BEGIN TRANSACTION
 
-  # 1. Valida voucher
-  voucher = SELECT * FROM vouchers WHERE code = {code} AND status = 'ACTIVE'
+  # 1. Valida voucher (lock)
+  voucher = SELECT * FROM vouchers WHERE code = {code} AND status = 'ACTIVE' FOR UPDATE
+  delivery = SELECT * FROM deliveries WHERE id = voucher.delivery_id FOR UPDATE
 
-  # 2. Cria/Busca usuário
+  # 2. Identidade (login) e Ação da mãe
+  # input: action = NEW_CHILD(name) ou EXISTING_CHILD(child_id)
   user = get_or_create_user(email)
 
-  # 3. Copia arquivos (server-side copy no storage)
-  assets = voucher.delivery.assets_payload
-  FOR EACH asset IN assets:
-    storage_copy_object(
-      source = f"/partners/{partner_id}/{asset}",
-      dest = f"/u/{user.id}/m/{moment_id}/{asset}"
-    )
+  IF action == EXISTING_CHILD:
+    assert user is guardian of child_id
+    assert children.pce_status == 'PAID'
+    UPDATE deliveries SET credit_status = 'REFUNDED'
+    UPDATE partners SET voucher_balance = voucher_balance + 1
+    INSERT partners_ledger (+1, 'REFUND', 'Estorno: vínculo em livro existente')
+  ELSE IF action == NEW_CHILD:
+    child = INSERT children(..., pce_status='PAID', storage_quota=2GiB)
+    UPDATE deliveries SET credit_status = 'CONSUMED'
+    # saldo não muda: já foi debitado na reserva
 
-  # 4. Cria momentos
-  INSERT INTO moments (user_id, assets, type='PROFESSIONAL_GALLERY')
+  # 3. Copia arquivos (server-side copy no storage)
+  assets = delivery.assets_payload
+  FOR EACH asset IN assets:
+    storage_copy_object(source = ..., dest = ...)
+
+  # 4. Cria momento associado ao Child escolhido
+  INSERT INTO moments (child_id, ...)
 
   # 5. Marca como resgatado
   UPDATE vouchers SET status='REDEEMED', redeemed_by_user_id={user.id}

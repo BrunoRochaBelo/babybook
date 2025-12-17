@@ -94,6 +94,8 @@ export function DeliveryUploadPage() {
     e.preventDefault();
   };
 
+  const openFilePicker = () => fileInputRef.current?.click();
+
   if (isLoading) {
     return <PartnerLoadingState size="narrow" label="Carregando entrega…" />;
   }
@@ -193,8 +195,17 @@ export function DeliveryUploadPage() {
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        role="button"
+        tabIndex={0}
+        aria-label="Selecionar fotos para upload"
         className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={openFilePicker}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openFilePicker();
+          }
+        }}
       >
         <input
           ref={fileInputRef}
@@ -265,6 +276,8 @@ export function DeliveryUploadPage() {
                   <button
                     onClick={() => retryUpload(upload.id)}
                     className="p-1 text-gray-400 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400"
+                    aria-label="Tentar novamente"
+                    title="Tentar novamente"
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
@@ -276,6 +289,8 @@ export function DeliveryUploadPage() {
                 <button
                   onClick={() => removeUpload(upload.id)}
                   className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                  aria-label="Remover"
+                  title="Remover"
                 >
                   <X className="w-4 h-4" />
                 </button>

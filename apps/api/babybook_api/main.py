@@ -72,7 +72,8 @@ def create_app() -> FastAPI:
     app.include_router(guestbook.router, prefix="/guestbook", tags=["guestbook"])
     app.include_router(shares.router, tags=["shares"])
     app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
-    app.include_router(resumable_uploads.router, prefix="/uploads/resumable", tags=["uploads"])
+    if settings.feature_resumable_uploads:
+        app.include_router(resumable_uploads.router, prefix="/uploads/resumable", tags=["uploads"])
     app.include_router(media_processing.router, prefix="/media/processing", tags=["media"])
     app.include_router(assets.router, tags=["assets"])
     app.include_router(series.router, tags=["series"])

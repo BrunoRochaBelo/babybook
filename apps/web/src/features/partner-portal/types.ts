@@ -29,6 +29,7 @@ export type PartnerStatus = "pending" | "approved" | "suspended";
 
 export interface PartnerDashboardStats {
   voucher_balance: number;
+  reserved_credits?: number;
   total_deliveries: number;
   ready_deliveries: number;
   delivered_deliveries: number;
@@ -76,6 +77,7 @@ export interface Delivery {
   title: string;
   client_name: string | null;
   status: DeliveryStatus;
+  credit_status?: DeliveryCreditStatus | null;
   // Arquivamento (soft delete do fotógrafo)
   is_archived?: boolean;
   archived_at?: string | null;
@@ -85,6 +87,8 @@ export interface Delivery {
   redeemed_at: string | null;
   redeemed_by: string | null;
 }
+
+export type DeliveryCreditStatus = "reserved" | "consumed" | "refunded";
 
 export interface DeliveryAggregations {
   total: number;

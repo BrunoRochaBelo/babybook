@@ -97,7 +97,7 @@ Objetivo: substituir simulação/"confirm" manual por um fluxo real e auditável
 ### 4) Upload de mídia
 
 - **Cliente**: ffmpeg.wasm em Web Worker; heurística `SharedArrayBuffer` + `deviceMemory>=4GB` + size<500MB → compressão local (720p H.265); barra unificada (0-30% compressão, 30-100% upload); Wake Lock + beforeunload guard.
-- **Init**: POST /uploads/init {filename,size,mime,sha256,scope} → dedup (sha); presigned URLs para R2 (`tmp/uploads/{upload_uuid}/{part}`), part_size `upload_part_bytes`; retorna `upload_id`, `asset_id`, `urls`.
+- **Init**: POST /uploads/init {child_id,filename,size,mime,sha256,scope} → dedup (sha **por Child**); presigned URLs para R2 (`tmp/uploads/{upload_uuid}/{part}`), part_size `upload_part_bytes`; retorna `upload_id`, `asset_id`, `urls`.
 - **Upload**: PUT direto ao storage (Tus ou presigned multipart). Coletar ETags.
 - **Complete**: POST /uploads/complete com ETags + `Idempotency-Key`; marca asset `processing`; publica job na queue.
 - **Fallback**: se cliente fraco, upload RAW sem compressão; worker server-side transcode.

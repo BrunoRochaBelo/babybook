@@ -70,9 +70,10 @@ type CreateVaultDocumentInput = {
   note?: string | null;
 };
 
-export const useChildren = () =>
+export const useChildren = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["children"],
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<Child[]> => {
       const response = await apiClient.get("/children", {
         schema: paginatedChildrenSchema,
@@ -510,9 +511,24 @@ export const useUserProfile = (options?: { enabled?: boolean }) =>
       apiClient.get("/me", { schema: userProfileSchema }),
   });
 
-export const useStorageQuota = () =>
+export const useStorageQuota = (options?: {
+  enabled?: boolean;
+  childId?: string;
+}) =>
   useQuery({
-    queryKey: ["storage-quota"],
-    queryFn: async (): Promise<QuotaUsage> =>
-      apiClient.get("/me/usage", { schema: quotaUsageSchema }),
+    queryKey: ["storage-quota", options?.childId ?? null],
+    enabled: (options?.enabled ?? true) && Boolean(options?.childId),
+    queryFn: async (): Promise<QuotaUsage> => {
+      const childId = options?.childId;
+      if (!childId) {
+        throw new Error(
+          "useStorageQuota requer childId (o backend exige child_id em /me/usage)",
+        );
+      }
+
+      return apiClient.get("/me/usage", {
+        schema: quotaUsageSchema,
+        searchParams: { child_id: childId },
+      });
+    },
   });

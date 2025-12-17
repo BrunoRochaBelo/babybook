@@ -134,7 +134,7 @@ Princípios:
 - Infra multi-fornecedor: Cloudflare (Edge/CDN/Fila/Storage), Fly.io (API), Neon (DB), Modal (workers).
 - API stateless: Sessão via cookie \_\_Host-session. Permite escalar horizontalmente.
 - Upload direto ao storage (multipart): API não trafega payload pesado; apenas orquestra.
-- Quotas Base: 2 GiB de storage por conta; 60 momentos únicos; 5 entradas gratuitas para cada momento recorrente.
+- Quotas Base: 2 GiB de storage por **Child (Livro)**; 60 momentos únicos; 5 entradas gratuitas para cada momento recorrente.
 - Modelo de Negócio: Acesso Perpétuo (pagamento único) + Upsell de "Pacotes de Repetição" (pagamentos únicos adicionais). O modelo não é de assinatura (MRR) e não depende de upsell para sobreviver (graças ao PCE).
 - Formato canônico: Vídeo MP4 (H.264/AAC) em 720p (base). 1080p pode ser um entitlement (direito) concedido via upsell, mas não é um shed-load.
 
@@ -289,20 +289,31 @@ rules:
 
 ### 3.1 Entidades principais (Campos-chave)
 
-- **Account:**
+**Atualização (Golden Record — Child-Centric):** a entidade central do produto passa a ser o **Child (“O Livro”)**. A **Account** (usuário) é identidade e agregador de acessos; não é mais a unidade fiscal/física de quota.
+
+- **Account (Identidade / Login):**
   - id (uuid, pk)
   - email (text, unique, lower)
   - hashed_password (text)
   - status (enum: pending, active, archived)
-  - entitlements (jsonb) - Ver Seção 3.8 para a nova estrutura.
   - stripe_customer_id (text, unique, nullable)
   - last_login_at (timestptz)
 
-- **Child:**
-  - id (uuid, pk), account_id (fk), name (text), dob (date), timezone (text) (ex: 'America/Sao_Paulo').
+- **Child (“O Livro”):**
+  - id (uuid, pk)
+  - name (text)
+  - dob (date)
+  - storage_quota_bytes (int8, default 2 GiB)
+  - pce_status (enum: paid, unpaid)
+  - guardians (lista de responsáveis via RBAC; ver abaixo)
 
-- **ChildAccess (Guardião/Convidado):**
-  - id (uuid, pk), account_id (fk) (Ref: Account, o usuário que recebe o acesso), child_id (fk) (Ref: Child, o recurso sendo acessado), role (enum: owner, guardian, viewer). (Nota: Renomeado de 'Person' para 'ChildAccess' para clareza, alinhado à Matriz RBAC. A entidade 'Person' será usada futuramente para tagging.)
+**ChildAccess (Guardião/Convidado) — requisito do Golden Record:**
+
+- account_id (fk) (Ref: Account)
+- child_id (fk) (Ref: Child)
+- role (enum: owner, guardian, viewer)
+
+> Nota: este vínculo é o que resolve o problema de pais separados (tutores diferentes) e permite múltiplos guardiões com acesso ao mesmo Livro.
 
 - **Moment:**
   - id (uuid, pk)
@@ -326,11 +337,11 @@ rules:
 
 ### 3.2 Quotas e política de upsell (Alinhado com "Pacotes de Repetição")
 
-**Base (Acesso Perpétuo):** storage_quota = 2 GiB (limite físico). moments_quota = 60 (momentos únicos/guiados). recurrent_limit = 5 (limite de entradas para cada momento recorrente, ex: 5 "Visitas Especiais", 5 "Consultas").
+**Base (Acesso Perpétuo):** a quota física de storage (2 GiB) passa a ser **por Child (Livro)**. Os limites de momentos e repetições continuam sendo regras de produto, mas o enforcement físico (bytes) é sempre no nível do Livro.
 
 **Enforcement (Implementação):**
 
-- POST /uploads/init { ... filesize }: Checa Usage.total_bytes < Account.entitlements.quota_storage_gb. Se falhar, retorna 402 Payment Required (code: quota.bytes.exceeded).
+- POST /uploads/init { ... filesize }: Checa Usage.total_bytes(child_id) < Child.storage_quota_bytes. Se falhar, retorna 402 Payment Required (code: quota.bytes.exceeded).
 - POST /moments: Checa Usage.total_moments < Account.entitlements.moments_quota. Se falhar, retorna 402 (code: quota.moments.exceeded).
 - POST /moments { recurrent_chapter_id: '...' }: Checa Usage.recurrent_visits < Account.entitlements.recurrent_limit (a menos que Account.entitlements.features.unlimited_social == true).
 - Se a checagem (3) falhar, a API retorna 402 Payment Required (code: quota.recurrent_limit.exceeded).
@@ -448,6 +459,17 @@ partner_id UUID NOT NULL REFERENCES partners(id),
 client_name VARCHAR(255),
 assets_payload JSONB NOT NULL,
 status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CLAIMED', 'EXPIRED')),
+credit_status VARCHAR(20) DEFAULT 'RESERVED' CHECK (credit_status IN ('RESERVED', 'CONSUMED', 'REFUNDED')),
+created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Extrato do parceiro (auditoria obrigatória)
+CREATE TABLE partners_ledger (
+id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+partner_id UUID REFERENCES partners(id),
+amount INTEGER,
+type VARCHAR(20),
+description VARCHAR(255),
 created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -706,7 +728,12 @@ Repositório: As migrações (.py) são versionadas e tratadas como código, faz
 Execução (CI/CD): A migração será executada automaticamente durante o deploy no Fly.io, usando a diretiva [deploy.release_command] no fly.toml.
 
 ```
-fly.toml: [deploy] release_command = "alembic upgrade head"
+# Exemplo (quando houver fly.toml no app de API):
+# [deploy]
+# release_command = "cd apps/api && alembic upgrade head"
+#
+# Alternativa equivalente (sem depender do cwd):
+# release_command = "alembic -c apps/api/alembic.ini upgrade head"
 ```
 
 Rolling Updates: A API deve suportar, brevemente, N (código antigo) e N+1 (código novo) rodando simultaneamente. Migrações destrutivas (ex: DROP COLUMN) devem ser feitas em duas fases (deploy A introduz a mudança sem quebrar o código antigo; deploy B remove o código antigo e finaliza).

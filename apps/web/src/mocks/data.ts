@@ -622,6 +622,7 @@ export interface MockDelivery {
   status: "draft" | "pending_upload" | "ready" | "completed";
   assetsCount: number;
   voucherCode: string | null;
+  creditStatus?: "reserved" | "consumed" | "refunded" | null;
   archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -650,6 +651,7 @@ export const mockDeliveries: MockDelivery[] = [
     status: "ready",
     assetsCount: 15,
     voucherCode: "BB-SOFIA-2024",
+    creditStatus: "reserved",
     createdAt: "2024-12-10T14:00:00Z",
     updatedAt: "2024-12-10T16:30:00Z",
   },
@@ -663,6 +665,7 @@ export const mockDeliveries: MockDelivery[] = [
     status: "completed",
     assetsCount: 25,
     voucherCode: "BB-MIGUEL-2024",
+    creditStatus: "consumed",
     createdAt: "2024-12-08T10:00:00Z",
     updatedAt: "2024-12-09T11:00:00Z",
   },
@@ -676,6 +679,7 @@ export const mockDeliveries: MockDelivery[] = [
     status: "pending_upload",
     assetsCount: 0,
     voucherCode: null,
+    creditStatus: null,
     archivedAt: "2024-12-13T10:00:00Z",
     createdAt: "2024-12-12T09:00:00Z",
     updatedAt: "2024-12-12T09:00:00Z",

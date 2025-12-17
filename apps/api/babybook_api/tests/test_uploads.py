@@ -21,7 +21,12 @@ from .conftest import TestingSessionLocal
 
 
 def test_upload_flow_and_dedup(client: TestClient, login: None) -> None:
+    child_resp = client.post("/children", json={"name": "Bebe"})
+    assert child_resp.status_code == 201
+    child_id = child_resp.json()["id"]
+
     init_payload = {
+        "child_id": child_id,
         "filename": "video.mp4",
         "size": 5 * 1024 * 1024,
         "mime": "video/mp4",
@@ -53,6 +58,7 @@ def test_upload_flow_and_dedup(client: TestClient, login: None) -> None:
     asset = asyncio.run(_fetch_asset(UUID(data["asset_id"])))
     assert asset.status == "ready"
     assert asset.viewer_accessible is True
+    assert asset.child_id == UUID(child_id)
 
 
 async def _fetch_asset(asset_id: UUID) -> Asset:
@@ -65,6 +71,10 @@ async def _fetch_asset(asset_id: UUID) -> Asset:
 def test_upload_processed_by_worker(monkeypatch, client: TestClient, login: None) -> None:
     published: list[tuple[str, dict, dict]] = []
 
+    child_resp = client.post("/children", json={"name": "Bebe"})
+    assert child_resp.status_code == 201
+    child_id = child_resp.json()["id"]
+
     class CapturePublisher:
         async def publish(self, *, kind: str, payload: dict, metadata: dict | None = None) -> None:
             published.append((kind, payload, metadata or {}))
@@ -75,6 +85,7 @@ def test_upload_processed_by_worker(monkeypatch, client: TestClient, login: None
     app.dependency_overrides[get_queue_publisher] = override_queue_publisher
     try:
         init_payload = {
+            "child_id": child_id,
             "filename": "photo.jpg",
             "size": 1024,
             "mime": "image/jpeg",

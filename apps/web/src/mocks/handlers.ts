@@ -246,6 +246,7 @@ const toDeliveryResponse = (delivery: MockDelivery) => ({
   status: normalizeDeliveryStatus(delivery),
   assets_count: delivery.assetsCount,
   voucher_code: delivery.voucherCode,
+  credit_status: delivery.creditStatus ?? null,
   is_archived: Boolean(delivery.archivedAt),
   archived_at: delivery.archivedAt ?? null,
   created_at: delivery.createdAt,
@@ -536,8 +537,12 @@ export const handlers = [
       );
     }
     const deliveries = mutableDeliveries;
+    const reservedCredits = deliveries.filter(
+      (d) => (d.creditStatus ?? null) === "reserved" && !d.archivedAt,
+    ).length;
     return HttpResponse.json({
       voucher_balance: mockPartner.voucherBalance,
+      reserved_credits: reservedCredits,
       total_deliveries: deliveries.length,
       ready_deliveries: deliveries.filter((d) => d.status === "ready").length,
       delivered_deliveries: deliveries.filter(

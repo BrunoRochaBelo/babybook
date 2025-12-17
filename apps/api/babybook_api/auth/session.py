@@ -72,6 +72,40 @@ async def get_current_user(
     )
 
 
+async def get_optional_user(
+    token: str | None = Depends(_get_session_token),
+    db: AsyncSession = Depends(get_db_session),
+) -> UserSession | None:
+    """Retorna o usuário atual se autenticado; caso contrário, None.
+
+    Útil para endpoints de onboarding (ex.: resgate de voucher) que podem:
+    - funcionar com sessão existente, OU
+    - criar conta/sessão no próprio fluxo.
+    """
+    if not token:
+        return None
+    try:
+        session = await _fetch_session(db, token)
+    except AppError as exc:
+        # Para o caminho opcional, ausência/invalidade de sessão vira None.
+        if exc.status_code == 401 and exc.code == "auth.session.invalid":
+            return None
+        raise
+
+    user = session.user
+    if user is None:
+        return None
+
+    return UserSession(
+        id=str(user.id),
+        account_id=str(user.account_id),
+        email=user.email,
+        name=user.name,
+        locale=user.locale,
+        role=user.role,
+    )
+
+
 async def require_csrf_token(
     session: SessionModel = Depends(get_current_session),
     csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),

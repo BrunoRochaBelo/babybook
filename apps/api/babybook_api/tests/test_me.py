@@ -40,7 +40,8 @@ def test_usage_reflects_created_moments(client, login):
     )
     assert moment_resp.status_code == 201
 
-    usage = client.get("/me/usage").json()
-    assert usage["bytes_quota"] == settings.quota_storage_bytes
+    usage = client.get(f"/me/usage?child_id={child_id}").json()
+    # Quota é child-centric
+    assert usage["bytes_quota"] > 0
     assert usage["moments_quota"] == settings.quota_moments
     assert usage["moments_used"] == 1

@@ -139,6 +139,12 @@ export function DeliveryDetailPage() {
   const [voucherCard, setVoucherCard] = useState<VoucherCardData | null>(null);
   const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!copiedMessage) return;
+    const t = setTimeout(() => setCopiedMessage(null), 2600);
+    return () => clearTimeout(t);
+  }, [copiedMessage]);
+
   // Query
   const {
     data: delivery,
@@ -302,7 +308,9 @@ export function DeliveryDetailPage() {
             {delivery.client_name && (
               <span className="inline-flex items-center gap-1.5">
                 <User className="w-4 h-4" />
-                <span className="text-gray-700 dark:text-gray-200">{delivery.client_name}</span>
+                <span className="text-gray-700 dark:text-gray-200">
+                  {delivery.client_name}
+                </span>
               </span>
             )}
             <span className="inline-flex items-center gap-1.5">
@@ -370,12 +378,18 @@ export function DeliveryDetailPage() {
             {delivery.event_date && (
               <div className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span>Evento: <span className="font-medium text-gray-900 dark:text-white">{formatDate(delivery.event_date)}</span></span>
+                <span>
+                  Evento:{" "}
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {formatDate(delivery.event_date)}
+                  </span>
+                </span>
               </div>
             )}
             {delivery.description && (
               <div className="text-gray-600 dark:text-gray-300">
-                <span className="text-gray-400">Descrição:</span> {delivery.description}
+                <span className="text-gray-400">Descrição:</span>{" "}
+                {delivery.description}
               </div>
             )}
           </div>
@@ -579,8 +593,8 @@ function VoucherModal({
     (hasExistingVoucher
       ? {
           voucher_code: delivery.voucher_code!,
-          redeem_url: `${window.location.origin}/voucher/redeem/${delivery.voucher_code}`,
-          qr_data: `${window.location.origin}/voucher/redeem/${delivery.voucher_code}`,
+          redeem_url: `${window.location.origin}/resgate/${delivery.voucher_code}`,
+          qr_data: `${window.location.origin}/resgate/${delivery.voucher_code}`,
           studio_name: "",
           studio_logo_url: null,
           beneficiary_name: delivery.client_name,
@@ -601,8 +615,17 @@ function VoucherModal({
               </h2>
 
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Isso irá consumir <strong>1 crédito</strong> do seu saldo. O
-                voucher será único para esta entrega.
+                Isso irá <strong>reservar 1 crédito</strong> (em trânsito). No
+                resgate:
+                <br />• se o cliente criar um <strong>novo Baby Book</strong>, o
+                crédito vira <strong>CONSUMED</strong>;
+                <br />• se o cliente vincular a um{" "}
+                <strong>bebê existente</strong>, o crédito vira{" "}
+                <strong>REFUNDED</strong> (estorno automático).
+                <br />
+                <span className="inline-block mt-2">
+                  O voucher será único para esta entrega.
+                </span>
               </p>
 
               <div className="space-y-4 mb-6">

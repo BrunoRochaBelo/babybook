@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
     upload_part_bytes: int = 5 * 1024 * 1024
     upload_url_base: str = "https://uploads.dev.babybook"
+    # Se habilitado, o /uploads/complete valida tamanho e assinatura (magic bytes)
+    # no storage antes de enfileirar o processamento. Em dev/tests pode ser desligado.
+    upload_validation_enabled: bool = Field(default=False, alias="UPLOAD_VALIDATION_ENABLED")
     service_api_token: str = "service-token"
     billing_webhook_secret: str = "billing-secret"
     queue_provider: Literal["database", "cloudflare"] = "database"
@@ -86,6 +89,10 @@ class Settings(BaseSettings):
     
     # PIX payment method
     feature_pix_payment: bool = Field(default=False, alias="FEATURE_PIX_PAYMENT")
+
+    # Upload resiliente (experimental). Mantemos desligado por padrão
+    # até que tenha enforcement/atribuição 100% child-centric end-to-end.
+    feature_resumable_uploads: bool = Field(default=False, alias="FEATURE_RESUMABLE_UPLOADS")
 
 
 def _is_localhost_origin(origin: str) -> bool:

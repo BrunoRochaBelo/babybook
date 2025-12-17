@@ -5,12 +5,12 @@ from dataclasses import replace
 
 import uuid
 
-from fastapi import APIRouter, Depends, Header, Response
+from fastapi import APIRouter, Depends, Header, Query, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.db.models import Account, Moment, Child
+from babybook_api.db.models import Account, Asset, Child, Moment
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.schemas.me import MeResponse, MeUpdateRequest, UsageResponse
@@ -104,20 +104,39 @@ async def patch_me(
 async def usage_summary(
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    child_id: uuid.UUID = Query(
+        ..., 
+        description="ID do Child (Livro) para retornar quota/uso de storage de forma child-centric.",
+    ),
 ) -> UsageResponse:
     account_id = uuid.UUID(current_user.account_id)
+
+    stmt_child = select(Child).where(
+        Child.id == child_id,
+        Child.account_id == account_id,
+        Child.deleted_at.is_(None),
+    )
+    child = (await db.execute(stmt_child)).scalar_one_or_none()
+    if child is None:
+        raise AppError(status_code=404, code="child.not_found", message="Crianca nao encontrada.")
+
     stmt_moments = select(func.count()).select_from(Moment).where(
         Moment.account_id == account_id,
+        Moment.child_id == child.id,
         Moment.deleted_at.is_(None),
     )
     moments_used = (await db.execute(stmt_moments)).scalar_one()
 
-    stmt_account = select(Account).where(Account.id == account_id)
-    account = (await db.execute(stmt_account)).scalar_one()
+    stmt_used = select(func.coalesce(func.sum(Asset.size_bytes), 0)).where(
+        Asset.account_id == account_id,
+        Asset.child_id == child.id,
+        Asset.status != "failed",
+    )
+    bytes_used = (await db.execute(stmt_used)).scalar_one()
 
     return UsageResponse(
-        bytes_used=account.storage_bytes_used,
-        bytes_quota=account.plan_storage_bytes or settings.quota_storage_bytes,
+        bytes_used=bytes_used,
+        bytes_quota=child.storage_quota_bytes,
         moments_used=moments_used,
         moments_quota=settings.quota_moments,
     )

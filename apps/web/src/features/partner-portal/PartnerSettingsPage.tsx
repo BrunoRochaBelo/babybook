@@ -6,15 +6,8 @@
  */
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Camera,
-  Save,
-  Loader2,
-  Upload,
-  X,
-} from "lucide-react";
+import { Camera, Save, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
@@ -24,9 +17,9 @@ import { PartnerLoadingState } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 export function PartnerSettingsPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   usePartnerPageHeader(
     useMemo(
@@ -60,6 +53,15 @@ export function PartnerSettingsPage() {
       setLogoUrl(profile.logo_url);
     }
   }, [profile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    };
+  }, []);
 
   // Update mutation
   const updateMutation = useMutation({
@@ -111,14 +113,24 @@ export function PartnerSettingsPage() {
         return;
       }
       setLogoFile(file);
-      // Create preview URL
-      setLogoUrl(URL.createObjectURL(file));
+      // Create preview URL (revoga o anterior para evitar vazamento)
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+      const preview = URL.createObjectURL(file);
+      previewUrlRef.current = preview;
+      setLogoUrl(preview);
     }
   };
 
   const handleRemoveLogo = () => {
     setLogoFile(null);
     setLogoUrl(null);
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -175,6 +187,8 @@ export function PartnerSettingsPage() {
                     type="button"
                     onClick={handleRemoveLogo}
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                    aria-label="Remover logo"
+                    title="Remover logo"
                   >
                     <X className="w-3 h-3" />
                   </button>

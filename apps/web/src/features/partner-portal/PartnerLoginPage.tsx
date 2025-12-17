@@ -29,6 +29,14 @@ export function PartnerLoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const sanitizeRedirectTo = (value: string | null): string => {
+    if (!value) return "/partner";
+    // Permitimos apenas paths internos. Bloqueia http(s)://, // e esquemas.
+    if (!value.startsWith("/")) return "/partner";
+    if (value.startsWith("//")) return "/partner";
+    return value;
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -60,7 +68,7 @@ export function PartnerLoginPage() {
 
       // Navigate to redirect URL if available, otherwise go to partner portal
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirectTo") ?? "/partner";
+      const redirectTo = sanitizeRedirectTo(params.get("redirectTo"));
       navigate(redirectTo);
     } catch (err) {
       if (err instanceof Error) {
@@ -162,6 +170,9 @@ export function PartnerLoginPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                    aria-label={
+                      showPassword ? "Ocultar senha" : "Mostrar senha"
+                    }
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -176,6 +187,12 @@ export function PartnerLoginPage() {
                 <button
                   type="button"
                   onClick={() => setRememberMe(!rememberMe)}
+                  aria-pressed={rememberMe}
+                  aria-label={
+                    rememberMe
+                      ? "Desativar lembrar de mim"
+                      : "Ativar lembrar de mim"
+                  }
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
                     ${
@@ -240,8 +257,9 @@ export function PartnerLoginPage() {
           {/* Back to Home */}
           <div className="text-center mt-6">
             <a
-              href="http://localhost:3000/pro.html"
+              href={proUrl}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
+              rel="noreferrer"
             >
               ← Voltar para Baby Book Pro
             </a>

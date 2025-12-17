@@ -1,107 +1,235 @@
 /**
- * Voucher Redemption Page - Enhanced "Unboxing" Experience
+ * Voucher Redemption Page
  *
- * Page component for redeeming gift vouchers with magical animations.
- * Supports both authenticated users and new account creation.
- *
- * Design Goals (from Dossiê):
- * - "Efeito UAU" with celebratory animations
- * - Smooth unboxing experience while backend processes
- * - Immediate value perception (timeline with content)
+ * Fluxo alinhado ao Golden Record:
+ * - Token (código) imutável durante login/cadastro (sessionStorage + redirectTo)
+ * - Direcionamento comportamental: prioriza vínculo com bebê existente (economiza crédito)
+ * - Late binding no resgate (action EXISTING_CHILD/NEW_CHILD)
+ * - Proteções anti-misclick: disable imediato + idempotency_key
+ * - Hard stop quando quota de storage do usuário está no limite (upsell)
  */
 
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  Gift,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  ArrowRight,
   ArrowLeft,
+  ArrowRight,
+  Baby,
+  CheckCircle,
+  Gift,
+  HardDrive,
+  Loader2,
   Sparkles,
+  User,
+  UserPlus,
+  XCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+
 import { useVoucherRedemption } from "./useVoucherRedemption";
+import {
+  buildLoginRedirectToVoucherRedeem,
+  clearPersistedVoucherCode,
+  persistVoucherCode,
+  readPersistedVoucherCode,
+} from "./voucherToken";
+
+import { useChildren, useStorageQuota } from "@/hooks/api";
+import { useAuthStore } from "@/store/auth";
 import { Confetti, UnboxingAnimation } from "@/components/animations";
+
+type PostUnboxingAction =
+  | { type: "step"; step: "input" | "account" | "decision" | "hard_stop" }
+  | { type: "navigate"; url: string };
+
+const makeIdempotencyKey = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `redeem_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+};
 
 export function VoucherRedemptionPage() {
   const { code: urlCode } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   const { state, setCode, validate, redeem, goToStep, reset } =
     useVoucherRedemption();
 
   const [showUnboxing, setShowUnboxing] = useState(false);
   const [unboxingProgress, setUnboxingProgress] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [postUnboxingAction, setPostUnboxingAction] =
+    useState<PostUnboxingAction | null>(null);
+  const [hasAutoValidated, setHasAutoValidated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
-  // Pre-fill code from URL if present
-  useEffect(() => {
-    if (urlCode && !state.code) {
-      setCode(urlCode);
-      // Auto-validate if code comes from URL
-      setTimeout(() => validate(), 500);
-    }
-  }, [urlCode, state.code, setCode, validate]);
+  const childrenQuery = useChildren({
+    enabled: isAuthenticated && state.step === "decision",
+  });
 
-  // Simulate progress during redemption
+  const quotaQuery = useStorageQuota({
+    enabled:
+      isAuthenticated && state.step === "decision" && Boolean(selectedChildId),
+    childId: selectedChildId ?? undefined,
+  });
+
+  const children = childrenQuery.data ?? [];
+
+  const isStorageFull = useMemo(() => {
+    const quota = quotaQuery.data;
+    if (!quota) return false;
+    return quota.bytesUsed >= quota.bytesQuota;
+  }, [quotaQuery.data]);
+
+  // Inicializa o código a partir da URL ou do sessionStorage
   useEffect(() => {
-    if (showUnboxing && unboxingProgress < 95) {
-      const timer = setInterval(() => {
-        setUnboxingProgress((prev) => {
-          const increment = Math.random() * 15 + 5;
-          return Math.min(prev + increment, 95);
-        });
-      }, 400);
-      return () => clearInterval(timer);
+    const persisted = readPersistedVoucherCode();
+    const initial = (urlCode ?? persisted ?? "").trim();
+    if (initial && !state.code) {
+      setCode(initial);
     }
+    if (urlCode) {
+      persistVoucherCode(urlCode);
+    }
+  }, [setCode, state.code, urlCode]);
+
+  // Auto-validate em deep-link (ex.: link do WhatsApp)
+  useEffect(() => {
+    if (!urlCode) return;
+    if (hasAutoValidated) return;
+    if (!state.code) return;
+
+    setHasAutoValidated(true);
+    void handleValidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCode, hasAutoValidated, state.code]);
+
+  // Simula progresso durante unboxing
+  useEffect(() => {
+    if (!showUnboxing) return;
+    if (unboxingProgress >= 95) return;
+
+    const timer = setInterval(() => {
+      setUnboxingProgress((prev) => {
+        const inc = Math.random() * 14 + 6;
+        return Math.min(prev + inc, 95);
+      });
+    }, 420);
+
+    return () => clearInterval(timer);
   }, [showUnboxing, unboxingProgress]);
 
-  // Handle redemption with unboxing animation
-  const handleRedeemWithAnimation = async (request?: {
-    create_account?: { email: string; name: string; password: string };
-  }) => {
+  const startUnboxing = (action: PostUnboxingAction) => {
+    setPostUnboxingAction(action);
     setShowUnboxing(true);
     setUnboxingProgress(10);
-
-    // Track if this is a new user registration
-    setIsNewUser(!!request?.create_account);
-
-    const result = await redeem(request);
-
-    if (result?.success) {
-      setUnboxingProgress(100);
-      setShowConfetti(true);
-    } else {
-      setShowUnboxing(false);
-      setUnboxingProgress(0);
-    }
   };
 
   const handleUnboxingComplete = () => {
-    // New users go to onboarding, existing users go directly to timeline
-    if (isNewUser) {
-      navigate("/app/onboarding");
-    } else {
-      navigate("/jornada");
+    setShowUnboxing(false);
+    setUnboxingProgress(0);
+
+    const action = postUnboxingAction;
+    setPostUnboxingAction(null);
+    if (!action) return;
+
+    if (action.type === "navigate") {
+      navigate(action.url);
+      return;
     }
+    goToStep(action.step);
   };
+
+  const handleValidate = async () => {
+    persistVoucherCode(state.code);
+    goToStep("validation");
+    startUnboxing({
+      type: "step",
+      step: isAuthenticated ? "decision" : "account",
+    });
+
+    const result = await validate();
+    if (!result) {
+      // validate() já setou step=error e error
+      setShowUnboxing(false);
+      setUnboxingProgress(0);
+      return;
+    }
+    // Sucesso: finaliza animação e segue para account/decision
+    setUnboxingProgress(100);
+  };
+
+  const goToLogin = () => {
+    persistVoucherCode(state.code);
+    const redirectTo = buildLoginRedirectToVoucherRedeem(state.code);
+    navigate(`/login?redirectTo=${encodeURIComponent(redirectTo)}`);
+  };
+
+  const goToRegister = () => {
+    persistVoucherCode(state.code);
+    const redirectTo = buildLoginRedirectToVoucherRedeem(state.code);
+    navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`);
+  };
+
+  const handleRedeem = async (params: {
+    action: "EXISTING_CHILD" | "NEW_CHILD";
+    childId?: string;
+  }) => {
+    if (isSubmitting || state.isLoading || showUnboxing) return;
+
+    // Hard stop antes de qualquer side-effect: evita criar momento/cópias sem quota.
+    // A quota é child-centric. Para NEW_CHILD (novo livro), assumimos quota vazia.
+    if (params.action === "EXISTING_CHILD" && isStorageFull) {
+      goToStep("hard_stop");
+      return;
+    }
+
+    setIsSubmitting(true);
+    goToStep("confirmation");
+    startUnboxing({ type: "step", step: "decision" });
+
+    const result = await redeem({
+      action: params.action,
+      child_id: params.childId,
+      idempotency_key: makeIdempotencyKey(),
+    });
+
+    if (!result?.success) {
+      setShowUnboxing(false);
+      setUnboxingProgress(0);
+      setIsSubmitting(false);
+      return;
+    }
+
+    clearPersistedVoucherCode();
+    setShowConfetti(true);
+    setPostUnboxingAction({
+      type: "navigate",
+      url: result.redirect_url || "/jornada",
+    });
+    setUnboxingProgress(100);
+    setIsSubmitting(false);
+  };
+
+  const primaryTitle =
+    state.step === "input"
+      ? "Insira o código do seu voucher para abrir seu presente"
+      : "Complete o resgate para acessar suas memórias";
 
   return (
     <>
-      {/* Confetti Celebration */}
       <Confetti isActive={showConfetti} duration={4000} particleCount={80} />
 
-      {/* Unboxing Animation Overlay */}
       <UnboxingAnimation
-        isActive={showUnboxing && state.step === "success"}
+        isActive={showUnboxing}
         progress={unboxingProgress}
         partnerName={state.validation?.partner_name ?? undefined}
         onComplete={handleUnboxingComplete}
       />
 
-      {/* Main Content */}
       <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -110,7 +238,6 @@ export function VoucherRedemptionPage() {
           className="w-full max-w-md"
         >
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-pink-100">
-            {/* Header */}
             <div className="text-center mb-8">
               <motion.div
                 initial={{ scale: 0.8 }}
@@ -123,14 +250,9 @@ export function VoucherRedemptionPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Resgatar Presente
               </h1>
-              <p className="text-gray-600 mt-2">
-                {state.step === "input"
-                  ? "Insira o código do seu voucher para abrir seu presente"
-                  : "Complete o resgate para acessar suas memórias"}
-              </p>
+              <p className="text-gray-600 mt-2">{primaryTitle}</p>
             </div>
 
-            {/* Steps */}
             <AnimatePresence mode="wait">
               {state.step === "input" && (
                 <motion.div
@@ -141,9 +263,12 @@ export function VoucherRedemptionPage() {
                 >
                   <VoucherInputStep
                     code={state.code}
-                    onCodeChange={setCode}
-                    onSubmit={validate}
-                    isLoading={state.isLoading}
+                    onCodeChange={(value) => {
+                      setCode(value);
+                      persistVoucherCode(value);
+                    }}
+                    onSubmit={handleValidate}
+                    isLoading={state.isLoading || showUnboxing}
                     error={state.error}
                   />
                 </motion.div>
@@ -156,26 +281,58 @@ export function VoucherRedemptionPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <AccountStep
+                  <AccountGateStep
                     validation={state.validation}
-                    onRedeem={handleRedeemWithAnimation}
                     onBack={() => goToStep("input")}
-                    isLoading={state.isLoading || showUnboxing}
-                    error={state.error}
+                    onLogin={goToLogin}
+                    onRegister={goToRegister}
                   />
                 </motion.div>
               )}
 
-              {state.step === "success" && !showUnboxing && (
+              {state.step === "decision" && state.validation && (
                 <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  key="decision"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <DecisionStep
+                    validation={state.validation}
+                    children={children}
+                    isChildrenLoading={childrenQuery.isLoading}
+                    selectedChildId={selectedChildId}
+                    onSelectChild={setSelectedChildId}
+                    isStorageLoading={quotaQuery.isLoading}
+                    isStorageFull={isStorageFull}
+                    onBack={() => goToStep("input")}
+                    onRedeemExisting={() =>
+                      handleRedeem({
+                        action: "EXISTING_CHILD",
+                        childId: selectedChildId ?? undefined,
+                      })
+                    }
+                    onRedeemNew={() =>
+                      handleRedeem({
+                        action: "NEW_CHILD",
+                      })
+                    }
+                    isSubmitting={
+                      isSubmitting || state.isLoading || showUnboxing
+                    }
+                  />
+                </motion.div>
+              )}
+
+              {state.step === "hard_stop" && (
+                <motion.div
+                  key="hard_stop"
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <SuccessStep
-                    assetsCount={state.validation?.assets_count ?? 0}
-                    partnerName={state.validation?.partner_name ?? ""}
-                    onContinue={handleUnboxingComplete}
+                  <HardStopStep
+                    onBack={() => goToStep("decision")}
+                    onUpsell={() => navigate("/checkout")}
                   />
                 </motion.div>
               )}
@@ -183,16 +340,29 @@ export function VoucherRedemptionPage() {
               {state.step === "error" && (
                 <motion.div
                   key="error"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
                   <ErrorStep error={state.error} onRetry={reset} />
                 </motion.div>
               )}
+
+              {state.step === "success" && !showUnboxing && (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <SuccessStep
+                    assetsCount={state.validation?.assets_count ?? 0}
+                    partnerName={state.validation?.partner_name ?? ""}
+                    onContinue={() => navigate("/jornada")}
+                  />
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
-          {/* Footer Link */}
           <p className="text-center text-sm text-gray-500 mt-6">
             Não tem um voucher?{" "}
             <a
@@ -227,7 +397,6 @@ function VoucherInputStep({
   isLoading,
   error,
 }: VoucherInputStepProps) {
-  // Format code with dashes for better readability
   const formatCode = (value: string) => {
     const clean = value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
     const parts = clean.match(/.{1,4}/g) || [];
@@ -237,7 +406,6 @@ function VoucherInputStep({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCode(e.target.value);
     if (formatted.length <= 14) {
-      // XXXX-XXXX-XXXX
       onCodeChange(formatted);
     }
   };
@@ -302,189 +470,311 @@ function VoucherInputStep({
   );
 }
 
-interface AccountStepProps {
+interface AccountGateStepProps {
   validation: {
     partner_name: string | null;
     delivery_title: string | null;
     assets_count: number;
   };
-  onRedeem: (request?: {
-    create_account?: { email: string; name: string; password: string };
-  }) => Promise<unknown>;
   onBack: () => void;
-  isLoading: boolean;
-  error: string | null;
+  onLogin: () => void;
+  onRegister: () => void;
 }
 
-function AccountStep({
+function AccountGateStep({
   validation,
-  onRedeem,
   onBack,
-  isLoading,
-  error,
-}: AccountStepProps) {
-  const [mode, setMode] = useState<"login" | "register">("register");
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
+  onLogin,
+  onRegister,
+}: AccountGateStepProps) {
+  return (
+    <div className="space-y-6">
+      <VoucherInfoCard validation={validation} />
 
-  const handleSubmit = () => {
-    if (mode === "register") {
-      onRedeem({
-        create_account: { email, name, password },
-      });
-    } else {
-      // For existing users, just redeem without account creation
-      onRedeem();
-    }
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm text-gray-700">
+          Para escolher <strong>onde guardar</strong> estas memórias, faça login
+          ou crie sua conta. O código do voucher já está seguro com você.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        <button
+          onClick={onRegister}
+          className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-pink-200"
+        >
+          <UserPlus className="w-5 h-5" />
+          Criar conta e continuar
+          <ArrowRight className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onLogin}
+          className="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+        >
+          <User className="w-5 h-5" />
+          Já tenho conta
+        </button>
+      </div>
+
+      <button
+        onClick={onBack}
+        className="w-full py-3 px-4 text-gray-600 font-semibold rounded-2xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Voltar
+      </button>
+    </div>
+  );
+}
+
+function VoucherInfoCard({
+  validation,
+}: {
+  validation: {
+    partner_name: string | null;
+    delivery_title: string | null;
+    assets_count: number;
   };
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle className="w-6 h-6 text-green-600" />
+        </div>
+        <div>
+          <span className="font-semibold text-green-800">Voucher Válido!</span>
+          {validation.partner_name && (
+            <p className="text-sm text-green-600">
+              Presente de <strong>{validation.partner_name}</strong>
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-4 text-sm text-green-700">
+        <span className="flex items-center gap-1">
+          <Sparkles className="w-4 h-4" />
+          {validation.assets_count} memória(s)
+        </span>
+        {validation.delivery_title && (
+          <span>• {validation.delivery_title}</span>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+interface DecisionStepProps {
+  validation: {
+    partner_name: string | null;
+    delivery_title: string | null;
+    assets_count: number;
+  };
+  children: Array<{ id: string; name: string }>;
+  isChildrenLoading: boolean;
+  selectedChildId: string | null;
+  onSelectChild: (id: string | null) => void;
+  isStorageLoading: boolean;
+  isStorageFull: boolean;
+  onBack: () => void;
+  onRedeemExisting: () => void;
+  onRedeemNew: () => void;
+  isSubmitting: boolean;
+}
+
+function DecisionStep({
+  validation,
+  children,
+  isChildrenLoading,
+  selectedChildId,
+  onSelectChild,
+  isStorageLoading,
+  isStorageFull,
+  onBack,
+  onRedeemExisting,
+  onRedeemNew,
+  isSubmitting,
+}: DecisionStepProps) {
+  const hasChildren = children.length > 0;
+  const selected = selectedChildId ?? (hasChildren ? children[0].id : null);
+
+  useEffect(() => {
+    if (!hasChildren) return;
+    if (selectedChildId) return;
+    onSelectChild(children[0].id);
+  }, [children, hasChildren, onSelectChild, selectedChildId]);
+
+  const isPrimaryDisabled =
+    isSubmitting ||
+    isChildrenLoading ||
+    isStorageLoading ||
+    !hasChildren ||
+    (hasChildren && !selected);
 
   return (
     <div className="space-y-6">
-      {/* Voucher Info - Celebration Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5"
-      >
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-          </div>
-          <div>
-            <span className="font-semibold text-green-800">
-              Voucher Válido!
-            </span>
-            {validation.partner_name && (
-              <p className="text-sm text-green-600">
-                Presente de <strong>{validation.partner_name}</strong>
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-green-700">
-          <span className="flex items-center gap-1">
-            <Sparkles className="w-4 h-4" />
-            {validation.assets_count} memória(s)
-          </span>
-          {validation.delivery_title && (
-            <span>• {validation.delivery_title}</span>
-          )}
-        </div>
-      </motion.div>
+      <VoucherInfoCard validation={validation} />
 
-      {/* Mode Toggle */}
-      <div className="flex rounded-2xl border border-gray-200 overflow-hidden p-1 bg-gray-50">
-        <button
-          onClick={() => setMode("register")}
-          className={`flex-1 py-3 text-sm font-medium rounded-xl transition-all ${
-            mode === "register"
-              ? "bg-white text-pink-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Sou Novo(a)
-        </button>
-        <button
-          onClick={() => setMode("login")}
-          className={`flex-1 py-3 text-sm font-medium rounded-xl transition-all ${
-            mode === "login"
-              ? "bg-white text-pink-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Já Tenho Conta
-        </button>
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">
+          Onde devemos guardar estas fotos?
+        </h2>
+        <p className="text-sm text-gray-600 mt-2">
+          Recomendamos vincular a um bebê existente — isso evita criar um Baby
+          Book duplicado e <strong>economiza o crédito do fotógrafo</strong>.
+        </p>
       </div>
 
-      {/* Form */}
-      <div className="space-y-4">
-        {mode === "register" && (
+      {isStorageFull && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <HardDrive className="mt-0.5 h-5 w-5 text-amber-700" />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Seu Nome
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Maria Silva"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-              disabled={isLoading}
-            />
+            <p className="text-sm font-semibold text-amber-900">
+              Seu espaço está no limite
+            </p>
+            <p className="text-sm text-amber-800 mt-1">
+              Antes de importar as memórias, precisamos liberar armazenamento.
+            </p>
           </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            E-mail
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-            disabled={isLoading}
-          />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Senha
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl"
-        >
-          <XCircle className="w-4 h-4 flex-shrink-0" />
-          <span>{error}</span>
-        </motion.div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          disabled={isLoading}
-          className="flex-1 py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Voltar
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={
-            isLoading || !email || !password || (mode === "register" && !name)
-          }
-          className="flex-1 py-3 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-pink-200 disabled:shadow-none"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Abrindo...
-            </>
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Baby className="h-5 w-5 text-pink-600" />
+              Vincular a bebê existente (recomendado)
+            </p>
+            {isChildrenLoading && (
+              <span className="text-xs text-gray-500 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Carregando...
+              </span>
+            )}
+          </div>
+
+          {hasChildren ? (
+            <div className="mt-3 space-y-2">
+              {children.slice(0, 4).map((child) => {
+                const isSelected = child.id === selected;
+                return (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => onSelectChild(child.id)}
+                    className={`w-full flex items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                      isSelected
+                        ? "border-pink-300 bg-pink-50"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-gray-900">
+                      {child.name}
+                    </span>
+                    {isSelected && (
+                      <span className="text-xs font-semibold text-pink-700">
+                        Selecionado
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {children.length > 4 && (
+                <p className="text-xs text-gray-500">
+                  Mostrando 4 de {children.length}. (Vamos deixar essa lista
+                  linda já já.)
+                </p>
+              )}
+            </div>
           ) : (
-            <>
-              Abrir Presente
-              <Gift className="w-5 h-5" />
-            </>
+            <p className="mt-2 text-sm text-gray-600">
+              Você ainda não tem um bebê cadastrado. Sem problemas — vamos criar
+              um Baby Book novo.
+            </p>
           )}
-        </button>
+
+          <button
+            type="button"
+            disabled={isPrimaryDisabled || isStorageFull}
+            onClick={onRedeemExisting}
+            className="mt-4 w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-pink-200 disabled:shadow-none"
+          >
+            Guardar neste bebê
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 p-4">
+          <p className="text-sm font-semibold text-gray-900">
+            Criar um novo Baby Book (segunda opção)
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            Use se estas fotos são de outro bebê. Caso contrário, você pode
+            acabar com dois Baby Books para a mesma criança.
+          </p>
+          <button
+            type="button"
+            disabled={isSubmitting || isStorageLoading}
+            onClick={onRedeemNew}
+            className="mt-4 w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+          >
+            Criar novo Baby Book
+          </button>
+        </div>
       </div>
+
+      <button
+        onClick={onBack}
+        className="w-full py-3 px-4 text-gray-600 font-semibold rounded-2xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Voltar
+      </button>
+    </div>
+  );
+}
+
+function HardStopStep({
+  onBack,
+  onUpsell,
+}: {
+  onBack: () => void;
+  onUpsell: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-2xl">
+          <HardDrive className="w-10 h-10 text-amber-700" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Seu Baby Book está sem espaço
+        </h2>
+        <p className="text-gray-600">
+          Para importar este presente com segurança, precisamos liberar
+          armazenamento. Assim você não perde nada no meio do caminho.
+        </p>
+      </div>
+
+      <button
+        onClick={onUpsell}
+        className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-pink-200"
+      >
+        Assinar para liberar espaço
+        <ArrowRight className="w-5 h-5" />
+      </button>
+      <button
+        onClick={onBack}
+        className="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Voltar
+      </button>
     </div>
   );
 }
@@ -512,7 +802,9 @@ function SuccessStep({
       </motion.div>
 
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Presente Aberto!</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Presente Importado!
+        </h2>
         <p className="text-gray-600 mt-2">
           {assetsCount} memória(s) {partnerName ? `de ${partnerName} ` : ""}
           foram adicionadas ao seu Baby Book.

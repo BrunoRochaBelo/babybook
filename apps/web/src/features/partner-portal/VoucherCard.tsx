@@ -7,7 +7,7 @@
  * - Compartilhamento via WhatsApp
  */
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Download,
@@ -31,6 +31,24 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const redeemUrl = useMemo(() => {
+    try {
+      const u = new URL(data.redeem_url, window.location.origin);
+      // Normaliza para a rota curta e pública (mantemos aliases no router).
+      u.pathname = u.pathname.replace(/^\/voucher\/redeem\//, "/resgate/");
+      u.pathname = u.pathname.replace(/^\/resgatar\//, "/resgate/");
+      return u.toString();
+    } catch {
+      // Fallback: se for uma URL relativa ou inválida, não arrisca quebrar.
+      return data.redeem_url;
+    }
+  }, [data.redeem_url]);
+
+  const openExternal = useCallback((url: string) => {
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if (w) w.opener = null;
+  }, []);
+
   const handleCopyCode = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(data.voucher_code);
@@ -44,13 +62,13 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
 
   const handleCopyUrl = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(data.redeem_url);
+      await navigator.clipboard.writeText(redeemUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
-  }, [data.redeem_url]);
+  }, [redeemUrl]);
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current) return;
@@ -80,16 +98,17 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
 
   const handleWhatsAppShare = useCallback(() => {
     const message = encodeURIComponent(
-      `🎁 Presente especial para você!\n\n` +
+      `Presente especial para você!\n\n` +
         `${data.beneficiary_name ? `Olá ${data.beneficiary_name}! ` : ""}` +
-        `Você recebeu acesso ao Baby Book - um álbum digital para guardar as memórias mais preciosas.\n\n` +
-        `🔑 Seu código: ${data.voucher_code}\n\n` +
-        `📱 Acesse: ${data.redeem_url}\n\n` +
-        `${data.message ? `"${data.message}"\n\n` : ""}` +
-        `Com carinho, ${data.studio_name || "seu fotógrafo"} 💕`,
+        `Você recebeu acesso ao Baby Book — um álbum digital para guardar as memórias mais preciosas.\n\n` +
+        `Código de resgate: ${data.voucher_code}\n` +
+        `Link: ${redeemUrl}\n\n` +
+        `Se abrir uma tela de login, tudo bem: o código fica salvo e você continua o resgate depois de entrar/criar conta.\n\n` +
+        `${data.message ? `Mensagem do fotógrafo: "${data.message}"\n\n` : ""}` +
+        `Com carinho, ${data.studio_name || "seu fotógrafo"}`,
     );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
-  }, [data]);
+    openExternal(`https://wa.me/?text=${message}`);
+  }, [data, openExternal, redeemUrl]);
 
   const handleEmailShare = useCallback(() => {
     const subject = encodeURIComponent(
@@ -100,13 +119,14 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
         `Você recebeu um presente muito especial: acesso ao Baby Book, ` +
         `um álbum digital para guardar as memórias mais preciosas dos primeiros anos de vida.\n\n` +
         `🔑 Seu código de resgate: ${data.voucher_code}\n\n` +
-        `📱 Para acessar, clique no link: ${data.redeem_url}\n\n` +
+        `📱 Para acessar, clique no link: ${redeemUrl}\n\n` +
+        `Se o link abrir uma tela de login, não se preocupe: o código fica salvo e você continua depois de entrar/criar conta.\n\n` +
         `${data.message ? `Mensagem do fotógrafo:\n"${data.message}"\n\n` : ""}` +
         `📷 ${data.assets_count} fotos estão esperando por você!\n\n` +
         `Com carinho,\n${data.studio_name || "Seu fotógrafo"}`,
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  }, [data]);
+  }, [data, redeemUrl]);
 
   return (
     <div className="space-y-6">
@@ -135,7 +155,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
         <div className="flex justify-center mb-6">
           <div className="bg-white p-4 rounded-xl shadow-sm">
             <QRCodeSVG
-              value={data.redeem_url}
+              value={redeemUrl}
               size={160}
               level="M"
               includeMargin={false}
@@ -174,7 +194,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
             Escaneie o QR Code ou acesse:
           </p>
           <p className="text-center text-xs text-pink-600 font-medium mt-1 break-all">
-            {data.redeem_url}
+            {redeemUrl}
           </p>
         </div>
       </div>

@@ -23,11 +23,22 @@ worker_app = typer.Typer(help="Operações com a fila dos workers")
 app.add_typer(worker_app, name="worker-jobs")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-ALEMBIC_INI = PROJECT_ROOT / "alembic.ini"
+
+# Fonte canônica de migrações do banco compartilhado (API + Admin).
+#
+# Motivo: este repositório historicamente teve mais de um diretório Alembic.
+# Manter cadeias distintas para o mesmo banco é arriscado (histórico divergente,
+# possibilidade de criar tabelas duplicadas, e version table inconsistente).
+#
+# Por padrão, o CLI do admin executa as migrações canônicas da API.
+APPS_ROOT = PROJECT_ROOT.parent
+ALEMBIC_INI = APPS_ROOT / "api" / "alembic.ini"
 
 
 def _alembic_config(database_url: Optional[str]) -> AlembicConfig:
     cfg = AlembicConfig(str(ALEMBIC_INI))
+    # Torna a resolução do script_location robusta (independente do cwd).
+    cfg.set_main_option("script_location", str(APPS_ROOT / "api" / "alembic"))
     if database_url:
         cfg.set_main_option("sqlalchemy.url", database_url)
     return cfg
