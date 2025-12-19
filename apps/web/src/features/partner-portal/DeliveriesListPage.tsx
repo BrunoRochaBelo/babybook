@@ -45,6 +45,7 @@ import { PartnerPage } from "@/layouts/PartnerPage";
 import {
   PartnerEmptyState,
   PartnerLoadingState,
+  PartnerErrorState,
 } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
@@ -143,30 +144,30 @@ function CreditStatusBadge({
     reserved: {
       className:
         "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200",
-      label: "RESERVED",
+      label: "Em processamento",
       title:
-        "RESERVED: crédito reservado (em trânsito). No resgate, vira CONSUMED (novo bebê) ou REFUNDED (bebê existente).",
+        "Crédito reservado e em processamento. Será confirmado quando o cliente resgatar o voucher.",
     },
     not_required: {
       className:
         "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200",
-      label: "N/A",
+      label: "Sem custo",
       title:
-        "N/A: esta entrega é sem voucher (cliente já tem conta). O custo é por criança e só ocorre se o cliente criar um novo Baby Book durante a importação.",
+        "Esta entrega não requer voucher porque o cliente já tem conta. Só haverá cobrança se criar um novo Baby Book.",
     },
     consumed: {
       className:
         "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200",
-      label: "CONSUMED",
+      label: "Confirmado",
       title:
-        "CONSUMED: crédito consumido (novo Baby Book criado/contabilizado).",
+        "Crédito utilizado! O cliente criou um novo Baby Book com este voucher.",
     },
     refunded: {
       className:
         "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300",
-      label: "REFUNDED",
+      label: "Devolvido",
       title:
-        "REFUNDED: crédito estornado (cliente vinculou a um bebê existente).",
+        "Crédito devolvido automaticamente porque o cliente vinculou a um Baby Book existente.",
     },
   };
 
@@ -407,10 +408,12 @@ export function DeliveriesListPage() {
   const {
     data,
     isLoading,
+    isError,
     isFetching,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["partner", "deliveries", "list", statusFilter, includeArchived],
     initialPageParam: 0,
@@ -429,6 +432,16 @@ export function DeliveriesListPage() {
       return loaded < (lastPage.total || 0) ? loaded : undefined;
     },
   });
+
+  // Tratamento de erro de carregamento
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar as entregas"
+        onRetry={refetch}
+      />
+    );
+  }
 
   // Mutation para arquivar
   const archiveMutation = useMutation({
@@ -777,14 +790,14 @@ export function DeliveriesListPage() {
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden md:block mb-6">
+      <div className="hidden md:block mb-8">
         <PartnerBackButton to="/partner" label="Voltar ao portal" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Minhas Entregas
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
               {aggregations ? (
                 <>
                   <span className="font-medium text-gray-700 dark:text-gray-200">

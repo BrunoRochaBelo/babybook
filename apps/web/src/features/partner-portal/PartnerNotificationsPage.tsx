@@ -211,9 +211,22 @@ export function PartnerNotificationsPage() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {notifications.length === 0 ? (
           <div className="p-12 text-center">
-            <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
-              Nenhuma notificação ainda
+            {/* Ilustração animada */}
+            <div className="relative w-24 h-24 mx-auto mb-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-full animate-pulse" />
+              <div className="absolute inset-2 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <Bell className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+              </div>
+              {/* Estrelinhas decorativas */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
+              <div className="absolute top-2 -left-2 w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+              <div className="absolute -bottom-1 right-2 w-2.5 h-2.5 bg-pink-300 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Tudo em dia! 🎉
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
+              Você não tem notificações no momento. Quando houver novidades, elas aparecerão aqui.
             </p>
           </div>
         ) : (

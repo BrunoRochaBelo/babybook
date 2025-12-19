@@ -239,7 +239,6 @@ export function DeliveryDetailPage() {
     return (
       <PartnerErrorState
         title="Entrega não encontrada"
-        description="Não encontramos essa entrega (ou você não tem acesso a ela)."
         primaryAction={{
           label: "Voltar às entregas",
           to: "/partner/deliveries",
@@ -247,6 +246,7 @@ export function DeliveryDetailPage() {
       />
     );
   }
+
 
   const hasVoucher = !!delivery.voucher_code;
   const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;

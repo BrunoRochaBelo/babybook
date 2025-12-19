@@ -13,8 +13,10 @@ import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import { PartnerLoadingState } from "@/layouts/partnerStates";
+import { PartnerLoadingState, PartnerErrorState } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
+import { useUnsavedChangesWarning } from "@/hooks/useOnlineStatus";
+import { SuccessButton } from "@/components/SuccessButton";
 
 export function PartnerSettingsPage() {
   const queryClient = useQueryClient();
@@ -39,10 +41,20 @@ export function PartnerSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   // Query
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError, refetch } = useQuery({
     queryKey: ["partner", "profile"],
     queryFn: getPartnerProfile,
   });
+
+  // Tratamento de erro de carregamento
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar suas configurações"
+        onRetry={refetch}
+      />
+    );
+  }
 
   // Update state when profile loads
   useEffect(() => {
@@ -63,6 +75,23 @@ export function PartnerSettingsPage() {
     };
   }, []);
 
+  // Detectar alterações não salvas
+  const hasUnsavedChanges = profile ? (
+    name !== (profile.name || "") ||
+    studioName !== (profile.studio_name || "") ||
+    phone !== (profile.phone || "") ||
+    logoFile !== null
+  ) : false;
+
+  // Alertar ao sair com alterações não salvas
+  useUnsavedChangesWarning(
+    hasUnsavedChanges,
+    "Você tem alterações não salvas. Tem certeza que deseja sair?"
+  );
+
+  // Estado de sucesso para o botão
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: (
@@ -72,6 +101,7 @@ export function PartnerSettingsPage() {
     ) => updatePartnerProfile(updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partner", "profile"] });
+      setSaveSuccess(true);
       toast.success("Alterações salvas com sucesso!");
     },
     onError: (err) => {
@@ -151,12 +181,12 @@ export function PartnerSettingsPage() {
   return (
     <PartnerPage>
       {/* Desktop Header */}
-      <div className="hidden md:block mb-6">
+      <div className="hidden md:block mb-8">
         <PartnerBackButton label="Voltar" />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           Configurações do Perfil
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
           Gerencie as informações do seu estúdio
         </p>
       </div>
@@ -328,23 +358,18 @@ export function PartnerSettingsPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end">
-          <button
+          <SuccessButton
             type="submit"
-            disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-pink-500 text-white font-medium rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            isLoading={updateMutation.isPending}
+            isSuccess={saveSuccess}
+            loadingText="Salvando..."
+            successText="Salvo!"
+            onSuccessEnd={() => setSaveSuccess(false)}
+            icon={<Save className="w-5 h-5" />}
+            size="lg"
           >
-            {updateMutation.isPending ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Salvar Alterações
-              </>
-            )}
-          </button>
+            Salvar Alterações
+          </SuccessButton>
         </div>
       </form>
     </PartnerPage>

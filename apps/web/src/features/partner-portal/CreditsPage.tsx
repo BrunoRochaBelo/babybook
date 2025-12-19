@@ -26,7 +26,7 @@ import {
 import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import { PartnerLoadingState } from "@/layouts/partnerStates";
+import { PartnerLoadingState, PartnerErrorState } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 function formatCurrency(cents: number): string {
@@ -88,10 +88,20 @@ export function CreditsPage() {
     queryFn: getPartnerDashboardStats,
   });
 
-  const { data: packages, isLoading: loadingPackages } = useQuery({
+  const { data: packages, isLoading: loadingPackages, isError, refetch } = useQuery({
     queryKey: ["partner", "credit-packages"],
     queryFn: getCreditPackages,
   });
+
+  // Tratamento de erro de carregamento
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar os pacotes"
+        onRetry={refetch}
+      />
+    );
+  }
 
   // Purchase mutation
   const purchaseMutation = useMutation({
@@ -144,12 +154,12 @@ export function CreditsPage() {
   return (
     <PartnerPage>
       {/* Desktop Header */}
-      <div className="hidden md:block mb-6">
+      <div className="hidden md:block mb-8">
         <PartnerBackButton to="/partner" label="Voltar ao portal" />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           Comprar Créditos
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
           Escolha o pacote ideal para suas entregas
         </p>
       </div>
@@ -160,30 +170,30 @@ export function CreditsPage() {
           Comprar créditos para gerar vouchers e finalizar entregas.
         </p>
       </div>
-      {/* Current Balance */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+      {/* Current Balance - Destaque especial */}
+      <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl p-6 shadow-lg mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-pink-100 font-medium uppercase tracking-wide">
               Seus créditos
             </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-4xl font-bold text-white mt-1">
               {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}{" "}
-              disponíveis
+              <span className="text-2xl font-normal text-pink-100">disponíveis</span>
             </p>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <p className="mt-2 text-sm text-pink-100">
               {stats?.reserved_credits ?? 0} reservados/em trânsito
             </p>
           </div>
-          <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
-            <CreditCard className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+            <CreditCard className="w-8 h-8 text-white" />
           </div>
         </div>
       </div>
 
       {/* Package Selection */}
       <div className="space-y-4 mb-8 animate-in fade-in-0 slide-in-from-bottom-3 duration-500 delay-100">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           Selecione um pacote
         </h2>
 
@@ -255,6 +265,7 @@ export function CreditsPage() {
           <button
             onClick={handlePurchase}
             disabled={!selectedPackage || purchaseMutation.isPending}
+            title={!selectedPackage ? "Selecione um pacote primeiro" : undefined}
             className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             {purchaseMutation.isPending ? (
@@ -358,10 +369,10 @@ function PackageCard({
       tabIndex={0}
       onClick={selectCard}
       onKeyDown={handleKeyDown}
-      className={`w-full rounded-xl border-2 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-pink-300 dark:focus-visible:ring-pink-700 ${
+      className={`w-full rounded-xl border-2 text-left transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-pink-300 dark:focus-visible:ring-pink-700 ${
         selected
-          ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20 ring-2 ring-pink-200 dark:ring-pink-700"
-          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
+          ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20 ring-2 ring-pink-200 dark:ring-pink-700 scale-[1.02] shadow-lg"
+          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99]"
       }`}
     >
       <div

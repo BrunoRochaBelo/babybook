@@ -8,29 +8,84 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  isAutoReloading: boolean;
+}
+
+/**
+ * Detecta se o erro parece ser causado por HMR (Hot Module Replacement).
+ * Esses erros ocorrem quando módulos são atualizados e referências ficam desatualizadas.
+ */
+function isHmrError(error: Error | null): boolean {
+  if (!error) return false;
+  
+  const message = error.message.toLowerCase();
+  const stack = error.stack?.toLowerCase() ?? "";
+  
+  // Padrões comuns de erros de HMR
+  const hmrPatterns = [
+    "cannot read properties of undefined",
+    "cannot read properties of null",
+    "is not a function",
+    "is not defined",
+    "failed to fetch dynamically imported module",
+    "dynamically imported module",
+    "unable to preload css",
+    "loading chunk",
+    "loading css chunk",
+  ];
+  
+  return hmrPatterns.some(
+    (pattern) => message.includes(pattern) || stack.includes(pattern)
+  );
 }
 
 /**
  * Error Boundary para capturar erros de renderização React.
  * 
- * Em desenvolvimento, oferece botão para recarregar quando HMR falha.
- * Em produção, mostra fallback amigável.
+ * Em desenvolvimento:
+ * - Erros de HMR causam auto-reload silencioso
+ * - Outros erros mostram fallback amigável com botão de reload
+ * 
+ * Em produção:
+ * - Mostra fallback amigável
  */
 export class ErrorBoundary extends Component<Props, State> {
+  private autoReloadTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, isAutoReloading: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    const isDev = import.meta.env.DEV;
+    
+    // Em desenvolvimento, SEMPRE fazer auto-reload silencioso
+    // Isso resolve problemas de HMR, MSW não pronto, módulos desatualizados, etc.
+    if (isDev) {
+      console.info("[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...");
+      this.setState({ isAutoReloading: true });
+      
+      // Delay mínimo para mostrar feedback visual
+      this.autoReloadTimeoutId = setTimeout(() => {
+        this.performReload();
+      }, 200);
+    }
   }
 
-  handleReload = () => {
+  componentWillUnmount() {
+    if (this.autoReloadTimeoutId) {
+      clearTimeout(this.autoReloadTimeoutId);
+    }
+  }
+
+  performReload = () => {
     // Limpa cache do service worker se existir
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -49,12 +104,48 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  handleReload = () => {
+    this.performReload();
+  };
+
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, isAutoReloading: false });
   };
 
   render() {
     if (this.state.hasError) {
+      // Auto-reloading: mostra apenas um indicador mínimo
+      if (this.state.isAutoReloading) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                <svg
+                  className="w-5 h-5 animate-spin text-pink-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Atualizando...</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }
@@ -125,3 +216,4 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

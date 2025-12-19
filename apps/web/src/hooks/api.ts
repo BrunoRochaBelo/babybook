@@ -34,6 +34,58 @@ import {
 } from "@babybook/contracts";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth";
+import { withRetry } from "@/lib/retry";
+
+/**
+ * Obtém um token CSRF do servidor com retry automático.
+ * 
+ * Usa backoff exponencial para lidar com:
+ * - HMR em desenvolvimento (MSW pode não estar pronto)
+ * - Problemas temporários de rede
+ * - Servidor momentaneamente indisponível
+ * 
+ * @returns Token CSRF válido
+ * @throws Error se todas as tentativas falharem
+ */
+async function fetchCsrfToken(): Promise<string> {
+  const isDev = import.meta.env.DEV;
+  
+  try {
+    const csrf = await withRetry(
+      async () => {
+        const response = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+        
+        // Valida a resposta
+        if (!response || typeof response.csrf_token !== "string") {
+          throw new Error("Resposta inválida do servidor de autenticação");
+        }
+        
+        return response.csrf_token;
+      },
+      {
+        maxAttempts: isDev ? 5 : 3, // Mais tentativas em dev (HMR)
+        baseDelayMs: isDev ? 150 : 100,
+        onRetry: (error, attempt, delayMs) => {
+          if (isDev) {
+            console.warn(
+              `[babybook] Tentativa ${attempt} de obter CSRF token falhou. ` +
+              `Tentando novamente em ${delayMs}ms...`,
+              error
+            );
+          }
+        },
+      }
+    );
+    
+    return csrf;
+  } catch (error) {
+    // Mensagem amigável para o usuário
+    throw new Error(
+      "Não foi possível conectar ao servidor de autenticação. " +
+      "Verifique sua conexão e tente novamente."
+    );
+  }
+}
 
 type CreateChildInput = {
   name: string;
@@ -223,19 +275,16 @@ export const useLogin = () => {
       password: string;
       rememberMe?: boolean;
     }) => {
-      const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+      // Obtém token CSRF com retry automático
+      const csrfToken = await fetchCsrfToken();
 
       // Persistimos o token que ficará pareado com a sessão criada.
-      // Ele será enviado via header (X-CSRF-Token) nas requisições mutáveis.
-      useAuthStore.getState().setCsrfToken(csrf.csrf_token);
+      useAuthStore.getState().setCsrfToken(csrfToken);
 
       await apiClient.post("/auth/login", {
         email: payload.email,
         password: payload.password,
-        csrf_token: csrf.csrf_token,
-        // Enviamos para o backend para que ele defina a duração do cookie
-        // Backend deve usar sessão mais longa (ex: 30 dias) quando true
-        // Isso é seguro pois não armazenamos credenciais no client
+        csrf_token: csrfToken,
         remember_me: payload.rememberMe ?? false,
       });
     },
@@ -253,14 +302,14 @@ export const useRegister = () => {
       password: string;
       name?: string;
     }) => {
-      const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+      const csrfToken = await fetchCsrfToken();
 
-      useAuthStore.getState().setCsrfToken(csrf.csrf_token);
+      useAuthStore.getState().setCsrfToken(csrfToken);
 
       await apiClient.post("/auth/register", {
         email: payload.email,
         password: payload.password,
-        csrf_token: csrf.csrf_token,
+        csrf_token: csrfToken,
         name: payload.name,
       });
     },
@@ -322,10 +371,11 @@ export const useForgotPassword = () => {
   return useMutation({
     mutationFn: async (payload: { email: string }) => {
       try {
-        const csrf = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
+        const csrfToken = await fetchCsrfToken();
+
         return await apiClient.post("/auth/password/forgot", {
           email: payload.email,
-          csrf_token: csrf.csrf_token,
+          csrf_token: csrfToken,
         });
       } catch (error) {
         // If endpoint doesn't exist (local dev without API), consider as success

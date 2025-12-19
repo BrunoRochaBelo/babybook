@@ -105,7 +105,6 @@ export function DeliveryUploadPage() {
       <PartnerErrorState
         size="narrow"
         title="Entrega não encontrada"
-        description="Não encontramos essa entrega (ou você não tem acesso a ela)."
         primaryAction={{
           label: "Voltar às entregas",
           to: "/partner/deliveries",
@@ -113,6 +112,7 @@ export function DeliveryUploadPage() {
       />
     );
   }
+
 
   // Não permitir upload se já tem voucher
   if (delivery.voucher_code) {

@@ -36,6 +36,7 @@ import {
   type PartnerPageHeaderConfig,
 } from "@/layouts/partnerPageHeader";
 import { usePartnerKeyboardShortcuts } from "@/hooks/usePartnerKeyboardShortcuts";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
@@ -196,6 +197,7 @@ export function PartnerLayout() {
                     setUserMenuOpen(false);
                     setNotificationsOpen((prev) => !prev);
                   }}
+                  data-tour="notifications-button"
                   className={cn(
                     "relative p-2 rounded-lg transition-colors",
                     isNotificationsOpen
@@ -266,7 +268,7 @@ export function PartnerLayout() {
               </div>
 
               {/* User Menu */}
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative" ref={userMenuRef} data-tour="user-menu">
                 <button
                   type="button"
                   onClick={() => {
@@ -470,6 +472,9 @@ export function PartnerLayout() {
           <Outlet />
         </main>
       </PartnerPageHeaderContext.Provider>
+
+      {/* Offline Banner */}
+      <OfflineBanner />
     </div>
   );
 }

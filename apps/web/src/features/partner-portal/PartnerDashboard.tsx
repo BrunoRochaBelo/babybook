@@ -24,6 +24,10 @@ import {
   Gift,
   Settings,
   RefreshCcw,
+  Lightbulb,
+  Sparkles,
+  TrendingUp,
+  Info,
 } from "lucide-react";
 import {
   getPartnerProfile,
@@ -38,6 +42,9 @@ import {
 import { PartnerPage } from "@/layouts/PartnerPage";
 import { StatCard } from "@/layouts/StatCard";
 import { PartnerErrorState } from "@/layouts/partnerStates";
+import { PartnerOnboarding } from "./PartnerOnboarding";
+import { PartnerDetailedStats } from "./PartnerDetailedStats";
+import { GuidedTour } from "@/components/GuidedTour";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -45,6 +52,73 @@ function formatDate(dateString: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+/**
+ * Retorna saudação baseada no horário atual
+ */
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+/**
+ * Retorna uma dica contextual baseada no estado do usuário
+ */
+function getContextualTip(options: {
+  hasLowCredits: boolean;
+  hasReadyDeliveries: boolean;
+  hasPendingUpload: boolean;
+  deliveriesCount: number;
+  redeemedCount: number;
+}): { icon: typeof Lightbulb; text: string; color: string } | null {
+  const { hasLowCredits, hasReadyDeliveries, hasPendingUpload, deliveriesCount, redeemedCount } = options;
+  
+  // Prioridade: ações pendentes primeiro
+  if (hasPendingUpload) {
+    return {
+      icon: Clock,
+      text: "Você tem fotos aguardando upload. Complete para enviar ao cliente!",
+      color: "text-yellow-600 dark:text-yellow-400",
+    };
+  }
+  
+  if (hasReadyDeliveries) {
+    return {
+      icon: Gift,
+      text: "Entregas prontas! Gere os vouchers para seus clientes resgatarem.",
+      color: "text-green-600 dark:text-green-400",
+    };
+  }
+  
+  if (hasLowCredits) {
+    return {
+      icon: CreditCard,
+      text: "Seu saldo está baixo. Garanta créditos para não pausar entregas.",
+      color: "text-pink-600 dark:text-pink-400",
+    };
+  }
+  
+  // Dicas motivacionais baseadas em progresso
+  if (redeemedCount > 0 && deliveriesCount >= 5) {
+    return {
+      icon: TrendingUp,
+      text: `${redeemedCount} clientes já resgataram suas fotos. Continue crescendo!`,
+      color: "text-purple-600 dark:text-purple-400",
+    };
+  }
+  
+  if (deliveriesCount === 0) {
+    return {
+      icon: Sparkles,
+      text: "Crie sua primeira entrega e surpreenda seus clientes!",
+      color: "text-pink-600 dark:text-pink-400",
+    };
+  }
+  
+  return null;
 }
 
 function DeliveryStatusBadge({ status }: { status: string }) {
@@ -215,17 +289,16 @@ export function PartnerDashboard() {
 
   const isError = isProfileError || isStatsError || isDeliveriesError;
   if (isError) {
-    const message =
+    const errorMessage =
       (profileError instanceof Error && profileError.message) ||
       (statsError instanceof Error && statsError.message) ||
       (deliveriesError instanceof Error && deliveriesError.message) ||
-      "Não foi possível carregar o dashboard.";
+      null;
 
     return (
       <PartnerErrorState
         variant="page"
-        title="Ops! Algo deu errado"
-        description={message}
+        errorDetails={errorMessage}
         onRetry={handleRetry}
         secondaryAction={{
           label: "Ir para entregas",
@@ -236,29 +309,53 @@ export function PartnerDashboard() {
     );
   }
 
+
   const deliveries = deliveriesData?.deliveries || [];
   const availableCredits = stats?.voucher_balance || 0;
   const reservedCredits = stats?.reserved_credits || 0;
   const hasLowCredits = availableCredits <= 2;
   const pendingUpload = deliveries.find((d) => d.status === "pending_upload");
+  const readyDeliveries = stats?.ready_deliveries || 0;
+
+  // Dica contextual para o usuário
+  const contextualTip = useMemo(() => getContextualTip({
+    hasLowCredits,
+    hasReadyDeliveries: readyDeliveries > 0,
+    hasPendingUpload: Boolean(pendingUpload),
+    deliveriesCount: stats?.total_deliveries || 0,
+    redeemedCount: stats?.redeemed_vouchers || 0,
+  }), [hasLowCredits, readyDeliveries, pendingUpload, stats?.total_deliveries, stats?.redeemed_vouchers]);
+
+  // Dados para o onboarding
+  const onboardingStats = useMemo(() => ({
+    hasCompletedProfile: Boolean(profile?.studio_name),
+    hasCredits: availableCredits > 0 || reservedCredits > 0,
+    hasDeliveries: deliveries.length > 0,
+    hasFiveDeliveries: (stats?.total_deliveries || 0) >= 5,
+  }), [profile, availableCredits, reservedCredits, deliveries.length, stats?.total_deliveries]);
 
   return (
     <PartnerPage>
       {/* Page Header (desktop) */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Dashboard
+      <div data-tour="dashboard-header" className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            {getGreeting()}, {profile?.studio_name || profile?.name || "Parceiro"}!
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {profile?.studio_name || profile?.name
-              ? `Bem-vindo, ${profile?.studio_name || profile?.name}.`
-              : "Bem-vindo."}
-          </p>
+          {contextualTip ? (
+            <div className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}>
+              <contextualTip.icon className="w-4 h-4 flex-shrink-0" />
+              <p className="text-sm">{contextualTip.text}</p>
+            </div>
+          ) : (
+            <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
+              Acompanhe suas entregas e gerencie seu estúdio.
+            </p>
+          )}
         </div>
         <Link
           to="/partner/deliveries/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 active:scale-[0.98] transition-all font-medium shadow-sm hover:shadow-md"
         >
           <Plus className="w-5 h-5" />
           <span className="hidden sm:inline">Nova Entrega</span>
@@ -268,22 +365,26 @@ export function PartnerDashboard() {
 
       {/* Mobile intro (mantém contexto sem duplicar o header) */}
       <div className="md:hidden mb-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {profile?.studio_name || profile?.name ? (
-            <>
-              Bem-vindo,{" "}
-              <span className="font-medium text-gray-800 dark:text-gray-200">
-                {profile?.studio_name || profile?.name}
-              </span>
-            </>
-          ) : (
-            "Bem-vindo"
-          )}
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          {getGreeting()},{" "}
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {profile?.studio_name || profile?.name || "Parceiro"}
+          </span>
+          ! 👋
         </p>
+        {contextualTip && (
+          <div className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}>
+            <contextualTip.icon className="w-3.5 h-3.5 flex-shrink-0" />
+            <p className="text-xs">{contextualTip.text}</p>
+          </div>
+        )}
       </div>
 
+      {/* Onboarding - Primeiros Passos */}
+      <PartnerOnboarding stats={onboardingStats} />
+
       {/* Credit Balance Card - Destaque principal */}
-      <div className="mb-6 sm:mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+      <div data-tour="credits-card" className="mb-6 sm:mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
         <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -298,33 +399,48 @@ export function PartnerDashboard() {
                 ) : null}
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    Disponível
-                  </p>
+                <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
+                  <div className="flex items-center gap-1">
+                    <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                      Disponível
+                    </p>
+                    <span 
+                      className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
+                      title="Créditos prontos para usar em novas entregas"
+                    >
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </div>
                   <p className="text-2xl font-bold leading-tight">
                     {availableCredits}
                   </p>
                   <p className="text-[11px] text-pink-100">
-                    para novas entregas
+                    {availableCredits === 1 ? "crédito pronto" : "créditos prontos"}
                   </p>
                 </div>
                 <div
-                  className="rounded-xl bg-white/15 border border-white/20 px-3 py-2"
-                  title="Reservado/em trânsito = créditos já separados para entregas criadas. Ao resgatar, o crédito é consumido (novo bebê) ou estornado (bebê existente)."
+                  className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group"
                 >
-                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    Reservado
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                      Reservado
+                    </p>
+                    <span 
+                      className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
+                      title="Créditos já alocados para entregas criadas. Serão consumidos ou estornados quando o cliente resgatar."
+                    >
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </div>
                   <p className="text-2xl font-bold leading-tight">
                     {reservedCredits}
                   </p>
-                  <p className="text-[11px] text-pink-100">em trânsito</p>
+                  <p className="text-[11px] text-pink-100">aguardando resgate</p>
                 </div>
               </div>
-              <p className="text-pink-100 text-xs sm:text-sm mt-3 hidden sm:block">
-                Transparência do crédito: reservado → consumido/estornado no
-                resgate.
+              <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
+                <Lightbulb className="w-3.5 h-3.5" />
+                Dica: quando o cliente resgata, o crédito é consumido ou estornado automaticamente.
               </p>
             </div>
             <Link
@@ -415,30 +531,30 @@ export function PartnerDashboard() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div data-tour="stats-grid" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <StatCard
           icon={Package}
           label="Total Entregas"
           value={stats?.total_deliveries || 0}
           color="blue"
           to="/partner/deliveries"
-          description="Todas as entregas"
+          description="Ver histórico completo"
         />
         <StatCard
           icon={CheckCircle2}
           label="Prontas"
-          value={stats?.ready_deliveries || 0}
+          value={readyDeliveries}
           color="green"
           to="/partner/deliveries?status=ready"
-          description="Aguardando voucher"
+          description={readyDeliveries > 0 ? "Gerar vouchers →" : "Nenhuma pendente"}
         />
         <StatCard
           icon={Ticket}
-          label="Vouchers Gerados"
+          label="Vouchers Ativos"
           value={stats?.total_vouchers || 0}
           color="purple"
           to="/partner/deliveries?status=delivered"
-          description="Com voucher ativo"
+          description="Aguardando resgate"
         />
         <StatCard
           icon={Gift}
@@ -446,12 +562,20 @@ export function PartnerDashboard() {
           value={stats?.redeemed_vouchers || 0}
           color="pink"
           to="/partner/notifications"
-          description="Clientes convertidos"
+          description="Clientes felizes! 🎉"
         />
       </div>
 
+      {/* Estatísticas Detalhadas - só aparece com 5+ entregas */}
+      <PartnerDetailedStats
+        totalDeliveries={stats?.total_deliveries || 0}
+        totalVouchers={stats?.total_vouchers || 0}
+        redeemedVouchers={stats?.redeemed_vouchers || 0}
+        deliveries={deliveries}
+      />
+
       {/* Recent Deliveries */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div data-tour="recent-deliveries" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Entregas Recentes
@@ -466,18 +590,26 @@ export function PartnerDashboard() {
         </div>
 
         {deliveries.length === 0 ? (
-          <div className="p-8 text-center">
-            <Package className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Você ainda não tem entregas
+          <div className="p-8 sm:p-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-pink-50 dark:bg-pink-900/20 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-pink-500 dark:text-pink-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Comece sua primeira entrega!
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+              Envie fotos incríveis para seus clientes e crie uma experiência única de descoberta para a família.
             </p>
             <Link
               to="/partner/deliveries/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 active:scale-[0.98] transition-all font-medium shadow-sm hover:shadow-md"
             >
               <Plus className="w-5 h-5" />
               Criar Primeira Entrega
             </Link>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+              💡 Cada entrega gera um voucher exclusivo para o cliente
+            </p>
           </div>
         ) : (
           <>
@@ -578,6 +710,9 @@ export function PartnerDashboard() {
           </>
         )}
       </div>
+
+      {/* Tour Guiado para novos usuários */}
+      <GuidedTour />
     </PartnerPage>
   );
 }

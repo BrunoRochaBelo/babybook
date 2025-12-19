@@ -13,6 +13,7 @@ import { useAuthStore } from "@/store/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { userProfileSchema } from "@babybook/contracts";
+import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
 
 export function PartnerLoginPage() {
   const navigate = useNavigate();
@@ -131,23 +132,16 @@ export function PartnerLoginPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  E-mail
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                  autoComplete="email"
-                />
-              </div>
+              <ValidatedInput
+                label="E-mail"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="email"
+                rules={[validationRules.email]}
+                validateDelay={300}
+              />
 
               <div>
                 <label

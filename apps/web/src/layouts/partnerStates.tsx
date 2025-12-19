@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+import React, { type ComponentType, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -223,54 +223,204 @@ export function PartnerLoadingState({
   return body;
 }
 
+/**
+ * Detecta se a mensagem de erro parece ser causada por HMR.
+ */
+function isHmrErrorMessage(message?: string | null): boolean {
+  if (!message) return false;
+  
+  const lowerMessage = message.toLowerCase();
+  const hmrPatterns = [
+    "cannot read properties of undefined",
+    "cannot read properties of null",
+    "is not a function",
+    "is not defined",
+    "failed to fetch dynamically imported module",
+    "token",
+    "csrf",
+  ];
+  
+  return hmrPatterns.some((pattern) => lowerMessage.includes(pattern));
+}
+
 export function PartnerErrorState({
   variant = "page",
   size = "default",
-  title = "Ops — algo deu errado",
-  description = "Tente novamente em instantes.",
+  title = "Ops! Algo deu errado",
+  description,
+  errorDetails,
   onRetry,
   primaryAction,
   secondaryAction,
+  autoReloadInDev = true,
 }: {
   variant?: PartnerStateVariant;
   size?: PartnerPageSize;
   title?: string;
   description?: string;
+  errorDetails?: string | null;
   onRetry?: () => void;
   primaryAction?: PartnerStateAction;
   secondaryAction?: PartnerStateAction;
+  /**
+   * Se true, recarrega automaticamente a página em desenvolvimento.
+   * Isso resolve problemas de HMR, MSW, etc. Padrão: true
+   */
+  autoReloadInDev?: boolean;
 }) {
-  const actions =
-    primaryAction || secondaryAction || onRetry
-      ? {
-          primary:
-            primaryAction ??
-            (onRetry
-              ? { label: "Tentar novamente", onClick: onRetry }
-              : undefined),
-          secondary: secondaryAction,
-        }
-      : undefined;
+  const isDev = import.meta.env.DEV;
 
-  const content = (
-    <div role="alert" aria-live="assertive">
-      <StateBody
-        variant={variant}
-        tone="danger"
-        icon={AlertCircle}
-        title={title}
-        description={description}
-        actions={actions}
-      />
+  // Em desenvolvimento, SEMPRE fazer auto-reload silencioso
+  const shouldAutoReload = isDev && autoReloadInDev;
+
+  React.useEffect(() => {
+    if (shouldAutoReload) {
+      console.info("[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...");
+      
+      const timeoutId = setTimeout(() => {
+        // Limpa cache do service worker se existir
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            registrations.forEach((registration) => registration.unregister());
+          });
+        }
+        
+        // Limpa caches
+        if ("caches" in window) {
+          caches.keys().then((names) => {
+            names.forEach((name) => caches.delete(name));
+          });
+        }
+        
+        window.location.reload();
+      }, 200);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldAutoReload]);
+
+  // Se estamos em auto-reload, mostra apenas indicador mínimo
+  if (shouldAutoReload) {
+    const loadingBody = (
+      <div className="flex items-center justify-center py-24">
+        <div className="inline-flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
+          <span>Atualizando...</span>
+        </div>
+      </div>
+    );
+
+    if (variant === "page") {
+      return <PartnerPage size={size}>{loadingBody}</PartnerPage>;
+    }
+    return loadingBody;
+  }
+
+  const handleReload = () => {
+    // Limpa cache do service worker se existir
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      });
+    }
+    
+    // Limpa caches
+    if ("caches" in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => caches.delete(name));
+      });
+    }
+    
+    // Recarrega sem cache
+    window.location.reload();
+  };
+
+  const defaultDescription = "Ocorreu um erro inesperado. Tente novamente ou recarregue a página.";
+
+  const body = (
+    <div role="alert" aria-live="assertive" className={cn(
+      variant === "page" ? "py-12" : "py-8"
+    )}>
+      <div className={cn(
+        "bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center max-w-md mx-auto",
+        variant === "page" ? "border border-gray-200 dark:border-gray-700" : ""
+      )}>
+        {/* Ícone de warning em círculo */}
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+          <svg
+            className="w-8 h-8 text-red-600 dark:text-red-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        
+        {/* Título */}
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h2>
+        
+        {/* Descrição */}
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          {description ?? defaultDescription}
+        </p>
+
+        {/* Detalhes do erro (apenas em dev) */}
+        {isDev && errorDetails && (
+          <details className="mb-4 text-left">
+            <summary className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+              Ver detalhes do erro
+            </summary>
+            <pre className="mt-2 p-3 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs text-red-600 dark:text-red-400 overflow-auto max-h-40">
+              {errorDetails}
+            </pre>
+          </details>
+        )}
+
+        {/* Botões de ação - sempre mostra ambos */}
+        <div className="flex gap-3 justify-center">
+          {/* Botão "Tentar novamente" */}
+          {secondaryAction ? (
+            <SecondaryAction action={secondaryAction} />
+          ) : (
+            <button
+              onClick={onRetry ?? handleReload}
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Tentar novamente
+            </button>
+          )}
+
+          {/* Botão "Recarregar página" */}
+          {primaryAction ? (
+            <PrimaryAction action={primaryAction} />
+          ) : (
+            <button
+              onClick={handleReload}
+              className="px-4 py-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600 transition-colors"
+            >
+              Recarregar página
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 
   if (variant === "page") {
-    return <PartnerPage size={size}>{content}</PartnerPage>;
+    return <PartnerPage size={size}>{body}</PartnerPage>;
   }
 
-  return content;
+  return body;
 }
+
 
 export function PartnerEmptyState({
   variant = "page",

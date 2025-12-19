@@ -657,6 +657,13 @@ function ClientStep({
           <button
             onClick={onNext}
             disabled={!clientName.trim() || !childName.trim() || isLoading}
+            title={
+              !clientName.trim()
+                ? "Preencha o nome do responsável"
+                : !childName.trim()
+                  ? "Preencha o nome da criança"
+                  : undefined
+            }
             className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { registerPartner } from "./api";
 import type { OnboardingRequest } from "./types";
+import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
 
 // Step configuration
 const STEPS = [
@@ -269,27 +270,18 @@ export function PartnerRegisterPage() {
   // Render step 2: Contact info
   const renderStep2 = () => (
     <div className="space-y-4 animate-fadeIn">
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-        >
-          E-mail *
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="seu@email.com"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
-          autoComplete="email"
-          autoFocus
-        />
-        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-          Usaremos este e-mail para login e comunicações importantes
-        </p>
-      </div>
+      <ValidatedInput
+        label="E-mail *"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="seu@email.com"
+        autoComplete="email"
+        autoFocus
+        rules={[validationRules.email]}
+        validateDelay={300}
+        helperText="Usaremos este e-mail para login e comunicações importantes"
+      />
 
       <div>
         <label
@@ -620,7 +612,7 @@ export function PartnerRegisterPage() {
           {/* Back to Home */}
           <div className="text-center mt-6">
             <a
-              href="http://localhost:3000/pro.html"
+              href={proUrl}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
             >
               ← Voltar para Baby Book Pro
