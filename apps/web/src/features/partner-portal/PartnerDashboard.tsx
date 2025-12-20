@@ -8,7 +8,7 @@
  */
 
 import { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   CreditCard,
@@ -35,6 +35,7 @@ import {
   getPartnerDeliveryStatusMeta,
   normalizePartnerDeliveryStatus,
 } from "./deliveryStatus";
+import { CreditStatusBadge } from "./creditStatus";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
@@ -94,7 +95,7 @@ function getContextualTip(options: {
   if (hasReadyDeliveries) {
     return {
       icon: Gift,
-      text: "Entregas prontas! Gere os vouchers para seus clientes resgatarem.",
+      text: "Entregas prontas! Gere o link/voucher para seus clientes resgatarem.",
       color: "text-green-600 dark:text-green-400",
     };
   }
@@ -128,50 +129,40 @@ function getContextualTip(options: {
 }
 
 function DeliveryStatusBadge({ status }: { status: string }) {
-  const config: Record<
-    string,
-    { icon: typeof Clock; className: string; label: string }
-  > = {
+  const config: Record<string, { icon: typeof Clock; className: string }> = {
     draft: {
       icon: Clock,
       className:
         "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
-      label: "Rascunho",
     },
     pending_upload: {
       icon: Clock,
       className:
         "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300",
-      label: "Aguardando upload",
     },
     processing: {
       icon: Loader2,
       className:
         "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300",
-      label: "Processando",
     },
     ready: {
       icon: CheckCircle2,
       className:
         "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300",
-      label: "Pronta",
     },
     delivered: {
       icon: Gift,
       className:
         "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300",
-      label: "Entregue",
     },
     failed: {
       icon: AlertCircle,
       className: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
-      label: "Falhou",
     },
     archived: {
       icon: Package,
       className:
         "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
-      label: "Arquivada",
     },
   };
 
@@ -183,18 +174,16 @@ function DeliveryStatusBadge({ status }: { status: string }) {
   return (
     <span
       title={meta.hint}
-      aria-label={`${cfg.label}. ${meta.hint}`}
+      aria-label={`${meta.label}. ${meta.hint}`}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.className}`}
     >
       <Icon className="w-3 h-3" />
-      {cfg.label}
+      {meta.shortLabel}
     </span>
   );
 }
 
 export function PartnerDashboard() {
-  const navigate = useNavigate();
-
   // Queries
   const {
     data: profile,
@@ -219,17 +208,59 @@ export function PartnerDashboard() {
   });
 
   const {
-    data: deliveriesData,
-    isLoading: loadingDeliveries,
-    isError: isDeliveriesError,
-    error: deliveriesError,
-    refetch: refetchDeliveries,
+    data: recentDeliveriesData,
+    isLoading: loadingRecentDeliveries,
+    isError: isRecentDeliveriesError,
+    error: recentDeliveriesError,
+    refetch: refetchRecentDeliveries,
   } = useQuery({
     queryKey: ["partner", "deliveries", "recent"],
-    queryFn: () => listDeliveries({ limit: 5 }),
+    queryFn: () =>
+      listDeliveries({ limit: 5, include_archived: false, sort: "newest" }),
   });
 
-  const isLoading = loadingProfile || loadingStats || loadingDeliveries;
+  // Ações pendentes (ex.: upload). Não podemos depender só das 5 mais recentes.
+  const {
+    data: needsActionData,
+    isLoading: loadingNeedsAction,
+    isError: isNeedsActionError,
+    error: needsActionError,
+    refetch: refetchNeedsAction,
+  } = useQuery({
+    queryKey: ["partner", "deliveries", "needs_action"],
+    queryFn: () =>
+      listDeliveries({
+        view: "needs_action",
+        limit: 20,
+        include_archived: false,
+      }),
+    staleTime: 15_000,
+  });
+
+  const insightsEnabled = (stats?.total_deliveries ?? 0) >= 5;
+  const {
+    data: insightsDeliveriesData,
+    isLoading: loadingInsights,
+    isError: isInsightsError,
+    error: insightsError,
+    refetch: refetchInsights,
+  } = useQuery({
+    queryKey: ["partner", "deliveries", "insights", "last_90"],
+    enabled: insightsEnabled,
+    queryFn: () =>
+      listDeliveries({
+        created: "last_90",
+        limit: 200,
+        include_archived: false,
+        sort: "newest",
+      }),
+  });
+
+  const isLoading =
+    loadingProfile ||
+    loadingStats ||
+    loadingRecentDeliveries ||
+    loadingNeedsAction;
 
   usePartnerPageHeader(
     useMemo(
@@ -251,23 +282,37 @@ export function PartnerDashboard() {
   const handleRetry = () => {
     refetchProfile();
     refetchStats();
-    refetchDeliveries();
+    refetchRecentDeliveries();
+    refetchNeedsAction();
+    refetchInsights();
   };
 
-  const isError = isProfileError || isStatsError || isDeliveriesError;
+  const isError =
+    isProfileError ||
+    isStatsError ||
+    isRecentDeliveriesError ||
+    isNeedsActionError ||
+    isInsightsError;
   const errorMessage =
     (profileError instanceof Error && profileError.message) ||
     (statsError instanceof Error && statsError.message) ||
-    (deliveriesError instanceof Error && deliveriesError.message) ||
+    (recentDeliveriesError instanceof Error && recentDeliveriesError.message) ||
+    (needsActionError instanceof Error && needsActionError.message) ||
+    (insightsError instanceof Error && insightsError.message) ||
     null;
 
-  const deliveries = deliveriesData?.deliveries ?? [];
+  const deliveries = recentDeliveriesData?.deliveries ?? [];
   const availableCredits = stats?.voucher_balance ?? 0;
   const reservedCredits = stats?.reserved_credits ?? 0;
   const hasLowCredits = availableCredits <= 2;
-  const pendingUpload = deliveries.find(
-    (d) => normalizePartnerDeliveryStatus(d.status) === "pending_upload",
-  );
+  const needsActionDeliveries = needsActionData?.deliveries ?? [];
+  const pendingUpload =
+    needsActionDeliveries.find(
+      (d) => normalizePartnerDeliveryStatus(d.status) === "pending_upload",
+    ) ??
+    deliveries.find(
+      (d) => normalizePartnerDeliveryStatus(d.status) === "pending_upload",
+    );
   const readyDeliveries = stats?.ready_deliveries ?? 0;
 
   // Dica contextual para o usuário (hooks precisam ser chamados antes de early-return)
@@ -548,7 +593,7 @@ export function PartnerDashboard() {
                     : "entregas prontas"}
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-300">
-                  Aguardando geração de voucher
+                  Aguardando link/voucher
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -599,24 +644,24 @@ export function PartnerDashboard() {
           color="green"
           to="/partner/deliveries?status=ready"
           description={
-            readyDeliveries > 0 ? "Gerar vouchers →" : "Nenhuma pendente"
+            readyDeliveries > 0 ? "Gerar link/voucher →" : "Nenhuma pendente"
           }
         />
         <StatCard
           icon={Ticket}
-          label="Vouchers Ativos"
-          value={stats?.total_vouchers || 0}
+          label="Vouchers Pendentes"
+          value={stats?.pending_vouchers || 0}
           color="purple"
-          to="/partner/deliveries?status=delivered"
+          to="/partner/deliveries?voucher=with&redeemed=not_redeemed"
           description="Aguardando resgate"
         />
         <StatCard
           icon={Gift}
-          label="Resgatados"
-          value={stats?.redeemed_vouchers || 0}
+          label="Concluídas"
+          value={stats?.delivered_deliveries || 0}
           color="pink"
-          to="/partner/notifications"
-          description="Clientes felizes! 🎉"
+          to="/partner/deliveries?status=delivered"
+          description="Resgatadas/importadas"
         />
       </div>
 
@@ -625,7 +670,8 @@ export function PartnerDashboard() {
         totalDeliveries={stats?.total_deliveries || 0}
         totalVouchers={stats?.total_vouchers || 0}
         redeemedVouchers={stats?.redeemed_vouchers || 0}
-        deliveries={deliveries}
+        deliveries={insightsDeliveriesData?.deliveries ?? deliveries}
+        isLoading={insightsEnabled && loadingInsights}
       />
 
       {/* Recent Deliveries */}
@@ -674,9 +720,8 @@ export function PartnerDashboard() {
             {/* Mobile: cards */}
             <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
               {deliveries.map((delivery) => (
-                <Link
+                <div
                   key={delivery.id}
-                  to={`/partner/deliveries/${delivery.id}`}
                   className="flex items-center justify-between gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="min-w-0 flex-1">
@@ -693,14 +738,31 @@ export function PartnerDashboard() {
                       <span>•</span>
                       <span>{formatDate(delivery.created_at)}</span>
                     </div>
-                    {delivery.voucher_code && (
+                    {delivery.voucher_code ? (
                       <span className="mt-1 inline-block text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">
                         {delivery.voucher_code}
                       </span>
+                    ) : (
+                      <span
+                        className="mt-1 inline-block text-xs text-gray-400 dark:text-gray-500"
+                        title="O voucher aparece após a entrega ficar pronta."
+                      >
+                        Não gerado
+                      </span>
                     )}
+                    <div className="mt-2">
+                      <CreditStatusBadge status={delivery.credit_status} />
+                    </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                </Link>
+                  <Link
+                    to={`/partner/deliveries/${delivery.id}`}
+                    aria-label={`Abrir detalhes da entrega ${delivery.title || delivery.client_name || "sem título"}`}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex-shrink-0"
+                  >
+                    Abrir detalhes
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               ))}
             </div>
 
@@ -722,18 +784,16 @@ export function PartnerDashboard() {
                       Criada em
                     </th>
                     <th className="text-left font-medium px-4 py-2.5">
-                      Voucher
+                      Voucher / Crédito
                     </th>
+                    <th className="text-right font-medium px-4 py-2.5">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {deliveries.map((delivery) => (
                     <tr
                       key={delivery.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                      onClick={() =>
-                        navigate(`/partner/deliveries/${delivery.id}`)
-                      }
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <td className="px-4 py-3">
                         <span className="font-medium text-gray-900 dark:text-white">
@@ -750,15 +810,30 @@ export function PartnerDashboard() {
                         {formatDate(delivery.created_at)}
                       </td>
                       <td className="px-4 py-3">
-                        {delivery.voucher_code ? (
-                          <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
-                            {delivery.voucher_code}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500">
-                            —
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-2">
+                          {delivery.voucher_code ? (
+                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded w-fit">
+                              {delivery.voucher_code}
+                            </span>
+                          ) : (
+                            <span
+                              className="text-gray-400 dark:text-gray-500"
+                              title="O voucher aparece após a entrega ficar pronta."
+                            >
+                              Não gerado
+                            </span>
+                          )}
+                          <CreditStatusBadge status={delivery.credit_status} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          to={`/partner/deliveries/${delivery.id}`}
+                          className="inline-flex items-center gap-1 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"
+                        >
+                          Abrir detalhes
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
                       </td>
                     </tr>
                   ))}

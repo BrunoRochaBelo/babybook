@@ -29,7 +29,7 @@ const STATUS_META: Record<DeliveryStatus, PartnerDeliveryStatusMeta> = {
   },
   delivered: {
     label: "Entregue",
-    shortLabel: "OK",
+    shortLabel: "Entregue",
     hint: "Seu cliente já resgatou/importou a entrega.",
   },
   failed: {

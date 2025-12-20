@@ -366,7 +366,7 @@ export function DeliveryDetailPage() {
                   </span>
                 ) : (
                   <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
-                    Ainda não gerado
+                    Não gerado
                   </span>
                 )}
               </div>

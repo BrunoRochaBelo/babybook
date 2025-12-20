@@ -43,6 +43,7 @@ import {
   getPartnerDeliveryStatusMeta,
   isPartnerDeliveryArchived,
 } from "./deliveryStatus";
+import { CreditStatusBadge } from "./creditStatus";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
@@ -109,7 +110,7 @@ const statusConfig: Record<
     className:
       "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300",
     label: "Entregue",
-    shortLabel: "OK",
+    shortLabel: "Entregue",
   },
   failed: {
     icon: X,
@@ -141,89 +142,6 @@ function StatusBadge({ status }: { status: DeliveryStatus }) {
       />
       <span className="sm:hidden">{cfg.shortLabel}</span>
       <span className="hidden sm:inline">{cfg.label}</span>
-    </span>
-  );
-}
-
-function CreditStatusBadge({
-  status,
-  variant = "pill",
-}: {
-  status?: "reserved" | "consumed" | "refunded" | "not_required" | null;
-  variant?: "pill" | "subtle";
-}) {
-  if (!status) return null;
-
-  const cfg: Record<
-    NonNullable<typeof status>,
-    {
-      icon: typeof Clock;
-      pillClassName: string;
-      subtleClassName: string;
-      label: string;
-      shortLabel: string;
-      title: string;
-    }
-  > = {
-    reserved: {
-      icon: Clock,
-      pillClassName:
-        "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200",
-      subtleClassName: "text-amber-800 dark:text-amber-200",
-      label: "Crédito reservado",
-      shortLabel: "Reserv.",
-      title:
-        "Crédito reservado e em processamento. Será confirmado quando o cliente resgatar o voucher.",
-    },
-    not_required: {
-      icon: Gift,
-      pillClassName:
-        "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200",
-      subtleClassName: "text-blue-800 dark:text-blue-200",
-      label: "Sem custo",
-      shortLabel: "Sem custo",
-      title:
-        "Esta entrega não requer voucher porque o cliente já tem conta. Só haverá cobrança se criar um novo Baby Book.",
-    },
-    consumed: {
-      icon: CheckCircle2,
-      pillClassName:
-        "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200",
-      subtleClassName: "text-emerald-800 dark:text-emerald-200",
-      label: "Crédito usado",
-      shortLabel: "Usado",
-      title:
-        "Crédito utilizado! O cliente criou um novo Baby Book com este voucher.",
-    },
-    refunded: {
-      icon: ArchiveRestore,
-      pillClassName:
-        "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300",
-      subtleClassName: "text-gray-600 dark:text-gray-300",
-      label: "Devolvido",
-      shortLabel: "Devol.",
-      title:
-        "Crédito devolvido automaticamente porque o cliente vinculou a um Baby Book existente.",
-    },
-  };
-
-  const c = cfg[status];
-  const Icon = c.icon;
-
-  const isSubtle = variant === "subtle";
-  const className = isSubtle
-    ? `inline-flex items-center gap-1.5 text-[11px] font-medium ${c.subtleClassName}`
-    : `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide ${c.pillClassName}`;
-
-  return (
-    <span
-      title={c.title}
-      aria-label={`${c.label}. ${c.title}`}
-      className={className}
-    >
-      <Icon className="w-3 h-3 opacity-80" />
-      <span className="sm:hidden">{c.shortLabel}</span>
-      <span className="hidden sm:inline">{c.label}</span>
     </span>
   );
 }
@@ -2195,7 +2113,18 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
               <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
                 {delivery.voucher_code}
               </span>
-            ) : null}
+            ) : (
+              <span
+                className="text-xs text-gray-400 dark:text-gray-500"
+                title={
+                  displayStatus === "ready"
+                    ? "Entrega pronta. Gere o voucher nos detalhes."
+                    : "O voucher aparece após a entrega ficar pronta."
+                }
+              >
+                Não gerado
+              </span>
+            )}
             <CreditStatusBadge
               status={delivery.credit_status}
               variant={hasVoucher ? "subtle" : "pill"}
@@ -2305,7 +2234,7 @@ function DeliveryTableRow({
                   : "O voucher aparece após a entrega ficar pronta."
               }
             >
-              {displayStatus === "ready" ? "Não gerado" : "—"}
+              Não gerado
             </span>
           )}
           <CreditStatusBadge
@@ -2625,8 +2554,8 @@ function DeliveryQuickPreview({
                       type="button"
                       disabled
                       className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 transition-colors text-sm font-medium opacity-50"
-                      title="Voucher ainda não gerado"
-                      aria-label="Voucher ainda não gerado"
+                      title="Voucher não gerado"
+                      aria-label="Voucher não gerado"
                     >
                       <Gift className="w-4 h-4" />
                       Voucher
@@ -2692,7 +2621,7 @@ function DeliveryQuickPreview({
                 ) : (
                   <div className="mt-1 space-y-1">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {displayStatus === "ready" ? "Ainda não gerado" : "—"}
+                      Não gerado
                     </p>
                     <CreditStatusBadge
                       status={delivery.credit_status}
@@ -2830,7 +2759,7 @@ function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
       delivery.status === "ready"
         ? "Entrega pronta para envio"
         : isDone("ready")
-          ? "OK"
+          ? "Concluído"
           : "Pendente",
     state:
       delivery.status === "ready"
@@ -2844,7 +2773,7 @@ function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
   const voucher: TimelineItem = {
     key: "voucher",
     title: "Voucher",
-    subtitle: delivery.voucher_code ? "Gerado" : "Ainda não gerado",
+    subtitle: delivery.voucher_code ? "Gerado" : "Não gerado",
     state: delivery.voucher_code ? "done" : "pending",
     icon: Gift,
   };
