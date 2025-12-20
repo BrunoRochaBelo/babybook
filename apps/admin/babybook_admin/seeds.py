@@ -260,6 +260,7 @@ async def seed_partner_data(database_url: str | None = None) -> dict[str, str]:
     - 5 créditos de voucher para testar fluxo completo
     """
     from uuid import uuid4
+
     from babybook_api.db.models import Account, Partner, User
     from babybook_api.security import hash_password
     
@@ -295,7 +296,7 @@ async def seed_partner_data(database_url: str | None = None) -> dict[str, str]:
             # Ensure role is photographer
             if user.role != "photographer":
                 user.role = "photographer"
-                console.print(f"[yellow]Role atualizado para photographer[/yellow]")
+                console.print("[yellow]Role atualizado para photographer[/yellow]")
         
         # Check if partner exists
         result = await session.execute(
@@ -321,10 +322,10 @@ async def seed_partner_data(database_url: str | None = None) -> dict[str, str]:
             # Ensure partner is active with credits
             if partner.status != "active":
                 partner.status = "active"
-                console.print(f"[yellow]Partner ativado[/yellow]")
+                console.print("[yellow]Partner ativado[/yellow]")
             if partner.voucher_balance < 5:
                 partner.voucher_balance = 5
-                console.print(f"[yellow]Créditos ajustados para 5[/yellow]")
+                console.print("[yellow]Créditos ajustados para 5[/yellow]")
         
         await session.commit()
         

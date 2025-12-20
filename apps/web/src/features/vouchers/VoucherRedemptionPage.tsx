@@ -299,7 +299,7 @@ export function VoucherRedemptionPage() {
                 >
                   <DecisionStep
                     validation={state.validation}
-                    children={children}
+                    childrenList={children}
                     isChildrenLoading={childrenQuery.isLoading}
                     selectedChildId={selectedChildId}
                     onSelectChild={setSelectedChildId}
@@ -574,7 +574,7 @@ interface DecisionStepProps {
     delivery_title: string | null;
     assets_count: number;
   };
-  children: Array<{ id: string; name: string }>;
+  childrenList: Array<{ id: string; name: string }>;
   isChildrenLoading: boolean;
   selectedChildId: string | null;
   onSelectChild: (id: string | null) => void;
@@ -588,7 +588,7 @@ interface DecisionStepProps {
 
 function DecisionStep({
   validation,
-  children,
+  childrenList,
   isChildrenLoading,
   selectedChildId,
   onSelectChild,
@@ -599,14 +599,14 @@ function DecisionStep({
   onRedeemNew,
   isSubmitting,
 }: DecisionStepProps) {
-  const hasChildren = children.length > 0;
-  const selected = selectedChildId ?? (hasChildren ? children[0].id : null);
+  const hasChildren = childrenList.length > 0;
+  const selected = selectedChildId ?? (hasChildren ? childrenList[0].id : null);
 
   useEffect(() => {
     if (!hasChildren) return;
     if (selectedChildId) return;
-    onSelectChild(children[0].id);
-  }, [children, hasChildren, onSelectChild, selectedChildId]);
+    onSelectChild(childrenList[0].id);
+  }, [childrenList, hasChildren, onSelectChild, selectedChildId]);
 
   const isPrimaryDisabled =
     isSubmitting ||
@@ -660,7 +660,7 @@ function DecisionStep({
 
           {hasChildren ? (
             <div className="mt-3 space-y-2">
-              {children.slice(0, 4).map((child) => {
+              {childrenList.slice(0, 4).map((child) => {
                 const isSelected = child.id === selected;
                 return (
                   <button
@@ -684,9 +684,9 @@ function DecisionStep({
                   </button>
                 );
               })}
-              {children.length > 4 && (
+              {childrenList.length > 4 && (
                 <p className="text-xs text-gray-500">
-                  Mostrando 4 de {children.length}. (Vamos deixar essa lista
+                  Mostrando 4 de {childrenList.length}. (Vamos deixar essa lista
                   linda já já.)
                 </p>
               )}

@@ -11,21 +11,19 @@ Endpoints para uploads multipart resumíveis compatíveis com:
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.schemas.uploads import (
-    ResumableUploadInitRequest,
-    ResumableUploadInitResponse,
-    UploadPartUrl,
+    CancelUploadResponse,
     RegisterPartRequest,
     RegisterPartResponse,
     ResumableUploadCompleteRequest,
     ResumableUploadCompleteResponse,
+    ResumableUploadInitRequest,
+    ResumableUploadInitResponse,
+    UploadPartUrl,
     UploadSessionStatus,
-    CancelUploadResponse,
 )
 from babybook_api.storage.resumable_upload import (
     ResumableUploadService,

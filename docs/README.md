@@ -57,7 +57,7 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
 - **pnpm**: Essencial para gerenciar os workspaces do monorepo (corepack enable ou npm i -g pnpm).
 - **Node.js**: Versão definida em .nvmrc. (Recomendamos nvm para gerenciar).
 - **Python**: Versão definida em pyproject.toml. (Recomendamos pyenv ou asdf para gerenciar).
-- **Docker e docker-compose**: Essencial para simular nossos backing services de produção (Postgres e S3) localmente.
+- **Docker e Docker Compose**: Essencial para simular nossos backing services de produção (Postgres e S3) localmente.
 
 ### 3.2. Setup Inicial (Primeira vez)
 
@@ -76,19 +76,35 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
 
    (Edite .env.local se precisar, mas os defaults devem funcionar para o Docker.)
 
-3. Instale TODAS as dependências (Node/Python) e rode o codegen da API:
+3. Instale as dependências **Node/JS** do monorepo:
    ```bash
    pnpm install
    ```
-   (Este comando irá "içar" (hoist) todas as node*modules para a raiz, linkar os workspaces (apps/*, packages/\_) e instalar as dependências Python no ambiente virtual.)
+   (Este comando irá "içar" (hoist) todas as node*modules para a raiz e linkar os workspaces (apps/*, packages/\*).)
+
+Para preparar o ambiente **Python** (venv + dependências), use os scripts abaixo (ou rode `pnpm run bootstrap` que faz `pnpm install` + Python automaticamente):
+
+Windows:
+
+```powershell
+pnpm run setup:py:win
+```
+
+macOS / Linux:
+
+```bash
+pnpm run setup:py:unix
+```
 
 ### 3.3. Rodando a Infra Local
 
 Suba os backing services (o banco e o storage S3 mockado). O docker-compose.yml (Seção 4) define esses serviços.
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+
+> Observação: se o seu ambiente ainda usa o binário legado, o equivalente é `docker-compose up -d`.
 
 Isso irá iniciar (em background):
 
@@ -109,8 +125,16 @@ pnpm --filter api run db:upgrade
 
 Após a infra (Docker) estar rodando e migrada, rode os serviços locais (API e SPA):
 
+Terminal 1 (API, com o venv ativo):
+
 ```bash
-pnpm dev:local
+pnpm run dev:api
+```
+
+Terminal 2 (SPA):
+
+```bash
+pnpm run dev:web
 ```
 
 Para iniciar a landing page + API + Workers com o ambiente Python criado, rode primeiro `pnpm run bootstrap` e depois `pnpm run dev:all`.
@@ -130,7 +154,7 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não precisa rodar localmente para o fluxo padrão. Em `ENV=local` e `INLINE_WORKER_ENABLED=true`, a API usa o modo inline: ela não publica na Fila e processa o job no mesmo processo, atualizando o asset.status para `ready` imediatamente. Isso preserva o DevEx do apps/web sem exigir ffmpeg/minio adicionais.
 
-Quando alguém precisar testar o Worker (Modal) “de verdade”, basta definir `INLINE_WORKER_ENABLED=false`, escolher um provedor de fila (`QUEUE_PROVIDER=database` ou Cloudflare) e rodar `pnpm dev:workers` (ou o deploy Modal). O docker-compose já cria automaticamente os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`, então o ambiente local fica alinhado ao de produção.
+Quando alguém precisar testar o Worker (Modal) “de verdade”, basta definir `INLINE_WORKER_ENABLED=false`, escolher um provedor de fila (`QUEUE_PROVIDER=database` ou Cloudflare) e rodar `pnpm dev:workers` (ou o deploy Modal). O Docker Compose já cria automaticamente os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`, então o ambiente local fica alinhado ao de produção.
 
 ## 4. O que tem aqui? (Estrutura do Monorepo)
 

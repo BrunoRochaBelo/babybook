@@ -11,7 +11,7 @@ from PIL import Image, ImageOps
 
 from .api_client import patch_asset
 from .file_validation import validate_file_on_disk
-from .settings import get_settings, WorkerSettings
+from .settings import WorkerSettings, get_settings
 from .storage import StorageClient
 from .types import AssetJobPayload, VariantData, log_prefix
 

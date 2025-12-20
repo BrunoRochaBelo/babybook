@@ -16,7 +16,6 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
-  Trash2,
   RefreshCw,
 } from "lucide-react";
 import { getDelivery } from "./api";
@@ -65,7 +64,6 @@ export function DeliveryUploadPage() {
     retryUpload,
     removeUpload,
     isUploading,
-    hasErrors,
     completedCount,
     totalCount,
     totalProgress,
@@ -112,7 +110,6 @@ export function DeliveryUploadPage() {
       />
     );
   }
-
 
   // Não permitir upload se já tem voucher
   if (delivery.voucher_code) {

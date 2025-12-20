@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = "0007_delivery_credit_not_req"
 down_revision = "0006_assets_unique_child_sha"

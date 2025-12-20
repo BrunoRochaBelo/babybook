@@ -5,9 +5,10 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+from alembic import context
 
 # Adiciona o diretório apps/api ao sys.path para importar babybook_api
 BASE_DIR = Path(__file__).resolve().parents[1]

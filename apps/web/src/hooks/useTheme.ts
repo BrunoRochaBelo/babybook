@@ -3,12 +3,12 @@
  *
  * Gerencia o tema (light/dark/system) com persistência em localStorage.
  * Aplica classe 'dark' ao elemento <html> quando necessário.
- * 
+ *
  * NOTA: O tema inicial é aplicado via script inline no index.html
  * para evitar flash de conteúdo não estilizado.
  */
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useCallback, useSyncExternalStore } from "react";
 
 export type Theme = "light" | "dark" | "system";
 
@@ -41,7 +41,7 @@ function applyTheme(theme: Theme) {
   } else {
     root.classList.remove("dark");
   }
-  
+
   // Log para debug (remover em produção)
   console.log("[applyTheme] Applied:", effectiveTheme, "| From:", theme);
 }
@@ -72,14 +72,18 @@ function setGlobalTheme(newTheme: Theme) {
 
 export function useTheme() {
   // Usa useSyncExternalStore para sincronizar entre componentes
-  const theme = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, getThemeSnapshot);
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getThemeSnapshot,
+    getThemeSnapshot,
+  );
 
   // Escuta mudanças na preferência do sistema
   useEffect(() => {
     if (theme !== "system") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    
+
     const handleChange = () => {
       applyTheme("system");
     };

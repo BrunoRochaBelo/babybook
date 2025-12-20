@@ -6,12 +6,36 @@ import { UploadModal } from "../components/UploadModal";
 import { HudCard } from "@/components/HudCard";
 
 const DOCUMENT_SLOTS = [
-  { id: "certidao", label: "Certidão de nascimento", helper: "PDF ou foto digitalizada do cartório" },
-  { id: "cpf", label: "CPF", helper: "Comprovante emitido pela Receita Federal" },
-  { id: "carteira-vacinacao", label: "Carteira de vacinação", helper: "Frente e verso atualizados" },
-  { id: "cartao-sus", label: "Cartão SUS", helper: "Identificação do Sistema Único de Saúde" },
-  { id: "plano-saude", label: "Plano de saúde", helper: "Carteirinha do plano ou seguro" },
-  { id: "rg", label: "Documento de identidade", helper: "Caso o bebê já possua RG ou passaporte" },
+  {
+    id: "certidao",
+    label: "Certidão de nascimento",
+    helper: "PDF ou foto digitalizada do cartório",
+  },
+  {
+    id: "cpf",
+    label: "CPF",
+    helper: "Comprovante emitido pela Receita Federal",
+  },
+  {
+    id: "carteira-vacinacao",
+    label: "Carteira de vacinação",
+    helper: "Frente e verso atualizados",
+  },
+  {
+    id: "cartao-sus",
+    label: "Cartão SUS",
+    helper: "Identificação do Sistema Único de Saúde",
+  },
+  {
+    id: "plano-saude",
+    label: "Plano de saúde",
+    helper: "Carteirinha do plano ou seguro",
+  },
+  {
+    id: "rg",
+    label: "Documento de identidade",
+    helper: "Caso o bebê já possua RG ou passaporte",
+  },
 ];
 
 export const VaultPage = () => {
@@ -32,7 +56,9 @@ export const VaultPage = () => {
     return { slots, additional };
   }, [documents]);
 
-  const storedEssentials = slotDocuments.slots.filter((slot) => Boolean(slot.document)).length;
+  const storedEssentials = slotDocuments.slots.filter((slot) =>
+    Boolean(slot.document),
+  ).length;
   const essentialsPercent = Math.min(
     100,
     Math.round((storedEssentials / DOCUMENT_SLOTS.length) * 100),
@@ -42,7 +68,9 @@ export const VaultPage = () => {
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
       <div className="text-center">
         <ShieldCheck className="mx-auto h-10 w-10 text-primary" />
-        <h1 className="mt-2 text-3xl font-serif text-gray-800">Cofre de Documentos</h1>
+        <h1 className="mt-2 text-3xl font-serif text-gray-800">
+          Cofre de Documentos
+        </h1>
       </div>
 
       <div className="mt-6">
@@ -70,7 +98,8 @@ export const VaultPage = () => {
             <Lock className="h-4 w-4" />
           </div>
           <p>
-            Estes documentos são privados e nunca serão incluídos em álbuns impressos ou compartilhados sem consentimento explícito.
+            Estes documentos são privados e nunca serão incluídos em álbuns
+            impressos ou compartilhados sem consentimento explícito.
           </p>
         </div>
       </div>
@@ -90,14 +119,19 @@ export const VaultPage = () => {
             <>
               {slotDocuments.slots.map((slot) =>
                 slot.document ? (
-                  <DocumentRow key={slot.document.id} document={slot.document} />
+                  <DocumentRow
+                    key={slot.document.id}
+                    document={slot.document}
+                  />
                 ) : (
                   <div
                     key={slot.id}
                     className="flex items-center justify-between rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3"
                   >
                     <div>
-                      <p className="font-semibold text-gray-700">{slot.label}</p>
+                      <p className="font-semibold text-gray-700">
+                        {slot.label}
+                      </p>
                       <p className="text-xs text-gray-500">{slot.helper}</p>
                     </div>
                     <button
@@ -115,23 +149,27 @@ export const VaultPage = () => {
                 <DocumentRow key={doc.id} document={doc} />
               ))}
 
-              {slotDocuments.slots.length === 0 && slotDocuments.additional.length === 0 && (
-                <div className="rounded-xl border-2 border-dashed border-gray-200 py-16 text-center">
-                  <FileText className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                  <h3 className="mb-2 text-lg font-semibold text-gray-500">
-                    Nenhum documento no cofre
-                  </h3>
-                  <p className="text-sm text-gray-400">
-                    Use o botão "Novo documento" para começar.
-                  </p>
-                </div>
-              )}
+              {slotDocuments.slots.length === 0 &&
+                slotDocuments.additional.length === 0 && (
+                  <div className="rounded-xl border-2 border-dashed border-gray-200 py-16 text-center">
+                    <FileText className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                    <h3 className="mb-2 text-lg font-semibold text-gray-500">
+                      Nenhum documento no cofre
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Use o botão &ldquo;Novo documento&rdquo; para começar.
+                    </p>
+                  </div>
+                )}
             </>
           )}
         </div>
       </div>
 
-      <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
     </div>
   );
 };

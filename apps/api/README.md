@@ -49,6 +49,18 @@ python -m uvicorn babybook_api.main:app --app-dir apps/api --reload --port 8000
   - `alembic upgrade head`
   - `alembic downgrade -1`
 
+### Importante: Portal do Parceiro — listagem de entregas
+
+O endpoint `GET /partner/deliveries` suporta filtros server-side (busca, resgate, voucher, arquivadas etc.).
+
+Para manter a listagem performática em bases grandes (staging/prod), garanta que a migration de índices foi aplicada:
+
+- `0009_delivery_list_filter_indexes` (índices por `partner_id` para filtros comuns)
+
+Ao atualizar a API em qualquer ambiente, rode:
+
+- `alembic upgrade head`
+
 ### Bootstrap do zero (Postgres)
 
 Este Alembic agora consegue subir um banco **vazio** do zero via `alembic upgrade head`.

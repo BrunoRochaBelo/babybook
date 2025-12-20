@@ -17,7 +17,6 @@ import {
   Heart,
   Calendar,
   Share2,
-  Download,
   ArrowRight,
   MessageCircle,
   Sparkles,
@@ -95,7 +94,7 @@ export function SharedMomentPage() {
           },
         });
         setLikeCount(Math.floor(Math.random() * 50) + 10);
-      } catch (err) {
+      } catch {
         setError("Momento não encontrado ou link expirado");
       } finally {
         setIsLoading(false);
@@ -127,7 +126,7 @@ export function SharedMomentPage() {
           text: shareText,
           url: shareUrl,
         });
-      } catch (error) {
+      } catch {
         // User cancelled or share failed
         setShowShareMenu(true);
       }

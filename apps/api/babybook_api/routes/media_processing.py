@@ -12,22 +12,22 @@ from typing import Optional
 from urllib.parse import urlparse
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from babybook_api.deps import get_db
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.settings import settings
+from babybook_api.deps import get_db
 from babybook_api.schemas.media_processing import (
-    TranscodeJobRequest,
-    ImageOptimizeJobRequest,
-    ThumbnailJobRequest,
     BatchProcessingRequest,
+    BatchProcessingResponse,
+    ImageOptimizeJobRequest,
     ProcessingJobResponse,
     ProcessingJobStatusResponse,
-    BatchProcessingResponse,
     ProcessingStatus,
+    ThumbnailJobRequest,
+    TranscodeJobRequest,
 )
+from babybook_api.settings import settings
 
 router = APIRouter()
 

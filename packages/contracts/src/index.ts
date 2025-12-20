@@ -97,8 +97,9 @@ const rawMomentSchema = z.object({
 
 export const momentSchema = rawMomentSchema.transform((moment) => {
   const payload = moment.payload ?? {};
-  const media = Array.isArray((payload as Record<string, unknown>).media)
-    ? ((payload as { media?: unknown }).media as unknown[])
+  const rawMedia = payload.media;
+  const media = Array.isArray(rawMedia)
+    ? rawMedia
         .map((entry) => momentMediaSchema.safeParse(entry))
         .filter((result) => result.success)
         .map((result) => result.data)
@@ -327,6 +328,8 @@ const rawPendingDeliveryItemSchema = z.object({
   delivery_id: z.string().uuid(),
   partner_name: z.string().nullable().optional(),
   title: z.string(),
+  target_email: z.string().email().nullable().optional(),
+  target_email_masked: z.string().nullable().optional(),
   assets_count: z.number().int().nonnegative().optional(),
   created_at: isoDateSchema,
 });
@@ -336,6 +339,8 @@ export const pendingDeliveryItemSchema = rawPendingDeliveryItemSchema.transform(
     deliveryId: d.delivery_id,
     partnerName: d.partner_name ?? null,
     title: d.title,
+    targetEmail: d.target_email ?? null,
+    targetEmailMasked: d.target_email_masked ?? null,
     assetsCount: d.assets_count ?? 0,
     createdAt: d.created_at,
   }),

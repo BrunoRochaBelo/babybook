@@ -64,7 +64,7 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
 - **pnpm**: Essencial para gerenciar os workspaces do monorepo (corepack enable ou npm i -g pnpm).
 - **Node.js**: Versão definida em .nvmrc. (Recomendamos nvm para gerenciar).
 - **Python**: Versão definida em pyproject.toml. (Recomendamos pyenv ou asdf para gerenciar).
-- **Docker e docker-compose**: Essencial para simular nossos backing services de produção (Postgres e S3) localmente.
+- **Docker e Docker Compose**: Essencial para simular nossos backing services de produção (Postgres e S3) localmente.
 
 ### 3.2. Setup Inicial (Primeira vez)
 
@@ -85,19 +85,35 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
 
 Nota (staging/prod): a API possui guardrails e **falha no startup** se estiver com configuração insegura. Garanta que, nos ambientes não-locais, estejam definidos `ENV`, `ALLOWED_HOSTS`, `SECRET_KEY`, `SERVICE_API_TOKEN`, `BILLING_WEBHOOK_SECRET`, `SESSION_COOKIE_SECURE=true`, `CORS_ORIGINS` (sem localhost) e URLs públicas em https.
 
-3. Instale TODAS as dependências (Node/Python) e rode o codegen da API:
+3. Instale as dependências **Node/JS** do monorepo:
    ```bash
    pnpm install
    ```
-   (Este comando irá "içar" (hoist) todas as node*modules para a raiz, linkar os workspaces (apps/*, packages/\_) e instalar as dependências Python no ambiente virtual.)
+   (Este comando irá "içar" (hoist) todas as node*modules para a raiz e linkar os workspaces (apps/*, packages/\*).)
+
+Para preparar o ambiente **Python** (venv + dependências), use os scripts abaixo:
+
+Windows:
+
+```powershell
+pnpm run setup:py:win
+```
+
+macOS / Linux:
+
+```bash
+pnpm run setup:py:unix
+```
 
 ### 3.3. Rodando a Infra Local
 
 Suba os backing services (o banco e o storage S3 mockado). O docker-compose.yml (Seção 4) define esses serviços.
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+
+> Observação: se o seu ambiente ainda usa o binário legado, o equivalente é `docker-compose up -d`.
 
 Isso irá iniciar (em background):
 
@@ -119,36 +135,43 @@ pnpm --filter api run db:upgrade
 Após a infra (Docker) estar rodando e migrada, rode os serviços locais (API e SPA):
 
 ```bash
-pnpm dev:local
+pnpm run dev:api
 ```
 
-Para iniciar a landing page, API e workers em paralelo, use (recomendado com o venv Python ativo):
+Em outro terminal, rode a SPA:
 
-````bash
-& .\.venv\Scripts\Activate.ps1  # Windows PowerShell, se ainda não estiver ativo
+```bash
+pnpm run dev:web
+```
+
+Para iniciar landing page, API e workers em paralelo, use (recomendado com o venv Python ativo):
+
+Windows (PowerShell):
+
+```powershell
+& .\.venv\Scripts\Activate.ps1  # se ainda não estiver ativo
 pnpm run dev:all
-
-No Windows, você pode usar o helper que ativa o venv e inicia todos os serviços em um comando:
-```bash
-pnpm run dev:all:win
 ```
 
-No macOS / Linux, use:
+Atalhos:
 
 ```bash
+# Windows
+pnpm run dev:all:win
+
+# macOS / Linux
 pnpm run dev:all:unix
 ```
 
 Se ainda não criou o ambiente Python e instalou dependências, rode primeiro:
 
-Windows:
-```powershell
-pnpm run setup:py:win
-```
-
-macOS / Linux:
 ```bash
+# Windows
+pnpm run setup:py:win
+
+# macOS / Linux
 pnpm run setup:py:unix
+```
 
 Se preferir não rodar os Workers (e evitar conectar ao banco local), use a variante "lite":
 
@@ -156,10 +179,7 @@ Se preferir não rodar os Workers (e evitar conectar ao banco local), use a vari
 pnpm run dev:all:lite
 ```
 
-Ou use `dev:all:lite:win` / `dev:all:lite:unix` manualmente para ativar venv e rodar a versão "lite".
-```
-
-````
+Ou use os helpers `dev:all:lite:win` / `dev:all:lite:unix` para ativar venv e rodar a versão "lite".
 
 Observações:
 
@@ -176,7 +196,15 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 Conforme nossa Arquitetura & Domínio (Apêndice C), o apps/workers (Modal) não precisa rodar localmente para o fluxo padrão. Para simplificar o DevEx, usamos o modo **inline worker**: em `ENV=local` e `INLINE_WORKER_ENABLED=true`, a API (FastAPI) não publica na fila. Ela simula o processamento assincrono no mesmo processo e atualiza o asset.status para `ready` imediatamente. Isso mantém o upload funcional para quem está desenvolvendo o apps/web sem depender de ffmpeg/minio adicionais.
 
-Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou o modo `QUEUE_PROVIDER=database`), basta definir `INLINE_WORKER_ENABLED=false`, executar `pnpm dev:workers` (ou rodar o worker no provedor Modal) e deixar a API publicar os jobs normalmente. A composição local (`docker-compose`) cria os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO para conveniência de desenvolvimento; lembre-se que esses buckets são mocks locais — em produção usamos **Cloudflare R2-only** (tiers lógicos) conforme o Dossiê.
+Quando precisamos validar o pipeline real (Cloudflare Queue + workers Python ou o modo `QUEUE_PROVIDER=database`), basta definir `INLINE_WORKER_ENABLED=false`, executar `pnpm dev:workers` (ou rodar o worker no provedor Modal) e deixar a API publicar os jobs normalmente. A composição local (`docker compose`) cria os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO para conveniência de desenvolvimento; lembre-se que esses buckets são mocks locais — em produção usamos **Cloudflare R2-only** (tiers lógicos) conforme o Dossiê.
+
+### 3.7. Qualidade (lint/typecheck)
+
+- `pnpm lint` roda:
+  - **JS/TS**: lint recursivo por workspace.
+  - **Python**: Ruff via `scripts/lint-py.js` (usa `.venv` se existir; caso contrário tenta `python` do PATH).
+
+- `pnpm typecheck` roda o TypeScript sem emit nos pacotes/apps principais.
 
 ## 4. O que tem aqui? (Estrutura do Monorepo)
 
@@ -233,31 +261,9 @@ pnpm --filter api test
 pnpm --filter e2e test:headed
 ```
 
-## 3. Estrutura Atual do Monorepo
+## 6. Guia rápido e operação local
 
-```
-babybook/
-├─ apps/
-│  ├─ api/            # FastAPI + OpenAPI
-│  ├─ web/            # SPA (React/Vite)
-│  ├─ edge/           # SSR público (Hono)
-│  ├─ workers/        # Pipelines assíncronos (Modal-ready)
-│  └─ admin/          # Ferramentas operacionais (Typer)
-├─ packages/
-│  ├─ config/         # ESLint/Tailwind/TSConfig compartilhados
-│  ├─ ui/             # Design System (Radix + tokens)
-│  ├─ contracts/      # Tipos gerados do OpenAPI
-│  ├─ utils/          # Helpers puros
-│  └─ i18n/           # Provider e traduções
-├─ tests/
-│  ├─ e2e/            # Playwright
-│  ├─ web/            # Testes de UI/a11y (Vitest)
-│  ├─ api/            # Contratos FastAPI
-│  └─ workers/        # Pipelines com pytest
-└─ docs/              # Bússola estratégica
-```
-
-### Guia rápido
+### Atalhos (dev)
 
 ```bash
 pnpm install
@@ -299,15 +305,15 @@ Defina `BABYBOOK_DATABASE_URL` para apontar para outro banco (por padrão usa o 
 
 Quando quiser rodar o front no compose (modo produção), habilite o profile web-prod:
 
-`ash
+```bash
 docker compose --profile web-prod up web-prod
-`
+```
 
-O container usa pps/web/Dockerfile para buildar o bundle e serve o app em http://localhost:4173 apontando para a API/storage do compose.
+O container usa `apps/web/Dockerfile` para buildar o bundle e serve o app em http://localhost:4173 apontando para a API/storage do compose.
 
 > Dica: para que o apps/web encontre os derivados no ambiente real/local, defina `VITE_MEDIA_BASE_URL` com o host do bucket (ex.: `http://localhost:9000`).
 
-## Segurança (segredos e histórico)
+## 7. Segurança (segredos e histórico)
 
 - Execute `pre-commit install` para habilitar o hook de _secret scanning_ baseado em `detect-secrets` (baseline em `.secrets.baseline`). Commits com novos segredos serão bloqueados.
 - O passo a passo para limpar o histórico e remover o segredo exposto (Company Email Password) está documentado em `docs/security-remediation.md`.

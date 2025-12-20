@@ -236,6 +236,40 @@ const normalizeDeliveryStatus = (delivery: MockDelivery) => {
   return delivery.status;
 };
 
+const maskEmail = (email: string) => {
+  const raw = (email ?? "").trim();
+  if (!raw || !raw.includes("@")) return "***";
+
+  const [localRaw, domainRaw] = raw.split("@", 2);
+  const local = (localRaw ?? "").trim();
+  const domain = (domainRaw ?? "").trim();
+
+  const localMask = !local
+    ? "***"
+    : local.length === 1
+      ? "*"
+      : `${local[0]}***`;
+
+  if (!domain) return `${localMask}@***`;
+
+  const parts = domain.split(".");
+  if (parts.length >= 2) {
+    const first = parts[0] ?? "";
+    const rest = parts.slice(1).join(".");
+    const firstMask = !first
+      ? "***"
+      : first.length === 1
+        ? "*"
+        : `${first[0]}***`;
+    return rest
+      ? `${localMask}@${firstMask}.${rest}`
+      : `${localMask}@${firstMask}`;
+  }
+
+  const domainMask = domain.length === 1 ? "*" : `${domain[0]}***`;
+  return `${localMask}@${domainMask}`;
+};
+
 const toDeliveryResponse = (delivery: MockDelivery) => ({
   id: delivery.id,
   partner_id: delivery.partnerId,
@@ -352,6 +386,160 @@ export const handlers = [
       moments_used: 32,
       moments_quota: 60,
     }),
+  ),
+
+  // Direct Partner Deliveries (sem voucher)
+  http.get(withBase("/me/deliveries/pending"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+
+    const userEmail = normalizeEmail(activeUser.email);
+
+    const items = mutableDeliveries
+      .filter((d) => {
+        const targetEmail = normalizeEmail(d.targetEmail ?? "");
+        const isDirectImport = Boolean(d.directImport) && !d.voucherCode;
+        return (
+          d.status === "ready" && isDirectImport && targetEmail === userEmail
+        );
+      })
+      .map((d) => ({
+        delivery_id: d.id,
+        partner_name: mockPartner.studioName ?? mockPartner.name,
+        title: d.title,
+        assets_count: d.assetsCount,
+        target_email: userEmail,
+        target_email_masked: maskEmail(userEmail),
+        created_at: d.createdAt,
+      }));
+
+    return HttpResponse.json({ items, total: items.length });
+  }),
+
+  http.post(
+    withBase("/me/deliveries/:deliveryId/import"),
+    async ({ params, request }) => {
+      if (!sessionActive) return sessionRequiredResponse();
+
+      const deliveryId = String(params.deliveryId);
+      const delivery = mutableDeliveries.find((d) => d.id === deliveryId);
+      if (!delivery) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "delivery.not_found",
+              message: "Entrega não encontrada",
+              trace_id: "mock-trace-delivery",
+            },
+          },
+          { status: 404 },
+        );
+      }
+
+      const userEmail = normalizeEmail(activeUser.email);
+      const targetEmail = normalizeEmail(delivery.targetEmail ?? "");
+      if (targetEmail && targetEmail !== userEmail) {
+        const masked = maskEmail(targetEmail);
+        return HttpResponse.json(
+          {
+            error: {
+              code: "delivery.email_mismatch",
+              message: `Esta entrega foi enviada para outro e-mail. Faça login com ${masked} para resgatar.`,
+              details: { target_email_masked: masked },
+              trace_id: "mock-trace-delivery",
+            },
+          },
+          { status: 403 },
+        );
+      }
+
+      const isDirectImport =
+        Boolean(delivery.directImport) && !delivery.voucherCode;
+      if (!isDirectImport) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "delivery.not_direct_import",
+              message:
+                "Esta entrega não está habilitada para importação direta.",
+              trace_id: "mock-trace-delivery",
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      const body = (await request.json()) as {
+        idempotency_key?: string;
+        action?:
+          | { type: "EXISTING_CHILD"; child_id: string }
+          | { type: "NEW_CHILD"; child_name?: string };
+      };
+
+      const action = body.action;
+      if (
+        !action ||
+        (action.type !== "EXISTING_CHILD" && action.type !== "NEW_CHILD")
+      ) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "request.validation_error",
+              message: "Payload invalido",
+              trace_id: "mock-trace-delivery",
+            },
+          },
+          { status: 422 },
+        );
+      }
+
+      let childId: string;
+      if (action.type === "EXISTING_CHILD") {
+        childId = action.child_id;
+      } else {
+        const newChild: Child = {
+          id: nanoid(),
+          name: action.child_name?.trim() || "Novo Livro",
+          birthday: null,
+          avatarUrl: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        mutableChildren.push(newChild);
+        childId = newChild.id;
+      }
+
+      const momentId = nanoid();
+      const moment: Moment = {
+        id: momentId,
+        childId,
+        title: delivery.title,
+        summary: "Importado de entrega do fotógrafo",
+        occurredAt: null,
+        templateKey: null,
+        status: "draft",
+        privacy: "private",
+        payload: {},
+        media: [],
+        rev: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        publishedAt: null,
+      };
+      mutableMoments.unshift(moment);
+
+      // Marca como concluída para não aparecer mais em pendentes
+      delivery.status = "completed";
+      delivery.updatedAt = new Date().toISOString();
+
+      return HttpResponse.json({
+        success: true,
+        delivery_id: delivery.id,
+        assets_transferred: delivery.assetsCount,
+        child_id: childId,
+        moment_id: momentId,
+        message: "Entrega importada com sucesso.",
+      });
+    },
   ),
   http.get(withBase("/children"), () =>
     HttpResponse.json({
@@ -630,6 +818,31 @@ export const handlers = [
     });
   }),
 
+  // Validação silenciosa (eligibilidade) - /partner/check-eligibility
+  http.post(withBase("/partner/check-eligibility"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
+    const body = (await request.json()) as { email?: string };
+    const email = normalizeEmail(body.email ?? "");
+    const isEligible = email.includes("ana") || email.includes("paid");
+
+    return HttpResponse.json({
+      is_eligible: isEligible,
+      reason: isEligible ? "EXISTING_ACTIVE_CHILD" : "NEW_USER",
+    });
+  }),
+
   // Create delivery
   http.post(withBase("/partner/deliveries"), async ({ request }) => {
     if (!sessionActive) return sessionRequiredResponse();
@@ -645,21 +858,46 @@ export const handlers = [
       );
     }
     const body = (await request.json()) as {
-      title: string;
+      target_email?: string;
+      title?: string;
       client_name?: string;
+      child_name?: string;
       description?: string;
       event_date?: string;
     };
+
+    const targetEmail = normalizeEmail(body.target_email ?? "");
+    if (!targetEmail) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "request.validation_error",
+            message: "Payload invalido",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    const isEligible =
+      targetEmail.includes("ana") || targetEmail.includes("paid");
+    const title =
+      body.title?.trim() ||
+      `Ensaio - ${body.child_name?.trim() || body.client_name?.trim() || targetEmail}`;
+
     const newDelivery: MockDelivery = {
       id: `delivery-${nanoid(8)}`,
       partnerId: mockPartner.id,
-      title: body.title,
+      title,
       clientName: body.client_name ?? null,
+      targetEmail,
+      directImport: true,
       description: body.description ?? null,
       eventDate: body.event_date ?? null,
       status: "draft",
       assetsCount: 0,
       voucherCode: null,
+      creditStatus: isEligible ? "not_required" : "reserved",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

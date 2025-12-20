@@ -12,8 +12,13 @@ export function CheckoutPage() {
       const res = await createCheckout.mutateAsync({
         packageKey: "unlimited_social",
       });
-      const checkoutUrl = (res as any).checkout_url;
-      if (checkoutUrl) {
+
+      const checkoutUrl =
+        res && typeof res === "object" && "checkout_url" in res
+          ? (res as { checkout_url?: unknown }).checkout_url
+          : undefined;
+
+      if (typeof checkoutUrl === "string" && checkoutUrl) {
         window.location.href = checkoutUrl;
       }
     } catch (err) {

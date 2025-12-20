@@ -32,6 +32,10 @@ class PendingDeliveryItem(BaseModel):
     delivery_id: str
     partner_name: str | None = None
     title: str
+    # Opcional: e-mail alvo desta entrega (apenas quando seguro/compatível)
+    target_email: EmailStr | None = None
+    # Opcional: versão mascarada do e-mail alvo (para UX sem expor o e-mail inteiro)
+    target_email_masked: str | None = None
     assets_count: int = 0
     created_at: datetime
 

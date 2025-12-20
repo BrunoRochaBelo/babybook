@@ -28,7 +28,7 @@ export const DashboardPage = () => {
   const navigate = useNavigate();
   const { children = [], selectedChild } = useSelectedChild();
   const setSelectedChildId = useAppStore((state) => state.setSelectedChildId);
-  const [nextTemplate, setNextTemplate] = useState(templates[0]);
+  const [nextTemplate] = useState(templates[0]);
   const { data: moments = [], isLoading } = useMoments(selectedChild?.id);
 
   const handleStartTemplate = () => {
@@ -45,7 +45,9 @@ export const DashboardPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-[#2A2A2A]">Jornada</h1>
+      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-[#2A2A2A]">
+        Jornada
+      </h1>
       {/* Child Selector */}
       {children.length > 0 && (
         <div className="mb-6 flex justify-center">
@@ -84,7 +86,8 @@ export const DashboardPage = () => {
             </button>
           </div>
           <p className="text-xs text-[#C9D3C2]">
-            Não obrigatório. Você pode criar um momento livre a qualquer momento.
+            Não obrigatório. Você pode criar um momento livre a qualquer
+            momento.
           </p>
         </div>
       )}
@@ -104,7 +107,7 @@ export const DashboardPage = () => {
           </div>
         ) : moments.length > 0 ? (
           <div className="space-y-4">
-            {moments.map((moment: any) => (
+            {moments.map((moment) => (
               <MomentCard key={moment.id} moment={moment} />
             ))}
           </div>

@@ -4,10 +4,9 @@ Schemas Pydantic para Deliveries (B2B2C)
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
-from pydantic import BaseModel, Field, EmailStr
-
+from pydantic import BaseModel, EmailStr, Field
 
 DeliveryStatus = Literal["pending", "processing", "completed", "failed"]
 

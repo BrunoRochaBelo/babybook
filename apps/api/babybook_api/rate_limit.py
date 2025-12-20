@@ -10,7 +10,6 @@ from limits.strategies import FixedWindowRateLimiter
 from babybook_api.errors import AppError
 from babybook_api.settings import settings
 
-
 _STORAGE: Final[MemoryStorage] = MemoryStorage()
 _LIMITER: Final[FixedWindowRateLimiter] = FixedWindowRateLimiter(_STORAGE)
 

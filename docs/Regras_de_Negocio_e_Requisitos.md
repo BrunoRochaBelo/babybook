@@ -94,10 +94,15 @@ Referências: `apps/api/alembic/versions/0004_child_pce_credit_status_ledger.py`
 ### Portal do parceiro — criação de entrega
 
 - O parceiro cria uma `Delivery` com dados do cliente e do evento.
-- Regra operacional:
-  - se `client_email` já existe como `User`, **não** reservar crédito → `credit_status='not_required'`.
+- Regra operacional (email do cliente = `target_email`):
+  - se `target_email` já existe como `User` **e** possui pelo menos 1 `Child` com `pce_status='paid'`, **não** reservar crédito → `credit_status='not_required'`.
   - caso contrário, reservar 1 crédito sob lock transacional (evitar double-spend) → `credit_status='reserved'`.
 - A reserva (quando existir) deve gerar entrada em `PartnerLedger` (auditoria).
+
+Observações:
+
+- A UI do portal pode fazer **validação silenciosa** via `POST /partner/check-eligibility` (sem expor nomes/lista de filhos), mas a API sempre recalcula a regra no `POST /partner/deliveries`.
+- O hard lock no resgate/importação é por e-mail (`Delivery.target_email`).
 
 Referência principal: `apps/api/babybook_api/routes/partner_portal.py` (`create_delivery`).
 
@@ -226,13 +231,22 @@ Referência: `docs/API_Reference.md`.
 
 ### Fluxo B2B2C — importação direta (sem voucher)
 
-- Dado cliente com conta, quando parceiro cria entrega, então `credit_status='not_required'` e não há reserva.
+- (UX) O portal do parceiro pode executar uma **validação silenciosa** (sem expor PII) em `POST /partner/check-eligibility`.
+  - Se `is_eligible=true`, a criação da entrega é **0 crédito** (`credit_status='not_required'`).
+  - Se `is_eligible=false` (ou se a validação falhar), a entrega deve seguir o caminho **1 crédito** (reserva/late binding conforme implementação).
+
+- Dado cliente com conta e elegível, quando parceiro cria entrega, então `credit_status='not_required'` e não há reserva.
 - Ao finalizar entrega, o sistema retorna `import_url` (sem voucher).
 - Na importação, o usuário escolhe EXISTING_CHILD (0) ou NEW_CHILD (1 crédito).
   - **EXISTING_CHILD:** permitido apenas se `child.pce_status == 'paid'`.
   - **NEW_CHILD:** cobra **1 crédito do parceiro no momento da importação** (late binding), cria Child com `pce_status='paid'` e marca a entrega como `credit_status='consumed'`.
   - Se o parceiro não tiver saldo, a API retorna **402** `partner.insufficient_credits`.
     Referência (implementação): `apps/api/babybook_api/routes/me.py` (`POST /deliveries/{delivery_id}/import`).
+
+- **Hard lock por e-mail (segurança):**
+  - A entrega persiste `deliveries.target_email`.
+  - No resgate/importação, somente o usuário autenticado com e-mail correspondente pode importar.
+  - Em mismatch, a API retorna **403** `delivery.email_mismatch` com hint seguro `details.target_email_masked`.
 
 ---
 
@@ -291,8 +305,8 @@ Esta seção registra **o que está alinhado**, **o que diverge** entre document
   - Moment `processing/ready` existe como estado real no produto (por assets/transcode) ou só no nível de Asset?
 
 - **Formalizar o fluxo de importação direta no contrato público:**
-  - `GET /deliveries/pending` e `POST /deliveries/{id}/import` aparecem implementados em `routes/me.py`, mas não estão descritos no `docs/API_Reference.md` (pelo trecho lido).
-  - **Requisito:** documentar request/response, erros (`delivery.not_direct_import`, `delivery.invalid_credit_state`, `delivery.copy_failed`, `partner.insufficient_credits`) e idempotência.
+  - ✅ Documentado em `docs/API_Reference.md` (seção “Entrega Direta (B2B2C) — Importação Direta (sem voucher)”).
+  - **Manter em observação:** alinhamento fino de lista completa de erros (ex.: `delivery.invalid_credit_state`, `delivery.copy_failed`) e padronização de idempotência (header vs body).
 
 - **Clarificar unidade do “beneficiário” no B2B2C:**
   - No código, `beneficiary_id` é um UUID de **Account** (não necessariamente `User`).

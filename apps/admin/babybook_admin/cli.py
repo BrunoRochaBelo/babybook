@@ -7,14 +7,14 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from alembic import command as alembic_command
 from babybook_api.db.models import WorkerJob
+
 from . import seeds
 
 console = Console()

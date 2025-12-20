@@ -68,7 +68,7 @@ fileRoutes.use(
 );
 
 // Preflight handler com allowlist (se configurada)
-fileRoutes.on("OPTIONS", ["/*"], async (c) => {
+fileRoutes.on("OPTIONS", ["/*"], (c) => {
   const originHeader = c.req.header("Origin") ?? null;
   const allowOrigin = getCorsAllowOrigin(
     originHeader,

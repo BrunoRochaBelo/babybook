@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMockComplete } from "@/hooks/api";
 import { useUserProfile } from "@/hooks/api";
 import { Button } from "@/components/ui/button";
 
 function useQuery() {
-  return new URLSearchParams(useLocation().search);
+  const search = useLocation().search;
+  return useMemo(() => new URLSearchParams(search), [search]);
 }
 
 export function CheckoutSuccessPage() {
@@ -15,7 +16,7 @@ export function CheckoutSuccessPage() {
   const { refetch } = useUserProfile();
 
   useEffect(() => {
-    (async () => {
+    const run = async () => {
       const accountId = query.get("account_id");
       const packageKey = query.get("package_key") || "unlimited_social";
       if (accountId) {
@@ -28,8 +29,10 @@ export function CheckoutSuccessPage() {
           console.error(err);
         }
       }
-    })();
-  }, []);
+    };
+
+    void run();
+  }, [mockComplete, navigate, query, refetch]);
 
   return (
     <div className="p-6 max-w-md mx-auto text-center">

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from fastapi import Cookie, Depends, Header
-from starlette import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from starlette import status
 
 from babybook_api.db.models import Session as SessionModel
 from babybook_api.deps import get_db_session

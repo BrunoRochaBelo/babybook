@@ -14,6 +14,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Necessário para habilitar SharedArrayBuffer (ffmpeg.wasm) em dev.
+    // Sem isso, `crossOriginIsolated` fica false e o compressor de vídeo não inicializa.
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
     // HMR mais estável
     hmr: {
       overlay: true, // Mostra erros como overlay

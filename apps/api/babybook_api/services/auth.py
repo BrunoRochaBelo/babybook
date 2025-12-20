@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any
 
 from fastapi import Response
 from sqlalchemy import select
@@ -180,6 +179,7 @@ async def bootstrap_dev_partner(
     - Créditos: 5
     """
     from uuid import uuid4
+
     from babybook_api.db.models import Account, Partner
     
     # Check if user exists

@@ -4,7 +4,7 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --ext .js,.mjs"
+    "lint": "eslint \"**/*.ts\" --config eslint/index.mjs"
   },
   "exports": {
     "./eslint": "./eslint/index.mjs",
@@ -21,6 +21,7 @@
     "pricing.ts"
   ],
   "devDependencies": {
+    "@types/node": "^22.9.3",
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
     "eslint": "^9.7.0",

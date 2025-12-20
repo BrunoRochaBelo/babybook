@@ -1,6 +1,6 @@
 import React, { type ComponentType, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PartnerPage } from "@/layouts/PartnerPage";
 
@@ -140,7 +140,9 @@ function StateBody({
         : "bg-gray-100 dark:bg-gray-700";
 
   const wrapClass =
-    variant === "page" ? "bg-white dark:bg-gray-800 rounded-2xl border shadow-lg p-8" : "";
+    variant === "page"
+      ? "bg-white dark:bg-gray-800 rounded-2xl border shadow-lg p-8"
+      : "";
 
   const innerClass =
     variant === "page" ? "max-w-md mx-auto text-center" : "text-center";
@@ -223,26 +225,6 @@ export function PartnerLoadingState({
   return body;
 }
 
-/**
- * Detecta se a mensagem de erro parece ser causada por HMR.
- */
-function isHmrErrorMessage(message?: string | null): boolean {
-  if (!message) return false;
-  
-  const lowerMessage = message.toLowerCase();
-  const hmrPatterns = [
-    "cannot read properties of undefined",
-    "cannot read properties of null",
-    "is not a function",
-    "is not defined",
-    "failed to fetch dynamically imported module",
-    "token",
-    "csrf",
-  ];
-  
-  return hmrPatterns.some((pattern) => lowerMessage.includes(pattern));
-}
-
 export function PartnerErrorState({
   variant = "page",
   size = "default",
@@ -275,8 +257,10 @@ export function PartnerErrorState({
 
   React.useEffect(() => {
     if (shouldAutoReload) {
-      console.info("[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...");
-      
+      console.info(
+        "[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...",
+      );
+
       const timeoutId = setTimeout(() => {
         // Limpa cache do service worker se existir
         if ("serviceWorker" in navigator) {
@@ -284,17 +268,17 @@ export function PartnerErrorState({
             registrations.forEach((registration) => registration.unregister());
           });
         }
-        
+
         // Limpa caches
         if ("caches" in window) {
           caches.keys().then((names) => {
             names.forEach((name) => caches.delete(name));
           });
         }
-        
+
         window.location.reload();
       }, 200);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [shouldAutoReload]);
@@ -323,28 +307,35 @@ export function PartnerErrorState({
         registrations.forEach((registration) => registration.unregister());
       });
     }
-    
+
     // Limpa caches
     if ("caches" in window) {
       caches.keys().then((names) => {
         names.forEach((name) => caches.delete(name));
       });
     }
-    
+
     // Recarrega sem cache
     window.location.reload();
   };
 
-  const defaultDescription = "Ocorreu um erro inesperado. Tente novamente ou recarregue a página.";
+  const defaultDescription =
+    "Ocorreu um erro inesperado. Tente novamente ou recarregue a página.";
 
   const body = (
-    <div role="alert" aria-live="assertive" className={cn(
-      variant === "page" ? "py-12" : "py-8"
-    )}>
-      <div className={cn(
-        "bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center max-w-md mx-auto",
-        variant === "page" ? "border border-gray-200 dark:border-gray-700" : ""
-      )}>
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={cn(variant === "page" ? "py-12" : "py-8")}
+    >
+      <div
+        className={cn(
+          "bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center max-w-md mx-auto",
+          variant === "page"
+            ? "border border-gray-200 dark:border-gray-700"
+            : "",
+        )}
+      >
         {/* Ícone de warning em círculo */}
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
           <svg
@@ -361,12 +352,12 @@ export function PartnerErrorState({
             />
           </svg>
         </div>
-        
+
         {/* Título */}
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
           {title}
         </h2>
-        
+
         {/* Descrição */}
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           {description ?? defaultDescription}
@@ -420,7 +411,6 @@ export function PartnerErrorState({
 
   return body;
 }
-
 
 export function PartnerEmptyState({
   variant = "page",

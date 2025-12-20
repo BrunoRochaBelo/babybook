@@ -12,7 +12,6 @@ import {
   HealthMeasurement,
   healthVisitSchema,
   HealthVisit,
-  healthVaccineSchema,
   HealthVaccine,
   momentSchema,
   Moment,
@@ -38,28 +37,30 @@ import { withRetry } from "@/lib/retry";
 
 /**
  * Obtém um token CSRF do servidor com retry automático.
- * 
+ *
  * Usa backoff exponencial para lidar com:
  * - HMR em desenvolvimento (MSW pode não estar pronto)
  * - Problemas temporários de rede
  * - Servidor momentaneamente indisponível
- * 
+ *
  * @returns Token CSRF válido
  * @throws Error se todas as tentativas falharem
  */
 async function fetchCsrfToken(): Promise<string> {
   const isDev = import.meta.env.DEV;
-  
+
   try {
     const csrf = await withRetry(
       async () => {
-        const response = await apiClient.get<{ csrf_token: string }>("/auth/csrf");
-        
+        const response = await apiClient.get<{ csrf_token: string }>(
+          "/auth/csrf",
+        );
+
         // Valida a resposta
         if (!response || typeof response.csrf_token !== "string") {
           throw new Error("Resposta inválida do servidor de autenticação");
         }
-        
+
         return response.csrf_token;
       },
       {
@@ -69,20 +70,20 @@ async function fetchCsrfToken(): Promise<string> {
           if (isDev) {
             console.warn(
               `[babybook] Tentativa ${attempt} de obter CSRF token falhou. ` +
-              `Tentando novamente em ${delayMs}ms...`,
-              error
+                `Tentando novamente em ${delayMs}ms...`,
+              error,
             );
           }
         },
-      }
+      },
     );
-    
+
     return csrf;
-  } catch (error) {
+  } catch {
     // Mensagem amigável para o usuário
     throw new Error(
       "Não foi possível conectar ao servidor de autenticação. " +
-      "Verifique sua conexão e tente novamente."
+        "Verifique sua conexão e tente novamente.",
     );
   }
 }
@@ -342,7 +343,6 @@ export const useLogout = () => {
 };
 
 export const useCreateCheckout = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { packageKey: string }) => {
       return apiClient.post("/webhooks/checkout", {

@@ -121,12 +121,13 @@ export type DeliveryStatus =
   | "processing" // Processando arquivos
   | "ready" // Pronta, aguardando geração de voucher
   | "delivered" // Voucher resgatado pelo cliente
+  | "failed" // Falhou (pipeline/worker)
   | "archived"; // Arquivada
 
 export interface CreateDeliveryRequest {
-  client_name: string;
-  client_email?: string; // E-mail do responsável (para verificar acesso)
-  child_name?: string; // Nome da criança
+  target_email: string; // E-mail do responsável (hard lock no resgate)
+  client_name?: string;
+  child_name?: string; // Nome da criança (opcional)
   title?: string;
   description?: string;
   event_date?: string;

@@ -27,8 +27,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
-  Play,
-  Pause,
   Check,
   Sparkles,
   Calendar,

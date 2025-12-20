@@ -8,7 +8,7 @@ from typing import Any, AsyncIterator
 import aioboto3
 from botocore.config import Config
 
-from .settings import get_settings, WorkerSettings
+from .settings import WorkerSettings, get_settings
 
 logger = logging.getLogger(__name__)
 

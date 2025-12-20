@@ -87,43 +87,59 @@ async function initFFmpeg(): Promise<void> {
   ffmpeg = new FFmpeg();
 
   // Configure progress callback
-  ffmpeg.on(
-    "progress",
-    ({ progress, time }: { progress: number; time: number }) => {
-      // Broadcast progress to active jobs
-      activeJobs.forEach((job, id) => {
-        if (!job.aborted) {
-          postMessage({
-            type: "progress",
-            id,
-            progress: Math.min(progress * 100, 100),
-            stage: "processing",
-          } satisfies WorkerResponse);
-        }
-      });
-    },
-  );
+  ffmpeg.on("progress", ({ progress }: { progress: number; time: number }) => {
+    // Broadcast progress to active jobs
+    activeJobs.forEach((job, id) => {
+      if (!job.aborted) {
+        postMessage({
+          type: "progress",
+          id,
+          progress: Math.min(progress * 100, 100),
+          stage: "processing",
+        } satisfies WorkerResponse);
+      }
+    });
+  });
 
   ffmpeg.on("log", ({ message }: { message: string }) => {
     console.log("[ffmpeg]", message);
   });
 
   try {
-    // Load ffmpeg core from CDN with SharedArrayBuffer support check
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
-    const coreURL = await toBlobURL(
-      `${baseURL}/ffmpeg-core.js`,
-      "text/javascript",
-    );
-    const wasmURL = await toBlobURL(
-      `${baseURL}/ffmpeg-core.wasm`,
-      "application/wasm",
-    );
+    // Load ffmpeg core from CDN.
+    // Preferimos múltiplas origens para reduzir falhas por CDN bloqueada/intermitente.
+    const baseURLs = [
+      "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm",
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
+    ];
 
-    await ffmpeg.load({
-      coreURL,
-      wasmURL,
-    });
+    let lastError: unknown = null;
+    for (const baseURL of baseURLs) {
+      try {
+        const coreURL = await toBlobURL(
+          `${baseURL}/ffmpeg-core.js`,
+          "text/javascript",
+        );
+        const wasmURL = await toBlobURL(
+          `${baseURL}/ffmpeg-core.wasm`,
+          "application/wasm",
+        );
+
+        await ffmpeg.load({
+          coreURL,
+          wasmURL,
+        });
+
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
 
     isLoaded = true;
     postMessage({ type: "ready", id: "init" } satisfies WorkerResponse);

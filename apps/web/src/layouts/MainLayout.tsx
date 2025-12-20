@@ -4,7 +4,6 @@ import {
   BookHeart,
   Stethoscope,
   UsersRound,
-  UserRound,
   Shield,
   Bell,
   Sparkles,

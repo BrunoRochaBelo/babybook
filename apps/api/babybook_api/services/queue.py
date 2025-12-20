@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Protocol
 import uuid
+from typing import Any, Protocol
 
 import httpx
 from fastapi import Depends
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from babybook_api.db.models import WorkerJob
 from babybook_api.deps import get_db_session
 from babybook_api.settings import settings
+
 from .inline_worker import process_inline_job
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from alembic import op
-
 from babybook_api.db.models import Base
 
 # revision identifiers, used by Alembic.

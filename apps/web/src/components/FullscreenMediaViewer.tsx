@@ -17,7 +17,6 @@ import {
   AnimatePresence,
   useMotionValue,
   useTransform,
-  useDragControls,
   type PanInfo,
 } from "motion/react";
 import {
@@ -26,12 +25,9 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  Pause,
-  Play,
   Volume2,
   VolumeX,
   Download,
-  Maximize2,
 } from "lucide-react";
 import type { MomentMedia } from "@babybook/contracts";
 import { getMediaUrl } from "@/lib/media";
@@ -55,7 +51,6 @@ export function FullscreenMediaViewer({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [scale, setScale] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
   const x = useMotionValue(0);
@@ -75,32 +70,6 @@ export function FullscreenMediaViewer({
       y.set(0);
     }
   }, [isOpen, initialIndex, x, y]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "Escape":
-          onClose();
-          break;
-        case "ArrowLeft":
-          goToPrevious();
-          break;
-        case "ArrowRight":
-          goToNext();
-          break;
-        case " ": // Space
-          e.preventDefault();
-          togglePlayPause();
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, media.length]);
 
   // Lock body scroll when open
   useEffect(() => {
@@ -130,13 +99,35 @@ export function FullscreenMediaViewer({
     }
   }, [currentIndex]);
 
-  const togglePlayPause = () => {
-    setIsPlaying((prev) => !prev);
-  };
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "Escape":
+          onClose();
+          break;
+        case "ArrowLeft":
+          goToPrevious();
+          break;
+        case "ArrowRight":
+          goToNext();
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, goToNext, goToPrevious, onClose]);
 
   const toggleZoom = () => {
     setIsZoomed((prev) => !prev);
     setScale((prev) => (prev === 1 ? 2 : 1));
+  };
+
+  const toggleMute = () => {
+    setIsMuted((prev) => !prev);
   };
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -243,6 +234,21 @@ export function FullscreenMediaViewer({
               </button>
             )}
 
+            {(currentMedia.kind === "video" ||
+              currentMedia.kind === "audio") && (
+              <button
+                onClick={toggleMute}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                aria-label={isMuted ? "Ativar som" : "Silenciar"}
+              >
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5 text-white" />
+                ) : (
+                  <Volume2 className="w-5 h-5 text-white" />
+                )}
+              </button>
+            )}
+
             <button
               onClick={handleDownload}
               className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -293,8 +299,6 @@ export function FullscreenMediaViewer({
                     controls
                     autoPlay
                     muted={isMuted}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
                   />
                 </div>
               )}
@@ -308,14 +312,7 @@ export function FullscreenMediaViewer({
                     </div>
                   </div>
 
-                  <audio
-                    src={mediaUrl}
-                    controls
-                    className="w-full"
-                    autoPlay
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                  />
+                  <audio src={mediaUrl} controls className="w-full" autoPlay />
 
                   <p className="mt-4 text-white/60 text-sm">
                     Gravação de áudio

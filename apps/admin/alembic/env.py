@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import asyncio
 from logging.config import fileConfig
-from pathlib import Path
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from babybook_api.db.models import Base
 from babybook_api.settings import settings as api_settings
 

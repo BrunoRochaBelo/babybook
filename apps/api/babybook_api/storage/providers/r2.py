@@ -13,15 +13,13 @@ Vantagens:
 """
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from babybook_api.storage.base import (
-    StorageProvider,
-    StorageConfig,
     ObjectInfo,
     PresignedUrlResult,
+    StorageProvider,
     UploadPartInfo,
 )
 
@@ -200,8 +198,8 @@ class R2Provider(StorageProvider):
     ) -> ObjectInfo:
         copy_source = {"Bucket": self.config.bucket, "Key": source_key}
         target_bucket = dest_bucket or self.config.bucket
-        
-        response = await self._client.copy_object(
+
+        await self._client.copy_object(
             Bucket=target_bucket,
             Key=dest_key,
             CopySource=copy_source,

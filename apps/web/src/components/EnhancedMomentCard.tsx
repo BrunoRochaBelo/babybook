@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   Play,
-  Pause,
   Image,
   Video,
   Mic,
@@ -244,7 +243,7 @@ export const EnhancedMomentCard = ({
             <FileText className="mb-2 h-8 w-8 text-pink-400" />
             {summary && (
               <p className="line-clamp-4 text-center font-serif text-lg italic text-ink">
-                "{summary.slice(0, 100)}..."
+                &ldquo;{summary.slice(0, 100)}...&rdquo;
               </p>
             )}
           </div>

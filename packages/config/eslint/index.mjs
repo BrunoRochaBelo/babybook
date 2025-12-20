@@ -7,32 +7,34 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommended,
   {
     name: "babybook/base",
     languageOptions: {
       parserOptions: {
-        project: ["tsconfig.json"],
-        tsconfigRootDir: process.cwd()
-      }
+        // Mantemos o parser TS, mas sem regras type-aware por padrão.
+        // Isso evita exigir tsconfig por pacote/app e reduz falsos positivos/ruído.
+      },
     },
     plugins: {
       react: reactPlugin,
       "react-hooks": reactHooks,
-      "jsx-a11y": jsxA11y
+      "jsx-a11y": jsxA11y,
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
       ...reactPlugin.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
       "react/jsx-props-no-spreading": "off",
-      "react/react-in-jsx-scope": "off"
+      "react/react-in-jsx-scope": "off",
     },
     settings: {
       react: {
-        version: "detect"
-      }
-    }
+        // Evita warning quando pacotes sem `react` rodam lint (ex: packages/config).
+        // Como usamos JSX runtime moderno, fixar a versão é suficiente aqui.
+        version: "18.0",
+      },
+    },
   },
-  eslintConfigPrettier
+  eslintConfigPrettier,
 );

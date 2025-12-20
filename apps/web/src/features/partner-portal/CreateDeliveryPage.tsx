@@ -8,7 +8,7 @@
  */
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -26,7 +26,7 @@ import {
   UserPlus,
   CreditCard,
 } from "lucide-react";
-import { createDelivery, checkClientAccess } from "./api";
+import { createDelivery, checkEligibility } from "./api";
 import { usePartnerUpload } from "./usePartnerUpload";
 import type { CreateDeliveryRequest } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
@@ -76,38 +76,75 @@ export function CreateDeliveryPage() {
   );
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 
-  // Verifica se o e-mail já possui conta no Baby Book (licença por criança)
-  const handleCheckAccess = async () => {
-    setIsCheckingAccess(true);
-    setAccessStatus(null);
+  const checkReqIdRef = useRef(0);
+  const isValidEmail = useCallback(
+    (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+    [],
+  );
 
-    try {
-      const response = await checkClientAccess(clientEmail);
-      setAccessStatus({
-        hasAccess: response.has_access,
-        childName: response.client_name || undefined,
-        children: (response.children || []).map((c) => ({
-          id: c.id,
-          name: c.name,
-          hasAccess: c.has_access,
-        })),
-        message: response.message,
-      });
-
-      // Se tiver nome do cliente, preenche automaticamente
-      if (response.client_name && !clientName) {
-        setClientName(response.client_name);
+  const runEligibilityCheck = useCallback(
+    async (rawEmail: string) => {
+      const normalizedEmail = rawEmail.trim().toLowerCase();
+      if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+        setAccessStatus(null);
+        setIsCheckingAccess(false);
+        return;
       }
-    } catch (err) {
-      setAccessStatus({
-        hasAccess: false,
-        message: "Erro ao verificar acesso. Tente novamente.",
-        children: [],
-      });
+
+      const requestId = ++checkReqIdRef.current;
+      setIsCheckingAccess(true);
+      setAccessStatus(null);
+
+      try {
+        const response = await checkEligibility(normalizedEmail);
+
+        // Evita race condition quando o usuário digita rápido
+        if (requestId !== checkReqIdRef.current) return;
+
+        setAccessStatus({
+          hasAccess: response.is_eligible,
+          children: [],
+          message: response.is_eligible
+            ? "Elegível: este e-mail já tem pelo menos 1 Baby Book ativo. Esta entrega pode ser enviada sem custo agora."
+            : "Novo cliente: esta entrega deve consumir 1 crédito do fotógrafo.",
+        });
+      } catch {
+        if (requestId !== checkReqIdRef.current) return;
+
+        // Fail-safe: se falhar, assumimos 'novo cliente'
+        setAccessStatus({
+          hasAccess: false,
+          children: [],
+          message:
+            "Não consegui validar agora. Vou assumir novo cliente (1 crédito) para evitar erro no fluxo.",
+        });
+      } finally {
+        if (requestId === checkReqIdRef.current) setIsCheckingAccess(false);
+      }
+    },
+    [isValidEmail],
+  );
+
+  // Validação silenciosa com debounce de 500ms
+  useEffect(() => {
+    const email = clientEmail.trim();
+    if (!email) {
+      setAccessStatus(null);
+      setIsCheckingAccess(false);
+      return;
     }
 
-    setIsCheckingAccess(false);
-  };
+    const handle = window.setTimeout(() => {
+      void runEligibilityCheck(email);
+    }, 500);
+
+    return () => window.clearTimeout(handle);
+  }, [clientEmail, runEligibilityCheck]);
+
+  // Botão opcional (re-check) — também usado por teclado
+  const handleCheckAccess = useCallback(() => {
+    void runEligibilityCheck(clientEmail);
+  }, [clientEmail, runEligibilityCheck]);
 
   // Create delivery mutation
   const createMutation = useMutation({
@@ -122,18 +159,21 @@ export function CreateDeliveryPage() {
   });
 
   const handleCreateDelivery = () => {
-    if (!clientName.trim()) {
-      setError("Nome do responsável é obrigatório");
-      return;
-    }
-    if (!childName.trim()) {
-      setError("Nome da criança é obrigatório");
+    const normalizedEmail = clientEmail.trim().toLowerCase();
+    if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+      setError("Informe um e-mail válido do responsável");
       return;
     }
     setError(null);
+
+    const titleFallback = `Ensaio - ${
+      childName.trim() || clientName.trim() || normalizedEmail
+    }`;
     createMutation.mutate({
-      client_name: clientName.trim(),
-      title: title.trim() || `Ensaio - ${childName.trim()}`,
+      target_email: normalizedEmail,
+      client_name: clientName.trim() || undefined,
+      child_name: childName.trim() || undefined,
+      title: title.trim() || titleFallback,
       description: description.trim() || undefined,
       event_date: eventDate || undefined,
     });
@@ -346,64 +386,26 @@ function ClientStep({
   const costEstimate = useMemo(() => {
     if (!accessStatus) return null;
 
-    // Novo cliente (sem conta): voucher será necessário.
-    if (!accessStatus.hasAccess) {
-      return {
-        tone: "info" as const,
-        title: "Estimativa de custo",
-        icon: CreditCard,
-        headline: "1 crédito (onboarding)",
-        detail:
-          "Como o cliente ainda não tem conta, o voucher é necessário para criar o primeiro Baby Book.",
-      };
-    }
-
-    const typed = childName.trim().toLowerCase();
-    const children = accessStatus.children || [];
-
-    if (!typed) {
-      return {
-        tone: "neutral" as const,
-        title: "Estimativa de custo",
-        icon: AlertCircle,
-        headline: "Depende do filho escolhido",
-        detail:
-          "Se o cliente importar para um filho com acesso, é grátis. Se criar um novo Baby Book, custa 1 crédito.",
-      };
-    }
-
-    const matched = children.find((c) => c.name.trim().toLowerCase() === typed);
-    if (matched?.hasAccess) {
+    if (accessStatus.hasAccess) {
       return {
         tone: "success" as const,
         title: "Estimativa de custo",
         icon: Gift,
-        headline: "Provável grátis",
+        headline: "0 crédito (elegível)",
         detail:
-          "Esse filho já tem acesso. Se o cliente importar para ele, não há cobrança.",
-      };
-    }
-
-    if (matched && !matched.hasAccess) {
-      return {
-        tone: "warning" as const,
-        title: "Estimativa de custo",
-        icon: CreditCard,
-        headline: "Provável 1 crédito",
-        detail:
-          "Esse filho existe, mas ainda não tem acesso. Se o cliente criar um novo Baby Book na importação, será cobrado 1 crédito.",
+          "Este e-mail já possui pelo menos 1 Baby Book ativo. A entrega é criada sem custo agora.",
       };
     }
 
     return {
-      tone: "warning" as const,
+      tone: "info" as const,
       title: "Estimativa de custo",
       icon: CreditCard,
-      headline: "Provável 1 crédito",
+      headline: "1 crédito (novo cliente)",
       detail:
-        "Não encontramos esse nome na lista de filhos. Se for um novo filho, criar Baby Book custa 1 crédito (o cliente ainda pode escolher um filho com acesso na importação).",
+        "Este e-mail ainda não tem Baby Book ativo. A criação desta entrega deve consumir 1 crédito.",
     };
-  }, [accessStatus, childName]);
+  }, [accessStatus]);
 
   return (
     <div className="space-y-6">
@@ -415,10 +417,11 @@ function ClientStep({
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Verificar Acesso
+              Validação silenciosa
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Digite o e-mail do responsável para verificar se já tem Baby Book
+              Digite o e-mail do responsável. A elegibilidade é verificada
+              automaticamente.
             </p>
           </div>
         </div>
@@ -469,14 +472,13 @@ function ClientStep({
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-green-800 dark:text-green-200">
-                    Cliente já tem conta no Baby Book
+                    Elegível
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                     {accessStatus.message}
                   </p>
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
-                    <Gift className="w-4 h-4" />
-                    Entrega sem voucher (custo por criança)
+                    <Gift className="w-4 h-4" />0 crédito na criação
                   </div>
 
                   {accessStatus.children.length > 0 && (
@@ -549,8 +551,7 @@ function ClientStep({
                     {accessStatus.message}
                   </p>
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-                    <CreditCard className="w-4 h-4" />
-                    Voucher será gerado (1 crédito no primeiro Baby Book)
+                    <CreditCard className="w-4 h-4" />1 crédito na criação
                   </div>
 
                   {costEstimate && (
@@ -590,7 +591,7 @@ function ClientStep({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nome do Responsável *
+                Nome do Responsável (opcional)
               </label>
               <input
                 type="text"
@@ -602,7 +603,7 @@ function ClientStep({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nome da Criança *
+                Nome da Criança (opcional)
               </label>
               <input
                 type="text"
@@ -702,6 +703,7 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
     uploads,
     addFiles,
     retryUpload,
+    retryAllErrors,
     removeUpload,
     isUploading,
     hasErrors,
@@ -804,6 +806,16 @@ function UploadStep({ deliveryId, onNext, onBack }: UploadStepProps) {
               <span className="text-lg font-bold text-blue-600">
                 {totalProgress}%
               </span>
+            )}
+            {hasErrors && !isUploading && (
+              <button
+                onClick={retryAllErrors}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors"
+                title="Tentar novamente todos os arquivos com erro"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Retentar Todos
+              </button>
             )}
           </div>
 
@@ -1057,13 +1069,14 @@ function ReviewStep({
           <ArrowLeft className="w-4 h-4" />
           Adicionar mais fotos
         </button>
-        <button
-          onClick={onComplete}
+        <Link
+          to={`/partner/deliveries/${deliveryId}`}
+          onClick={() => onComplete()}
           className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
         >
           Ver Entrega
           <ArrowRight className="w-4 h-4" />
-        </button>
+        </Link>
       </div>
     </div>
   );

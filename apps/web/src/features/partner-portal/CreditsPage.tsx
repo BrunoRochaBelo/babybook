@@ -6,14 +6,12 @@
  */
 
 import { useMemo, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   CreditCard,
   QrCode,
   Check,
   Loader2,
-  ArrowLeft,
   Star,
   AlertCircle,
 } from "lucide-react";
@@ -26,7 +24,10 @@ import {
 import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import { PartnerLoadingState, PartnerErrorState } from "@/layouts/partnerStates";
+import {
+  PartnerLoadingState,
+  PartnerErrorState,
+} from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
 function formatCurrency(cents: number): string {
@@ -60,7 +61,6 @@ function centsPerVoucher(totalCents: number, voucherCount: number): number {
 }
 
 export function CreditsPage() {
-  const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] =
     useState<CreditPaymentMethod>("pix");
@@ -88,22 +88,17 @@ export function CreditsPage() {
     queryFn: getPartnerDashboardStats,
   });
 
-  const { data: packages, isLoading: loadingPackages, isError, refetch } = useQuery({
+  const {
+    data: packages,
+    isLoading: loadingPackages,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["partner", "credit-packages"],
     queryFn: getCreditPackages,
   });
 
-  // Tratamento de erro de carregamento
-  if (isError) {
-    return (
-      <PartnerErrorState
-        title="Não foi possível carregar os pacotes"
-        onRetry={refetch}
-      />
-    );
-  }
-
-  // Purchase mutation
+  // Purchase mutation (precisa ficar antes de qualquer early-return)
   const purchaseMutation = useMutation({
     mutationFn: (input: { packageId: string; method: CreditPaymentMethod }) =>
       purchaseCredits(input.packageId, input.method),
@@ -115,6 +110,16 @@ export function CreditsPage() {
       setError(err instanceof Error ? err.message : "Erro ao processar compra");
     },
   });
+
+  // Tratamento de erro de carregamento
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar os pacotes"
+        onRetry={refetch}
+      />
+    );
+  }
 
   const handlePurchase = () => {
     if (!selectedPackage) return;
@@ -140,11 +145,6 @@ export function CreditsPage() {
     ? paymentMethod === "pix"
       ? totals.pix
       : totals.card
-    : 0;
-
-  const selectedPixSavingsCents = totals ? totals.card - totals.pix : 0;
-  const selectedPixSavingsPerVoucherCents = selectedPkg
-    ? centsPerVoucher(selectedPixSavingsCents, selectedPkg.voucher_count)
     : 0;
 
   if (loadingPackages) {
@@ -179,7 +179,9 @@ export function CreditsPage() {
             </p>
             <p className="text-4xl font-bold text-white mt-1">
               {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}{" "}
-              <span className="text-2xl font-normal text-pink-100">disponíveis</span>
+              <span className="text-2xl font-normal text-pink-100">
+                disponíveis
+              </span>
             </p>
             <p className="mt-2 text-sm text-pink-100">
               {stats?.reserved_credits ?? 0} reservados/em trânsito
@@ -265,7 +267,9 @@ export function CreditsPage() {
           <button
             onClick={handlePurchase}
             disabled={!selectedPackage || purchaseMutation.isPending}
-            title={!selectedPackage ? "Selecione um pacote primeiro" : undefined}
+            title={
+              !selectedPackage ? "Selecione um pacote primeiro" : undefined
+            }
             className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             {purchaseMutation.isPending ? (

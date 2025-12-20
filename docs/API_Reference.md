@@ -4,7 +4,12 @@ Este documento descreve o contrato público da API v1 do Baby Book. O foco é se
 
 O design segue princípios de simplicidade (REST), resiliência (idempotência e concorrência otimista) e segurança por padrão (sessão HttpOnly + CSRF, RBAC). Este documento é a "fonte da verdade" para qualquer cliente (Web, Mobile) que consumir a API.
 
-**Base URL (Produção):** https://app.babybook.com/api/v1
+**Base URL (Produção):** https://app.babybook.com/api
+
+**Base URL (Local, API direta):** http://localhost:8000
+
+> Nota importante (paths): em produção a API é servida atrás de proxy reverso no mesmo domínio (`/api`).
+> Por isso, neste documento os exemplos usam paths como `POST /auth/login` (sem repetir `/api`).
 
 ## 1. Princípios da API (Regras Globais)
 
@@ -36,11 +41,10 @@ X-CSRF-Token: <token_obtido_via_GET_auth_csrf>
 
 ### 1.2. Versionamento
 
-O versionamento é feito via path (/v1).
+Este documento descreve o **contrato v1**. Atualmente, o deploy web expõe a API atrás de proxy reverso em `/api`.
 
-**Justificativa:** É explícito e permite que múltiplas versões da API (ex: /v1 e /v2) coexistam. Isso é crítico para clientes móveis, que podem não ser atualizados instantaneamente. Um deploy da v2 não quebra clientes antigos que ainda usam a v1.
-
-**Regra:** Alterações breaking change (ex: renomear um campo, remover um endpoint, alterar o tipo de um campo) exigirão um novo caminho (ex: /v2) e um período de deprecação de no mínimo 90 dias para a /v1.
+- **Regra (cliente):** não hardcodar `/v1` nos clientes. Use a base `/api` (produção) ou `http://localhost:8000` (API direta em dev).
+- **Evolução (breaking changes):** se precisarmos de uma v2 com breaking changes, a estratégia preferida é publicar uma nova base (ex.: `/api/v2`) e manter compatibilidade por no mínimo 90 dias.
 
 ### 1.3. Formato de Dados
 
@@ -135,20 +139,20 @@ A API aplica limites de requisição por IP e/ou conta.
 
 Estes são os limites contratuais que o cliente deve esperar.
 
-| Rota (prefixo /v1)         | Limite base        | Janela | Observações (Risco)                        |
-| -------------------------- | ------------------ | ------ | ------------------------------------------ |
-| POST /auth/register        | 5 req/hora/IP      | 3600 s | (DoS) Evitar abuso/spam de e-mail          |
-| POST /auth/login           | 10 req/min/conta   | 60 s   | (Spoofing) Lockout progressivo             |
-| POST /auth/password/forgot | 3 req/hora/conta   | 3600 s | (DoS) Evitar spam de e-mail                |
-| POST /webhooks/payment     | (Sem limite de IP) |        | (Spoofing) Protegido por HMAC              |
-| POST /uploads/init         | 10 req/min/conta   | 60 s   | (DoS) Proteger R2 e API de hotspots        |
-| POST /uploads/complete     | 10 req/min/conta   | 60 s   | (Tampering) Idempotência obrigatória       |
-| POST /moments              | 30 req/min/conta   | 60 s   | (DoS) Validação de slots (custosa)         |
-| POST /moments/{id}/share   | 10 req/min/conta   | 60 s   | 1 ativo por momento (regra de negócio)     |
-| POST /export               | 1 job ativo        |        | (DoS/Custo) Retornar 409 export.concurrent |
-| GET /export/{id}           | 60 req/min/conta   | 60 s   | (DoS) Limitar polling                      |
-| POST /guestbook            | 30 req/min/conta   | 60 s   | (DoS) Estado pending                       |
-| DELETE /guestbook/{id}     | 30 req/min/conta   | 60 s   | tombstone                                  |
+| Rota (prefixo /api — contrato v1) | Limite base        | Janela | Observações (Risco)                        |
+| --------------------------------- | ------------------ | ------ | ------------------------------------------ |
+| POST /auth/register               | 5 req/hora/IP      | 3600 s | (DoS) Evitar abuso/spam de e-mail          |
+| POST /auth/login                  | 10 req/min/conta   | 60 s   | (Spoofing) Lockout progressivo             |
+| POST /auth/password/forgot        | 3 req/hora/conta   | 3600 s | (DoS) Evitar spam de e-mail                |
+| POST /webhooks/payment            | (Sem limite de IP) |        | (Spoofing) Protegido por HMAC              |
+| POST /uploads/init                | 10 req/min/conta   | 60 s   | (DoS) Proteger R2 e API de hotspots        |
+| POST /uploads/complete            | 10 req/min/conta   | 60 s   | (Tampering) Idempotência obrigatória       |
+| POST /moments                     | 30 req/min/conta   | 60 s   | (DoS) Validação de slots (custosa)         |
+| POST /moments/{id}/share          | 10 req/min/conta   | 60 s   | 1 ativo por momento (regra de negócio)     |
+| POST /export                      | 1 job ativo        |        | (DoS/Custo) Retornar 409 export.concurrent |
+| GET /export/{id}                  | 60 req/min/conta   | 60 s   | (DoS) Limitar polling                      |
+| POST /guestbook                   | 30 req/min/conta   | 60 s   | (DoS) Estado pending                       |
+| DELETE /guestbook/{id}            | 30 req/min/conta   | 60 s   | tombstone                                  |
 
 ### 1.9. Privacidade (LGPD)
 
@@ -595,6 +599,285 @@ Observação: a resposta pode incluir campos adicionais para observabilidade/int
 - 403 Forbidden (child.access.denied)
 - 400 Bad Request (voucher.not_available | voucher.expired | child.pce.unpaid)
 - 409 Conflict (voucher.already_claimed)
+
+### Recurso: Portal do Parceiro (B2B2C) — Entregas
+
+Este recurso descreve as rotas do **portal do parceiro** (`/partner`) usadas pela UI de estúdios/fotógrafos para criar e acompanhar entregas.
+
+Objetivos principais:
+
+- **Escala:** parceiros podem ter milhares de entregas, então os filtros são **server-side** (paginação e agregações coerentes).
+- **Consistência:** `total`, paginação e contadores por status refletem o **subconjunto filtrado**.
+- **Segurança:** acesso restrito a `role=photographer` (ou admin/owner), com scoping por `partner_id`.
+
+#### Vocabulário de status (normalização)
+
+O backend normaliza o status do banco para o vocabulário do portal:
+
+- Banco `completed` → API `delivered`
+- Banco `pending` → API `processing`
+- Banco `failed` → API `failed`
+
+Consequentemente:
+
+- `status_filter=delivered` filtra `deliveries.status == completed` no banco.
+- `status_filter=processing` filtra `deliveries.status in (pending, processing)`.
+
+#### GET /partner/deliveries
+
+Lista entregas do parceiro com filtros e agregações.
+
+> Nota: este endpoint usa **paginação por offset** (diferente da convenção global de cursor descrita no documento).
+
+**Query params (principais):**
+
+- `status_filter` (opcional): `draft | pending_upload | processing | ready | failed | delivered | archived`
+- `include_archived` (opcional, default `false`): inclui arquivadas na listagem quando `status_filter` não é `archived`
+- `limit` (opcional, default `20`, máx `100`)
+- `offset` (opcional, default `0`)
+
+**Query params (filtros avançados):**
+
+- `q` (opcional): busca básica por tokens (case-insensitive) em `title/client_name/voucher_code/target_email/beneficiary_email`
+- `voucher` (opcional): `with | without`
+- `redeemed` (opcional): `redeemed | not_redeemed` (baseado em `deliveries.assets_transferred_at`)
+- `credit` (opcional): `reserved | consumed | refunded | not_required | unknown`
+- `view` (opcional): `needs_action` (heurística server-side: `draft|pending_upload|failed` OU `ready` sem voucher)
+
+**Query params (período):**
+
+- `created` (opcional): `last_7 | last_30 | last_90 | custom`
+  - `created_from` / `created_to` (quando `created=custom`) no formato `YYYY-MM-DD` (date-only) ou ISO-8601 (datetime)
+- `redeemed_period` (opcional): `last_7 | last_30 | last_90 | custom`
+  - `redeemed_from` / `redeemed_to` (quando `redeemed_period=custom`) no formato `YYYY-MM-DD` ou ISO-8601
+
+> Dica: `created`/`redeemed_period` também aceitam `all` (ou podem ser omitidos) para não aplicar filtro de período.
+
+**Query params (ordenação):**
+
+- `sort` (opcional, default `newest`): `newest | oldest | status | client`
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{
+  "deliveries": [
+    {
+      "id": "uuid",
+      "title": "Ensaio Newborn",
+      "client_name": "Ana",
+      "status": "ready",
+      "credit_status": "reserved",
+      "is_archived": false,
+      "archived_at": null,
+      "assets_count": 42,
+      "voucher_code": "BABY-ABCD-EFGH | null",
+      "created_at": "2025-12-10T12:00:00Z",
+      "redeemed_at": "2025-12-12T18:15:00Z | null",
+      "redeemed_by": "ana@example.com | null"
+    }
+  ],
+  "total": 120,
+  "aggregations": {
+    "total": 520,
+    "archived": 40,
+    "by_status": {
+      "draft": 3,
+      "pending_upload": 12,
+      "processing": 6,
+      "failed": 1,
+      "ready": 80,
+      "delivered": 378
+    }
+  }
+}
+```
+
+**Semântica de `aggregations`:**
+
+- `aggregations.*` é calculado no **subconjunto filtrado** por `q/voucher/redeemed/credit/view/períodos`.
+- `aggregations` é **independente** de `status_filter/limit/offset` (para permitir chips de status coerentes).
+- `by_status` conta apenas entregas **ativas** (não arquivadas). Arquivadas ficam em `archived`.
+
+**Respostas de Erro Comuns:**
+
+- 401 Unauthorized (auth.session.invalid)
+- 403 Forbidden (partner.forbidden)
+- 400 Bad Request (parâmetro inválido, ex.: período/sort)
+
+**Notas de performance (contratuais):**
+
+- Em Postgres, recomenda-se índices compostos por `partner_id` para filtros muito usados (voucher/resgate/arquivamento).
+- Em volume alto, `q` pode exigir evolução para FTS/trigram/unaccent; por ora é uma busca tokenizada básica (case-insensitive).
+
+#### PATCH /partner/deliveries/{delivery_id}
+
+Atualiza campos básicos (não sensíveis) de uma entrega.
+
+- Campos permitidos: `title`, `client_name`, `description`, `event_date`
+- Não permite alterar `target_email`.
+- Não permite forçar `status` (o status é controlado pelo sistema).
+
+**Resposta de Sucesso:** 200 OK (mesmo shape de `DeliveryResponse`)
+
+**Respostas de Erro Comuns:**
+
+- 400 Bad Request (ex.: tentativa de alterar status; entrega já resgatada/importada)
+- 404 Not Found
+
+#### DELETE /partner/deliveries/{delivery_id}
+
+Remove uma entrega **somente** quando ainda é rascunho e sem uploads/voucher.
+
+- Se havia `credit_status=reserved`, estorna automaticamente (+1 no saldo) e registra no ledger.
+
+**Resposta de Sucesso:** 204 No Content
+
+**Respostas de Erro Comuns:**
+
+- 400 Bad Request (não é rascunho / já tem uploads/voucher)
+- 404 Not Found
+
+### Recurso: Entrega Direta (B2B2C) — Importação Direta (sem voucher)
+
+Este recurso cobre o fluxo em que o parceiro cria uma entrega destinada a um e-mail existente e o cliente importa os arquivos diretamente para um Livro (Child), sem uso de voucher.
+
+**Objetivos de segurança/privacidade (LGPD):**
+
+- O parceiro **não** pode "procurar" contas na base (apenas recebe um booleano de elegibilidade).
+- A entrega é "hard-locked" por e-mail: `deliveries.target_email`.
+- No resgate/importação, **somente** o usuário autenticado com e-mail correspondente pode importar.
+
+#### POST /partner/check-eligibility
+
+Validação silenciosa (para UX): retorna se o e-mail informado é elegível para entrega direta.
+
+**Regras (alto nível):**
+
+- Elegível quando o usuário existe e tem pelo menos 1 Child com PCE pago/ativo.
+- Se a validação falhar (erro temporário), o cliente deve assumir **não elegível** (fail-safe), para evitar tentativa de fluxo "grátis" que falharia depois.
+
+**Corpo da Requisição:**
+
+```json
+{ "email": "ana@example.com" }
+```
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{ "is_eligible": true, "reason": "EXISTING_ACTIVE_CHILD" }
+```
+
+ou
+
+```json
+{ "is_eligible": false, "reason": "NEW_USER" }
+```
+
+**Respostas de Erro Comuns:**
+
+- 401 Unauthorized (auth.session.invalid)
+- 403 Forbidden (partner.forbidden)
+
+#### GET /me/deliveries/pending
+
+Lista entregas pendentes de importação direta para o usuário autenticado.
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{
+  "items": [
+    {
+      "delivery_id": "uuid",
+      "partner_name": "string | null",
+      "title": "string",
+      "assets_count": 12,
+      "target_email": "ana@example.com | null",
+      "target_email_masked": "a***@e***.com | null",
+      "created_at": "2025-12-10T12:00:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+**Notas de privacidade:**
+
+- `target_email` pode ser omitido/nulo no futuro; `target_email_masked` é a forma segura para UI.
+
+**Respostas de Erro Comuns:**
+
+- 401 Unauthorized (auth.session.invalid)
+
+#### POST /me/deliveries/{delivery_id}/import
+
+Importa uma entrega de importação direta para um Livro existente ou cria um novo.
+
+**Corpo da Requisição:**
+
+```json
+{
+  "idempotency_key": "uuid-v4-opcional",
+  "action": { "type": "EXISTING_CHILD", "child_id": "uuid" }
+}
+```
+
+ou
+
+```json
+{
+  "idempotency_key": "uuid-v4-opcional",
+  "action": { "type": "NEW_CHILD", "child_name": "Bento" }
+}
+```
+
+**Regras de negócio:**
+
+- `EXISTING_CHILD`: permitido somente se `child.pce_status = PAID`. Não cobra crédito.
+- `NEW_CHILD`: cobra **1 crédito do parceiro** no momento da importação (late binding).
+
+**Hard lock por e-mail:**
+
+- Se `deliveries.target_email` existir e **não** bater com o e-mail do usuário autenticado, a API retorna 403 `delivery.email_mismatch`.
+- A resposta deve incluir um hint seguro em `error.details.target_email_masked`.
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{
+  "success": true,
+  "delivery_id": "uuid",
+  "assets_transferred": 12,
+  "child_id": "uuid",
+  "moment_id": "uuid",
+  "message": "Entrega importada com sucesso."
+}
+```
+
+**Respostas de Erro Comuns:**
+
+- 401 Unauthorized (auth.session.invalid)
+- 403 Forbidden (delivery.email_mismatch)
+
+  Exemplo:
+
+  ```json
+  {
+    "error": {
+      "code": "delivery.email_mismatch",
+      "message": "Esta entrega foi enviada para outro e-mail. Faça login com a***@e***.com para resgatar.",
+      "details": { "target_email_masked": "a***@e***.com" },
+      "trace_id": "uuid"
+    }
+  }
+  ```
+
+- 400 Bad Request (delivery.not_direct_import | child.pce.unpaid)
+- 402 Payment Required (partner.insufficient_credits)
+- 404 Not Found (delivery.not_found)
+- 422 Unprocessable Entity (request.validation_error)
 
 ### Recurso: Crianças (Children)
 

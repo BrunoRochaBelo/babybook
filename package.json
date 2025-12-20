@@ -16,8 +16,8 @@
     "dev:web:real": "pnpm --filter @babybook/web run dev:real",
     "preview:web": "pnpm --filter @babybook/web build && pnpm --filter @babybook/web preview --host 0.0.0.0 --port 4173",
     "lint": "pnpm lint:js && pnpm lint:py",
-    "lint:js": "pnpm -r --workspace-concurrency=1 run lint --if-present",
-    "lint:py": "ruff check apps/api apps/workers apps/admin",
+    "lint:js": "pnpm -r --workspace-concurrency=1 run --if-present lint",
+    "lint:py": "node ./scripts/lint-py.js",
     "typecheck": "pnpm --filter @babybook/web exec tsc --noEmit && pnpm --filter @babybook/edge exec tsc --noEmit && pnpm --filter @babybook/contracts exec tsc --noEmit && pnpm --filter @babybook/ui exec tsc --noEmit && pnpm --filter @babybook/utils exec tsc --noEmit && pnpm --filter @babybook/i18n exec tsc --noEmit && pnpm --filter @babybook/tests-web exec tsc --noEmit",
     "test": "pnpm lint && pnpm typecheck && pnpm -r test",
     "dev:all": "node ./scripts/dev-all.js",
@@ -26,8 +26,8 @@
     "dev:all:lite:win": "powershell -NoProfile -Command \"& .\\.venv\\Scripts\\Activate.ps1; pnpm exec concurrently --names 'landing,api' -c 'cyan,green' 'pnpm run dev:landig' 'pnpm run dev:api'\"",
     "dev:all:lite:unix": "bash -lc \"python -m venv .venv || true; source .venv/bin/activate || true; pnpm exec concurrently --names 'landing,api' -c 'cyan,green' 'pnpm run dev:landig' 'pnpm run dev:api'\"",
     "dev:all:lite": "node ./scripts/dev-all-lite.js",
-    "setup:py:win": "powershell -NoProfile -Command \"python -m venv .venv; & .\\.venv\\Scripts\\Activate.ps1; .\\.venv\\Scripts\\python -m pip install --upgrade pip; .\\.venv\\Scripts\\python -m pip install -e apps/api -e apps/workers\"",
-    "setup:py:unix": "bash -lc \"python -m venv .venv || true; source .venv/bin/activate || true; python -m pip install --upgrade pip; python -m pip install -e apps/api -e apps/workers\"",
+    "setup:py:win": "powershell -NoProfile -Command \"python -m venv .venv; & .\\.venv\\Scripts\\Activate.ps1; .\\.venv\\Scripts\\python -m pip install --upgrade pip; .\\.venv\\Scripts\\python -m pip install ruff; .\\.venv\\Scripts\\python -m pip install -e apps/api -e apps/workers\"",
+    "setup:py:unix": "bash -lc \"python -m venv .venv || true; source .venv/bin/activate || true; python -m pip install --upgrade pip; python -m pip install ruff; python -m pip install -e apps/api -e apps/workers\"",
     "bootstrap": "node ./scripts/bootstrap.js"
   },
   "devDependencies": {

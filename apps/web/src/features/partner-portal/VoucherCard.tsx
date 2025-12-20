@@ -207,7 +207,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
         {data.message && (
           <div className="mt-4 p-3 bg-white/50 rounded-xl">
             <p className="text-center text-gray-700 text-sm italic">
-              "{data.message}"
+              &ldquo;{data.message}&rdquo;
             </p>
           </div>
         )}

@@ -11,13 +11,13 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
-    Index,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
-    Uuid,
     UniqueConstraint,
+    Uuid,
     func,
 )
 from sqlalchemy.ext.mutable import MutableDict, MutableList
@@ -651,6 +651,9 @@ class Delivery(TimestampMixin, Base):
     
     # Código do voucher gerado automaticamente
     generated_voucher_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+
+    # Hard lock: e-mail destino da entrega (resgate/importação só com este e-mail)
+    target_email: Mapped[str | None] = mapped_column(String(180), nullable=True, index=True)
     
     beneficiary_email: Mapped[str | None] = mapped_column(String(180), nullable=True)
     beneficiary_name: Mapped[str | None] = mapped_column(String(160), nullable=True)

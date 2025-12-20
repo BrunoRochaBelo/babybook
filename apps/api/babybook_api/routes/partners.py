@@ -7,22 +7,21 @@ que podem comprar vouchers em bulk e criar deliveries.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.db.models import Partner, Voucher, Delivery
+from babybook_api.db.models import Delivery, Partner, Voucher
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.schemas.partners import (
+    PaginatedPartners,
     PartnerCreate,
+    PartnerDetailResponse,
     PartnerResponse,
     PartnerUpdate,
-    PartnerDetailResponse,
-    PaginatedPartners,
 )
 
 router = APIRouter()

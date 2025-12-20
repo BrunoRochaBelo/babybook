@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
@@ -22,7 +22,6 @@ import {
   Settings,
   Sparkles,
   Sun,
-  User,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -64,7 +63,6 @@ const MOCK_NOTIFICATIONS = [
 
 export function PartnerLayout() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();

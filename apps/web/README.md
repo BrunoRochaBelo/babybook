@@ -20,7 +20,7 @@ cp .env.example .env.local
 O arquivo `.env.local` contém:
 
 ```
-VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_BASE_URL=http://localhost:8000
 VITE_ENABLE_MSW=true
 ```
 

@@ -14,10 +14,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from babybook_api.storage.base import (
-    StorageProvider,
-    StorageConfig,
     ObjectInfo,
     PresignedUrlResult,
+    StorageProvider,
     UploadPartInfo,
 )
 

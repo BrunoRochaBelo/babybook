@@ -8,8 +8,8 @@
  * - Error handling and retry logic
  */
 
-import { useState, useCallback, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   initUpload,
   uploadFileToPresignedUrl,
@@ -17,6 +17,10 @@ import {
   compressImage,
   isCompressibleImage,
 } from "./api";
+import {
+  canProcessOnClient,
+  getMediaProcessor,
+} from "../../services/media-processor";
 import type { UploadProgress } from "./types";
 
 interface UsePartnerUploadOptions {
@@ -39,6 +43,15 @@ interface UploadItem {
   error?: string;
 }
 
+function isVideoFile(file: File): boolean {
+  return file.type.startsWith("video/");
+}
+
+function replaceExtension(filename: string, newExt: string): string {
+  const base = filename.replace(/\.[^.]+$/, "");
+  return `${base}.${newExt}`;
+}
+
 export function usePartnerUpload(options: UsePartnerUploadOptions) {
   const {
     deliveryId,
@@ -52,6 +65,12 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
   const [uploads, setUploads] = useState<Map<string, UploadItem>>(new Map());
   const activeCountRef = useRef(0);
   const queueRef = useRef<UploadItem[]>([]);
+  const uploadsRef = useRef(uploads);
+  const processQueueRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    uploadsRef.current = uploads;
+  }, [uploads]);
 
   // Update upload progress
   const updateUpload = useCallback(
@@ -76,9 +95,12 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
 
         // Compress image if applicable
         let fileToUpload: File | Blob = item.file;
+        let uploadFilename = item.file.name;
+        let uploadContentType = item.file.type;
         if (isCompressibleImage(item.file)) {
           try {
             fileToUpload = await compressImage(item.file, compressionOptions);
+            uploadContentType = (fileToUpload as File).type ?? item.file.type;
           } catch (err) {
             // If compression fails, use original file
             console.warn("Image compression failed, using original:", err);
@@ -86,12 +108,49 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
           }
         }
 
+        // Compress/transcode video if applicable (best-effort)
+        if (isVideoFile(item.file)) {
+          try {
+            if (canProcessOnClient()) {
+              const processor = getMediaProcessor();
+              const ready = await processor.initialize();
+              if (ready) {
+                const result = await processor.transcodeVideo(item.file, {
+                  resolution: "720p",
+                  format: "mp4",
+                  quality: "medium",
+                  onProgress: (progress, stage) => {
+                    // 0-70% reservado para transcode (mantém feeling responsivo)
+                    const safe = Math.max(0, Math.min(100, progress));
+                    updateUpload(item.id, {
+                      status: "compressing",
+                      progress: Math.round(safe * 0.7),
+                    });
+                    // stage é log/debug (não exibimos aqui por enquanto)
+                    void stage;
+                  },
+                });
+
+                fileToUpload = result.blob;
+                uploadContentType = result.blob.type || "video/mp4";
+                uploadFilename = replaceExtension(item.file.name, "mp4");
+              }
+            }
+          } catch (err) {
+            // Se o vídeo não puder ser processado no cliente, faz fallback silencioso.
+            console.warn("Video processing failed, using original:", err);
+            fileToUpload = item.file;
+            uploadFilename = item.file.name;
+            uploadContentType = item.file.type;
+          }
+        }
+
         updateUpload(item.id, { status: "uploading", progress: 5 });
 
         // Initialize upload
         const initResult = await initUpload(deliveryId, {
-          filename: item.file.name,
-          content_type: item.file.type,
+          filename: uploadFilename,
+          content_type: uploadContentType,
           size_bytes: fileToUpload.size,
         });
 
@@ -99,7 +158,7 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
         await uploadFileToPresignedUrl(
           initResult.upload_url,
           fileToUpload,
-          item.file.type,
+          uploadContentType,
           (progress) => {
             // Scale progress: 5-95%
             updateUpload(item.id, { progress: 5 + Math.round(progress * 0.9) });
@@ -110,8 +169,8 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
         await confirmUpload(deliveryId, {
           upload_id: initResult.upload_id,
           key: initResult.key,
-          filename: item.file.name,
-          content_type: item.file.type,
+          filename: uploadFilename,
+          content_type: uploadContentType,
           size_bytes: fileToUpload.size,
         });
 
@@ -126,7 +185,7 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
         updateUpload(item.id, { status: "error", error: errorMessage });
       } finally {
         activeCountRef.current--;
-        processQueue();
+        processQueueRef.current();
       }
     },
     [
@@ -151,14 +210,19 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
 
     // Check if all complete
     if (activeCountRef.current === 0 && queueRef.current.length === 0) {
-      const allComplete = Array.from(uploads.values()).every(
+      const currentUploads = uploadsRef.current;
+      const allComplete = Array.from(currentUploads.values()).every(
         (u) => u.status === "complete" || u.status === "error",
       );
-      if (allComplete && uploads.size > 0) {
+      if (allComplete && currentUploads.size > 0) {
         onAllComplete?.();
       }
     }
-  }, [maxConcurrent, processUpload, uploads, onAllComplete]);
+  }, [maxConcurrent, processUpload, onAllComplete]);
+
+  useEffect(() => {
+    processQueueRef.current = processQueue;
+  }, [processQueue]);
 
   // Add files to upload queue
   const addFiles = useCallback(
@@ -204,6 +268,22 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
     [uploads, updateUpload, processQueue],
   );
 
+  // Retry all failed uploads
+  const retryAllErrors = useCallback(() => {
+    const failedUploads = Array.from(uploads.values()).filter(
+      (item) => item.status === "error",
+    );
+    for (const item of failedUploads) {
+      updateUpload(item.id, {
+        status: "compressing",
+        progress: 0,
+        error: undefined,
+      });
+      queueRef.current.push(item);
+    }
+    processQueue();
+  }, [uploads, updateUpload, processQueue]);
+
   // Remove upload from list
   const removeUpload = useCallback((uploadId: string) => {
     setUploads((prev) => {
@@ -242,6 +322,7 @@ export function usePartnerUpload(options: UsePartnerUploadOptions) {
     uploads: uploadList,
     addFiles,
     retryUpload,
+    retryAllErrors,
     removeUpload,
     clearUploads,
     isUploading,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import secrets
 from datetime import datetime
 
-from itsdangerous import URLSafeTimedSerializer, BadSignature, BadTimeSignature, SignatureExpired
+from itsdangerous import BadSignature, BadTimeSignature, SignatureExpired, URLSafeTimedSerializer
 from passlib.context import CryptContext
 
 from babybook_api.errors import AppError

@@ -1,30 +1,30 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response, status, Form
-from fastapi.responses import RedirectResponse, HTMLResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from html import escape as html_escape
 from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, Form, Request, Response, status
+from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.auth.session import get_current_session, require_csrf_token
 from babybook_api.db.models import Session as SessionModel
 from babybook_api.deps import get_db_session
-from babybook_api.schemas.auth import CsrfResponse, LoginRequest, RegisterRequest
 from babybook_api.errors import AppError
-from babybook_api.security import issue_csrf_token
 from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
+from babybook_api.schemas.auth import CsrfResponse, LoginRequest, RegisterRequest
+from babybook_api.security import issue_csrf_token
 from babybook_api.services.auth import (
     SESSION_COOKIE_NAME,
     apply_session_cookie,
     authenticate_user,
     create_session,
-    revoke_session,
     create_user,
     get_or_create_user_by_email,
+    revoke_session,
 )
 from babybook_api.settings import settings
-from babybook_api.request_ip import get_client_ip
 
 router = APIRouter()
 

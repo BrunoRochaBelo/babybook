@@ -99,7 +99,7 @@ O objetivo é ter o ambiente local rodando em menos de 5 minutos, refletindo a a
 - pnpm: Usamos pnpm (via Corepack) para gerenciar o monorepo (workspaces). Garante instalação rápida e deduplicação de node_modules. (corepack enable ou npm i -g pnpm).
 - Node.js: Versão definida em .nvmrc (use nvm use).
 - Python: Versão definida em pyproject.toml (use pyenv ou asdf).
-- Docker e docker-compose: Para a infraestrutura de backing services (banco e storage).
+- Docker e Docker Compose: Para a infraestrutura de backing services (banco e storage).
 
 ### 1.2. Setup de Infra Local
 
@@ -108,19 +108,26 @@ A infra local (banco, storage mock) é gerenciada por Docker. Não usamos Redis,
 ```bash
 # 1. Subir os contêineres (PostgreSQL e Minio S3 Mock)
 # -d (detached) roda em background
-docker-compose up -d
+docker compose up -d
 ```
+
+> Observação: se o seu ambiente ainda usa o binário legado, o equivalente é `docker-compose up -d`.
 
 ### 1.3. Setup do Ambiente
 
 Instalar dependências:
 
 ```bash
-# Instala TODAS as dependências do monorepo (Node e Python)
+# Instala as dependências Node/JS do monorepo
 pnpm install
 ```
 
-(O pnpm install também deve trigar o postinstall que cria o ambiente virtual Python e instala as dependências do pyproject.toml via poetry ou pip.)
+O `pnpm install` instala **apenas** dependências Node/JS do monorepo. Para preparar o ambiente Python (venv + dependências), rode:
+
+- Windows: `pnpm run setup:py:win`
+- macOS / Linux: `pnpm run setup:py:unix`
+
+Ou, para fazer ambos (Node + Python) em uma tacada: `pnpm run bootstrap`.
 
 Configurar Segredos Locais:
 
@@ -140,16 +147,22 @@ pnpm --filter api run db:upgrade
 
 ### 1.4. Rodando o Projeto
 
-O docker-compose gerencia apenas os backing services (DB e Storage). A API e a SPA rodam localmente via pnpm para habilitar o hot-reload e uma melhor DX.
+O Docker Compose gerencia apenas os backing services (DB e Storage). A API e a SPA rodam localmente via pnpm para habilitar o hot-reload e uma melhor DX.
 
 ```bash
 # Sobe a API (FastAPI) e a SPA (Vite) em modo watch (hot-reload)
-pnpm dev:local
+pnpm run dev:api
+```
+
+Em outro terminal, rode a SPA:
+
+```bash
+pnpm run dev:web
 ```
 
 API (FastAPI): http://localhost:8000/docs (Acesse para ver a documentação interativa do OpenAPI).
 Web (SPA): http://localhost:5173 (Abra no navegador para usar o app).
-Workers (Modal): Por padrão, não precisam rodar localmente. Em `ENV=local` + `INLINE_WORKER_ENABLED=true`, a API ativa o modo inline e processa o job no mesmo processo (mock da Cloudflare Queues). Isso cobre 99% do fluxo da UI sem exigir ffmpeg. Quando precisar validar o pipeline real (fila + worker), defina `INLINE_WORKER_ENABLED=false`, aponte o `QUEUE_PROVIDER` para `database` ou Cloudflare e execute `pnpm dev:workers` (ou deploy Modal) — o docker-compose já provisiona os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`.
+Workers (Modal): Por padrão, não precisam rodar localmente. Em `ENV=local` + `INLINE_WORKER_ENABLED=true`, a API ativa o modo inline e processa o job no mesmo processo (mock da Cloudflare Queues). Isso cobre 99% do fluxo da UI sem exigir ffmpeg. Quando precisar validar o pipeline real (fila + worker), defina `INLINE_WORKER_ENABLED=false`, aponte o `QUEUE_PROVIDER` para `database` ou Cloudflare e execute `pnpm dev:workers` (ou deploy Modal) — o Docker Compose já provisiona os buckets `babybook-uploads`, `babybook-media` e `babybook-exports` no MinIO via serviço `storage-init`.
 Edge (Público): (Simulado via wrangler dev em outra porta, ex: 8787, via pnpm dev:edge).
 
 ### 1.5. Rodando Testes
@@ -469,12 +482,15 @@ packages/contracts é a fonte de tipos do cliente, gerada do OpenAPI. Versões g
 
 ### 4.6. Padrão de versionamento de payloads
 
-Prefixo /v1.
-Evolução via additive-first (adicionar campos opcionais).
-Implicação Prática: Nunca renomeie ou remova um campo JSON. Isso é um breaking change.Exemplo Ruim: Renomear author para creator.
-Exemplo Bom (Additive): 1. Adiciona creator. 2. A API passa a preencher ambos author e creator. 3. O front-end migra para ler creator. 4. Após meses, o campo author é marcado como deprecated no OpenAPI. 5. O campo author só é removido em uma v2.
-Clientes devem ignorar campos desconhecidos.
-Remoções só após janela de deprecação (marcar no OpenAPI).
+Contrato v1 (sem hardcode de prefixo no cliente).
+
+- Em produção, o deploy web expõe a API atrás de proxy reverso em `/api`.
+- Clientes (web/mobile) não devem hardcodar `/v1` em URLs; devem usar a base configurada (`/api` em produção ou `http://localhost:8000` em dev).
+  Evolução via additive-first (adicionar campos opcionais).
+  Implicação Prática: Nunca renomeie ou remova um campo JSON. Isso é um breaking change.Exemplo Ruim: Renomear author para creator.
+  Exemplo Bom (Additive): 1. Adiciona creator. 2. A API passa a preencher ambos author e creator. 3. O front-end migra para ler creator. 4. Após meses, o campo author é marcado como deprecated no OpenAPI. 5. O campo author só é removido em uma v2.
+  Clientes devem ignorar campos desconhecidos.
+  Remoções só após janela de deprecação (marcar no OpenAPI).
 
 ### 4.7. Datas, horários e timezones
 
@@ -839,7 +855,7 @@ Testes são a principal ferramenta de qualidade e a rede de segurança contra re
 | Nível                   | Onde                                                              | O quê                                                                                                                               | Ferramentas                                               | Meta                                                                                                                                                                                                                    |
 | ----------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1: Unidade              | apps/api/tests/unit, apps/web/tests/unit, apps/workers/tests/unit | Lógica pura. Funções em domain/ (API), utils/ (Packages), hooks puros (Web), lógica de parsing (Workers).                           | pytest (Python), vitest (Front-end)                       | Muito rápidos, devem rodar em < 10 segundos.                                                                                                                                                                            |
-| 2: Integração           | apps/api/tests/integration                                        | Testar a API "de fora para dentro", mas sem a UI. Validar se a API (routes/) + deps.py (Segurança) + db/ (Models) funcionam juntos. | pytest + docker-compose (rodando um banco de testes real) | Validar que uma chamada POST /moments realmente cria a linha no banco e que as checagens de RBAC (12.4) e quotas (4.3) funcionam.                                                                                       |
+| 2: Integração           | apps/api/tests/integration                                        | Testar a API "de fora para dentro", mas sem a UI. Validar se a API (routes/) + deps.py (Segurança) + db/ (Models) funcionam juntos. | pytest + Docker Compose (rodando um banco de testes real) | Validar que uma chamada POST /moments realmente cria a linha no banco e que as checagens de RBAC (12.4) e quotas (4.3) funcionam.                                                                                       |
 | 3: Contrato (Front-end) | apps/web/tests/contract                                           | Validar a reação da UI aos contratos da API.                                                                                        | vitest + msw (Mock Service Worker, ver 8.4)               | Garantir que a UI (isolada do backend real) reage corretamente aos contratos da API, como exibir a tela de "Limite Atingido" quando a API (mockada) retorna um erro { "code": "quota.recurrent_limit.exceeded" } (4.4). |
 | 4: E2E                  | tests/e2e/                                                        | Fluxos críticos do usuário, ponta-a-ponta, simulando o clique.                                                                      | playwright                                                | Cobrir apenas os 3-5 "caminhos felizes" que não podem quebrar: (1) Login, (2) Upload de Foto, (3) Compartilhamento (Share).                                                                                             |
 
@@ -935,7 +951,7 @@ Usar para ilustrar fluxos (Sequence) ou arquitetura (C4, se necessário).
 
 ### 16.4. Registro de Decisões de Arquitetura (ADRs)
 
-Obrigatório: Toda decisão de arquitetura significativa (ex: "Por que Modal e não Lambda?", "Por que Cloudflare Queues e não SQS?", "Por que docker-compose e não devcontainers?") deve ser documentada em docs/adrs/NNN-titulo-da-decisao.md.
+Obrigatório: Toda decisão de arquitetura significativa (ex: "Por que Modal e não Lambda?", "Por que Cloudflare Queues e não SQS?", "Por que Docker Compose e não devcontainers?") deve ser documentada em docs/adrs/NNN-titulo-da-decisao.md.
 Formato: Um ADR simples deve conter: Contexto (O problema), Decisão (O que escolhemos), Consequências (O que ganhamos e o que perdemos).
 Justificativa: Isso evita que o time re-litigue as mesmas decisões a cada 6 meses.
 

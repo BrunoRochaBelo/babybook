@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .deps import AsyncSessionLocal
 from .errors import (
     AppError,
     app_error_handler,
@@ -34,9 +35,8 @@ from .routes import (
     vault,
     vouchers,
 )
+from .services.auth import bootstrap_dev_partner, bootstrap_dev_user
 from .settings import settings
-from .deps import AsyncSessionLocal
-from .services.auth import bootstrap_dev_user, bootstrap_dev_partner
 
 
 def create_app() -> FastAPI:

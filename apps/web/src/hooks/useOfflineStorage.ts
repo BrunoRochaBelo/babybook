@@ -174,6 +174,113 @@ export function useOfflineStorage() {
     isOnline: navigator.onLine,
   });
 
+  // Update sync status from IndexedDB
+  const updateSyncStatus = useCallback(async () => {
+    try {
+      const unsynced = await getUnsyncedMoments();
+      const mediaQueue = await getAllFromStore<MediaQueueItem>(
+        STORES.MEDIA_QUEUE,
+      );
+
+      setSyncStatus((prev) => ({
+        ...prev,
+        pendingMoments: unsynced.length,
+        pendingMedia: mediaQueue.length,
+      }));
+    } catch (error) {
+      console.error("[OfflineStorage] Failed to update sync status:", error);
+    }
+  }, []);
+
+  // Manual sync (fallback)
+  const manualSync = useCallback(async () => {
+    console.log("[OfflineStorage] Starting manual sync...");
+
+    try {
+      const unsyncedMoments = await getUnsyncedMoments();
+
+      for (const moment of unsyncedMoments) {
+        try {
+          // Here you would make API call to sync moment
+          // await api.post('/moments', moment.data);
+
+          // Mark as synced
+          await addToStore(STORES.MOMENTS, { ...moment, synced: true });
+          console.log("[OfflineStorage] Moment synced:", moment.id);
+        } catch (error) {
+          console.error(
+            "[OfflineStorage] Failed to sync moment:",
+            moment.id,
+            error,
+          );
+        }
+      }
+
+      // Sync media queue
+      const mediaQueue = await getAllFromStore<MediaQueueItem>(
+        STORES.MEDIA_QUEUE,
+      );
+
+      for (const media of mediaQueue) {
+        try {
+          // Here you would upload media
+          // await api.uploadMedia(media.momentId, media.file);
+
+          // Remove from queue
+          await deleteFromStore(STORES.MEDIA_QUEUE, media.id);
+          console.log("[OfflineStorage] Media uploaded:", media.id);
+        } catch (error) {
+          console.error(
+            "[OfflineStorage] Failed to upload media:",
+            media.id,
+            error,
+          );
+        }
+      }
+
+      await updateSyncStatus();
+
+      setSyncStatus((prev) => ({
+        ...prev,
+        lastSyncAt: new Date().toISOString(),
+      }));
+
+      console.log("[OfflineStorage] Manual sync complete");
+    } catch (error) {
+      console.error("[OfflineStorage] Manual sync failed:", error);
+    }
+  }, [updateSyncStatus]);
+
+  // Trigger background sync
+  const triggerSync = useCallback(async () => {
+    if (!navigator.onLine) {
+      console.log("[OfflineStorage] Cannot sync - offline");
+      return;
+    }
+
+    if (
+      "serviceWorker" in navigator &&
+      "sync" in ServiceWorkerRegistration.prototype
+    ) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await (
+          registration as ServiceWorkerRegistration & {
+            sync: { register: (tag: string) => Promise<void> };
+          }
+        ).sync.register("sync-moments");
+        console.log("[OfflineStorage] Background sync registered");
+      } catch (error) {
+        console.error("[OfflineStorage] Background sync failed:", error);
+        // Fallback to manual sync
+        await manualSync();
+      }
+    } else {
+      // Fallback for browsers without background sync
+      await manualSync();
+    }
+  }, [manualSync]);
+
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
@@ -195,32 +302,14 @@ export function useOfflineStorage() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [triggerSync]);
 
   // Initialize and load sync status
   useEffect(() => {
     initDB().then(() => {
       updateSyncStatus();
     });
-  }, []);
-
-  // Update sync status from IndexedDB
-  const updateSyncStatus = useCallback(async () => {
-    try {
-      const unsynced = await getUnsyncedMoments();
-      const mediaQueue = await getAllFromStore<MediaQueueItem>(
-        STORES.MEDIA_QUEUE,
-      );
-
-      setSyncStatus((prev) => ({
-        ...prev,
-        pendingMoments: unsynced.length,
-        pendingMedia: mediaQueue.length,
-      }));
-    } catch (error) {
-      console.error("[OfflineStorage] Failed to update sync status:", error);
-    }
-  }, []);
+  }, [updateSyncStatus]);
 
   // Save moment offline
   const saveMomentOffline = useCallback(
@@ -292,95 +381,6 @@ export function useOfflineStorage() {
     },
     [],
   );
-
-  // Trigger background sync
-  const triggerSync = useCallback(async () => {
-    if (!navigator.onLine) {
-      console.log("[OfflineStorage] Cannot sync - offline");
-      return;
-    }
-
-    if (
-      "serviceWorker" in navigator &&
-      "sync" in ServiceWorkerRegistration.prototype
-    ) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        await (
-          registration as ServiceWorkerRegistration & {
-            sync: { register: (tag: string) => Promise<void> };
-          }
-        ).sync.register("sync-moments");
-        console.log("[OfflineStorage] Background sync registered");
-      } catch (error) {
-        console.error("[OfflineStorage] Background sync failed:", error);
-        // Fallback to manual sync
-        await manualSync();
-      }
-    } else {
-      // Fallback for browsers without background sync
-      await manualSync();
-    }
-  }, []);
-
-  // Manual sync (fallback)
-  const manualSync = useCallback(async () => {
-    console.log("[OfflineStorage] Starting manual sync...");
-
-    try {
-      const unsyncedMoments = await getUnsyncedMoments();
-
-      for (const moment of unsyncedMoments) {
-        try {
-          // Here you would make API call to sync moment
-          // await api.post('/moments', moment.data);
-
-          // Mark as synced
-          await addToStore(STORES.MOMENTS, { ...moment, synced: true });
-          console.log("[OfflineStorage] Moment synced:", moment.id);
-        } catch (error) {
-          console.error(
-            "[OfflineStorage] Failed to sync moment:",
-            moment.id,
-            error,
-          );
-        }
-      }
-
-      // Sync media queue
-      const mediaQueue = await getAllFromStore<MediaQueueItem>(
-        STORES.MEDIA_QUEUE,
-      );
-
-      for (const media of mediaQueue) {
-        try {
-          // Here you would upload media
-          // await api.uploadMedia(media.momentId, media.file);
-
-          // Remove from queue
-          await deleteFromStore(STORES.MEDIA_QUEUE, media.id);
-          console.log("[OfflineStorage] Media uploaded:", media.id);
-        } catch (error) {
-          console.error(
-            "[OfflineStorage] Failed to upload media:",
-            media.id,
-            error,
-          );
-        }
-      }
-
-      await updateSyncStatus();
-
-      setSyncStatus((prev) => ({
-        ...prev,
-        lastSyncAt: new Date().toISOString(),
-      }));
-
-      console.log("[OfflineStorage] Manual sync complete");
-    } catch (error) {
-      console.error("[OfflineStorage] Manual sync failed:", error);
-    }
-  }, [updateSyncStatus]);
 
   // Get all offline moments
   const getOfflineMoments = useCallback(async (): Promise<OfflineMoment[]> => {

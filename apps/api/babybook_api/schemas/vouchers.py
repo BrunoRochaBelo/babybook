@@ -4,10 +4,9 @@ Schemas Pydantic para Vouchers (B2B2C)
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Annotated, Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
-
 
 VoucherStatus = Literal["available", "redeemed", "expired", "revoked"]
 

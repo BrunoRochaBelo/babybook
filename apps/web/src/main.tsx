@@ -13,7 +13,6 @@ import {
   mockHealthMeasurements,
   mockHealthVaccines,
   mockMoments,
-  mockUser,
 } from "./mocks/data";
 import { Toaster } from "sonner";
 import "./index.css";
@@ -61,7 +60,7 @@ const isDev = import.meta.env.DEV;
 
 /**
  * Determina se um erro é transitório e pode ser retentado.
- * 
+ *
  * SEGURANÇA: Nunca retentamos erros de autenticação/autorização,
  * pois isso poderia:
  * - Mascarar problemas de segurança
@@ -77,20 +76,20 @@ function shouldRetryError(error: unknown): boolean {
   // Verifica status HTTP se disponível
   if (error && typeof error === "object" && "status" in error) {
     const status = (error as { status: number }).status;
-    
+
     // 4xx - Erros do cliente: NÃO retentar
     // Inclui: 400 Bad Request, 401 Unauthorized, 403 Forbidden,
     //         404 Not Found, 409 Conflict, 422 Validation Error
     if (status >= 400 && status < 500) {
       return false;
     }
-    
+
     // 5xx - Erros do servidor: SIM, retentar
     // Inclui: 500 Internal Error, 502 Bad Gateway, 503 Service Unavailable
     if (status >= 500) {
       return true;
     }
-    
+
     // 0 - Falha de conexão: SIM, retentar
     if (status === 0) {
       return true;
@@ -109,13 +108,13 @@ function shouldRetryError(error: unknown): boolean {
 function calculateRetryDelay(attemptIndex: number): number {
   const baseDelay = isDev ? 150 : 100;
   const maxDelay = 5000;
-  
+
   // Backoff exponencial: 150ms, 300ms, 600ms, 1200ms...
   const exponentialDelay = baseDelay * Math.pow(2, attemptIndex);
-  
+
   // Adiciona jitter de ±25% para evitar sincronização
   const jitter = 0.75 + Math.random() * 0.5; // 0.75 a 1.25
-  
+
   return Math.min(exponentialDelay * jitter, maxDelay);
 }
 
@@ -124,17 +123,17 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
-      
+
       // Retry seletivo baseado no tipo de erro
       retry: (failureCount, error) => {
         const maxRetries = isDev ? 5 : 3;
         if (failureCount >= maxRetries) return false;
         return shouldRetryError(error);
       },
-      
+
       retryDelay: calculateRetryDelay,
     },
-    
+
     mutations: {
       // Mutations: mais conservador
       retry: (failureCount, error) => {
@@ -142,7 +141,7 @@ const queryClient = new QueryClient({
         if (failureCount >= maxRetries) return false;
         return shouldRetryError(error);
       },
-      
+
       retryDelay: calculateRetryDelay,
     },
   },

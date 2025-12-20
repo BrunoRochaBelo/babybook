@@ -14,7 +14,6 @@ import {
   CreditCard,
   Package,
   Ticket,
-  Image,
   Plus,
   ChevronRight,
   Loader2,
@@ -22,8 +21,6 @@ import {
   CheckCircle2,
   Clock,
   Gift,
-  Settings,
-  RefreshCcw,
   Lightbulb,
   Sparkles,
   TrendingUp,
@@ -34,7 +31,10 @@ import {
   getPartnerDashboardStats,
   listDeliveries,
 } from "./api";
-import type { Delivery } from "./types";
+import {
+  getPartnerDeliveryStatusMeta,
+  normalizePartnerDeliveryStatus,
+} from "./deliveryStatus";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
@@ -74,8 +74,14 @@ function getContextualTip(options: {
   deliveriesCount: number;
   redeemedCount: number;
 }): { icon: typeof Lightbulb; text: string; color: string } | null {
-  const { hasLowCredits, hasReadyDeliveries, hasPendingUpload, deliveriesCount, redeemedCount } = options;
-  
+  const {
+    hasLowCredits,
+    hasReadyDeliveries,
+    hasPendingUpload,
+    deliveriesCount,
+    redeemedCount,
+  } = options;
+
   // Prioridade: ações pendentes primeiro
   if (hasPendingUpload) {
     return {
@@ -84,7 +90,7 @@ function getContextualTip(options: {
       color: "text-yellow-600 dark:text-yellow-400",
     };
   }
-  
+
   if (hasReadyDeliveries) {
     return {
       icon: Gift,
@@ -92,7 +98,7 @@ function getContextualTip(options: {
       color: "text-green-600 dark:text-green-400",
     };
   }
-  
+
   if (hasLowCredits) {
     return {
       icon: CreditCard,
@@ -100,7 +106,7 @@ function getContextualTip(options: {
       color: "text-pink-600 dark:text-pink-400",
     };
   }
-  
+
   // Dicas motivacionais baseadas em progresso
   if (redeemedCount > 0 && deliveriesCount >= 5) {
     return {
@@ -109,7 +115,7 @@ function getContextualTip(options: {
       color: "text-purple-600 dark:text-purple-400",
     };
   }
-  
+
   if (deliveriesCount === 0) {
     return {
       icon: Sparkles,
@@ -117,7 +123,7 @@ function getContextualTip(options: {
       color: "text-pink-600 dark:text-pink-400",
     };
   }
-  
+
   return null;
 }
 
@@ -156,6 +162,11 @@ function DeliveryStatusBadge({ status }: { status: string }) {
         "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300",
       label: "Entregue",
     },
+    failed: {
+      icon: AlertCircle,
+      className: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
+      label: "Falhou",
+    },
     archived: {
       icon: Package,
       className:
@@ -164,11 +175,15 @@ function DeliveryStatusBadge({ status }: { status: string }) {
     },
   };
 
-  const cfg = config[status] || config.draft;
+  const normalized = normalizePartnerDeliveryStatus(status);
+  const cfg = config[normalized] || config.draft;
   const Icon = cfg.icon;
+  const meta = getPartnerDeliveryStatusMeta(normalized);
 
   return (
     <span
+      title={meta.hint}
+      aria-label={`${cfg.label}. ${meta.hint}`}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.className}`}
     >
       <Icon className="w-3 h-3" />
@@ -239,6 +254,58 @@ export function PartnerDashboard() {
     refetchDeliveries();
   };
 
+  const isError = isProfileError || isStatsError || isDeliveriesError;
+  const errorMessage =
+    (profileError instanceof Error && profileError.message) ||
+    (statsError instanceof Error && statsError.message) ||
+    (deliveriesError instanceof Error && deliveriesError.message) ||
+    null;
+
+  const deliveries = deliveriesData?.deliveries ?? [];
+  const availableCredits = stats?.voucher_balance ?? 0;
+  const reservedCredits = stats?.reserved_credits ?? 0;
+  const hasLowCredits = availableCredits <= 2;
+  const pendingUpload = deliveries.find(
+    (d) => normalizePartnerDeliveryStatus(d.status) === "pending_upload",
+  );
+  const readyDeliveries = stats?.ready_deliveries ?? 0;
+
+  // Dica contextual para o usuário (hooks precisam ser chamados antes de early-return)
+  const contextualTip = useMemo(() => {
+    if (isError) return null;
+    return getContextualTip({
+      hasLowCredits,
+      hasReadyDeliveries: readyDeliveries > 0,
+      hasPendingUpload: Boolean(pendingUpload),
+      deliveriesCount: stats?.total_deliveries ?? 0,
+      redeemedCount: stats?.redeemed_vouchers ?? 0,
+    });
+  }, [
+    isError,
+    hasLowCredits,
+    readyDeliveries,
+    pendingUpload,
+    stats?.total_deliveries,
+    stats?.redeemed_vouchers,
+  ]);
+
+  // Dados para o onboarding
+  const onboardingStats = useMemo(
+    () => ({
+      hasCompletedProfile: Boolean(profile?.studio_name),
+      hasCredits: availableCredits > 0 || reservedCredits > 0,
+      hasDeliveries: deliveries.length > 0,
+      hasFiveDeliveries: (stats?.total_deliveries ?? 0) >= 5,
+    }),
+    [
+      profile?.studio_name,
+      availableCredits,
+      reservedCredits,
+      deliveries.length,
+      stats?.total_deliveries,
+    ],
+  );
+
   if (isLoading) {
     return (
       <PartnerPage>
@@ -287,14 +354,7 @@ export function PartnerDashboard() {
     );
   }
 
-  const isError = isProfileError || isStatsError || isDeliveriesError;
   if (isError) {
-    const errorMessage =
-      (profileError instanceof Error && profileError.message) ||
-      (statsError instanceof Error && statsError.message) ||
-      (deliveriesError instanceof Error && deliveriesError.message) ||
-      null;
-
     return (
       <PartnerErrorState
         variant="page"
@@ -309,41 +369,22 @@ export function PartnerDashboard() {
     );
   }
 
-
-  const deliveries = deliveriesData?.deliveries || [];
-  const availableCredits = stats?.voucher_balance || 0;
-  const reservedCredits = stats?.reserved_credits || 0;
-  const hasLowCredits = availableCredits <= 2;
-  const pendingUpload = deliveries.find((d) => d.status === "pending_upload");
-  const readyDeliveries = stats?.ready_deliveries || 0;
-
-  // Dica contextual para o usuário
-  const contextualTip = useMemo(() => getContextualTip({
-    hasLowCredits,
-    hasReadyDeliveries: readyDeliveries > 0,
-    hasPendingUpload: Boolean(pendingUpload),
-    deliveriesCount: stats?.total_deliveries || 0,
-    redeemedCount: stats?.redeemed_vouchers || 0,
-  }), [hasLowCredits, readyDeliveries, pendingUpload, stats?.total_deliveries, stats?.redeemed_vouchers]);
-
-  // Dados para o onboarding
-  const onboardingStats = useMemo(() => ({
-    hasCompletedProfile: Boolean(profile?.studio_name),
-    hasCredits: availableCredits > 0 || reservedCredits > 0,
-    hasDeliveries: deliveries.length > 0,
-    hasFiveDeliveries: (stats?.total_deliveries || 0) >= 5,
-  }), [profile, availableCredits, reservedCredits, deliveries.length, stats?.total_deliveries]);
-
   return (
     <PartnerPage>
       {/* Page Header (desktop) */}
-      <div data-tour="dashboard-header" className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+      <div
+        data-tour="dashboard-header"
+        className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8"
+      >
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            {getGreeting()}, {profile?.studio_name || profile?.name || "Parceiro"}!
+            {getGreeting()},{" "}
+            {profile?.studio_name || profile?.name || "Parceiro"}!
           </h1>
           {contextualTip ? (
-            <div className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}>
+            <div
+              className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}
+            >
               <contextualTip.icon className="w-4 h-4 flex-shrink-0" />
               <p className="text-sm">{contextualTip.text}</p>
             </div>
@@ -373,7 +414,9 @@ export function PartnerDashboard() {
           ! 👋
         </p>
         {contextualTip && (
-          <div className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}>
+          <div
+            className={`flex items-center gap-2 mt-2 ${contextualTip.color}`}
+          >
             <contextualTip.icon className="w-3.5 h-3.5 flex-shrink-0" />
             <p className="text-xs">{contextualTip.text}</p>
           </div>
@@ -384,7 +427,10 @@ export function PartnerDashboard() {
       <PartnerOnboarding stats={onboardingStats} />
 
       {/* Credit Balance Card - Destaque principal */}
-      <div data-tour="credits-card" className="mb-6 sm:mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+      <div
+        data-tour="credits-card"
+        className="mb-6 sm:mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+      >
         <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -404,7 +450,7 @@ export function PartnerDashboard() {
                     <p className="text-[11px] uppercase tracking-wide text-pink-100">
                       Disponível
                     </p>
-                    <span 
+                    <span
                       className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
                       title="Créditos prontos para usar em novas entregas"
                     >
@@ -415,17 +461,17 @@ export function PartnerDashboard() {
                     {availableCredits}
                   </p>
                   <p className="text-[11px] text-pink-100">
-                    {availableCredits === 1 ? "crédito pronto" : "créditos prontos"}
+                    {availableCredits === 1
+                      ? "crédito pronto"
+                      : "créditos prontos"}
                   </p>
                 </div>
-                <div
-                  className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group"
-                >
+                <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
                   <div className="flex items-center gap-1">
                     <p className="text-[11px] uppercase tracking-wide text-pink-100">
                       Reservado
                     </p>
-                    <span 
+                    <span
                       className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
                       title="Créditos já alocados para entregas criadas. Serão consumidos ou estornados quando o cliente resgatar."
                     >
@@ -435,12 +481,15 @@ export function PartnerDashboard() {
                   <p className="text-2xl font-bold leading-tight">
                     {reservedCredits}
                   </p>
-                  <p className="text-[11px] text-pink-100">aguardando resgate</p>
+                  <p className="text-[11px] text-pink-100">
+                    aguardando resgate
+                  </p>
                 </div>
               </div>
               <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
                 <Lightbulb className="w-3.5 h-3.5" />
-                Dica: quando o cliente resgata, o crédito é consumido ou estornado automaticamente.
+                Dica: quando o cliente resgata, o crédito é consumido ou
+                estornado automaticamente.
               </p>
             </div>
             <Link
@@ -531,7 +580,10 @@ export function PartnerDashboard() {
       )}
 
       {/* Stats Grid */}
-      <div data-tour="stats-grid" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div
+        data-tour="stats-grid"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+      >
         <StatCard
           icon={Package}
           label="Total Entregas"
@@ -546,7 +598,9 @@ export function PartnerDashboard() {
           value={readyDeliveries}
           color="green"
           to="/partner/deliveries?status=ready"
-          description={readyDeliveries > 0 ? "Gerar vouchers →" : "Nenhuma pendente"}
+          description={
+            readyDeliveries > 0 ? "Gerar vouchers →" : "Nenhuma pendente"
+          }
         />
         <StatCard
           icon={Ticket}
@@ -575,7 +629,10 @@ export function PartnerDashboard() {
       />
 
       {/* Recent Deliveries */}
-      <div data-tour="recent-deliveries" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div
+        data-tour="recent-deliveries"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
+      >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Entregas Recentes
@@ -598,7 +655,8 @@ export function PartnerDashboard() {
               Comece sua primeira entrega!
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-              Envie fotos incríveis para seus clientes e crie uma experiência única de descoberta para a família.
+              Envie fotos incríveis para seus clientes e crie uma experiência
+              única de descoberta para a família.
             </p>
             <Link
               to="/partner/deliveries/new"

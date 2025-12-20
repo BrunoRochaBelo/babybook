@@ -51,9 +51,13 @@ curl https://edge.babybook.com/health
 ### 2. Verificar Conectividade da API
 
 ```bash
-# Testar acesso ao R2 via API
-curl -X GET "https://api.babybook.com/v1/storage/health" \
-  -H "Authorization: Bearer {token}"
+# Health check da API (por trás do proxy em /api)
+curl -I "https://app.babybook.com/api/health"
+
+# Observação:
+# Neste repo, não existe um endpoint público canônico do tipo /storage/health.
+# Para diagnosticar storage, use os checks de R2/Edge Worker acima + logs (wrangler tail) e, quando necessário,
+# inspeção no banco (assets.original_key/variants/status).
 ```
 
 ### 3. Verificar Logs do Edge Worker
@@ -90,19 +94,17 @@ aws s3 ls s3://bb-r2-bucket/u/{user_id}/m/{moment_id}/ \
 ### Cenário 2: Thumbnails/Previews Corrompidos
 
 ```python
-# Regenerar derivados via API
-curl -X POST "https://api.babybook.com/v1/assets/{asset_id}/regenerate" \
-  -H "Authorization: Bearer {service_token}" \
-  -H "Content-Type: application/json" \
-  -d '{"targets": ["thumb", "preview"]}'
-
-# Ou via SQL + Worker
+# Regenerar derivados (fluxo recomendado): via SQL + Worker
 UPDATE assets
 SET status = 'queued',
     derivs = '{}'
 WHERE id = 'asset-uuid';
 
 # O worker vai reprocessar automaticamente
+
+# Alternativa (service-to-service): marcar status/variants via PATCH /assets/{asset_id}
+# (usa autenticação de serviço e depende do pipeline/worker ler o status)
+# Endpoint: PATCH https://app.babybook.com/api/assets/{asset_id}
 ```
 
 ### Cenário 3: Voucher Redemption Não Transferiu Arquivos

@@ -6,9 +6,10 @@ Used when client-side processing (ffmpeg.wasm) is unavailable or fails.
 """
 
 from datetime import datetime
-from typing import Optional, List
 from enum import Enum
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MediaType(str, Enum):

@@ -300,6 +300,9 @@ importers:
 
   packages/config:
     devDependencies:
+      '@types/node':
+        specifier: ^22.9.3
+        version: 22.19.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.1.0
         version: 8.46.4(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3)

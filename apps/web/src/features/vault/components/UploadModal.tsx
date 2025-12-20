@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, UploadCloud } from "lucide-react";
+import { UploadCloud } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,11 +49,20 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <UploadCloud className="w-10 h-10 mb-4 text-gray-400" />
                 <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Clique para carregar</span> ou arraste e solte
+                  <span className="font-semibold">Clique para carregar</span> ou
+                  arraste e solte
                 </p>
-                <p className="text-xs text-gray-500">PDF, PNG, JPG (MAX. 10MB)</p>
+                <p className="text-xs text-gray-500">
+                  PDF, PNG, JPG (MAX. 10MB)
+                </p>
               </div>
-              <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} multiple />
+              <input
+                id="dropzone-file"
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                multiple
+              />
             </label>
           </div>
           {files.length > 0 && (
@@ -69,7 +78,9 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={handleUpload} disabled={files.length === 0}>
             Carregar
           </Button>

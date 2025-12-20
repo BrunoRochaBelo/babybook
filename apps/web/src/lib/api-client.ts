@@ -42,7 +42,7 @@ interface RequestOptions<T> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: Record<string, string>;
-  schema?: z.ZodType<T, z.ZodTypeDef, any>;
+  schema?: z.ZodType<T, z.ZodTypeDef, unknown>;
   searchParams?: SearchParams;
 }
 

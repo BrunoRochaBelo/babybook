@@ -12,40 +12,12 @@ interface State {
 }
 
 /**
- * Detecta se o erro parece ser causado por HMR (Hot Module Replacement).
- * Esses erros ocorrem quando módulos são atualizados e referências ficam desatualizadas.
- */
-function isHmrError(error: Error | null): boolean {
-  if (!error) return false;
-  
-  const message = error.message.toLowerCase();
-  const stack = error.stack?.toLowerCase() ?? "";
-  
-  // Padrões comuns de erros de HMR
-  const hmrPatterns = [
-    "cannot read properties of undefined",
-    "cannot read properties of null",
-    "is not a function",
-    "is not defined",
-    "failed to fetch dynamically imported module",
-    "dynamically imported module",
-    "unable to preload css",
-    "loading chunk",
-    "loading css chunk",
-  ];
-  
-  return hmrPatterns.some(
-    (pattern) => message.includes(pattern) || stack.includes(pattern)
-  );
-}
-
-/**
  * Error Boundary para capturar erros de renderização React.
- * 
+ *
  * Em desenvolvimento:
  * - Erros de HMR causam auto-reload silencioso
  * - Outros erros mostram fallback amigável com botão de reload
- * 
+ *
  * Em produção:
  * - Mostra fallback amigável
  */
@@ -63,15 +35,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
-    
+
     const isDev = import.meta.env.DEV;
-    
+
     // Em desenvolvimento, SEMPRE fazer auto-reload silencioso
     // Isso resolve problemas de HMR, MSW não pronto, módulos desatualizados, etc.
     if (isDev) {
-      console.info("[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...");
+      console.info(
+        "[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...",
+      );
       this.setState({ isAutoReloading: true });
-      
+
       // Delay mínimo para mostrar feedback visual
       this.autoReloadTimeoutId = setTimeout(() => {
         this.performReload();
@@ -92,14 +66,14 @@ export class ErrorBoundary extends Component<Props, State> {
         registrations.forEach((registration) => registration.unregister());
       });
     }
-    
+
     // Limpa caches
     if ("caches" in window) {
       caches.keys().then((names) => {
         names.forEach((name) => caches.delete(name));
       });
     }
-    
+
     // Recarrega sem cache
     window.location.reload();
   };
@@ -170,11 +144,11 @@ export class ErrorBoundary extends Component<Props, State> {
                 />
               </svg>
             </div>
-            
+
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Ops! Algo deu errado
             </h2>
-            
+
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               {isDev
                 ? "Parece que houve um problema com o Hot Reload. Tente recarregar a página."
@@ -216,4 +190,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

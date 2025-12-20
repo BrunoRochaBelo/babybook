@@ -4,7 +4,6 @@ import {
   HealthMeasurement,
   HealthVaccine,
   Moment,
-  MomentMedia,
   UserProfile,
 } from "@babybook/contracts";
 
@@ -617,12 +616,14 @@ export interface MockDelivery {
   partnerId: string;
   title: string;
   clientName: string | null;
+  targetEmail?: string | null;
+  directImport?: boolean;
   description: string | null;
   eventDate: string | null;
   status: "draft" | "pending_upload" | "ready" | "completed";
   assetsCount: number;
   voucherCode: string | null;
-  creditStatus?: "reserved" | "consumed" | "refunded" | null;
+  creditStatus?: "reserved" | "consumed" | "refunded" | "not_required" | null;
   archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -641,6 +642,22 @@ export const mockPartner: MockPartner = {
 };
 
 export const mockDeliveries: MockDelivery[] = [
+  {
+    id: "delivery-direct-001",
+    partnerId: "partner-demo-001",
+    title: "Ensaio - Bruno (Importação Direta)",
+    clientName: "Bruno",
+    targetEmail: "bruno@example.com",
+    directImport: true,
+    description: "Entrega de fotos via importação direta (sem voucher).",
+    eventDate: "2024-12-15",
+    status: "ready",
+    assetsCount: 8,
+    voucherCode: null,
+    creditStatus: "not_required",
+    createdAt: "2024-12-15T14:00:00Z",
+    updatedAt: "2024-12-15T16:30:00Z",
+  },
   {
     id: "delivery-001",
     partnerId: "partner-demo-001",

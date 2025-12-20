@@ -5,21 +5,8 @@
  * Permite navegação rápida e ações comuns via teclado.
  */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
-interface KeyboardShortcut {
-  /** Tecla principal (key.toLowerCase()) */
-  key: string;
-  /** Se requer Ctrl/Cmd */
-  ctrlOrMeta?: boolean;
-  /** Se requer Shift */
-  shift?: boolean;
-  /** Callback a executar */
-  action: () => void;
-  /** Descrição do atalho (para help) */
-  description: string;
-}
 
 /**
  * Hook para atalhos de teclado do Portal do Parceiro.
@@ -41,8 +28,8 @@ export function usePartnerKeyboardShortcuts() {
   const isInPartnerPortal = location.pathname.startsWith("/partner");
 
   // Armazena a última tecla para combos (G + X)
-  let lastKey = "";
-  let lastKeyTime = 0;
+  const lastKeyRef = useRef("");
+  const lastKeyTimeRef = useRef(0);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -64,7 +51,7 @@ export function usePartnerKeyboardShortcuts() {
       const now = Date.now();
 
       // Combos G + X (se G foi pressionado há menos de 500ms)
-      if (lastKey === "g" && now - lastKeyTime < 500) {
+      if (lastKeyRef.current === "g" && now - lastKeyTimeRef.current < 500) {
         event.preventDefault();
         switch (key) {
           case "d":
@@ -83,14 +70,14 @@ export function usePartnerKeyboardShortcuts() {
             navigate("/partner/notifications");
             break;
         }
-        lastKey = "";
+        lastKeyRef.current = "";
         return;
       }
 
       // Armazena a tecla para combos
       if (key === "g") {
-        lastKey = "g";
-        lastKeyTime = now;
+        lastKeyRef.current = "g";
+        lastKeyTimeRef.current = now;
         return;
       }
 
@@ -107,7 +94,7 @@ export function usePartnerKeyboardShortcuts() {
           }
           break;
 
-        case "/":
+        case "/": {
           // / = Focar na busca
           event.preventDefault();
           const searchInput = document.querySelector(
@@ -117,6 +104,7 @@ export function usePartnerKeyboardShortcuts() {
             searchInput.focus();
           }
           break;
+        }
 
         case "escape":
           // Escape = Blur do input atual
@@ -126,8 +114,8 @@ export function usePartnerKeyboardShortcuts() {
           break;
       }
 
-      lastKey = key;
-      lastKeyTime = now;
+      lastKeyRef.current = key;
+      lastKeyTimeRef.current = now;
     },
     [isInPartnerPortal, navigate, location.pathname],
   );

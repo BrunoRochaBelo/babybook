@@ -5,9 +5,9 @@ Pydantic models for Partner Portal API requests and responses.
 """
 
 from datetime import datetime
-from typing import Optional, Any, Literal
-from pydantic import BaseModel, Field, EmailStr
+from typing import Literal, Optional
 
+from pydantic import BaseModel, EmailStr, Field
 
 # =============================================================================
 # Onboarding
@@ -150,17 +150,65 @@ class CheckAccessResponse(BaseModel):
 
 
 # =============================================================================
+# Check Eligibility (validação silenciosa)
+# =============================================================================
+
+EligibilityReason = Literal["EXISTING_ACTIVE_CHILD", "NEW_USER"]
+
+
+class CheckEligibilityRequest(BaseModel):
+    """Request para checar elegibilidade de entrega direta gratuita.
+
+    Observação importante (LGPD / anti-enumeração):
+    quando `is_eligible=false`, o backend NÃO deve revelar se o e-mail existe
+    sem um Child pago. Por isso, o reason pode permanecer genérico.
+    """
+
+    email: EmailStr = Field(..., description="E-mail do responsável")
+
+
+class CheckEligibilityResponse(BaseModel):
+    is_eligible: bool
+    reason: EligibilityReason = Field(
+        ..., description="Motivo para logging interno. Não expor informações sensíveis no frontend."
+    )
+
+
+# =============================================================================
 # Deliveries
 # =============================================================================
 
 class CreateDeliveryRequest(BaseModel):
     """Request para criar nova entrega."""
-    client_name: str = Field(..., min_length=2, max_length=200, description="Nome do responsável")
-    client_email: Optional[EmailStr] = Field(None, description="E-mail do responsável (para verificar acesso)")
+    target_email: EmailStr = Field(..., description="E-mail destino da entrega (hard lock de resgate)")
+    client_name: Optional[str] = Field(None, min_length=2, max_length=200, description="Nome do responsável")
     child_name: Optional[str] = Field(None, max_length=200, description="Nome da criança")
     title: Optional[str] = Field(None, max_length=200, description="Título da entrega")
     description: Optional[str] = Field(None, description="Descrição opcional")
     event_date: Optional[datetime] = Field(None, description="Data do evento (parto, ensaio, etc)")
+
+
+class UpdateDeliveryRequest(BaseModel):
+    """Request para atualizar uma entrega.
+
+    Observações:
+    - Campos sensíveis (ex.: target_email) NÃO são editáveis.
+    - O status é controlado pelo sistema (upload/finalize). Se enviado, a rota pode rejeitar.
+    """
+
+    title: Optional[str] = Field(None, max_length=200, description="Título da entrega")
+    client_name: Optional[str] = Field(
+        None, min_length=2, max_length=200, description="Nome do responsável"
+    )
+    description: Optional[str] = Field(None, description="Descrição opcional")
+    event_date: Optional[datetime] = Field(None, description="Data do evento (parto, ensaio, etc)")
+    status: Optional[str] = Field(
+        None,
+        description=(
+            "(Opcional) Campo não recomendado. O status é gerenciado pelo sistema. "
+            "Se fornecido, pode ser rejeitado."
+        ),
+    )
 
 
 class DeliveryResponse(BaseModel):

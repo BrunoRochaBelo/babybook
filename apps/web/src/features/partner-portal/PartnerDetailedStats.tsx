@@ -38,22 +38,37 @@ interface StatItemProps {
   color: "pink" | "green" | "blue" | "purple";
 }
 
-function StatItem({ icon: Icon, label, value, subValue, color }: StatItemProps) {
+function StatItem({
+  icon: Icon,
+  label,
+  value,
+  subValue,
+  color,
+}: StatItemProps) {
   const colorClasses = {
     pink: "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400",
-    green: "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
+    green:
+      "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
     blue: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
-    purple: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
+    purple:
+      "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
   };
 
   return (
     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colorClasses[color])}>
+      <div
+        className={cn(
+          "w-10 h-10 rounded-lg flex items-center justify-center",
+          colorClasses[color],
+        )}
+      >
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-        <p className="text-lg font-semibold text-gray-900 dark:text-white">{value}</p>
+        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          {value}
+        </p>
         {subValue && (
           <p className="text-xs text-gray-400 dark:text-gray-500">{subValue}</p>
         )}
@@ -71,21 +86,24 @@ export function PartnerDetailedStats({
   // Calcular métricas
   const stats = useMemo(() => {
     // Taxa de conversão
-    const conversionRate = totalVouchers > 0 
-      ? Math.round((redeemedVouchers / totalVouchers) * 100) 
-      : 0;
+    const conversionRate =
+      totalVouchers > 0
+        ? Math.round((redeemedVouchers / totalVouchers) * 100)
+        : 0;
 
     // Média de fotos por entrega
-    const totalAssets = deliveries.reduce((sum, d) => sum + (d.asset_count || 0), 0);
-    const avgPhotos = deliveries.length > 0 
-      ? Math.round(totalAssets / deliveries.length) 
-      : 0;
+    const totalAssets = deliveries.reduce(
+      (sum, d) => sum + (d.asset_count || 0),
+      0,
+    );
+    const avgPhotos =
+      deliveries.length > 0 ? Math.round(totalAssets / deliveries.length) : 0;
 
     // Entregas por mês (últimos 3 meses)
     const now = new Date();
     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
     const monthlyDeliveries: Record<string, number> = {};
-    
+
     for (let i = 0; i < 3; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = date.toLocaleDateString("pt-BR", { month: "short" });
@@ -105,7 +123,11 @@ export function PartnerDetailedStats({
     // Último resgate
     const lastRedeemed = deliveries
       .filter((d) => d.redeemed_at)
-      .sort((a, b) => new Date(b.redeemed_at!).getTime() - new Date(a.redeemed_at!).getTime())[0];
+      .sort(
+        (a, b) =>
+          new Date(b.redeemed_at!).getTime() -
+          new Date(a.redeemed_at!).getTime(),
+      )[0];
 
     const lastRedemptionText = lastRedeemed
       ? `${lastRedeemed.client_name || "Cliente"} - ${new Date(lastRedeemed.redeemed_at!).toLocaleDateString("pt-BR")}`
@@ -117,13 +139,16 @@ export function PartnerDetailedStats({
       monthlyDeliveries: Object.entries(monthlyDeliveries).reverse(),
       lastRedemptionText,
     };
-  }, [totalDeliveries, totalVouchers, redeemedVouchers, deliveries]);
+  }, [totalVouchers, redeemedVouchers, deliveries]);
 
   // Só exibe se tiver 5+ entregas
   if (totalDeliveries < 5) return null;
 
   // Encontrar o máximo para o gráfico de barras
-  const maxMonthly = Math.max(...stats.monthlyDeliveries.map(([, count]) => count), 1);
+  const maxMonthly = Math.max(
+    ...stats.monthlyDeliveries.map(([, count]) => count),
+    1,
+  );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
@@ -162,7 +187,11 @@ export function PartnerDetailedStats({
           icon={Gift}
           label="Último Resgate"
           value={stats.lastRedemptionText.split(" - ")[0]}
-          subValue={stats.lastRedemptionText.includes(" - ") ? stats.lastRedemptionText.split(" - ")[1] : undefined}
+          subValue={
+            stats.lastRedemptionText.includes(" - ")
+              ? stats.lastRedemptionText.split(" - ")[1]
+              : undefined
+          }
           color="purple"
         />
         <StatItem
@@ -184,10 +213,13 @@ export function PartnerDetailedStats({
         </div>
         <div className="flex items-end justify-between gap-2 h-20">
           {stats.monthlyDeliveries.map(([month, count]) => (
-            <div key={month} className="flex-1 flex flex-col items-center gap-1">
+            <div
+              key={month}
+              className="flex-1 flex flex-col items-center gap-1"
+            >
               <div
                 className="w-full bg-gradient-to-t from-pink-500 to-rose-400 rounded-t-md transition-all duration-500"
-                style={{ 
+                style={{
                   height: `${Math.max((count / maxMonthly) * 100, count > 0 ? 15 : 5)}%`,
                   minHeight: count > 0 ? "12px" : "4px",
                 }}

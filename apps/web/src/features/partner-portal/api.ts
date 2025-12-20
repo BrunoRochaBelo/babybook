@@ -80,6 +80,13 @@ export interface CheckAccessResponse {
   message: string;
 }
 
+export type EligibilityReason = "EXISTING_ACTIVE_CHILD" | "NEW_USER";
+
+export interface CheckEligibilityResponse {
+  is_eligible: boolean;
+  reason: EligibilityReason;
+}
+
 /**
  * Verifica se o e-mail já possui conta no Baby Book.
  * - Se NÃO tiver conta: será necessário gerar voucher (onboarding).
@@ -91,6 +98,21 @@ export async function checkClientAccess(
 ): Promise<CheckAccessResponse> {
   return apiClient.get<CheckAccessResponse>(
     `${API_BASE}/check-access?email=${encodeURIComponent(email)}`,
+  );
+}
+
+/**
+ * Validação silenciosa (debounce no frontend):
+ * elegível = usuário existe e já tem pelo menos 1 Child com PCE pago.
+ */
+export async function checkEligibility(
+  email: string,
+): Promise<CheckEligibilityResponse> {
+  return apiClient.post<CheckEligibilityResponse>(
+    `${API_BASE}/check-eligibility`,
+    {
+      email,
+    },
   );
 }
 
@@ -129,7 +151,21 @@ export async function purchaseCredits(
  * List partner deliveries
  */
 export async function listDeliveries(params?: {
+  // preferir status_filter (compatível com o backend). status é mantido por compatibilidade.
+  status_filter?: string;
   status?: string;
+  q?: string;
+  voucher?: "with" | "without";
+  redeemed?: "redeemed" | "not_redeemed";
+  credit?: "reserved" | "consumed" | "refunded" | "not_required" | "unknown";
+  view?: "needs_action";
+  created?: "last_7" | "last_30" | "last_90" | "custom";
+  created_from?: string;
+  created_to?: string;
+  redeemed_period?: "last_7" | "last_30" | "last_90" | "custom";
+  redeemed_from?: string;
+  redeemed_to?: string;
+  sort?: "newest" | "oldest" | "status" | "client";
   include_archived?: boolean;
   limit?: number;
   offset?: number;
@@ -138,11 +174,17 @@ export async function listDeliveries(params?: {
   total: number;
   aggregations?: DeliveryAggregations;
 }> {
+  const { status, status_filter, ...rest } = params ?? {};
   return apiClient.get<{
     deliveries: Delivery[];
     total: number;
     aggregations?: DeliveryAggregations;
-  }>(`${API_BASE}/deliveries`, { searchParams: params });
+  }>(`${API_BASE}/deliveries`, {
+    searchParams: {
+      ...rest,
+      status_filter: status_filter ?? status,
+    },
+  });
 }
 
 /**

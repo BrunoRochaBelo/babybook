@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Literal
+from typing import Any
 
 from babybook_api.storage.base import StorageType, UploadPartInfo
 from babybook_api.storage.hybrid_service import HybridStorageService

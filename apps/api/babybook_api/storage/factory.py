@@ -6,13 +6,9 @@ configurados de acordo com o ambiente (local, staging, production).
 """
 from __future__ import annotations
 
-from functools import lru_cache
-from typing import Literal
-
-from babybook_api.storage.base import StorageProvider, StorageConfig, StorageType
-from babybook_api.storage.providers.r2 import R2Provider
+from babybook_api.storage.base import StorageConfig, StorageProvider, StorageType
 from babybook_api.storage.providers.minio import MinIOProvider
-
+from babybook_api.storage.providers.r2 import R2Provider
 
 # Cache de providers inicializados
 _providers: dict[str, StorageProvider] = {}

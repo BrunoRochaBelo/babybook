@@ -7,6 +7,7 @@ import {
   useImportDirectDelivery,
   usePendingDirectDeliveries,
 } from "@/hooks/api";
+import { ApiError } from "@/lib/api-client";
 
 export function ImportDeliveryPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
@@ -64,6 +65,18 @@ export function ImportDeliveryPage() {
       });
       navigate(`/momentos/${result.momentId}`);
     } catch (e) {
+      if (e instanceof ApiError && e.code === "delivery.email_mismatch") {
+        const masked =
+          typeof e.details?.target_email_masked === "string"
+            ? e.details.target_email_masked
+            : null;
+        setError(
+          masked
+            ? `Esta entrega foi enviada para outro e-mail. Faça login com ${masked} para resgatar.`
+            : e.message,
+        );
+        return;
+      }
       setError(
         e instanceof Error
           ? e.message
@@ -109,6 +122,10 @@ export function ImportDeliveryPage() {
               Não encontrei essa entrega na sua conta. Se você acabou de receber
               o link, tente atualizar a página.
             </p>
+            <p className="mt-2 text-sm text-gray-600">
+              Dica: confirme se você está logado(a) com o mesmo e-mail para o
+              qual o fotógrafo enviou a entrega.
+            </p>
           </div>
         )}
 
@@ -121,6 +138,11 @@ export function ImportDeliveryPage() {
                 {delivery.partnerName ? `De ${delivery.partnerName} • ` : ""}
                 {delivery.assetsCount} arquivo(s)
               </div>
+              {delivery.targetEmailMasked && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Enviado para {delivery.targetEmailMasked}
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">

@@ -38,7 +38,6 @@ from fastapi import HTTPException, status
 
 from babybook_api.settings import settings
 
-
 # =============================================================================
 # Feature Flag Names (Type-safe)
 # =============================================================================

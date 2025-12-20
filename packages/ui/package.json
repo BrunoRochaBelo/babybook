@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs"
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --config ../../packages/config/eslint/index.mjs"
   },
   "main": "src/index.ts",
   "files": [

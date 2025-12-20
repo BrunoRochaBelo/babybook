@@ -17,15 +17,15 @@ import asyncio
 import logging
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Any
-from datetime import datetime
 
 from .api_client import patch_asset
 from .file_validation import validate_file_prefix_on_disk
 from .settings import WorkerSettings, get_settings
 from .storage import StorageClient
-from .types import AssetJobPayload, VariantData, log_prefix
+from .types import VariantData
 
 logger = logging.getLogger(__name__)
 _SETTINGS: WorkerSettings = get_settings()
@@ -231,7 +231,7 @@ async def process_transcode_job(payload: dict[str, Any], metadata: dict[str, Any
             prefix, job_id, processing_time, asset_id
         )
         
-    except Exception as e:
+    except Exception:
         logger.exception("%sFailed transcode job %s for asset %s", prefix, job_id, asset_id)
         await patch_asset(
             asset_id,
@@ -404,7 +404,7 @@ async def process_image_optimize_job(payload: dict[str, Any], metadata: dict[str
             prefix, job_id, processing_time, asset_id, len(variants)
         )
         
-    except Exception as e:
+    except Exception:
         logger.exception("%sFailed image optimize job %s for asset %s", prefix, job_id, asset_id)
         await patch_asset(
             asset_id,
@@ -516,7 +516,7 @@ async def process_thumbnail_job(payload: dict[str, Any], metadata: dict[str, Any
         
         logger.info("%sThumbnail job %s completed for asset %s", prefix, job_id, asset_id)
         
-    except Exception as e:
+    except Exception:
         logger.exception("%sFailed thumbnail job %s for asset %s", prefix, job_id, asset_id)
         await patch_asset(
             asset_id,

@@ -672,17 +672,17 @@ Define quem pode fazer o quê. Owner é o dono da conta (pagante). Guardian é u
 
 Limites por IP (para rotas não autenticadas) e por account_id (para rotas autenticadas) para prevenir abuso e DoS.
 
-| Rota (Prefixo /v1)         | Limite Base        | Janela | Observações (Risco)                     |
-| -------------------------- | ------------------ | ------ | --------------------------------------- |
-| POST /auth/register        | 5 req/hora/IP      | 3600s  | (DoS) Evitar abuso/spam de e-mail.      |
-| POST /auth/login           | 10 req/min/IP      | 60s    | (Spoofing) Lockout progressivo.         |
-| POST /auth/password/forgot | 3 req/hora/IP      | 3600s  | (DoS) Evitar spam de e-mail.            |
-| POST /webhooks/payment     | (Sem limite de IP) | -      | (Spoofing) Protegido por HMAC (4.10).   |
-| POST /uploads/init         | 20 req/min/Conta   | 60s    | (DoS) Proteger R2 e API de hotspots.    |
-| POST /uploads/complete     | 20 req/min/Conta   | 60s    | (Tampering) Idempotência obrigatória.   |
-| POST /moments              | 30 req/min/Conta   | 60s    | (DoS) Validação de quotas (3.2).        |
-| POST /export               | 1 job/hora/Conta   | 3600s  | (DoS/Custo) Retornar 429 (job recente). |
-| GET /share/{token} (SSR)   | 100 req/min/IP     | 60s    | (DoS) Proteger SSR de abuso.            |
+| Rota (Prefixo /api — contrato v1) | Limite Base        | Janela | Observações (Risco)                     |
+| --------------------------------- | ------------------ | ------ | --------------------------------------- |
+| POST /auth/register               | 5 req/hora/IP      | 3600s  | (DoS) Evitar abuso/spam de e-mail.      |
+| POST /auth/login                  | 10 req/min/IP      | 60s    | (Spoofing) Lockout progressivo.         |
+| POST /auth/password/forgot        | 3 req/hora/IP      | 3600s  | (DoS) Evitar spam de e-mail.            |
+| POST /webhooks/payment            | (Sem limite de IP) | -      | (Spoofing) Protegido por HMAC (4.10).   |
+| POST /uploads/init                | 20 req/min/Conta   | 60s    | (DoS) Proteger R2 e API de hotspots.    |
+| POST /uploads/complete            | 20 req/min/Conta   | 60s    | (Tampering) Idempotência obrigatória.   |
+| POST /moments                     | 30 req/min/Conta   | 60s    | (DoS) Validação de quotas (3.2).        |
+| POST /export                      | 1 job/hora/Conta   | 3600s  | (DoS/Custo) Retornar 429 (job recente). |
+| GET /share/{token} (SSR)          | 100 req/min/IP     | 60s    | (DoS) Proteger SSR de abuso.            |
 
 ### Apêndice C: Estratégia de Desenvolvimento Local (DevEx)
 

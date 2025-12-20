@@ -12,53 +12,64 @@ Fluxo:
 5. Acompanha resgates no dashboard
 """
 
-from datetime import datetime, timedelta
-from typing import Optional
-from uuid import uuid4, UUID
 import secrets
 import string
+from datetime import date, datetime, timedelta, timezone
+from typing import Optional
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy import select, func, and_
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from babybook_api.deps import get_db
 from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
-from babybook_api.db.models import Partner, Delivery, Voucher, DeliveryAsset, User, PartnerLedger, Child
+from babybook_api.db.models import (
+    Child,
+    Delivery,
+    DeliveryAsset,
+    Partner,
+    PartnerLedger,
+    User,
+    Voucher,
+)
+from babybook_api.deps import get_db
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.schemas.partner_portal import (
+    ALLOWED_CONTENT_TYPES,
+    MAX_UPLOAD_SIZE_BYTES,
+    CheckAccessResponse,
+    CheckEligibilityRequest,
+    CheckEligibilityResponse,
+    ChildInfo,
+    CreateDeliveryRequest,
+    UpdateDeliveryRequest,
+    CreditPackage,
+    DeliveryAggregationsResponse,
+    DeliveryDetailResponse,
+    DeliveryListResponse,
+    DeliveryResponse,
+    GenerateVoucherCardRequest,
+    PartnerDashboardStatsResponse,
     PartnerOnboardingRequest,
     PartnerOnboardingResponse,
     PartnerProfileResponse,
     PartnerProfileUpdateRequest,
-    PartnerDashboardStatsResponse,
-    CreditPackage,
     PurchaseCreditsRequest,
     PurchaseCreditsResponse,
-    CreateDeliveryRequest,
-    DeliveryResponse,
-    DeliveryDetailResponse,
-    DeliveryListResponse,
-    DeliveryAggregationsResponse,
-    GenerateVoucherCardRequest,
-    VoucherCardResponse,
+    UploadCompleteRequest,
     UploadInitRequest,
     UploadInitResponse,
-    UploadCompleteRequest,
-    ALLOWED_CONTENT_TYPES,
-    MAX_UPLOAD_SIZE_BYTES,
-    CheckAccessResponse,
-    ChildInfo,
+    VoucherCardResponse,
 )
-from babybook_api.storage import (
-    tmp_upload_path,
-    get_partner_storage,
-    PartnerStorageService,
-)
-from babybook_api.rate_limit import enforce_rate_limit
-from babybook_api.request_ip import get_client_ip
 from babybook_api.settings import settings
+from babybook_api.storage import (
+    PartnerStorageService,
+    get_partner_storage,
+    tmp_upload_path,
+)
 
 router = APIRouter()
 
@@ -350,7 +361,7 @@ async def get_partner_stats(
         select(
             func.count(Delivery.id).label("total"),
             func.count(Delivery.id).filter(Delivery.status == "ready").label("ready"),
-            func.count(Delivery.id).filter(Delivery.status == "delivered").label("delivered"),
+            func.count(Delivery.id).filter(Delivery.status == "completed").label("delivered"),
             func.count(Delivery.id)
             .filter(and_(Delivery.credit_status == "reserved", Delivery.archived_at.is_(None)))
             .label("reserved"),
@@ -393,6 +404,61 @@ async def get_partner_stats(
 # =============================================================================
 # Check Client Access (verificação de acesso do cliente)
 # =============================================================================
+
+
+# =============================================================================
+# Check Eligibility (validação silenciosa)
+# =============================================================================
+
+
+@router.post(
+    "/check-eligibility",
+    response_model=CheckEligibilityResponse,
+    summary="Valida elegibilidade silenciosa para entrega direta",
+    description=(
+        "Retorna apenas um booleano de elegibilidade. "
+        "Elegível = cliente existe e possui pelo menos 1 Child com PCE pago (pce_status='paid'). "
+        "Não retorna nomes nem lista de filhos."
+    ),
+)
+async def check_eligibility(
+    body: CheckEligibilityRequest,
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserSession = Depends(get_current_user),
+) -> CheckEligibilityResponse:
+    # Rate limit mais estrito (silencioso no UI, mas protege enumeração)
+    await enforce_rate_limit(
+        bucket="partner:check-eligibility:user",
+        limit="60/minute",
+        identity=current_user.id,
+    )
+    await enforce_rate_limit(
+        bucket="partner:check-eligibility:ip",
+        limit="200/hour",
+        identity=get_client_ip(req),
+    )
+
+    # Garante que é um parceiro válido
+    await get_partner_for_user(db, current_user)
+
+    normalized_email = body.email.strip().lower()
+
+    user = await db.scalar(select(User).where(User.email == normalized_email))
+    if user is None:
+        return CheckEligibilityResponse(is_eligible=False, reason="NEW_USER")
+
+    paid_child_count = await db.scalar(
+        select(func.count(Child.id)).where(
+            Child.account_id == user.account_id,
+            Child.deleted_at.is_(None),
+            Child.pce_status == "paid",
+        )
+    )
+
+    if int(paid_child_count or 0) > 0:
+        return CheckEligibilityResponse(is_eligible=True, reason="EXISTING_ACTIVE_CHILD")
+    return CheckEligibilityResponse(is_eligible=False, reason="NEW_USER")
 
 @router.get(
     "/check-access",
@@ -501,7 +567,7 @@ async def purchase_credits(
 ) -> PurchaseCreditsResponse:
     """Inicia compra de pacote de créditos."""
     await enforce_rate_limit(bucket="partner:credits:purchase:user", limit="10/minute", identity=current_user.id)
-    partner = await get_partner_for_user(db, current_user)
+    await get_partner_for_user(db, current_user)
     
     # Busca pacote
     package = next((p for p in CREDIT_PACKAGES if p.id == request.package_id), None)
@@ -591,9 +657,16 @@ def _normalize_partner_delivery_status(raw_status: str | None) -> str:
     """Normaliza status legados para o vocabulário do partner portal."""
     if not raw_status:
         return "draft"
-    # Em outras rotas do sistema, 'completed' é usado para entrega resgatada.
+    # Em outras rotas do sistema, alguns status diferem do vocabulário do partner portal.
+    # - completed: entrega já foi resgatada/importada pelo cliente
+    # - pending: job enfileirado/aguardando processamento (equivale a "processing" no portal)
+    # - failed: falha no pipeline (mantemos explícito para permitir UI sinalizar erro)
     if raw_status == "completed":
         return "delivered"
+    if raw_status == "pending":
+        return "processing"
+    if raw_status == "failed":
+        return "failed"
     return raw_status
 
 @router.post(
@@ -619,37 +692,40 @@ async def create_delivery(
     current_user: UserSession = Depends(get_current_user),
     _: None = Depends(require_csrf_token),
 ) -> DeliveryResponse:
-    """Cria nova entrega com reserva de crédito (late binding)."""
+    """Cria nova entrega.
+
+    Regra (Entrega Direta com Validação Silenciosa):
+    - Elegível (cliente já tem >=1 Child pago): custo 0 na criação
+    - Caso contrário: reserva 1 crédito na criação
+
+    Observação: o hard lock do resgate é por e-mail (`Delivery.target_email`).
+    """
     await enforce_rate_limit(bucket="partner:deliveries:create:user", limit="30/minute", identity=current_user.id)
     partner = await get_partner_for_user(db, current_user)
 
-    normalized_client_email: str | None = request.client_email.strip().lower() if request.client_email else None
+    normalized_target_email: str = request.target_email.strip().lower()
 
-    # Golden Record: "voucher só quando necessário".
-    # Regra confirmada: licença/acesso é por criança (Child).
-    # Ainda assim, se o cliente já possui CONTA (User existe), não precisamos de voucher:
-    # - o cliente importa autenticado e escolhe EXISTING_CHILD (grátis) ou NEW_CHILD (1 crédito)
-    existing_target_account_id = None
-    client_has_account = False
-    if normalized_client_email:
-        user_row = await db.execute(select(User).where(User.email == normalized_client_email))
-        existing_user = user_row.scalar_one_or_none()
-        if existing_user is not None:
-            client_has_account = True
-            existing_target_account_id = existing_user.account_id
+    # Elegibilidade = existe usuário + pelo menos 1 Child com PCE pago.
+    existing_user = await db.scalar(select(User).where(User.email == normalized_target_email))
+    existing_target_account_id = existing_user.account_id if existing_user is not None else None
 
-    credit_status = "reserved"
-    credit_reserved = True
-
-    if client_has_account:
-        # Não reserva crédito; a entrega será importada pelo próprio cliente no app.
-        credit_status = "not_required"
-        credit_reserved = False
-    else:
-        # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
-        result = await db.execute(
-            select(Partner).where(Partner.id == partner.id).with_for_update()
+    has_paid_child = False
+    if existing_user is not None:
+        paid_child_count = await db.scalar(
+            select(func.count(Child.id)).where(
+                Child.account_id == existing_user.account_id,
+                Child.deleted_at.is_(None),
+                Child.pce_status == "paid",
+            )
         )
+        has_paid_child = int(paid_child_count or 0) > 0
+
+    credit_status = "not_required" if has_paid_child else "reserved"
+    credit_reserved = not has_paid_child
+
+    if credit_reserved:
+        # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
+        result = await db.execute(select(Partner).where(Partner.id == partner.id).with_for_update())
         locked_partner = result.scalar_one()
         if locked_partner.voucher_balance < 1:
             raise HTTPException(
@@ -659,7 +735,8 @@ async def create_delivery(
         locked_partner.voucher_balance -= 1
     
     # Cria delivery
-    title = request.title or f"Ensaio - {request.child_name or request.client_name}"
+    title_hint = request.child_name or request.client_name or normalized_target_email
+    title = request.title or f"Ensaio - {title_hint}"
     delivery = Delivery(
         id=uuid4(),
         partner_id=partner.id,
@@ -669,26 +746,31 @@ async def create_delivery(
         event_date=request.event_date,
         status="draft",
         credit_status=credit_status,
+        target_email=normalized_target_email,
         assets_payload={
             "files": [],
             "upload_started": False,
-            "client_email": normalized_client_email,
+            # Mantemos a chave legada para compatibilidade com alguns fluxos/tests,
+            # mas a fonte de verdade é Delivery.target_email.
+            "client_email": normalized_target_email,
+            "target_email": normalized_target_email,
             "child_name": request.child_name,
             "credit_reserved": credit_reserved,
-            "direct_import": client_has_account,
+            # Novo fluxo: sempre é importação direta via link (hard lock por e-mail)
+            "direct_import": True,
         },
         target_account_id=existing_target_account_id,
     )
     db.add(delivery)
 
-    if not client_has_account:
+    if credit_reserved:
         db.add(
             PartnerLedger(
                 id=uuid4(),
                 partner_id=partner.id,
                 amount=-1,
                 type="reservation",
-                description=f"reservation delivery={delivery.id}",
+                description=f"reservation delivery={delivery.id} direct=true",
             )
         )
     
@@ -699,7 +781,7 @@ async def create_delivery(
         id=str(delivery.id),
         title=delivery.title,
         client_name=delivery.client_name,
-        status=delivery.status,
+        status=_normalize_partner_delivery_status(delivery.status),
         credit_status=delivery.credit_status,
         assets_count=0,
         voucher_code=None,
@@ -714,6 +796,18 @@ async def create_delivery(
 )
 async def list_partner_deliveries(
     status_filter: Optional[str] = None,
+    q: Optional[str] = None,
+    voucher: Optional[str] = None,
+    redeemed: Optional[str] = None,
+    credit: Optional[str] = None,
+    view: Optional[str] = None,
+    created: Optional[str] = None,
+    created_from: Optional[str] = None,
+    created_to: Optional[str] = None,
+    redeemed_period: Optional[str] = None,
+    redeemed_from: Optional[str] = None,
+    redeemed_to: Optional[str] = None,
+    sort: str = "newest",
     include_archived: bool = False,
     limit: int = 20,
     offset: int = 0,
@@ -723,18 +817,136 @@ async def list_partner_deliveries(
     """Lista entregas do parceiro."""
     partner = await get_partner_for_user(db, current_user)
 
-    base_where = [Delivery.partner_id == partner.id]
-    active_where = [*base_where, Delivery.archived_at.is_(None)]
-    archived_where = [*base_where, Delivery.archived_at.is_not(None)]
+    def _bad_request(detail: str) -> HTTPException:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
-    # Agregações (independentes de status_filter/limit/offset)
-    total_all = (await db.execute(select(func.count(Delivery.id)).where(*base_where))).scalar() or 0
-    archived_count = (await db.execute(select(func.count(Delivery.id)).where(*archived_where))).scalar() or 0
+    def _parse_date_or_datetime(value: str, *, end_of_day: bool) -> datetime:
+        v = (value or "").strip()
+        if not v:
+            raise _bad_request("Data inválida")
+        try:
+            if "T" in v:
+                dt = datetime.fromisoformat(v)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt
+
+            d = date.fromisoformat(v)
+            if end_of_day:
+                return datetime(d.year, d.month, d.day, 23, 59, 59, 999999, tzinfo=timezone.utc)
+            return datetime(d.year, d.month, d.day, 0, 0, 0, 0, tzinfo=timezone.utc)
+        except ValueError as exc:
+            raise _bad_request(f"Data inválida: {v}") from exc
+
+    def _period_bounds(period: str, frm: Optional[str], to: Optional[str]) -> tuple[Optional[datetime], Optional[datetime]]:
+        p = (period or "").strip()
+        if not p or p == "all":
+            return None, None
+        now = datetime.now(timezone.utc)
+        if p in ("last_7", "last_30", "last_90"):
+            days = 7 if p == "last_7" else 30 if p == "last_30" else 90
+            return now - timedelta(days=days), now
+        if p == "custom":
+            start = _parse_date_or_datetime(frm, end_of_day=False) if (frm and frm.strip()) else None
+            end = _parse_date_or_datetime(to, end_of_day=True) if (to and to.strip()) else None
+            if start and end and start > end:
+                raise _bad_request("Intervalo inválido: 'de' não pode ser maior que 'até'")
+            return start, end
+        raise _bad_request(f"Período inválido: {p}")
+
+    allowed_voucher = {"with", "without"}
+    allowed_redeemed = {"redeemed", "not_redeemed"}
+    allowed_credit = {"reserved", "consumed", "refunded", "not_required", "unknown"}
+    allowed_view = {"needs_action"}
+    allowed_sort = {"newest", "oldest", "status", "client"}
+
+    if voucher and voucher not in allowed_voucher:
+        raise _bad_request(f"Filtro de voucher inválido: {voucher}")
+    if redeemed and redeemed not in allowed_redeemed:
+        raise _bad_request(f"Filtro de resgate inválido: {redeemed}")
+    if credit and credit not in allowed_credit:
+        raise _bad_request(f"Filtro de crédito inválido: {credit}")
+    if view and view not in allowed_view:
+        raise _bad_request(f"Filtro de visão inválido: {view}")
+    if sort not in allowed_sort:
+        raise _bad_request(f"Ordenação inválida: {sort}")
+
+    safe_limit = max(1, min(int(limit or 20), 100))
+    safe_offset = max(0, int(offset or 0))
+
+    base_filters: list = [Delivery.partner_id == partner.id]
+
+    # --- Busca (server-side, básica e consistente para total/paginação) ---
+    if q and q.strip():
+        tokens = [t for t in q.strip().lower().split() if t]
+        for tok in tokens:
+            like = f"%{tok}%"
+            base_filters.append(
+                or_(
+                    func.lower(func.coalesce(Delivery.title, "")).like(like),
+                    func.lower(func.coalesce(Delivery.client_name, "")).like(like),
+                    func.lower(func.coalesce(Delivery.generated_voucher_code, "")).like(like),
+                    func.lower(func.coalesce(Delivery.target_email, "")).like(like),
+                    func.lower(func.coalesce(Delivery.beneficiary_email, "")).like(like),
+                )
+            )
+
+    # --- Filtros avançados ---
+    if voucher == "with":
+        base_filters.append(Delivery.generated_voucher_code.is_not(None))
+    elif voucher == "without":
+        base_filters.append(Delivery.generated_voucher_code.is_(None))
+
+    if redeemed == "redeemed":
+        base_filters.append(Delivery.assets_transferred_at.is_not(None))
+    elif redeemed == "not_redeemed":
+        base_filters.append(Delivery.assets_transferred_at.is_(None))
+
+    if credit == "unknown":
+        base_filters.append(Delivery.credit_status.is_(None))
+    elif credit:
+        base_filters.append(Delivery.credit_status == credit)
+
+    if view == "needs_action":
+        base_filters.append(
+            or_(
+                Delivery.status.in_(["draft", "pending_upload", "failed"]),
+                and_(Delivery.status == "ready", Delivery.generated_voucher_code.is_(None)),
+            )
+        )
+
+    created_start, created_end = _period_bounds(created or "", created_from, created_to)
+    if created_start:
+        base_filters.append(Delivery.created_at >= created_start)
+    if created_end:
+        base_filters.append(Delivery.created_at <= created_end)
+
+    redeemed_start, redeemed_end = _period_bounds(redeemed_period or "", redeemed_from, redeemed_to)
+    if redeemed_start:
+        base_filters.append(Delivery.assets_transferred_at >= redeemed_start)
+    if redeemed_end:
+        base_filters.append(Delivery.assets_transferred_at <= redeemed_end)
+
+    # --- Agregações (coerentes com o subconjunto filtrado; independentes de status_filter/limit/offset) ---
+    total_all = (
+        (await db.execute(select(func.count(Delivery.id)).where(*base_filters))).scalar()
+        or 0
+    )
+    archived_count = (
+        (
+            await db.execute(
+                select(func.count(Delivery.id)).where(
+                    *base_filters, Delivery.archived_at.is_not(None)
+                )
+            )
+        ).scalar()
+        or 0
+    )
 
     by_status_rows = (
         await db.execute(
             select(Delivery.status, func.count(Delivery.id))
-            .where(*active_where)
+            .where(*base_filters, Delivery.archived_at.is_(None))
             .group_by(Delivery.status)
         )
     ).all()
@@ -742,35 +954,57 @@ async def list_partner_deliveries(
     for raw_status, count in by_status_rows:
         normalized = _normalize_partner_delivery_status(raw_status)
         by_status[normalized] = by_status.get(normalized, 0) + int(count or 0)
+
+    # --- Listagem (respeita include_archived + status_filter + paginação/ordenação) ---
+    list_filters = list(base_filters)
     
-    query = select(Delivery).where(*base_where)
-    
-    # Por padrão, não mostra entregas arquivadas
-    if not include_archived:
-        query = query.where(Delivery.archived_at.is_(None))
-    
-    if status_filter:
-        # Normaliza filtro do frontend (ex.: delivered) para possíveis valores no banco.
+    if status_filter == "archived":
+        list_filters.append(Delivery.archived_at.is_not(None))
+    elif not include_archived:
+        list_filters.append(Delivery.archived_at.is_(None))
+
+    if status_filter and status_filter != "archived":
+        # Normaliza filtro do frontend para possíveis valores no banco.
         if status_filter == "delivered":
-            query = query.where(Delivery.status.in_(["delivered", "completed"]))
+            list_filters.append(Delivery.status == "completed")
+        elif status_filter == "processing":
+            list_filters.append(Delivery.status.in_(["processing", "pending"]))
         else:
-            query = query.where(Delivery.status == status_filter)
-    
-    query = query.order_by(Delivery.created_at.desc()).offset(offset).limit(limit)
-    
+            list_filters.append(Delivery.status == status_filter)
+
+    query = select(Delivery).where(*list_filters)
+
+    if sort == "oldest":
+        query = query.order_by(Delivery.created_at.asc())
+    elif sort == "client":
+        query = query.order_by(
+            func.lower(func.coalesce(Delivery.client_name, "")).asc(),
+            Delivery.created_at.desc(),
+        )
+    elif sort == "status":
+        status_rank = case(
+            (Delivery.status == "draft", 0),
+            (Delivery.status == "pending_upload", 1),
+            (Delivery.status.in_(["pending", "processing"]), 2),
+            (Delivery.status == "failed", 3),
+            (Delivery.status == "ready", 4),
+            (Delivery.status == "completed", 5),
+            else_=99,
+        )
+        query = query.order_by(status_rank.asc(), Delivery.created_at.desc())
+    else:
+        query = query.order_by(Delivery.created_at.desc())
+
+    query = query.offset(safe_offset).limit(safe_limit)
+
     result = await db.execute(query)
     deliveries = result.scalars().all()
     
-    # Conta total (respeitando filtros)
-    count_query = select(func.count(Delivery.id)).where(*base_where)
-    if not include_archived:
-        count_query = count_query.where(Delivery.archived_at.is_(None))
-    if status_filter:
-        if status_filter == "delivered":
-            count_query = count_query.where(Delivery.status.in_(["delivered", "completed"]))
-        else:
-            count_query = count_query.where(Delivery.status == status_filter)
-    total = (await db.execute(count_query)).scalar() or 0
+    # Conta total (respeitando filtros + include_archived + status_filter)
+    total = (
+        (await db.execute(select(func.count(Delivery.id)).where(*list_filters))).scalar()
+        or 0
+    )
     
     return DeliveryListResponse(
         deliveries=[
@@ -845,6 +1079,145 @@ async def get_delivery_detail(
         redeemed_at=delivery.assets_transferred_at,
         redeemed_by=delivery.beneficiary_email,
     )
+
+
+@router.patch(
+    "/deliveries/{delivery_id}",
+    response_model=DeliveryResponse,
+    summary="Atualiza dados básicos de uma entrega",
+    description=(
+        "Atualiza campos não sensíveis de uma entrega (ex.: título, nome do cliente, descrição, data). "
+        "Não permite alterar target_email nem forçar transições de status."
+    ),
+)
+async def update_delivery(
+    delivery_id: UUID,
+    body: UpdateDeliveryRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
+) -> DeliveryResponse:
+    await enforce_rate_limit(
+        bucket="partner:deliveries:update:user", limit="60/minute", identity=current_user.id
+    )
+    partner = await get_partner_for_user(db, current_user)
+
+    delivery = await db.scalar(
+        select(Delivery)
+        .where(and_(Delivery.id == delivery_id, Delivery.partner_id == partner.id))
+        .with_for_update()
+    )
+    if not delivery:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada")
+
+    # Status é controlado pelo sistema. Se vier, rejeitamos para evitar drift/abuso.
+    if body.status is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O status da entrega não pode ser alterado manualmente.",
+        )
+
+    # Não permitir editar após resgate/import.
+    if delivery.assets_transferred_at is not None or delivery.status == "completed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Entrega já resgatada/importada. Não é possível editar.",
+        )
+
+    if body.title is not None:
+        delivery.title = body.title
+    if body.client_name is not None:
+        delivery.client_name = body.client_name
+    if body.description is not None:
+        delivery.description = body.description
+    if body.event_date is not None:
+        delivery.event_date = body.event_date
+
+    await db.commit()
+    await db.refresh(delivery)
+
+    return DeliveryResponse(
+        id=str(delivery.id),
+        title=delivery.title,
+        client_name=delivery.client_name,
+        status=_normalize_partner_delivery_status(delivery.status),
+        credit_status=delivery.credit_status,
+        is_archived=delivery.archived_at is not None,
+        archived_at=delivery.archived_at,
+        assets_count=len(delivery.assets_payload.get("files", [])) if delivery.assets_payload else 0,
+        voucher_code=delivery.generated_voucher_code,
+        created_at=delivery.created_at,
+        redeemed_at=delivery.assets_transferred_at,
+        redeemed_by=delivery.beneficiary_email,
+    )
+
+
+@router.delete(
+    "/deliveries/{delivery_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove uma entrega (somente rascunho)",
+    description=(
+        "Remove uma entrega apenas quando ainda está em rascunho e sem uploads/voucher. "
+        "Se houve reserva de crédito na criação, estorna automaticamente."
+    ),
+)
+async def delete_delivery(
+    delivery_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserSession = Depends(get_current_user),
+    _: None = Depends(require_csrf_token),
+) -> Response:
+    await enforce_rate_limit(
+        bucket="partner:deliveries:delete:user", limit="30/minute", identity=current_user.id
+    )
+    partner = await get_partner_for_user(db, current_user)
+
+    delivery = await db.scalar(
+        select(Delivery)
+        .where(and_(Delivery.id == delivery_id, Delivery.partner_id == partner.id))
+        .with_for_update()
+    )
+    if not delivery:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada")
+
+    files = (delivery.assets_payload or {}).get("files") or []
+    if delivery.status != "draft" or delivery.generated_voucher_code is not None or files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Só é possível remover entregas em rascunho e sem uploads/voucher.",
+        )
+
+    if delivery.assets_transferred_at is not None or delivery.status == "completed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Entrega já resgatada/importada. Não é possível remover.",
+        )
+
+    # Estorno de crédito se ainda estava reservado.
+    if delivery.credit_status == "reserved":
+        locked_partner = await db.scalar(
+            select(Partner).where(Partner.id == partner.id).with_for_update()
+        )
+        if locked_partner is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Parceiro não encontrado",
+            )
+        locked_partner.voucher_balance += 1
+        db.add(
+            PartnerLedger(
+                id=uuid4(),
+                partner_id=partner.id,
+                amount=+1,
+                type="refund",
+                description=f"refund delete delivery={delivery.id}",
+            )
+        )
+
+    await db.delete(delivery)
+    await db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.patch(
@@ -1128,9 +1501,10 @@ async def finalize_delivery(
             detail="Adicione pelo menos um arquivo antes de finalizar"
         )
     
-    # Se a entrega não exige crédito (cliente já tem acesso), não geramos voucher.
-    # O cliente importa no app (autenticado) e escolhe EXISTING_CHILD ou NEW_CHILD.
-    if delivery.credit_status == "not_required":
+    # Novo fluxo: Entrega Direta (sem voucher) quando marcado como direct_import.
+    # O resgate/import é feito autenticado e travado por e-mail (Delivery.target_email).
+    direct_import_flag = bool((assets_payload or {}).get("direct_import"))
+    if direct_import_flag:
         delivery.generated_voucher_code = None
         delivery.status = "ready"
         delivery.beneficiary_name = request.beneficiary_name
@@ -1216,7 +1590,7 @@ async def get_unread_notifications(
         .where(
             and_(
                 Delivery.partner_id == partner.id,
-                Delivery.status == "delivered",
+                Delivery.status == "completed",
                 Delivery.assets_transferred_at >= datetime.utcnow() - timedelta(days=7),
             )
         )

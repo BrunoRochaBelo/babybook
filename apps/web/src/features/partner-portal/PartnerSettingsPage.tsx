@@ -7,13 +7,16 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Save, Loader2, Upload, X } from "lucide-react";
+import { Camera, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import { PartnerLoadingState, PartnerErrorState } from "@/layouts/partnerStates";
+import {
+  PartnerLoadingState,
+  PartnerErrorState,
+} from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { useUnsavedChangesWarning } from "@/hooks/useOnlineStatus";
 import { SuccessButton } from "@/components/SuccessButton";
@@ -41,20 +44,15 @@ export function PartnerSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   // Query
-  const { data: profile, isLoading, isError, refetch } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["partner", "profile"],
     queryFn: getPartnerProfile,
   });
-
-  // Tratamento de erro de carregamento
-  if (isError) {
-    return (
-      <PartnerErrorState
-        title="Não foi possível carregar suas configurações"
-        onRetry={refetch}
-      />
-    );
-  }
 
   // Update state when profile loads
   useEffect(() => {
@@ -76,17 +74,17 @@ export function PartnerSettingsPage() {
   }, []);
 
   // Detectar alterações não salvas
-  const hasUnsavedChanges = profile ? (
-    name !== (profile.name || "") ||
-    studioName !== (profile.studio_name || "") ||
-    phone !== (profile.phone || "") ||
-    logoFile !== null
-  ) : false;
+  const hasUnsavedChanges = profile
+    ? name !== (profile.name || "") ||
+      studioName !== (profile.studio_name || "") ||
+      phone !== (profile.phone || "") ||
+      logoFile !== null
+    : false;
 
   // Alertar ao sair com alterações não salvas
   useUnsavedChangesWarning(
     hasUnsavedChanges,
-    "Você tem alterações não salvas. Tem certeza que deseja sair?"
+    "Você tem alterações não salvas. Tem certeza que deseja sair?",
   );
 
   // Estado de sucesso para o botão
@@ -173,6 +171,16 @@ export function PartnerSettingsPage() {
       return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
     return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
   };
+
+  // Tratamento de erro de carregamento (precisa ficar após os hooks)
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar suas configurações"
+        onRetry={refetch}
+      />
+    );
+  }
 
   if (isLoading) {
     return <PartnerLoadingState label="Carregando configurações…" />;

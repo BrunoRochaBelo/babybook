@@ -175,9 +175,33 @@ def test_partner_check_access_reports_account_and_children_access_by_child() -> 
     assert any(c["id"] == str(created.id) and c["has_access"] is True for c in body["children"])
 
 
-def test_partner_create_delivery_direct_import_does_not_debit() -> None:
-    # Cliente (Ana) já tem conta (seed), mas não precisa ter child pago para receber entrega sem voucher.
+def test_partner_check_eligibility_paid_child_only() -> None:
+    user, _partner, password = asyncio.run(_create_partner_user())
+    pro_client = TestClient(app)
+    _login(pro_client, email=user.email, password=password)
+
+    # Ana existe, mas não tem Child pago no seed
+    resp0 = pro_client.post("/partner/check-eligibility", json={"email": "ana@example.com"})
+    assert resp0.status_code == 200
+    body0 = resp0.json()
+    assert body0["is_eligible"] is False
+    assert body0["reason"] == "NEW_USER"
+
+    # Agora cria Child pago e fica elegível
     ana = asyncio.run(_get_user_by_email("ana@example.com"))
+    asyncio.run(_create_paid_child_for_account(ana.account_id, name="Bia"))
+
+    resp1 = pro_client.post("/partner/check-eligibility", json={"email": "ana@example.com"})
+    assert resp1.status_code == 200
+    body1 = resp1.json()
+    assert body1["is_eligible"] is True
+    assert body1["reason"] == "EXISTING_ACTIVE_CHILD"
+
+
+def test_partner_create_delivery_direct_import_does_not_debit() -> None:
+    # Cliente (Ana) já tem conta (seed) e precisa ter Child pago para ser elegível (custo 0).
+    ana = asyncio.run(_get_user_by_email("ana@example.com"))
+    asyncio.run(_create_paid_child_for_account(ana.account_id, name="Bia"))
 
     user, partner, password = asyncio.run(_create_partner_user(voucher_balance=3))
     pro_client = TestClient(app)
@@ -188,7 +212,7 @@ def test_partner_create_delivery_direct_import_does_not_debit() -> None:
         headers={"X-CSRF-Token": csrf},
         json={
             "client_name": "Ana",
-            "client_email": "ana@example.com",
+            "target_email": "ana@example.com",
             "child_name": "Bia",
         },
     )
@@ -210,6 +234,7 @@ def test_partner_create_delivery_direct_import_does_not_debit() -> None:
 
     delivery = asyncio.run(_fetch_delivery())
     assert delivery.target_account_id == ana.account_id
+    assert delivery.target_email == "ana@example.com"
     assert bool((delivery.assets_payload or {}).get("direct_import")) is True
     assert bool((delivery.assets_payload or {}).get("credit_reserved")) is False
 
@@ -224,7 +249,7 @@ def test_partner_create_delivery_reserved_debits() -> None:
         headers={"X-CSRF-Token": csrf},
         json={
             "client_name": "Novo",
-            "client_email": "novo@example.com",
+            "target_email": "novo@example.com",
             "child_name": "Bebe",
         },
     )
@@ -249,7 +274,7 @@ def test_partner_finalize_delivery_direct_import_returns_import_url() -> None:
     created = pro_client.post(
         "/partner/deliveries",
         headers={"X-CSRF-Token": csrf},
-        json={"client_name": "Ana", "client_email": "ana@example.com", "child_name": "Bia"},
+        json={"client_name": "Ana", "target_email": "ana@example.com", "child_name": "Bia"},
     )
     assert created.status_code == 201
     delivery_id = created.json()["id"]
@@ -296,7 +321,7 @@ def test_me_pending_deliveries_lists_direct_import(client: TestClient, login: No
                 event_date=None,
                 status="ready",
                 credit_status="not_required",
-                target_account_id=ana.account_id,
+                target_email="ana@example.com",
                 assets_payload={"direct_import": True, "files": [{"key": "x"}]},
             )
             session.add(d)
@@ -331,7 +356,7 @@ def test_me_import_delivery_existing_child_is_free(client: TestClient, login: No
                 event_date=None,
                 status="ready",
                 credit_status="not_required",
-                target_account_id=ana.account_id,
+                target_email="ana@example.com",
                 assets_payload={"direct_import": True, "files": [{"key": "a"}, {"key": "b"}]},
             )
             session.add(d)
@@ -393,7 +418,7 @@ def test_me_import_delivery_new_child_debits_partner_and_is_idempotent(client: T
                 event_date=None,
                 status="ready",
                 credit_status="not_required",
-                target_account_id=ana.account_id,
+                target_email="ana@example.com",
                 assets_payload={"direct_import": True, "files": [{"key": "a"}]},
             )
             session.add(d)
@@ -450,3 +475,73 @@ def test_me_import_delivery_new_child_debits_partner_and_is_idempotent(client: T
         assert asyncio.run(_count_partner_ledger(partner.id)) == 1
     finally:
         app.dependency_overrides.pop(get_partner_storage, None)
+
+
+def test_me_import_delivery_email_mismatch_is_forbidden(client: TestClient) -> None:
+    # Cria outro usuário para tentar importar uma entrega destinada à Ana
+    other_email = "outra@example.com"
+    # Evite palavras/padrões que disparem o check de segredos do pre-commit.
+    other_password = "change_me"
+
+    async def _seed_other_user() -> None:
+        async with TestingSessionLocal() as session:
+            account = Account(name="Outra", slug=f"outra-{uuid.uuid4().hex[:8]}")
+            session.add(account)
+            await session.flush()
+            session.add(
+                User(
+                    id=uuid.uuid4(),
+                    account_id=account.id,
+                    email=other_email,
+                    password_hash=hash_password(other_password),
+                    name="Outra",
+                    locale="pt-BR",
+                    role="owner",
+                )
+            )
+            await session.commit()
+
+    asyncio.run(_seed_other_user())
+
+    _user, partner, _password = asyncio.run(_create_partner_user(voucher_balance=1))
+
+    async def _seed_delivery_for_ana() -> uuid.UUID:
+        async with TestingSessionLocal() as session:
+            d = Delivery(
+                id=uuid.uuid4(),
+                partner_id=partner.id,
+                title="Entrega",
+                client_name="Ana",
+                description=None,
+                event_date=None,
+                status="ready",
+                credit_status="not_required",
+                target_email="ana@example.com",
+                assets_payload={"direct_import": True, "files": [{"key": "a"}]},
+            )
+            session.add(d)
+            await session.commit()
+            return d.id
+
+    delivery_id = asyncio.run(_seed_delivery_for_ana())
+
+    # Login com outro e-mail
+    csrf = _csrf(client)
+    resp_login = client.post(
+        "/auth/login",
+        json={"email": other_email, "password": other_password, "csrf_token": csrf},
+    )
+    assert resp_login.status_code == 204
+
+    resp = client.post(
+        f"/me/deliveries/{delivery_id}/import",
+        json={
+            "idempotency_key": "kmismatch",
+            "action": {"type": "NEW_CHILD", "child_name": "Nina"},
+        },
+    )
+    assert resp.status_code == 403
+    body = resp.json()
+    assert body["error"]["code"] == "delivery.email_mismatch"
+    assert body["error"].get("details") is not None
+    assert body["error"]["details"].get("target_email_masked") == "a***@e***.com"

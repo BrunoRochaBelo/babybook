@@ -7,8 +7,8 @@
  * - Download do cartão-convite
  */
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -22,7 +22,6 @@ import {
   Check,
   Calendar,
   User,
-  ChevronDown,
 } from "lucide-react";
 import { getDelivery, generateVoucherCard, deleteDeliveryAsset } from "./api";
 import { VoucherCard } from "./VoucherCard";
@@ -41,6 +40,7 @@ import {
   PartnerErrorState,
   PartnerLoadingState,
 } from "@/layouts/partnerStates";
+import { getPartnerDeliveryStatusMeta } from "./deliveryStatus";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -61,40 +61,30 @@ function formatDateTime(dateString: string): string {
 }
 
 function getStatusLabel(status: DeliveryStatus): string {
-  switch (status) {
-    case "draft":
-      return "Rascunho";
-    case "pending_upload":
-      return "Aguardando upload";
-    case "processing":
-      return "Processando";
-    case "ready":
-      return "Pronta";
-    case "delivered":
-      return "Entregue";
-    case "archived":
-      return "Arquivada";
-    default:
-      return status;
-  }
+  return getPartnerDeliveryStatusMeta(status).label;
 }
 
 function StatusBadge({ status }: { status: DeliveryStatus }) {
+  const meta = getPartnerDeliveryStatusMeta(status);
   const tone =
     status === "ready"
       ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
       : status === "delivered"
         ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
-        : status === "processing"
-          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-          : status === "pending_upload"
-            ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
-            : status === "archived"
-              ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
+        : status === "failed"
+          ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+          : status === "processing"
+            ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+            : status === "pending_upload"
+              ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+              : status === "archived"
+                ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
 
   return (
     <span
+      title={meta.hint}
+      aria-label={`${getStatusLabel(status)}. ${meta.hint}`}
       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${tone}`}
     >
       {getStatusLabel(status)}
@@ -133,11 +123,20 @@ function formatFileSize(bytes: number): string {
 
 export function DeliveryDetailPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const autoOpenVoucherHandledRef = useRef(false);
 
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [voucherCard, setVoucherCard] = useState<VoucherCardData | null>(null);
   const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Ao navegar entre entregas (mesma página), garantimos que o deep-link possa ser processado novamente.
+    autoOpenVoucherHandledRef.current = false;
+  }, [deliveryId]);
 
   useEffect(() => {
     if (!copiedMessage) return;
@@ -247,26 +246,52 @@ export function DeliveryDetailPage() {
     );
   }
 
-
   const hasVoucher = !!delivery.voucher_code;
-  const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;
 
-  const deliveryUrl = useMemo(() => {
-    return new URL(
-      `/partner/deliveries/${deliveryId}`,
-      window.location.origin,
-    ).toString();
-  }, [deliveryId]);
+  const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;
+  const canUploadAssets = !hasVoucher;
+
+  // Deep-link UX: permite abrir o modal de voucher ao navegar a partir da prévia.
+  useEffect(() => {
+    if (autoOpenVoucherHandledRef.current) return;
+
+    const params = new URLSearchParams(location.search);
+    const shouldOpen = params.get("openVoucher") === "1";
+    if (!shouldOpen) return;
+
+    // Evita reabrir em refresh/back: removemos o parâmetro sempre que ele existir.
+    params.delete("openVoucher");
+    const nextSearch = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
+      { replace: true },
+    );
+
+    autoOpenVoucherHandledRef.current = true;
+
+    // Se já existe voucher, abrimos direto o cartão.
+    // Se não existe mas dá para gerar, abrimos o fluxo de geração.
+    if (hasVoucher || canGenerateVoucher) {
+      setShowVoucherModal(true);
+      return;
+    }
+
+    // Edge-case: pedido para abrir voucher, mas não há arquivos nem voucher.
+    // Mantemos feedback discreto e orientamos o próximo passo.
+    setCopiedMessage("Envie arquivos para liberar a geração do voucher");
+  }, [
+    canGenerateVoucher,
+    hasVoucher,
+    location.pathname,
+    location.search,
+    navigate,
+  ]);
 
   // Nota de UX: evitamos repetir informações/ações do voucher em múltiplos lugares.
   // Tudo relacionado a voucher fica concentrado na seção "Voucher".
-
-  // Auto-clear do feedback de copy
-  useEffect(() => {
-    if (!copiedMessage) return;
-    const t = window.setTimeout(() => setCopiedMessage(null), 1600);
-    return () => window.clearTimeout(t);
-  }, [copiedMessage]);
 
   return (
     <>
@@ -327,50 +352,102 @@ export function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Voucher Info (if exists) */}
-        {hasVoucher && (
-          <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
+        {/* Voucher (sempre visível) */}
+        <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Voucher
                 </p>
-                <p className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white">
-                  {delivery.voucher_code}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {delivery.redeemed_at
-                    ? `Resgatado em ${formatDateTime(delivery.redeemed_at)}`
-                    : "Ainda não resgatado"}
-                </p>
+                {hasVoucher ? (
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                    Pronto
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                    Ainda não gerado
+                  </span>
+                )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+
+              {hasVoucher ? (
+                <>
+                  <p className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white">
+                    {delivery.voucher_code}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {delivery.redeemed_at
+                      ? `Resgatado em ${formatDateTime(delivery.redeemed_at)}`
+                      : "Ainda não resgatado"}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  {delivery.assets_count > 0
+                    ? "Quando gerar, você terá um cartão (QR Code) e um código para enviar ao cliente."
+                    : "Envie os arquivos desta entrega para liberar a geração do voucher."}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {hasVoucher ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowVoucherModal(true)}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    Abrir cartão
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!delivery.voucher_code) return;
+                      const ok = await copyToClipboard(delivery.voucher_code);
+                      setCopiedMessage(
+                        ok ? "Voucher copiado" : "Não foi possível copiar",
+                      );
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar
+                  </button>
+                </>
+              ) : canGenerateVoucher ? (
                 <button
                   type="button"
                   onClick={() => setShowVoucherModal(true)}
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
                 >
-                  <QrCode className="w-4 h-4" />
-                  Abrir cartão
+                  <Ticket className="w-4 h-4" />
+                  Gerar voucher
                 </button>
+              ) : canUploadAssets ? (
+                <Link
+                  to={`/partner/deliveries/${deliveryId}/upload`}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Enviar arquivos
+                </Link>
+              ) : (
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!delivery.voucher_code) return;
-                    const ok = await copyToClipboard(delivery.voucher_code);
-                    setCopiedMessage(
-                      ok ? "Voucher copiado" : "Não foi possível copiar",
-                    );
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
+                  disabled
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 font-medium cursor-not-allowed"
+                  title="Entrega finalizada"
                 >
-                  <Copy className="w-4 h-4" />
-                  Copiar
+                  <Ticket className="w-4 h-4" />
+                  Voucher indisponível
                 </button>
-              </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* Informações adicionais (inline) */}
         {(delivery.description || delivery.event_date) && (

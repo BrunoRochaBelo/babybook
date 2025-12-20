@@ -10,7 +10,11 @@ from babybook_api.auth.session import UserSession, get_current_user
 from babybook_api.db.models import Child, GuestbookEntry
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
-from babybook_api.schemas.guestbook import GuestbookCreate, GuestbookEntryResponse, PaginatedGuestbook
+from babybook_api.schemas.guestbook import (
+    GuestbookCreate,
+    GuestbookEntryResponse,
+    PaginatedGuestbook,
+)
 
 router = APIRouter()
 

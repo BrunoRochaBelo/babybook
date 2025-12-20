@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
@@ -9,20 +9,33 @@ interface BBChildSwitcherProps {
   onOpenChange?: (value: boolean) => void;
 }
 
-export function BBChildSwitcher({ isOpen: externalOpen, onOpenChange }: BBChildSwitcherProps = {}) {
+export function BBChildSwitcher({
+  isOpen: externalOpen,
+  onOpenChange,
+}: BBChildSwitcherProps = {}) {
   const { children, selectedChild, setSelectedChildId } = useSelectedChild();
   const [internalOpen, setInternalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const isControlled = externalOpen !== undefined;
   const isOpen = isControlled ? externalOpen : internalOpen;
-  const setOpen = (value: boolean | ((prev: boolean) => boolean)) => {
-    const next = typeof value === "function" ? value(isOpen) : value;
-    if (!isControlled) {
-      setInternalOpen(next);
-    }
-    onOpenChange?.(next);
-  };
+  const setOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      if (isControlled) {
+        const current = Boolean(externalOpen);
+        const next = typeof value === "function" ? value(current) : value;
+        onOpenChange?.(next);
+        return;
+      }
+
+      setInternalOpen((prev) => {
+        const next = typeof value === "function" ? value(prev) : value;
+        onOpenChange?.(next);
+        return next;
+      });
+    },
+    [externalOpen, isControlled, onOpenChange],
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -38,7 +51,8 @@ export function BBChildSwitcher({ isOpen: externalOpen, onOpenChange }: BBChildS
       }
     };
     document.addEventListener("pointerdown", handleClickOutside);
-    return () => document.removeEventListener("pointerdown", handleClickOutside);
+    return () =>
+      document.removeEventListener("pointerdown", handleClickOutside);
   }, [isOpen, setOpen]);
 
   const hasChildren = children.length > 0;

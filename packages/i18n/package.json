@@ -4,7 +4,7 @@
   "type": "module",
   "main": "src/index.tsx",
   "scripts": {
-    "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs"
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --config ../../packages/config/eslint/index.mjs"
   },
   "files": [
     "src"

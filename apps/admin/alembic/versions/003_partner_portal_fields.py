@@ -4,10 +4,10 @@ Revision ID: 003_partner_portal_fields
 Revises: 002_create_b2b2c_tables
 Create Date: 2025-12-08
 """
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSON
+from sqlalchemy.dialects.postgresql import JSON, UUID
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '003_partner_portal_fields'

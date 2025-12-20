@@ -9,14 +9,14 @@ function ensureInit() {
   if (initialized) {
     return;
   }
-  i18next.init({
+  void i18next.init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
     resources: {
       "pt-BR": {
-        translation: ptBR
-      }
-    }
+        translation: ptBR,
+      },
+    },
   });
   initialized = true;
 }

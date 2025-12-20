@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import hashlib
+import uuid
 from dataclasses import replace
-
 from datetime import datetime
 
-import uuid
-
 from fastapi import APIRouter, Depends, Header, Query, Response
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from babybook_api.auth.session import UserSession, get_current_user
-from babybook_api.db.models import Account, Asset, Child, Moment, Delivery, Partner, PartnerLedger
+from babybook_api.db.models import Account, Asset, Child, Delivery, Moment, Partner, PartnerLedger
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.schemas.me import (
@@ -31,6 +29,50 @@ from babybook_api.storage import PartnerStorageService, get_partner_storage
 router = APIRouter()
 
 
+def _mask_email(email: str) -> str:
+    """Mascaramento simples e determinístico de e-mail.
+
+    Ex.: ana@example.com -> a***@e***.com
+    """
+
+    raw = (email or "").strip()
+    if not raw or "@" not in raw:
+        return "***"
+
+    local, domain = raw.split("@", 1)
+    local = local.strip()
+    domain = domain.strip()
+
+    if not local:
+        local_mask = "***"
+    elif len(local) == 1:
+        local_mask = "*"
+    else:
+        local_mask = f"{local[0]}***"
+
+    if not domain:
+        domain_mask = "***"
+    else:
+        parts = domain.split(".")
+        if len(parts) >= 2:
+            first = parts[0]
+            rest = ".".join(parts[1:])
+            if not first:
+                first_mask = "***"
+            elif len(first) == 1:
+                first_mask = "*"
+            else:
+                first_mask = f"{first[0]}***"
+            domain_mask = f"{first_mask}.{rest}" if rest else first_mask
+        else:
+            if len(domain) == 1:
+                domain_mask = "*"
+            else:
+                domain_mask = f"{domain[0]}***"
+
+    return f"{local_mask}@{domain_mask}"
+
+
 def _compute_etag(user: UserSession) -> str:
     digest = hashlib.sha256(f"{user.id}:{user.email}:{user.locale}".encode("utf-8")).hexdigest()
     return f'W/"{digest[:16]}"'
@@ -44,8 +86,6 @@ def _serialize_user(user: UserSession) -> MeResponse:
 async def get_me(response: Response, current_user: UserSession = Depends(get_current_user), db: AsyncSession = Depends(get_db_session)) -> MeResponse:
     response.headers["ETag"] = _compute_etag(current_user)
     # compute has_purchased and onboarding_completed by inspecting account
-    from babybook_api.deps import get_db_session
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     async def _get_flags(db: AsyncSession) -> tuple[bool, bool]:
         account_id = uuid.UUID(current_user.account_id)
@@ -116,41 +156,80 @@ async def patch_me(
 async def usage_summary(
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
-    child_id: uuid.UUID = Query(
-        ..., 
-        description="ID do Child (Livro) para retornar quota/uso de storage de forma child-centric.",
+    child_id: uuid.UUID | None = Query(
+        None,
+        description=(
+            "(Opcional) ID do Child (Livro). Se fornecido, retorna quota/uso de forma child-centric. "
+            "Se omitido, retorna valores agregados para a conta (soma das quotas dos livros)."
+        ),
     ),
 ) -> UsageResponse:
     account_id = uuid.UUID(current_user.account_id)
 
-    stmt_child = select(Child).where(
-        Child.id == child_id,
+    # Modo child-centric
+    if child_id is not None:
+        stmt_child = select(Child).where(
+            Child.id == child_id,
+            Child.account_id == account_id,
+            Child.deleted_at.is_(None),
+        )
+        child = (await db.execute(stmt_child)).scalar_one_or_none()
+        if child is None:
+            raise AppError(status_code=404, code="child.not_found", message="Crianca nao encontrada.")
+
+        stmt_moments = select(func.count()).select_from(Moment).where(
+            Moment.account_id == account_id,
+            Moment.child_id == child.id,
+            Moment.deleted_at.is_(None),
+        )
+        moments_used = (await db.execute(stmt_moments)).scalar_one()
+
+        stmt_used = select(func.coalesce(func.sum(Asset.size_bytes), 0)).where(
+            Asset.account_id == account_id,
+            Asset.child_id == child.id,
+            Asset.status != "failed",
+        )
+        bytes_used = (await db.execute(stmt_used)).scalar_one()
+
+        return UsageResponse(
+            bytes_used=bytes_used,
+            bytes_quota=child.storage_quota_bytes,
+            moments_used=moments_used,
+            moments_quota=settings.quota_moments,
+        )
+
+    # Modo agregado (compatibilidade de contrato): soma por conta
+    stmt_children = select(func.count()).select_from(Child).where(
         Child.account_id == account_id,
         Child.deleted_at.is_(None),
     )
-    child = (await db.execute(stmt_child)).scalar_one_or_none()
-    if child is None:
-        raise AppError(status_code=404, code="child.not_found", message="Crianca nao encontrada.")
+    children_count = int((await db.execute(stmt_children)).scalar_one() or 0)
+
+    stmt_quota = select(func.coalesce(func.sum(Child.storage_quota_bytes), 0)).where(
+        Child.account_id == account_id,
+        Child.deleted_at.is_(None),
+    )
+    bytes_quota = int((await db.execute(stmt_quota)).scalar_one() or 0)
 
     stmt_moments = select(func.count()).select_from(Moment).where(
         Moment.account_id == account_id,
-        Moment.child_id == child.id,
         Moment.deleted_at.is_(None),
     )
-    moments_used = (await db.execute(stmt_moments)).scalar_one()
+    moments_used = int((await db.execute(stmt_moments)).scalar_one() or 0)
 
     stmt_used = select(func.coalesce(func.sum(Asset.size_bytes), 0)).where(
         Asset.account_id == account_id,
-        Asset.child_id == child.id,
         Asset.status != "failed",
     )
-    bytes_used = (await db.execute(stmt_used)).scalar_one()
+    bytes_used = int((await db.execute(stmt_used)).scalar_one() or 0)
+
+    moments_quota = int(settings.quota_moments) * max(children_count, 1)
 
     return UsageResponse(
         bytes_used=bytes_used,
-        bytes_quota=child.storage_quota_bytes,
+        bytes_quota=bytes_quota,
         moments_used=moments_used,
-        moments_quota=settings.quota_moments,
+        moments_quota=moments_quota,
     )
 
 
@@ -164,14 +243,18 @@ async def list_pending_deliveries(
     db: AsyncSession = Depends(get_db_session),
 ) -> PendingDeliveriesResponse:
     account_id = uuid.UUID(current_user.account_id)
+    normalized_email = (current_user.email or "").strip().lower()
 
     stmt = (
         select(Delivery)
         .options(selectinload(Delivery.partner))
         .where(
-            Delivery.target_account_id == account_id,
+            or_(
+                Delivery.target_email == normalized_email,
+                Delivery.target_account_id == account_id,
+            ),
             Delivery.status == "ready",
-            Delivery.credit_status == "not_required",
+            Delivery.credit_status.in_(["not_required", "reserved"]),
             Delivery.assets_transferred_at.is_(None),
         )
         .order_by(Delivery.created_at.desc())
@@ -181,11 +264,27 @@ async def list_pending_deliveries(
     rows = await db.execute(stmt)
     deliveries = rows.scalars().all()
 
+    def _safe_target_email_for_item(*, delivery: Delivery) -> str | None:
+        # Só devolvemos o e-mail quando ele corresponde ao e-mail do usuário atual.
+        # Isso evita vazamentos caso existam registros inconsistentes em dados legados.
+        raw = (delivery.target_email or "").strip()
+        if not raw:
+            return None
+        if raw.lower() != normalized_email:
+            return None
+        return raw
+
     items = [
         PendingDeliveryItem(
             delivery_id=str(d.id),
             partner_name=(d.partner.company_name or d.partner.name) if d.partner else None,
             title=d.title,
+            target_email=_safe_target_email_for_item(delivery=d),
+            target_email_masked=(
+                _mask_email(d.target_email)
+                if _safe_target_email_for_item(delivery=d) is not None
+                else None
+            ),
             assets_count=len(d.assets_payload.get("files", [])) if d.assets_payload else 0,
             created_at=d.created_at,
         )
@@ -220,8 +319,26 @@ async def import_delivery(
         if delivery is None:
             raise AppError(status_code=404, code="delivery.not_found", message="Entrega não encontrada.")
 
-        if delivery.target_account_id != account_id:
-            raise AppError(status_code=403, code="delivery.forbidden", message="Sem acesso a esta entrega.")
+        normalized_user_email = (current_user.email or "").strip().lower()
+        normalized_target_email = (delivery.target_email or "").strip().lower()
+
+        # Hard lock: se target_email existir, somente o e-mail alvo pode importar.
+        if delivery.target_email:
+            if normalized_user_email != normalized_target_email:
+                masked = _mask_email(delivery.target_email)
+                raise AppError(
+                    status_code=403,
+                    code="delivery.email_mismatch",
+                    message=(
+                        "Esta entrega foi enviada para outro e-mail. "
+                        f"Faça login com {masked} para resgatar."
+                    ),
+                    details={"target_email_masked": masked},
+                )
+        else:
+            # Fallback legado: restrição por account_id
+            if delivery.target_account_id != account_id:
+                raise AppError(status_code=403, code="delivery.forbidden", message="Sem acesso a esta entrega.")
 
         direct_import_flag = bool((delivery.assets_payload or {}).get("direct_import"))
         if not direct_import_flag:
@@ -231,7 +348,7 @@ async def import_delivery(
                 message="Esta entrega não está habilitada para importação direta.",
             )
 
-        if delivery.credit_status not in ("not_required", "consumed"):
+        if delivery.credit_status not in ("not_required", "reserved", "consumed", "refunded"):
             raise AppError(
                 status_code=409,
                 code="delivery.invalid_credit_state",
@@ -286,29 +403,46 @@ async def import_delivery(
                     message="Este Livro ainda não está com PCE pago.",
                 )
 
+            # Se havia reserva (novo cliente) mas o usuário vinculou a um Child pago,
+            # estornamos a reserva (late binding / compatibilidade).
+            if delivery.credit_status == "reserved":
+                locked_partner = await db.scalar(
+                    select(Partner).where(Partner.id == delivery.partner_id).with_for_update()
+                )
+                if locked_partner is None:
+                    raise AppError(status_code=404, code="partner.not_found", message="Parceiro não encontrado.")
+                locked_partner.voucher_balance += 1
+                db.add(
+                    PartnerLedger(
+                        id=uuid.uuid4(),
+                        partner_id=delivery.partner_id,
+                        amount=+1,
+                        type="refund",
+                        description=f"refund delivery={delivery.id} direct_import=true",
+                    )
+                )
+                delivery.credit_status = "refunded"
+
         else:
-            # NEW_CHILD: cobra parceiro 1 crédito (late binding) e cria novo livro
-            locked_partner = await db.scalar(
-                select(Partner).where(Partner.id == delivery.partner_id).with_for_update()
-            )
-            if locked_partner is None:
-                raise AppError(status_code=404, code="partner.not_found", message="Parceiro não encontrado.")
-            if locked_partner.voucher_balance < 1:
-                raise AppError(
-                    status_code=402,
-                    code="partner.insufficient_credits",
-                    message="O fotógrafo está sem créditos para criar um novo Livro. Peça para ele comprar mais créditos.",
+            # NEW_CHILD: cria novo livro. Se já houve reserva na criação, apenas consome.
+            # Se a entrega era elegível (not_required), aplicamos débito posterior (pode ficar negativo).
+            if delivery.credit_status == "not_required":
+                locked_partner = await db.scalar(
+                    select(Partner).where(Partner.id == delivery.partner_id).with_for_update()
                 )
-            locked_partner.voucher_balance -= 1
-            db.add(
-                PartnerLedger(
-                    id=uuid.uuid4(),
-                    partner_id=delivery.partner_id,
-                    amount=-1,
-                    type="reservation",
-                    description=f"consumption delivery={delivery.id} direct_import=true",
+                if locked_partner is None:
+                    raise AppError(status_code=404, code="partner.not_found", message="Parceiro não encontrado.")
+
+                locked_partner.voucher_balance -= 1
+                db.add(
+                    PartnerLedger(
+                        id=uuid.uuid4(),
+                        partner_id=delivery.partner_id,
+                        amount=-1,
+                        type="reservation",
+                        description=f"late_debit delivery={delivery.id} direct_import=true",
+                    )
                 )
-            )
 
             child = Child(
                 id=uuid.uuid4(),
@@ -354,6 +488,10 @@ async def import_delivery(
         delivery.assets_transferred_at = now
         delivery.completed_at = now
         delivery.beneficiary_email = current_user.email
+
+        # Preenche para conveniência (e compatibilidade com a listagem legada)
+        if delivery.target_account_id is None:
+            delivery.target_account_id = account_id
 
         result_meta = {
             "moment_id": str(new_moment.id),

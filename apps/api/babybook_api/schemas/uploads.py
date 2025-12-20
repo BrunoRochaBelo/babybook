@@ -8,7 +8,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-
 UploadStatusType = Literal[
     "initiated", "uploading", "processing", "completed", "failed", "expired", "cancelled"
 ]

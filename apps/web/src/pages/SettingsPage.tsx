@@ -144,12 +144,6 @@ export function SettingsPage() {
     setFamilyMembers(familyMembers.filter((m) => m.id !== memberId));
   };
 
-  const handleChangeRole = (memberId: string, role: FamilyMember["role"]) => {
-    setFamilyMembers(
-      familyMembers.map((m) => (m.id === memberId ? { ...m, role } : m)),
-    );
-  };
-
   const getRoleBadge = (role: FamilyMember["role"]) => {
     const config = {
       owner: { label: "Dono", className: "bg-amber-100 text-amber-800" },
