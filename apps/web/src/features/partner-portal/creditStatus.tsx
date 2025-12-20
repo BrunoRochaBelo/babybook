@@ -8,6 +8,7 @@ export type PartnerCreditStatus =
 
 export type PartnerCreditStatusMeta = {
   label: string;
+  shortLabel: string;
   title: string;
   pillClassName: string;
   subtleClassName: string;
@@ -18,7 +19,8 @@ const CREDIT_STATUS_META: Record<PartnerCreditStatus, PartnerCreditStatusMeta> =
   {
     reserved: {
       icon: Clock,
-      label: "Reservado",
+      label: "Crédito reservado",
+      shortLabel: "Reservado",
       title:
         "Crédito reservado e em processamento. Será consumido ou devolvido quando o cliente resgatar.",
       pillClassName:
@@ -28,6 +30,7 @@ const CREDIT_STATUS_META: Record<PartnerCreditStatus, PartnerCreditStatusMeta> =
     not_required: {
       icon: Gift,
       label: "Sem custo",
+      shortLabel: "Sem custo",
       title:
         "Esta entrega não requer voucher para existir. Só haverá cobrança se o cliente criar um novo Baby Book.",
       pillClassName:
@@ -36,7 +39,8 @@ const CREDIT_STATUS_META: Record<PartnerCreditStatus, PartnerCreditStatusMeta> =
     },
     consumed: {
       icon: CheckCircle2,
-      label: "Usado",
+      label: "Crédito usado",
+      shortLabel: "Usado",
       title: "Crédito utilizado com sucesso.",
       pillClassName:
         "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200",
@@ -44,7 +48,8 @@ const CREDIT_STATUS_META: Record<PartnerCreditStatus, PartnerCreditStatusMeta> =
     },
     refunded: {
       icon: ArchiveRestore,
-      label: "Devolvido",
+      label: "Crédito devolvido",
+      shortLabel: "Devolvido",
       title:
         "Crédito devolvido automaticamente (ex.: cliente vinculou a um Baby Book existente).",
       pillClassName:
@@ -83,7 +88,8 @@ export function CreditStatusBadge({
       className={className}
     >
       <Icon className="w-3 h-3 opacity-80" />
-      {meta.label}
+      <span className="sm:hidden">{meta.shortLabel}</span>
+      <span className="hidden sm:inline">{meta.label}</span>
     </span>
   );
 }

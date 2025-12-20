@@ -45,6 +45,10 @@ import {
 } from "./deliveryStatus";
 import { CreditStatusBadge } from "./creditStatus";
 import {
+  PLACEHOLDER_NOT_GENERATED,
+  PLACEHOLDER_NOT_INFORMED,
+} from "./placeholders";
+import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
 } from "@/layouts/partnerPageHeader";
@@ -2122,7 +2126,7 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
                     : "O voucher aparece após a entrega ficar pronta."
                 }
               >
-                Não gerado
+                {PLACEHOLDER_NOT_GENERATED}
               </span>
             )}
             <CreditStatusBadge
@@ -2210,7 +2214,7 @@ function DeliveryTableRow({
       </td>
       <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
         <span className="truncate block max-w-[220px]">
-          {delivery.client_name || "—"}
+          {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
         </span>
       </td>
       <td className="px-4 py-2.5">
@@ -2234,7 +2238,7 @@ function DeliveryTableRow({
                   : "O voucher aparece após a entrega ficar pronta."
               }
             >
-              Não gerado
+              {PLACEHOLDER_NOT_GENERATED}
             </span>
           )}
           <CreditStatusBadge
@@ -2554,8 +2558,8 @@ function DeliveryQuickPreview({
                       type="button"
                       disabled
                       className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 transition-colors text-sm font-medium opacity-50"
-                      title="Voucher não gerado"
-                      aria-label="Voucher não gerado"
+                      title={`Voucher ${PLACEHOLDER_NOT_GENERATED.toLowerCase()}`}
+                      aria-label={`Voucher ${PLACEHOLDER_NOT_GENERATED.toLowerCase()}`}
                     >
                       <Gift className="w-4 h-4" />
                       Voucher
@@ -2577,7 +2581,7 @@ function DeliveryQuickPreview({
                   Cliente
                 </p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {delivery.client_name || "—"}
+                  {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
                 </p>
                 {delivery.redeemed_at && (
                   <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -2621,7 +2625,7 @@ function DeliveryQuickPreview({
                 ) : (
                   <div className="mt-1 space-y-1">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Não gerado
+                      {PLACEHOLDER_NOT_GENERATED}
                     </p>
                     <CreditStatusBadge
                       status={delivery.credit_status}
@@ -2773,7 +2777,7 @@ function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
   const voucher: TimelineItem = {
     key: "voucher",
     title: "Voucher",
-    subtitle: delivery.voucher_code ? "Gerado" : "Não gerado",
+    subtitle: delivery.voucher_code ? "Gerado" : PLACEHOLDER_NOT_GENERATED,
     state: delivery.voucher_code ? "done" : "pending",
     icon: Gift,
   };

@@ -37,6 +37,10 @@ import {
 } from "./deliveryStatus";
 import { CreditStatusBadge } from "./creditStatus";
 import {
+  PLACEHOLDER_NOT_GENERATED,
+  PLACEHOLDER_NOT_INFORMED,
+} from "./placeholders";
+import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
 } from "@/layouts/partnerPageHeader";
@@ -725,34 +729,52 @@ export function PartnerDashboard() {
                   className="flex items-center justify-between gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
-                        {delivery.title || delivery.client_name || "Sem título"}
-                      </p>
-                      <DeliveryStatusBadge status={delivery.status} />
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400">
-                      {delivery.client_name && (
-                        <span>{delivery.client_name}</span>
-                      )}
-                      <span>•</span>
-                      <span>{formatDate(delivery.created_at)}</span>
-                    </div>
-                    {delivery.voucher_code ? (
-                      <span className="mt-1 inline-block text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">
-                        {delivery.voucher_code}
-                      </span>
-                    ) : (
-                      <span
-                        className="mt-1 inline-block text-xs text-gray-400 dark:text-gray-500"
-                        title="O voucher aparece após a entrega ficar pronta."
-                      >
-                        Não gerado
-                      </span>
-                    )}
-                    <div className="mt-2">
-                      <CreditStatusBadge status={delivery.credit_status} />
-                    </div>
+                    {(() => {
+                      const normalizedStatus = normalizePartnerDeliveryStatus(
+                        delivery.status,
+                      );
+                      const voucherMissingTitle =
+                        normalizedStatus === "ready"
+                          ? "Entrega pronta. Gere o voucher nos detalhes."
+                          : "O voucher aparece após a entrega ficar pronta.";
+
+                      return (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900 dark:text-white truncate">
+                              {delivery.title ||
+                                delivery.client_name ||
+                                "Sem título"}
+                            </p>
+                            <DeliveryStatusBadge status={delivery.status} />
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400">
+                            {delivery.client_name && (
+                              <span>{delivery.client_name}</span>
+                            )}
+                            <span>•</span>
+                            <span>{formatDate(delivery.created_at)}</span>
+                          </div>
+                          {delivery.voucher_code ? (
+                            <span className="mt-1 inline-block text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">
+                              {delivery.voucher_code}
+                            </span>
+                          ) : (
+                            <span
+                              className="mt-1 inline-block text-xs text-gray-400 dark:text-gray-500"
+                              title={voucherMissingTitle}
+                            >
+                              {PLACEHOLDER_NOT_GENERATED}
+                            </span>
+                          )}
+                          <div className="mt-2">
+                            <CreditStatusBadge
+                              status={delivery.credit_status}
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                   <Link
                     to={`/partner/deliveries/${delivery.id}`}
@@ -801,7 +823,7 @@ export function PartnerDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                        {delivery.client_name || "—"}
+                        {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
                       </td>
                       <td className="px-4 py-3">
                         <DeliveryStatusBadge status={delivery.status} />
@@ -810,21 +832,34 @@ export function PartnerDashboard() {
                         {formatDate(delivery.created_at)}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-col gap-2">
-                          {delivery.voucher_code ? (
-                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded w-fit">
-                              {delivery.voucher_code}
-                            </span>
-                          ) : (
-                            <span
-                              className="text-gray-400 dark:text-gray-500"
-                              title="O voucher aparece após a entrega ficar pronta."
-                            >
-                              Não gerado
-                            </span>
-                          )}
-                          <CreditStatusBadge status={delivery.credit_status} />
-                        </div>
+                        {(() => {
+                          const normalizedStatus =
+                            normalizePartnerDeliveryStatus(delivery.status);
+                          const voucherMissingTitle =
+                            normalizedStatus === "ready"
+                              ? "Entrega pronta. Gere o voucher nos detalhes."
+                              : "O voucher aparece após a entrega ficar pronta.";
+
+                          return (
+                            <div className="flex flex-col gap-2">
+                              {delivery.voucher_code ? (
+                                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded w-fit">
+                                  {delivery.voucher_code}
+                                </span>
+                              ) : (
+                                <span
+                                  className="text-gray-400 dark:text-gray-500"
+                                  title={voucherMissingTitle}
+                                >
+                                  {PLACEHOLDER_NOT_GENERATED}
+                                </span>
+                              )}
+                              <CreditStatusBadge
+                                status={delivery.credit_status}
+                              />
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link

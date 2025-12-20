@@ -31,6 +31,7 @@ import type {
   GenerateVoucherCardRequest,
   DeliveryStatus,
 } from "./types";
+import { PLACEHOLDER_NOT_GENERATED } from "./placeholders";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
@@ -366,7 +367,7 @@ export function DeliveryDetailPage() {
                   </span>
                 ) : (
                   <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
-                    Não gerado
+                    {PLACEHOLDER_NOT_GENERATED}
                   </span>
                 )}
               </div>
