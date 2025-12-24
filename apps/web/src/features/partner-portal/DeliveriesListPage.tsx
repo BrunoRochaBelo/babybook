@@ -2080,69 +2080,106 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
   const hasVoucher = Boolean(delivery.voucher_code);
 
   return (
-    <Link
-      to={`/partner/deliveries/${delivery.id}`}
-      className={`rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-all ${
+    <div
+      className={`rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all ${
         isArchived ? "opacity-70" : ""
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Image className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+      {/* Main Content - Clickable */}
+      <Link
+        to={`/partner/deliveries/${delivery.id}`}
+        className="block p-4"
+      >
+        {/* Row 1: Icon + Title/Client + Status Badge */}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-11 h-11 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </div>
-          <div className="min-w-0">
-            <p className="font-medium text-gray-900 dark:text-white truncate">
-              {delivery.title || delivery.client_name || "Sem título"}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {delivery.client_name && delivery.title
-                ? delivery.client_name
-                : ""}
-            </p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-base leading-tight line-clamp-2">
+                  {delivery.title || delivery.client_name || "Sem título"}
+                </h3>
+                {delivery.client_name && delivery.title && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                    {delivery.client_name}
+                  </p>
+                )}
+              </div>
+              <div className="flex-shrink-0">
+                <StatusBadge status={displayStatus} />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <StatusBadge status={displayStatus} />
-        </div>
-      </div>
 
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          <span>{formatDate(delivery.created_at)}</span>
+        {/* Row 2: Date + Voucher Code */}
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-gray-500 dark:text-gray-400">
+            {formatDate(delivery.created_at)}
+          </span>
+          {delivery.voucher_code ? (
+            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-md">
+              {delivery.voucher_code}
+            </span>
+          ) : (
+            <span
+              className="text-xs text-gray-400 dark:text-gray-500 italic"
+              title={
+                displayStatus === "ready"
+                  ? "Entrega pronta. Gere o voucher nos detalhes."
+                  : "O voucher aparece após a entrega ficar pronta."
+              }
+            >
+              {PLACEHOLDER_NOT_GENERATED}
+            </span>
+          )}
         </div>
+      </Link>
+
+      {/* Row 3: Credit Badge + Actions - Separated */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+        <CreditStatusBadge
+          status={delivery.credit_status}
+          variant={hasVoucher ? "subtle" : "pill"}
+        />
+        
         <div className="flex items-center gap-2">
-          <div className="flex flex-col items-end gap-1">
-            {delivery.voucher_code ? (
-              <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
-                {delivery.voucher_code}
-              </span>
+          {/* Archive Button - Larger touch target */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onArchive(!isArchived);
+            }}
+            disabled={isArchiving}
+            className="p-2.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
+            title={isArchived ? "Desarquivar" : "Arquivar"}
+            aria-label={isArchived ? "Desarquivar entrega" : "Arquivar entrega"}
+          >
+            {isArchiving ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isArchived ? (
+              <ArchiveRestore className="w-5 h-5" />
             ) : (
-              <span
-                className="text-xs text-gray-400 dark:text-gray-500"
-                title={
-                  displayStatus === "ready"
-                    ? "Entrega pronta. Gere o voucher nos detalhes."
-                    : "O voucher aparece após a entrega ficar pronta."
-                }
-              >
-                {PLACEHOLDER_NOT_GENERATED}
-              </span>
+              <Archive className="w-5 h-5" />
             )}
-            <CreditStatusBadge
-              status={delivery.credit_status}
-              variant={hasVoucher ? "subtle" : "pill"}
-            />
-          </div>
-          <ArchiveAction
-            isArchived={isArchived}
-            isArchiving={isArchiving}
-            onArchive={onArchive}
-          />
-          <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+          </button>
+          
+          {/* View Details Button - Primary action */}
+          <Link
+            to={`/partner/deliveries/${delivery.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Ver
+            <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

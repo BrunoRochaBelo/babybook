@@ -14,6 +14,8 @@ import {
   Loader2,
   Star,
   AlertCircle,
+  Info,
+  Lightbulb,
 } from "lucide-react";
 import {
   getPartnerProfile,
@@ -170,24 +172,69 @@ export function CreditsPage() {
           Comprar créditos para gerar vouchers e finalizar entregas.
         </p>
       </div>
-      {/* Current Balance - Destaque especial */}
-      <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl p-6 shadow-lg mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
-        <div className="flex items-center justify-between">
+      {/* Current Balance - Destaque especial (consistente com Dashboard) */}
+      <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg hover:shadow-xl transition-shadow mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-pink-100 font-medium uppercase tracking-wide">
-              Seus créditos
-            </p>
-            <p className="text-4xl font-bold text-white mt-1">
-              {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}{" "}
-              <span className="text-2xl font-normal text-pink-100">
-                disponíveis
-              </span>
-            </p>
-            <p className="mt-2 text-sm text-pink-100">
-              {stats?.reserved_credits ?? 0} reservados/em trânsito
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-pink-100 text-xs sm:text-sm font-medium uppercase tracking-wide">
+                Seus Créditos
+              </p>
+              {(stats?.voucher_balance ?? 0) <= 2 && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 text-white border border-white/20">
+                  Saldo baixo
+                </span>
+              )}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
+                <div className="flex items-center gap-1">
+                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                    Disponível
+                  </p>
+                  <span
+                    className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
+                    title="Créditos prontos para usar em novas entregas"
+                  >
+                    <Info className="w-3 h-3" />
+                  </span>
+                </div>
+                <p className="text-2xl font-bold leading-tight">
+                  {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}
+                </p>
+                <p className="text-[11px] text-pink-100">
+                  {(stats?.voucher_balance ?? 0) === 1
+                    ? "crédito pronto"
+                    : "créditos prontos"}
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
+                <div className="flex items-center gap-1">
+                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
+                    Reservado
+                  </p>
+                  <span
+                    className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
+                    title="Créditos já alocados para entregas criadas. Serão consumidos ou estornados quando o cliente resgatar."
+                  >
+                    <Info className="w-3 h-3" />
+                  </span>
+                </div>
+                <p className="text-2xl font-bold leading-tight">
+                  {stats?.reserved_credits ?? 0}
+                </p>
+                <p className="text-[11px] text-pink-100">
+                  aguardando resgate
+                </p>
+              </div>
+            </div>
+            <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
+              <Lightbulb className="w-3.5 h-3.5" />
+              Dica: quando o cliente resgata, o crédito é consumido ou
+              estornado automaticamente.
             </p>
           </div>
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 hidden sm:flex">
             <CreditCard className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -221,78 +268,94 @@ export function CreditsPage() {
         </div>
       )}
 
-      {/* Purchase Button */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Total a pagar
-            </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {selectedPkg ? formatCurrency(selectedTotalCents) : "-"}
-            </p>
-            {selectedPkg && totals && (
-              <div className="mt-1 space-y-1">
-                {paymentMethod === "pix" ? (
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    Economia vs cartão:{" "}
-                    {formatCurrency(totals.card - totals.pix)}
-                  </p>
-                ) : (
-                  <>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
-                      {formatCurrency(
-                        approxInstallmentCents(
-                          totals.card,
-                          MAX_INSTALLMENTS_NO_INTEREST,
-                        ),
-                      )}{" "}
-                      sem juros
-                    </p>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      No PIX: {formatCurrency(totals.pix)} (economize{" "}
-                      {formatCurrency(totals.card - totals.pix)})
-                    </p>
-                  </>
-                )}
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {paymentMethod === "pix"
-                    ? "PIX é à vista."
-                    : "Cartão: parcelas e juros (se houver) serão mostrados no checkout."}
+      {/* Checkout Card - Visual destacado (bottom-24 para ficar acima da navbar) */}
+      <div className="sticky bottom-24 z-30 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-700 dark:to-gray-600 rounded-2xl p-5 sm:p-6 shadow-2xl border border-gray-700/50 dark:border-gray-500/50 ring-1 ring-white/10 dark:ring-white/20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-pink-500/20 dark:bg-pink-500/30 flex items-center justify-center">
+                  {paymentMethod === "pix" ? (
+                    <QrCode className="w-4 h-4 text-pink-400 dark:text-pink-300" />
+                  ) : (
+                    <CreditCard className="w-4 h-4 text-pink-400 dark:text-pink-300" />
+                  )}
+                </div>
+                <p className="text-sm font-medium text-gray-400 dark:text-gray-200 uppercase tracking-wide">
+                  Total a pagar
                 </p>
               </div>
-            )}
+              <p className="text-3xl sm:text-4xl font-bold text-white">
+                {selectedPkg ? formatCurrency(selectedTotalCents) : "R$ --"}
+              </p>
+              {selectedPkg && totals && (
+                <div className="mt-2 space-y-1">
+                  {paymentMethod === "pix" ? (
+                    <p className="text-sm text-green-400 dark:text-green-300 flex items-center gap-1.5">
+                      <Check className="w-4 h-4" />
+                      Economia de {formatCurrency(totals.card - totals.pix)} vs cartão
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-300 dark:text-gray-100">
+                        Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
+                        <span className="font-semibold text-white">
+                          {formatCurrency(
+                            approxInstallmentCents(
+                              totals.card,
+                              MAX_INSTALLMENTS_NO_INTEREST,
+                            ),
+                          )}
+                        </span>{" "}
+                        sem juros
+                      </p>
+                      <p className="text-sm text-green-400 dark:text-green-300">
+                        💡 No PIX: {formatCurrency(totals.pix)} (economize{" "}
+                        {formatCurrency(totals.card - totals.pix)})
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+              {!selectedPkg && (
+                <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                  Selecione um pacote acima para continuar
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handlePurchase}
+              disabled={!selectedPackage || purchaseMutation.isPending}
+              title={
+                !selectedPackage ? "Selecione um pacote primeiro" : undefined
+              }
+              className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base transition-all shadow-lg ${
+                selectedPackage
+                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                  : "bg-gray-700 dark:bg-gray-500 text-gray-400 dark:text-gray-300 cursor-not-allowed"
+              }`}
+            >
+              {purchaseMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  {paymentMethod === "pix" ? (
+                    <QrCode className="w-5 h-5" />
+                  ) : (
+                    <CreditCard className="w-5 h-5" />
+                  )}
+                  {paymentMethod === "pix" ? "Pagar via PIX" : "Pagar com Cartão"}
+                </>
+              )}
+            </button>
           </div>
-          <button
-            onClick={handlePurchase}
-            disabled={!selectedPackage || purchaseMutation.isPending}
-            title={
-              !selectedPackage ? "Selecione um pacote primeiro" : undefined
-            }
-            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {purchaseMutation.isPending ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              <>
-                {paymentMethod === "pix" ? (
-                  <QrCode className="w-5 h-5" />
-                ) : (
-                  <CreditCard className="w-5 h-5" />
-                )}
-                {paymentMethod === "pix" ? "Pagar via PIX" : "Pagar com cartão"}
-              </>
-            )}
-          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-300 mt-4 text-center sm:text-left">
+            🔒 Você será redirecionado para o checkout seguro (Stripe) para completar o pagamento.
+          </p>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Você será redirecionado para o checkout para completar o pagamento de
-          forma segura (PIX ou cartão).
-        </p>
       </div>
 
       {/* Info Section */}

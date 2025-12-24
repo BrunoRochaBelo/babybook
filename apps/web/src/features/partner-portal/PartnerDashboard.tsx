@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Clock,
   Gift,
+  Image,
   Lightbulb,
   Sparkles,
   TrendingUp,
@@ -722,70 +723,81 @@ export function PartnerDashboard() {
         ) : (
           <>
             {/* Mobile: cards */}
-            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
-              {deliveries.map((delivery) => (
-                <div
-                  key={delivery.id}
-                  className="flex items-center justify-between gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    {(() => {
-                      const normalizedStatus = normalizePartnerDeliveryStatus(
-                        delivery.status,
-                      );
-                      const voucherMissingTitle =
-                        normalizedStatus === "ready"
-                          ? "Entrega pronta. Gere o voucher nos detalhes."
-                          : "O voucher aparece após a entrega ficar pronta.";
+            <div className="lg:hidden grid gap-3 p-1">
+              {deliveries.map((delivery) => {
+                const normalizedStatus = normalizePartnerDeliveryStatus(
+                  delivery.status,
+                );
+                const voucherMissingTitle =
+                  normalizedStatus === "ready"
+                    ? "Entrega pronta. Gere o voucher nos detalhes."
+                    : "O voucher aparece após a entrega ficar pronta.";
 
-                      return (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900 dark:text-white truncate">
-                              {delivery.title ||
-                                delivery.client_name ||
-                                "Sem título"}
-                            </p>
-                            <DeliveryStatusBadge status={delivery.status} />
-                          </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400">
-                            {delivery.client_name && (
-                              <span>{delivery.client_name}</span>
-                            )}
-                            <span>•</span>
-                            <span>{formatDate(delivery.created_at)}</span>
-                          </div>
-                          {delivery.voucher_code ? (
-                            <span className="mt-1 inline-block text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">
-                              {delivery.voucher_code}
-                            </span>
-                          ) : (
-                            <span
-                              className="mt-1 inline-block text-xs text-gray-400 dark:text-gray-500"
-                              title={voucherMissingTitle}
-                            >
-                              {PLACEHOLDER_NOT_GENERATED}
-                            </span>
-                          )}
-                          <div className="mt-2">
-                            <CreditStatusBadge
-                              status={delivery.credit_status}
-                            />
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+                return (
                   <Link
+                    key={delivery.id}
                     to={`/partner/deliveries/${delivery.id}`}
+                    className="block rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all"
                     aria-label={`Abrir detalhes da entrega ${delivery.title || delivery.client_name || "sem título"}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex-shrink-0"
                   >
-                    Abrir detalhes
-                    <ChevronRight className="w-4 h-4" />
+                    {/* Main Content */}
+                    <div className="p-4">
+                      {/* Row 1: Icon + Title/Client + Status Badge */}
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-11 h-11 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-medium text-gray-900 dark:text-white text-base leading-tight line-clamp-2">
+                                {delivery.title || delivery.client_name || "Sem título"}
+                              </h3>
+                              {delivery.client_name && delivery.title && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                                  {delivery.client_name}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex-shrink-0">
+                              <DeliveryStatusBadge status={delivery.status} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 2: Date + Voucher Code */}
+                      <div className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {formatDate(delivery.created_at)}
+                        </span>
+                        {delivery.voucher_code ? (
+                          <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-md">
+                            {delivery.voucher_code}
+                          </span>
+                        ) : (
+                          <span
+                            className="text-xs text-gray-400 dark:text-gray-500 italic"
+                            title={voucherMissingTitle}
+                          >
+                            {PLACEHOLDER_NOT_GENERATED}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 3: Credit Badge + Action */}
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+                      <CreditStatusBadge status={delivery.credit_status} />
+                      
+                      <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors">
+                        Ver
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
                   </Link>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Desktop: table */}
@@ -815,23 +827,43 @@ export function PartnerDashboard() {
                   {deliveries.map((delivery) => (
                     <tr
                       key={delivery.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      className="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {delivery.title || "Sem título"}
-                        </span>
+                      <td className="px-4 py-2.5">
+                        <Link
+                          to={`/partner/deliveries/${delivery.id}`}
+                          className="flex items-center gap-3 min-w-0"
+                          aria-label={`Abrir detalhes da entrega ${
+                            delivery.title ||
+                            delivery.client_name ||
+                            "sem título"
+                          }`}
+                        >
+                          <div className="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-gray-900 dark:text-white truncate">
+                              {delivery.title ||
+                                delivery.client_name ||
+                                "Sem título"}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                              ID: {delivery.id}
+                            </div>
+                          </div>
+                        </Link>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
                         {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <DeliveryStatusBadge status={delivery.status} />
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
                         {formatDate(delivery.created_at)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         {(() => {
                           const normalizedStatus =
                             normalizePartnerDeliveryStatus(delivery.status);
@@ -861,7 +893,7 @@ export function PartnerDashboard() {
                           );
                         })()}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-2.5 text-right">
                         <Link
                           to={`/partner/deliveries/${delivery.id}`}
                           className="inline-flex items-center gap-1 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"

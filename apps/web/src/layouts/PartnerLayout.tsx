@@ -6,29 +6,29 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
   ChevronDown,
+  Coins,
   CreditCard,
   Home,
   LogOut,
-  Menu,
   Monitor,
   Moon,
   Package,
   Settings,
   Sparkles,
   Sun,
-  X,
 } from "lucide-react";
+import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
 import { useTheme } from "@/hooks/useTheme";
-import { getPartnerProfile } from "@/features/partner-portal/api";
+import { getPartnerProfile, getPartnerDashboardStats } from "@/features/partner-portal/api";
 import {
   PartnerPageHeaderContext,
   type PartnerPageHeaderBadgeTone,
@@ -41,6 +41,12 @@ const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
   { to: "/partner/deliveries", label: "Entregas", icon: Package, end: false },
   { to: "/partner/credits", label: "Créditos", icon: CreditCard, end: false },
+];
+
+// Rotas onde a navbar flutuante não deve aparecer
+const HIDE_NAV_ROUTES = [
+  "/partner/settings",
+  "/partner/notifications",
 ];
 
 // Placeholder notifications - TODO: integrate with real API
@@ -63,6 +69,7 @@ const MOCK_NOTIFICATIONS = [
 
 export function PartnerLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
@@ -76,7 +83,6 @@ export function PartnerLayout() {
 
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -86,6 +92,17 @@ export function PartnerLayout() {
     queryKey: ["partner", "profile"],
     queryFn: getPartnerProfile,
   });
+
+  // Fetch stats for credit balance
+  const { data: stats } = useQuery({
+    queryKey: ["partner", "stats"],
+    queryFn: getPartnerDashboardStats,
+    staleTime: 30_000, // Cache for 30s to avoid excessive refetches
+  });
+
+  const availableCredits = stats?.voucher_balance ?? 0;
+  const hasLowCredits = availableCredits <= 2;
+  const hasNoCredits = availableCredits === 0;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -163,30 +180,27 @@ export function PartnerLayout() {
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-              {NAV_LINKS.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.end}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
-                    )
-                  }
-                >
-                  <link.icon className="w-4 h-4" />
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
+
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
+              {/* Credit Balance Badge */}
+              <Link
+                to="/partner/credits"
+                title={`${availableCredits} créditos disponíveis. Clique para gerenciar.`}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95",
+                  hasNoCredits
+                    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-800"
+                    : hasLowCredits
+                      ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800"
+                      : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-800",
+                )}
+              >
+                <Coins className="w-4 h-4" />
+                <span>{availableCredits}</span>
+              </Link>
+
               {/* Notifications */}
               <div className="relative" ref={notificationsRef}>
                 <button
@@ -380,52 +394,14 @@ export function PartnerLayout() {
                 )}
               </div>
 
-              {/* Mobile Menu Button */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white"
-                aria-label="Menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
-              </button>
             </div>
           </div>
-
-          {/* Mobile Navigation */}
-          {isMobileMenuOpen && (
-            <nav className="md:hidden py-4 border-t border-gray-100 dark:border-gray-700">
-              {NAV_LINKS.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.end}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700",
-                    )
-                  }
-                >
-                  <link.icon className="w-5 h-5" />
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
-          )}
         </div>
       </header>
 
       {/* Main Content */}
       <PartnerPageHeaderContext.Provider value={{ setHeader: setPageHeader }}>
-        <main className="flex-1">
+        <main className="flex-1 pb-24">
           {/* Page header (mobile sticky) */}
           {pageHeader ? (
             <div className="md:hidden sticky top-16 z-30 border-b border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/80 backdrop-blur">
@@ -470,6 +446,69 @@ export function PartnerLayout() {
           <Outlet />
         </main>
       </PartnerPageHeaderContext.Provider>
+
+      {/* Floating Bottom Navigation - hidden on settings/notifications */}
+      {!HIDE_NAV_ROUTES.some(route => location.pathname.startsWith(route)) && (
+      <nav
+        className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center rounded-full border border-gray-200/80 dark:border-gray-600/50 bg-white/90 dark:bg-gray-800/90 px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05),0_0_20px_rgba(236,72,153,0.15)] backdrop-blur-md ring-1 ring-black/5 dark:ring-white/10"
+        aria-label="Navegação principal"
+      >
+        <LayoutGroup id="partner-nav">
+          {NAV_LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  cn(
+                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-colors duration-300",
+                    isActive
+                      ? "px-4 py-2.5 text-white"
+                      : "px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <motion.span
+                        layoutId="partner-nav-pill"
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_8px_20px_rgba(236,72,153,0.35)]"
+                        transition={{
+                          type: "spring",
+                          stiffness: 360,
+                          damping: 28,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10 inline-flex items-center gap-2">
+                      <Icon
+                        className={cn(
+                          "h-5 w-5 transition-colors duration-300",
+                          isActive ? "text-white" : "text-gray-500 dark:text-gray-400",
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "text-sm font-semibold tracking-tight transition-[opacity,transform] duration-300",
+                          isActive
+                            ? "translate-x-0 opacity-100"
+                            : "hidden sm:inline translate-x-2 opacity-0",
+                        )}
+                      >
+                        {link.label}
+                      </span>
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </LayoutGroup>
+      </nav>
+      )}
 
       {/* Offline Banner */}
       <OfflineBanner />
