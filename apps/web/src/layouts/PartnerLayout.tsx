@@ -162,10 +162,10 @@ export function PartnerLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border-b border-gray-200/60 dark:border-gray-700/50 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.02)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16 relative">
             {/* Logo & Brand */}
             <div className="flex items-center">
@@ -450,7 +450,7 @@ export function PartnerLayout() {
       {/* Floating Bottom Navigation - hidden on settings/notifications */}
       {!HIDE_NAV_ROUTES.some(route => location.pathname.startsWith(route)) && (
       <nav
-        className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center rounded-full border border-gray-200/80 dark:border-gray-600/50 bg-white/90 dark:bg-gray-800/90 px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05),0_0_20px_rgba(236,72,153,0.15)] backdrop-blur-md ring-1 ring-black/5 dark:ring-white/10"
+        className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center rounded-full border border-gray-200/60 dark:border-gray-600/40 bg-white/95 dark:bg-gray-800/95 px-2 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.03),0_0_30px_rgba(244,114,182,0.12)] backdrop-blur-lg ring-1 ring-black/[0.03] dark:ring-white/[0.06]"
         aria-label="Navegação principal"
       >
         <LayoutGroup id="partner-nav">
@@ -463,10 +463,10 @@ export function PartnerLayout() {
                 end={link.end}
                 className={({ isActive }) =>
                   cn(
-                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-colors duration-300",
+                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800",
                     isActive
                       ? "px-4 py-2.5 text-white"
-                      : "px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
+                      : "px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/60 dark:hover:bg-gray-700/40",
                   )
                 }
               >
@@ -475,31 +475,26 @@ export function PartnerLayout() {
                     {isActive && (
                       <motion.span
                         layoutId="partner-nav-pill"
-                        className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_8px_20px_rgba(236,72,153,0.35)]"
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_4px_16px_rgba(236,72,153,0.4),0_0_12px_rgba(244,114,182,0.3)]"
                         transition={{
                           type: "spring",
-                          stiffness: 360,
-                          damping: 28,
+                          stiffness: 400,
+                          damping: 30,
                         }}
                       />
                     )}
-                    <span className="relative z-10 inline-flex items-center gap-2">
+                    <span className="relative z-10 inline-flex items-center justify-center gap-2">
                       <Icon
                         className={cn(
-                          "h-5 w-5 transition-colors duration-300",
+                          "h-5 w-5 transition-all duration-300",
                           isActive ? "text-white" : "text-gray-500 dark:text-gray-400",
                         )}
                       />
-                      <span
-                        className={cn(
-                          "text-sm font-semibold tracking-tight transition-[opacity,transform] duration-300",
-                          isActive
-                            ? "translate-x-0 opacity-100"
-                            : "hidden sm:inline translate-x-2 opacity-0",
-                        )}
-                      >
-                        {link.label}
-                      </span>
+                      {isActive && (
+                        <span className="text-sm font-semibold tracking-tight">
+                          {link.label}
+                        </span>
+                      )}
                     </span>
                   </>
                 )}

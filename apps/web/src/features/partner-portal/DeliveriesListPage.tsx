@@ -1926,12 +1926,12 @@ export function DeliveriesListPage() {
           title={
             searchTerm || statusFilter !== "all"
               ? "Nenhuma entrega encontrada"
-              : "Nenhuma entrega ainda"
+              : "Tudo pronto para começar! 🎉"
           }
           description={
             searchTerm || statusFilter !== "all"
-              ? "Tente ajustar seus filtros de busca."
-              : "Crie sua primeira entrega para começar."
+              ? "Tente ajustar os filtros ou buscar algo diferente."
+              : "Crie sua primeira entrega e comece a encantar seus clientes."
           }
           primaryAction={
             !searchTerm && statusFilter === "all"

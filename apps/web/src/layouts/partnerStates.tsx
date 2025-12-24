@@ -57,7 +57,7 @@ function PrimaryAction({ action }: { action: PartnerStateAction }) {
   const Icon = action.icon;
 
   const baseClass =
-    "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-pink-500 text-white hover:bg-pink-600 transition-colors";
+    "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm hover:shadow-md hover:shadow-pink-500/20 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2";
 
   if ("to" in action && typeof action.to === "string") {
     return (
@@ -73,7 +73,7 @@ function PrimaryAction({ action }: { action: PartnerStateAction }) {
       type="button"
       onClick={action.onClick}
       disabled={action.disabled}
-      className={cn(baseClass, action.disabled ? "opacity-60" : null)}
+      className={cn(baseClass, action.disabled ? "opacity-60 cursor-not-allowed" : null)}
     >
       {Icon ? <Icon className="w-4 h-4" /> : null}
       {action.label}
@@ -85,7 +85,7 @@ function SecondaryAction({ action }: { action: PartnerStateAction }) {
   const Icon = action.icon;
 
   const baseClass =
-    "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors";
+    "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-pink-300 dark:hover:border-pink-700 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50/50 dark:hover:bg-pink-950/20 active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2";
 
   if ("to" in action && typeof action.to === "string") {
     return (
@@ -101,7 +101,7 @@ function SecondaryAction({ action }: { action: PartnerStateAction }) {
       type="button"
       onClick={action.onClick}
       disabled={action.disabled}
-      className={cn(baseClass, action.disabled ? "opacity-60" : null)}
+      className={cn(baseClass, action.disabled ? "opacity-60 cursor-not-allowed" : null)}
     >
       {Icon ? <Icon className="w-4 h-4" /> : null}
       {action.label}
@@ -131,17 +131,25 @@ function StateBody({
 }) {
   const styles = toneStyles(tone);
 
-  // Cores do círculo do ícone baseado no tone
+  // Cores do círculo do ícone baseado no tone - mais suaves
   const iconCircleClass =
     tone === "danger"
-      ? "bg-red-100 dark:bg-red-900/30"
+      ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-100 dark:ring-red-900/40"
       : tone === "warning"
-        ? "bg-yellow-100 dark:bg-yellow-900/30"
-        : "bg-gray-100 dark:bg-gray-700";
+        ? "bg-amber-50 dark:bg-amber-900/20 ring-1 ring-amber-100 dark:ring-amber-900/40"
+        : "bg-pink-50 dark:bg-pink-900/20 ring-1 ring-pink-100 dark:ring-pink-900/40";
+
+  // Ícone em rosa para neutral (mais acolhedor)
+  const iconClass =
+    tone === "danger"
+      ? "text-red-500 dark:text-red-400"
+      : tone === "warning"
+        ? "text-amber-500 dark:text-amber-400"
+        : "text-pink-500 dark:text-pink-400";
 
   const wrapClass =
     variant === "page"
-      ? "bg-white dark:bg-gray-800 rounded-2xl border shadow-lg p-8"
+      ? "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg p-8 animate-scale-in"
       : "";
 
   const innerClass =
@@ -152,30 +160,32 @@ function StateBody({
   return (
     <div className={cn(wrapClass, styles.border)}>
       <div className={cn(innerClass, padClass)}>
-        {/* Ícone grande em círculo */}
+        {/* Ícone grande em círculo com animação */}
         {Icon ? (
           <div
             className={cn(
-              "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+              "w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center transition-transform duration-300 hover:scale-105",
               iconCircleClass,
             )}
           >
-            <Icon className={cn("w-8 h-8", styles.icon)} />
+            <Icon className={cn("w-8 h-8", iconClass)} />
           </div>
         ) : null}
 
-        {/* Título */}
-        <h2 className={cn("text-xl font-bold mb-2", styles.title)}>{title}</h2>
+        {/* Título mais suave */}
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2.5">
+          {title}
+        </h2>
 
-        {/* Descrição */}
+        {/* Descrição com cor mais suave */}
         {description ? (
-          <p className={cn("text-sm mb-4", styles.description)}>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-5 leading-relaxed max-w-sm mx-auto">
             {description}
           </p>
         ) : null}
 
         {/* Conteúdo adicional (ex: detalhes do erro) */}
-        {children ? <div className="mb-4">{children}</div> : null}
+        {children ? <div className="mb-5">{children}</div> : null}
 
         {/* Botões de ação */}
         {actions?.primary || actions?.secondary ? (

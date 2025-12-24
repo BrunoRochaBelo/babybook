@@ -58,79 +58,365 @@
 }
 
 /* =============================================================================
-   Partner Portal Design Tokens
+   Partner Portal Design Tokens — BabySoft UI
+   Princípios: suave, acolhedor, acessível, consistente
    ============================================================================= */
 
 :root {
-  /* Partner Primary Color (Pink) */
+  /* =========================================================================
+     CORES — Paleta light (sem preto/branco puros para conforto visual)
+     ========================================================================= */
+  
+  /* Primary (Rosa acolhedor) */
   --partner-primary: #ec4899;
   --partner-primary-hover: #db2777;
   --partner-primary-light: #fdf2f8;
-  --partner-primary-dark: #9d174d;
+  --partner-primary-soft: rgba(236, 72, 153, 0.1);
+  --partner-primary-glow: rgba(236, 72, 153, 0.25);
   
-  /* Partner Surfaces */
-  --partner-surface: #ffffff;
+  /* Surfaces (off-white, não branco puro) */
+  --partner-surface: #fefefe;
   --partner-surface-elevated: #ffffff;
-  --partner-bg: #f9fafb;
+  --partner-surface-muted: #f8f9fa;
+  --partner-bg: #f7f8f9;
   
-  /* Partner Text */
-  --partner-text: #111827;
+  /* Text (cinza suave, não preto puro) */
+  --partner-text: #1a1d21;
+  --partner-text-secondary: #4b5563;
   --partner-text-muted: #6b7280;
   --partner-text-subtle: #9ca3af;
   
-  /* Partner Borders */
-  --partner-border: #e5e7eb;
-  --partner-border-hover: #f9a8d4;
+  /* Borders (translúcidos e suaves) */
+  --partner-border: rgba(0, 0, 0, 0.08);
+  --partner-border-strong: rgba(0, 0, 0, 0.12);
+  --partner-border-hover: rgba(236, 72, 153, 0.3);
   
-  /* Partner Spacing */
-  --partner-space-xs: 0.25rem;
-  --partner-space-sm: 0.5rem;
-  --partner-space-md: 1rem;
-  --partner-space-lg: 1.5rem;
-  --partner-space-xl: 2rem;
+  /* Status Colors (tons acolhedores) */
+  --partner-success: #10b981;
+  --partner-success-soft: rgba(16, 185, 129, 0.1);
+  --partner-warning: #f59e0b;
+  --partner-warning-soft: rgba(245, 158, 11, 0.1);
+  --partner-error: #ef4444;
+  --partner-error-soft: rgba(239, 68, 68, 0.1);
+  --partner-info: #3b82f6;
+  --partner-info-soft: rgba(59, 130, 246, 0.1);
   
-  /* Partner Radius */
-  --partner-radius-sm: 0.5rem;
-  --partner-radius-md: 0.75rem;
-  --partner-radius-lg: 1rem;
-  --partner-radius-xl: 1.5rem;
+  /* =========================================================================
+     ESPAÇAMENTO — Escala 8pt (8/12/16/24/32/40/48)
+     ========================================================================= */
+  --partner-space-1: 0.25rem;   /* 4px */
+  --partner-space-2: 0.5rem;    /* 8px */
+  --partner-space-3: 0.75rem;   /* 12px */
+  --partner-space-4: 1rem;      /* 16px */
+  --partner-space-5: 1.25rem;   /* 20px */
+  --partner-space-6: 1.5rem;    /* 24px */
+  --partner-space-8: 2rem;      /* 32px */
+  --partner-space-10: 2.5rem;   /* 40px */
+  --partner-space-12: 3rem;     /* 48px */
   
-  /* Partner Shadows */
-  --partner-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --partner-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --partner-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* =========================================================================
+     RADIUS — Arredondamentos suaves
+     ========================================================================= */
+  --partner-radius-sm: 0.375rem;  /* 6px */
+  --partner-radius-md: 0.5rem;    /* 8px */
+  --partner-radius-lg: 0.75rem;   /* 12px */
+  --partner-radius-xl: 1rem;      /* 16px */
+  --partner-radius-2xl: 1.5rem;   /* 24px */
+  --partner-radius-full: 9999px;
   
-  /* Partner Transitions */
-  --partner-transition-fast: 150ms ease;
-  --partner-transition-normal: 200ms ease;
-  --partner-transition-slow: 300ms ease;
+  /* =========================================================================
+     SOMBRAS — Difusas e naturais (não agressivas)
+     ========================================================================= */
+  --partner-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --partner-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --partner-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --partner-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --partner-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --partner-shadow-glow: 0 0 20px rgba(236, 72, 153, 0.15);
+  
+  /* =========================================================================
+     TRANSIÇÕES — Orgânicas e suaves
+     ========================================================================= */
+  --partner-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --partner-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --partner-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --partner-duration-fast: 150ms;
+  --partner-duration-normal: 200ms;
+  --partner-duration-slow: 300ms;
+  --partner-duration-slower: 500ms;
+  
+  --partner-transition-fast: var(--partner-duration-fast) var(--partner-ease);
+  --partner-transition-normal: var(--partner-duration-normal) var(--partner-ease);
+  --partner-transition-slow: var(--partner-duration-slow) var(--partner-ease);
+  
+  /* =========================================================================
+     TIPOGRAFIA — Escala fluída com clamp()
+     ========================================================================= */
+  --partner-font-xs: clamp(0.6875rem, 0.65rem + 0.15vw, 0.75rem);    /* 11-12px */
+  --partner-font-sm: clamp(0.8125rem, 0.775rem + 0.15vw, 0.875rem);  /* 13-14px */
+  --partner-font-base: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);      /* 15-16px */
+  --partner-font-lg: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);      /* 17-18px */
+  --partner-font-xl: clamp(1.1875rem, 1.1rem + 0.35vw, 1.25rem);     /* 19-20px */
+  --partner-font-2xl: clamp(1.375rem, 1.25rem + 0.5vw, 1.5rem);      /* 22-24px */
+  --partner-font-3xl: clamp(1.625rem, 1.5rem + 0.5vw, 1.875rem);     /* 26-30px */
+  
+  /* =========================================================================
+     FOCO — Anel difuso acessível
+     ========================================================================= */
+  --partner-focus-ring: 0 0 0 3px rgba(236, 72, 153, 0.35);
+  --partner-focus-ring-offset: 0 0 0 2px var(--partner-surface);
 }
 
+/* =============================================================================
+   DARK MODE — Tons acolhedores, não preto absoluto
+   ============================================================================= */
 .dark {
-  /* Partner Primary Color (Pink) - Dark Mode */
+  /* Primary (Rosa luminoso) */
   --partner-primary: #f472b6;
   --partner-primary-hover: #ec4899;
-  --partner-primary-light: rgba(244, 114, 182, 0.1);
-  --partner-primary-dark: #be185d;
+  --partner-primary-light: rgba(244, 114, 182, 0.15);
+  --partner-primary-soft: rgba(244, 114, 182, 0.1);
+  --partner-primary-glow: rgba(244, 114, 182, 0.3);
   
-  /* Partner Surfaces - Dark Mode */
-  --partner-surface: #1f2937;
-  --partner-surface-elevated: #374151;
-  --partner-bg: #111827;
+  /* Surfaces (cinza profundo, não preto puro) */
+  --partner-surface: #1e2024;
+  --partner-surface-elevated: #282c32;
+  --partner-surface-muted: #16181c;
+  --partner-bg: #12141a;
   
-  /* Partner Text - Dark Mode */
-  --partner-text: #f9fafb;
+  /* Text (off-white, não branco puro) */
+  --partner-text: #f0f2f5;
+  --partner-text-secondary: #c9cdd4;
   --partner-text-muted: #9ca3af;
   --partner-text-subtle: #6b7280;
   
-  /* Partner Borders - Dark Mode */
-  --partner-border: #374151;
-  --partner-border-hover: #be185d;
+  /* Borders (translúcidos com brilho sutil) */
+  --partner-border: rgba(255, 255, 255, 0.08);
+  --partner-border-strong: rgba(255, 255, 255, 0.12);
+  --partner-border-hover: rgba(244, 114, 182, 0.4);
   
-  /* Partner Shadows - Dark Mode */
-  --partner-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --partner-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --partner-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  /* Status Colors - Dark variants */
+  --partner-success: #34d399;
+  --partner-success-soft: rgba(52, 211, 153, 0.15);
+  --partner-warning: #fbbf24;
+  --partner-warning-soft: rgba(251, 191, 36, 0.15);
+  --partner-error: #f87171;
+  --partner-error-soft: rgba(248, 113, 113, 0.15);
+  --partner-info: #60a5fa;
+  --partner-info-soft: rgba(96, 165, 250, 0.15);
+  
+  /* Shadows - More pronounced for dark mode */
+  --partner-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --partner-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --partner-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --partner-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --partner-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --partner-shadow-glow: 0 0 24px rgba(244, 114, 182, 0.2);
+  
+  /* Focus ring for dark mode */
+  --partner-focus-ring: 0 0 0 3px rgba(244, 114, 182, 0.4);
+}
+
+/* =============================================================================
+   UTILITÁRIOS BABYSOFT
+   ============================================================================= */
+
+/* Transição suave global */
+.transition-soft {
+  transition: all var(--partner-transition-slow);
+}
+
+/* Foco acessível difuso */
+.focus-ring-soft:focus-visible {
+  outline: none;
+  box-shadow: var(--partner-focus-ring-offset), var(--partner-focus-ring);
+}
+
+/* Hover suave com elevação */
+.hover-lift {
+  transition: transform var(--partner-transition-normal), 
+              box-shadow var(--partner-transition-normal);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--partner-shadow-lg);
+}
+
+/* Pressão suave no click */
+.press-scale:active {
+  transform: scale(0.98);
+}
+
+/* =============================================================================
+   ACESSIBILIDADE — Foco, toque e contraste
+   ============================================================================= */
+
+/* Área de toque mínima (44x44px WCAG) */
+.touch-target {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Hitbox invisível para elementos pequenos */
+.touch-target::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Input acessível com foco suave */
+.input-soft {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--partner-space-3) var(--partner-space-4);
+  background-color: var(--partner-surface);
+  border: 1.5px solid var(--partner-border);
+  border-radius: var(--partner-radius-lg);
+  color: var(--partner-text);
+  font-size: var(--partner-font-base);
+  transition: border-color var(--partner-transition-fast),
+              box-shadow var(--partner-transition-fast);
+}
+
+.input-soft::placeholder {
+  color: var(--partner-text-subtle);
+}
+
+.input-soft:focus {
+  outline: none;
+  border-color: var(--partner-primary);
+  box-shadow: var(--partner-focus-ring);
+}
+
+.input-soft:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botão primário acessível */
+.btn-primary-soft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--partner-space-2);
+  min-height: 44px;
+  padding: var(--partner-space-3) var(--partner-space-6);
+  background: linear-gradient(135deg, var(--partner-primary), #db2777);
+  color: white;
+  font-weight: 500;
+  font-size: var(--partner-font-base);
+  border: none;
+  border-radius: var(--partner-radius-lg);
+  cursor: pointer;
+  transition: transform var(--partner-transition-fast),
+              box-shadow var(--partner-transition-fast),
+              filter var(--partner-transition-fast);
+}
+
+.btn-primary-soft:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--partner-shadow-md), var(--partner-shadow-glow);
+}
+
+.btn-primary-soft:active {
+  transform: scale(0.98);
+}
+
+.btn-primary-soft:focus-visible {
+  outline: none;
+  box-shadow: var(--partner-focus-ring-offset), var(--partner-focus-ring);
+}
+
+.btn-primary-soft:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Botão secundário (outline) */
+.btn-secondary-soft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--partner-space-2);
+  min-height: 44px;
+  padding: var(--partner-space-3) var(--partner-space-6);
+  background: transparent;
+  color: var(--partner-text);
+  font-weight: 500;
+  font-size: var(--partner-font-base);
+  border: 1.5px solid var(--partner-border-strong);
+  border-radius: var(--partner-radius-lg);
+  cursor: pointer;
+  transition: all var(--partner-transition-fast);
+}
+
+.btn-secondary-soft:hover {
+  border-color: var(--partner-primary);
+  color: var(--partner-primary);
+  background: var(--partner-primary-soft);
+}
+
+.btn-secondary-soft:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary-soft:focus-visible {
+  outline: none;
+  box-shadow: var(--partner-focus-ring-offset), var(--partner-focus-ring);
+}
+
+/* Card com hover suave */
+.card-soft {
+  background: var(--partner-surface);
+  border: 1px solid var(--partner-border);
+  border-radius: var(--partner-radius-xl);
+  box-shadow: var(--partner-shadow-sm);
+  transition: transform var(--partner-transition-normal),
+              box-shadow var(--partner-transition-normal),
+              border-color var(--partner-transition-normal);
+}
+
+.card-soft:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--partner-shadow-md);
+  border-color: var(--partner-border-hover);
+}
+
+/* Skip link para navegação por teclado */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: var(--partner-space-2) var(--partner-space-4);
+  background: var(--partner-primary);
+  color: white;
+  z-index: 100;
+  transition: top var(--partner-transition-fast);
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Reduzir movimento para usuários que preferem */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
@@ -163,3 +449,102 @@ h4 {
     box-shadow: 0 0 0 8px rgba(236, 72, 153, 0);
   }
 }
+
+/* =============================================================================
+   Microinterações BabySoft
+   ============================================================================= */
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale in animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Success check animation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Utility classes for animations */
+.animate-fade-in {
+  animation: fadeIn var(--partner-duration-normal) var(--partner-ease);
+}
+
+.animate-slide-up {
+  animation: slideUp var(--partner-duration-normal) var(--partner-ease);
+}
+
+.animate-slide-down {
+  animation: slideDown var(--partner-duration-normal) var(--partner-ease);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--partner-duration-normal) var(--partner-ease);
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  animation: slideUp var(--partner-duration-normal) var(--partner-ease) backwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
