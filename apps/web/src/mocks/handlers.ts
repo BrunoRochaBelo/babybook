@@ -761,7 +761,7 @@ export const handlers = [
     }
 
     const url = new URL(request.url);
-    const statusFilter = url.searchParams.get("status") ?? undefined;
+    const statusFilter = url.searchParams.get("status_filter") ?? url.searchParams.get("status") ?? undefined;
     const includeArchivedParam =
       url.searchParams.get("include_archived") ?? "false";
     const includeArchived =
