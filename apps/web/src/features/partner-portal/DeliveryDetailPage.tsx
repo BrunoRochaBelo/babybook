@@ -300,7 +300,7 @@ export function DeliveryDetailPage() {
         {/* Back Navigation */}
         <Link
           to="/partner/deliveries"
-          className="hidden md:inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
+          className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 mb-4 transition-all duration-200 rounded-lg px-2 py-1 -ml-2"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar às entregas</span>

@@ -75,21 +75,21 @@
   --partner-primary-glow: rgba(236, 72, 153, 0.25);
   
   /* Surfaces (off-white, não branco puro) */
-  --partner-surface: #fefefe;
+  --partner-surface: #ffffff;
   --partner-surface-elevated: #ffffff;
-  --partner-surface-muted: #f8f9fa;
-  --partner-bg: #f7f8f9;
+  --partner-surface-muted: #f3f4f6;
+  --partner-bg: #e5e7eb;
   
-  /* Text (cinza suave, não preto puro) */
-  --partner-text: #1a1d21;
-  --partner-text-secondary: #4b5563;
-  --partner-text-muted: #6b7280;
-  --partner-text-subtle: #9ca3af;
+  /* Text (WCAG AA compliant - maior contraste) */
+  --partner-text: #030712;
+  --partner-text-secondary: #1f2937;
+  --partner-text-muted: #374151;
+  --partner-text-subtle: #4b5563;
   
-  /* Borders (translúcidos e suaves) */
-  --partner-border: rgba(0, 0, 0, 0.08);
-  --partner-border-strong: rgba(0, 0, 0, 0.12);
-  --partner-border-hover: rgba(236, 72, 153, 0.3);
+  /* Borders (significativamente mais visíveis) */
+  --partner-border: rgba(0, 0, 0, 0.15);
+  --partner-border-strong: rgba(0, 0, 0, 0.25);
+  --partner-border-hover: rgba(236, 72, 153, 0.5);
   
   /* Status Colors (tons acolhedores) */
   --partner-success: #10b981;
@@ -151,15 +151,16 @@
   --partner-transition-slow: var(--partner-duration-slow) var(--partner-ease);
   
   /* =========================================================================
-     TIPOGRAFIA — Escala fluída com clamp()
+     TIPOGRAFIA — Escala responsiva para conforto em todas as telas
+     Mínimo (mobile) → Máximo (desktop grande)
      ========================================================================= */
-  --partner-font-xs: clamp(0.6875rem, 0.65rem + 0.15vw, 0.75rem);    /* 11-12px */
-  --partner-font-sm: clamp(0.8125rem, 0.775rem + 0.15vw, 0.875rem);  /* 13-14px */
-  --partner-font-base: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);      /* 15-16px */
-  --partner-font-lg: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);      /* 17-18px */
-  --partner-font-xl: clamp(1.1875rem, 1.1rem + 0.35vw, 1.25rem);     /* 19-20px */
-  --partner-font-2xl: clamp(1.375rem, 1.25rem + 0.5vw, 1.5rem);      /* 22-24px */
-  --partner-font-3xl: clamp(1.625rem, 1.5rem + 0.5vw, 1.875rem);     /* 26-30px */
+  --partner-font-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.8125rem);     /* 12-13px */
+  --partner-font-sm: clamp(0.875rem, 0.825rem + 0.2vw, 0.9375rem);  /* 14-15px */
+  --partner-font-base: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem);     /* 16-17px */
+  --partner-font-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);     /* 18-20px */
+  --partner-font-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);       /* 20-24px */
+  --partner-font-2xl: clamp(1.5rem, 1.35rem + 0.6vw, 1.875rem);     /* 24-30px */
+  --partner-font-3xl: clamp(1.875rem, 1.7rem + 0.7vw, 2.25rem);     /* 30-36px */
   
   /* =========================================================================
      FOCO — Anel difuso acessível
@@ -179,22 +180,22 @@
   --partner-primary-soft: rgba(244, 114, 182, 0.1);
   --partner-primary-glow: rgba(244, 114, 182, 0.3);
   
-  /* Surfaces (cinza profundo, não preto puro) */
-  --partner-surface: #1e2024;
-  --partner-surface-elevated: #282c32;
-  --partner-surface-muted: #16181c;
-  --partner-bg: #12141a;
+  /* Surfaces (cinza profundo com melhor contraste) */
+  --partner-surface: #1f2328;
+  --partner-surface-elevated: #262b31;
+  --partner-surface-muted: #171a1e;
+  --partner-bg: #0f1114;
   
-  /* Text (off-white, não branco puro) */
-  --partner-text: #f0f2f5;
-  --partner-text-secondary: #c9cdd4;
-  --partner-text-muted: #9ca3af;
-  --partner-text-subtle: #6b7280;
+  /* Text (maior contraste para leitura no escuro) */
+  --partner-text: #f8fafc;
+  --partner-text-secondary: #e2e8f0;
+  --partner-text-muted: #94a3b8;
+  --partner-text-subtle: #64748b;
   
-  /* Borders (translúcidos com brilho sutil) */
-  --partner-border: rgba(255, 255, 255, 0.08);
-  --partner-border-strong: rgba(255, 255, 255, 0.12);
-  --partner-border-hover: rgba(244, 114, 182, 0.4);
+  /* Borders (mais visíveis no dark mode) */
+  --partner-border: rgba(255, 255, 255, 0.12);
+  --partner-border-strong: rgba(255, 255, 255, 0.18);
+  --partner-border-hover: rgba(244, 114, 182, 0.5);
   
   /* Status Colors - Dark variants */
   --partner-success: #34d399;
@@ -419,6 +420,89 @@
   }
 }
 
+/* =============================================================================
+   ESPAÇAMENTO E CONTRASTE — Classes utilitárias
+   ============================================================================= */
+
+/* Seções com espaçamento consistente */
+.section-spacing {
+  padding: var(--partner-space-5) var(--partner-space-4);
+}
+
+@media (min-width: 640px) {
+  .section-spacing {
+    padding: var(--partner-space-6) var(--partner-space-6);
+  }
+}
+
+/* Card com melhor definição visual */
+.card-elevated {
+  background: var(--partner-surface);
+  border: 1px solid var(--partner-border-strong);
+  border-radius: var(--partner-radius-xl);
+  box-shadow: var(--partner-shadow-sm);
+}
+
+/* Título de seção */
+.section-title {
+  font-size: var(--partner-font-lg);
+  font-weight: 600;
+  color: var(--partner-text);
+  margin-bottom: var(--partner-space-4);
+}
+
+/* Texto secundário com bom contraste */
+.text-contrast {
+  color: var(--partner-text-secondary);
+}
+
+/* Text muted mas ainda legível */
+.text-accessible-muted {
+  color: var(--partner-text-muted);
+}
+
+/* Divisor suave */
+.divider-soft {
+  height: 1px;
+  background: var(--partner-border);
+  margin: var(--partner-space-4) 0;
+}
+
+/* Gap consistente para grids */
+.gap-comfortable {
+  gap: var(--partner-space-4);
+}
+
+@media (min-width: 640px) {
+  .gap-comfortable {
+    gap: var(--partner-space-5);
+  }
+}
+
+/* Padding interno de cards */
+.card-padding {
+  padding: var(--partner-space-4);
+}
+
+@media (min-width: 640px) {
+  .card-padding {
+    padding: var(--partner-space-5);
+  }
+}
+
+/* Margem entre seções */
+.section-gap {
+  margin-bottom: var(--partner-space-6);
+}
+
+/* Badge com bom contraste */
+.badge-contrast {
+  font-size: var(--partner-font-xs);
+  font-weight: 600;
+  padding: var(--partner-space-1) var(--partner-space-2);
+  border-radius: var(--partner-radius-md);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -547,4 +631,234 @@ h4 {
 .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
 .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+/* =============================================================================
+   CONTRASTE WCAG AA — Overrides globais para tema claro
+   Aumenta contraste de textos cinza que não atingem 4.5:1
+   ============================================================================= */
+
+/* Textos secundários: gray-400/500 são muito claros no tema light */
+:root:not(.dark) .text-gray-400 {
+  color: #4b5563 !important; /* gray-600 */
+}
+
+:root:not(.dark) .text-gray-500 {
+  color: #374151 !important; /* gray-700 */
+}
+
+/* Placeholder também precisa de mais contraste */
+:root:not(.dark) .placeholder\:text-gray-400::placeholder {
+  color: #6b7280 !important; /* gray-500 */
+}
+
+:root:not(.dark) .placeholder\:text-gray-500::placeholder {
+  color: #4b5563 !important; /* gray-600 */
+}
+
+/* Bordas mais visíveis */
+:root:not(.dark) .border-gray-200 {
+  border-color: #d1d5db !important; /* gray-300 */
+}
+
+:root:not(.dark) .border-gray-100 {
+  border-color: #e5e7eb !important; /* gray-200 */
+}
+
+/* Dividers */
+:root:not(.dark) .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e5e7eb !important; /* gray-200 */
+}
+
+/* Cards e containers - melhor definição visual */
+:root:not(.dark) .bg-white {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+:root:not(.dark) .bg-gray-50 {
+  background-color: #f3f4f6 !important;
+}
+
+:root:not(.dark) .bg-gray-100 {
+  background-color: #e5e7eb !important;
+}
+
+/* Bordas de cards mais visíveis */
+:root:not(.dark) .border-gray-200\/60,
+:root:not(.dark) .border-gray-200 {
+  border-color: #d1d5db !important; /* gray-300 */
+}
+
+:root:not(.dark) .border-gray-300 {
+  border-color: #9ca3af !important; /* gray-400 */
+}
+
+/* Sombras de cards mais pronunciadas */
+:root:not(.dark) .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+:root:not(.dark) .shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+:root:not(.dark) .shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Rounded cards com borda */
+:root:not(.dark) .rounded-xl.border {
+  border-color: #d1d5db !important;
+}
+
+:root:not(.dark) .rounded-2xl.border {
+  border-color: #d1d5db !important;
+}
+
+/* =============================================================================
+   TIPOGRAFIA RESPONSIVA — Escalas para diferentes tamanhos de tela
+   Garante conforto de leitura em todas as densidades de pixel
+   ============================================================================= */
+
+/* Base body font size - melhora legibilidade geral */
+html {
+  font-size: 16px;
+}
+
+/* Tablets e laptops pequenos */
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Laptops */
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Desktops */
+@media (min-width: 1280px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1536px) {
+  html {
+    font-size: 16.5px;
+  }
+}
+
+/* Ajustes específicos para fontes pequenas em telas grandes */
+@media (min-width: 1024px) {
+  /* text-xs no Tailwind = 12px, aumentar levemente para 12.5px em desktop */
+  .text-xs {
+    font-size: 0.78rem !important; /* ~12.5px */
+    line-height: 1.5 !important;
+  }
+  
+  /* text-sm no Tailwind = 14px, aumentar levemente para 14.5px em desktop */
+  .text-sm {
+    font-size: 0.9rem !important; /* ~14.5px */
+    line-height: 1.5 !important;
+  }
+  
+  /* text-base já é ok, mas garantir line-height confortável */
+  .text-base {
+    line-height: 1.6 !important;
+  }
+}
+
+/* Ajustes adicionais para telas muito grandes */
+@media (min-width: 1536px) {
+  .text-xs {
+    font-size: 0.8125rem !important; /* 13px */
+  }
+  
+  .text-sm {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+  
+  .text-base {
+    font-size: 1rem !important; /* 16px */
+  }
+  
+  .text-lg {
+    font-size: 1.125rem !important; /* 18px */
+  }
+}
+
+/* =============================================================================
+   LINE HEIGHT — Melhor legibilidade para blocos de texto
+   ============================================================================= */
+
+/* Parágrafos com line-height mais generoso */
+p {
+  line-height: 1.65;
+}
+
+/* Labels e texto de interface */
+label,
+.label {
+  line-height: 1.5;
+}
+
+/* Títulos com line-height mais apertado */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+}
+
+/* =============================================================================
+   SPACING RESPONSIVO — Respiro visual em telas maiores
+   ============================================================================= */
+
+@media (min-width: 1024px) {
+  /* Cards com mais padding interno */
+  .p-4 {
+    padding: 1.25rem !important; /* 20px */
+  }
+  
+  .p-5 {
+    padding: 1.5rem !important; /* 24px */
+  }
+  
+  .p-6 {
+    padding: 1.75rem !important; /* 28px */
+  }
+  
+  /* Gaps maiores */
+  .gap-4 {
+    gap: 1.25rem !important; /* 20px */
+  }
+  
+  .gap-6 {
+    gap: 1.75rem !important; /* 28px */
+  }
+}
+
+@media (min-width: 1536px) {
+  .p-4 {
+    padding: 1.5rem !important; /* 24px */
+  }
+  
+  .p-5 {
+    padding: 1.75rem !important; /* 28px */
+  }
+  
+  .p-6 {
+    padding: 2rem !important; /* 32px */
+  }
+  
+  .gap-4 {
+    gap: 1.5rem !important; /* 24px */
+  }
+  
+  .gap-6 {
+    gap: 2rem !important; /* 32px */
+  }
+}
 

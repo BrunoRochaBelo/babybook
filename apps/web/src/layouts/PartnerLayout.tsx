@@ -17,7 +17,7 @@ import {
   Home,
   LogOut,
   Monitor,
-  Moon,
+  MoonStar,
   Package,
   Settings,
   Sparkles,
@@ -316,20 +316,8 @@ export function PartnerLayout() {
                       </p>
                     </div>
 
-                    {/* Menu Items */}
-                    <div className="py-1">
-                      <Link
-                        to="/partner/settings"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-                      >
-                        <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        Configurações
-                      </Link>
-                    </div>
-
                     {/* Theme Selector */}
-                    <div className="border-t border-gray-100 dark:border-gray-700 py-2 px-4">
+                    <div className="py-2 px-4">
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                         Tema
                       </p>
@@ -345,7 +333,7 @@ export function PartnerLayout() {
                               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
-                          <Sun className="w-3.5 h-3.5" />
+                          <Sun className="w-5 h-5" />
                           <span className="hidden sm:inline">Claro</span>
                         </button>
                         <button
@@ -359,7 +347,7 @@ export function PartnerLayout() {
                               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
-                          <Moon className="w-3.5 h-3.5" />
+                          <MoonStar className="w-6 h-6" />
                           <span className="hidden sm:inline">Escuro</span>
                         </button>
                         <button
@@ -373,10 +361,22 @@ export function PartnerLayout() {
                               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                           )}
                         >
-                          <Monitor className="w-3.5 h-3.5" />
+                          <Monitor className="w-5 h-5" />
                           <span className="hidden sm:inline">Auto</span>
                         </button>
                       </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                      <Link
+                        to="/partner/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                        Configurações
+                      </Link>
                     </div>
 
                     {/* Logout */}
@@ -410,7 +410,7 @@ export function PartnerLayout() {
                   <Link
                     to={pageHeader.backTo}
                     aria-label={pageHeader.backLabel || "Voltar"}
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 hover:border-pink-300 dark:hover:border-pink-700 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-200"
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </Link>

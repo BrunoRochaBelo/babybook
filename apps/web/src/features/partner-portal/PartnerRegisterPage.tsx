@@ -613,7 +613,7 @@ export function PartnerRegisterPage() {
           <div className="text-center mt-6">
             <a
               href={proUrl}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-200 rounded-lg px-3 py-1.5"
             >
               ← Voltar para Baby Book Pro
             </a>
