@@ -59,6 +59,10 @@ import {
   PartnerErrorState,
 } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
+import {
+  DeliveryFiltersModal,
+  type DeliveryFilters,
+} from "./components/DeliveryFiltersModal";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -362,7 +366,6 @@ export function DeliveriesListPage() {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const applyingUrlStateRef = useRef(false);
 
   usePartnerPageHeader(
     useMemo(
@@ -430,6 +433,7 @@ export function DeliveriesListPage() {
     null,
   );
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
   const [presets, setPresets] = useState<DeliveriesFilterPreset[]>(() =>
     safeLoadPresets(),
@@ -439,8 +443,17 @@ export function DeliveriesListPage() {
   const [newPresetName, setNewPresetName] = useState("");
 
   const [statusFilter, setStatusFilter] = useState<FilterStatus>(initialStatus);
+  // Track the last processed URL to avoid re-running on state changes
+  const lastProcessedUrlRef = useRef<string>("");
 
   useEffect(() => {
+    // Only sync URL → State when the URL actually changed (browser navigation)
+    const currentUrl = searchParams.toString();
+    if (currentUrl === lastProcessedUrlRef.current) {
+      return;
+    }
+    lastProcessedUrlRef.current = currentUrl;
+
     // Se o usuário navega com back/forward e a URL muda, sincronizamos o estado
     // (sem reescrever a URL em loop).
     const nextStatus = (searchParams.get("status") as FilterStatus) || "all";
@@ -464,25 +477,7 @@ export function DeliveriesListPage() {
     const nextRedeemedFrom = searchParams.get("redeemed_from") || "";
     const nextRedeemedTo = searchParams.get("redeemed_to") || "";
 
-    const changed =
-      nextStatus !== statusFilter ||
-      nextQuery !== searchTerm ||
-      nextArchived !== includeArchived ||
-      nextSort !== sort ||
-      nextVoucher !== voucherFilter ||
-      nextRedeemed !== redeemedFilter ||
-      nextCredit !== creditFilter ||
-      nextView !== viewFilter ||
-      nextCreatedPeriod !== createdPeriod ||
-      nextCreatedFrom !== createdFrom ||
-      nextCreatedTo !== createdTo ||
-      nextRedeemedPeriod !== redeemedPeriod ||
-      nextRedeemedFrom !== redeemedFrom ||
-      nextRedeemedTo !== redeemedTo;
-
-    if (!changed) return;
-
-    applyingUrlStateRef.current = true;
+    // Apply all states from URL
     setStatusFilter(nextStatus);
     setSearchTerm(nextQuery);
     setDebouncedSearchTerm(nextQuery);
@@ -498,23 +493,7 @@ export function DeliveriesListPage() {
     setRedeemedPeriod(nextRedeemedPeriod);
     setRedeemedFrom(nextRedeemedFrom);
     setRedeemedTo(nextRedeemedTo);
-  }, [
-    createdFrom,
-    createdPeriod,
-    createdTo,
-    creditFilter,
-    includeArchived,
-    redeemedFilter,
-    redeemedFrom,
-    redeemedPeriod,
-    redeemedTo,
-    searchParams,
-    searchTerm,
-    sort,
-    statusFilter,
-    voucherFilter,
-    viewFilter,
-  ]);
+  }, [searchParams]);
 
   useEffect(() => {
     // Se o usuário/URL/preset selecionou "Arquivadas", garantir que o modo
@@ -540,11 +519,6 @@ export function DeliveriesListPage() {
 
   // Sincronizar URL a partir do estado atual (inclui filtros client-side)
   useEffect(() => {
-    if (applyingUrlStateRef.current) {
-      applyingUrlStateRef.current = false;
-      return;
-    }
-
     const next = new URLSearchParams(searchParams);
 
     if (statusFilter === "all") next.delete("status");
@@ -998,6 +972,104 @@ export function DeliveriesListPage() {
     setSelectedPresetId("");
   };
 
+  // Modal filter callbacks
+  const currentModalFilters: DeliveryFilters = useMemo(
+    () => ({
+      voucher: voucherFilter,
+      redeemed: redeemedFilter,
+      credit: creditFilter,
+      view: viewFilter,
+      sort,
+      createdPeriod,
+      createdFrom,
+      createdTo,
+      redeemedPeriod,
+      redeemedFrom,
+      redeemedTo,
+    }),
+    [
+      voucherFilter,
+      redeemedFilter,
+      creditFilter,
+      viewFilter,
+      sort,
+      createdPeriod,
+      createdFrom,
+      createdTo,
+      redeemedPeriod,
+      redeemedFrom,
+      redeemedTo,
+    ]
+  );
+
+  const applyFiltersFromModal = useCallback((filters: DeliveryFilters) => {
+    setVoucherFilter(filters.voucher as VoucherFilter);
+    setRedeemedFilter(filters.redeemed as RedeemedFilter);
+    setCreditFilter(filters.credit as CreditFilter);
+    setViewFilter(filters.view as ViewFilter);
+    setSort(filters.sort as SortOption);
+    setCreatedPeriod(filters.createdPeriod as PeriodFilter);
+    setCreatedFrom(filters.createdFrom);
+    setCreatedTo(filters.createdTo);
+    setRedeemedPeriod(filters.redeemedPeriod as PeriodFilter);
+    setRedeemedFrom(filters.redeemedFrom);
+    setRedeemedTo(filters.redeemedTo);
+  }, []);
+
+  const resetAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setIncludeArchived(false);
+    setSort("newest");
+    setVoucherFilter("all");
+    setRedeemedFilter("all");
+    setCreditFilter("all");
+    setViewFilter("all");
+    setCreatedPeriod("all");
+    setCreatedFrom("");
+    setCreatedTo("");
+    setRedeemedPeriod("all");
+    setRedeemedFrom("");
+    setRedeemedTo("");
+    setSelectedPresetId("");
+  }, []);
+
+  const createPresetFromModal = useCallback(
+    (name: string) => {
+      const now = new Date().toISOString();
+      const preset: DeliveriesFilterPreset = {
+        id: makePresetId(),
+        name,
+        created_at: now,
+        updated_at: now,
+        filters: currentFiltersSnapshot,
+      };
+      setPresets((prev) => [preset, ...prev]);
+      setSelectedPresetId(preset.id);
+    },
+    [currentFiltersSnapshot]
+  );
+
+  const advancedFiltersCount = useMemo(() => {
+    let count = 0;
+    if (voucherFilter !== "all") count++;
+    if (redeemedFilter !== "all") count++;
+    if (creditFilter !== "all") count++;
+    if (viewFilter !== "all") count++;
+    if (createdPeriod !== "all") count++;
+    if (redeemedPeriod !== "all") count++;
+    if (sort !== "newest") count++;
+    return count;
+  }, [
+    voucherFilter,
+    redeemedFilter,
+    creditFilter,
+    viewFilter,
+    createdPeriod,
+    redeemedPeriod,
+    sort,
+  ]);
+
   const computedCounts = useMemo(() => {
     const byStatus: Record<DeliveryStatus, number> = {
       draft: 0,
@@ -1214,63 +1286,80 @@ export function DeliveriesListPage() {
         </div>
       </div>
 
-      {/* Search + Sort */}
-      <div className="flex items-center gap-2 mb-4">
-        {/* Search */}
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por entrega, cliente ou voucher…"
-            data-search-input="true"
-            ref={searchInputRef}
-            aria-label="Buscar entregas"
-            title="Dica: pressione / para buscar"
-            className="w-full pl-9 pr-8 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-              aria-label="Limpar busca"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+      {/* ══════════════════════════════════════════════════════════════════════
+          NOVA FILTER BAR MODERNIZADA
+          ══════════════════════════════════════════════════════════════════════ */}
+
+      {/* Filter Bar Unificada */}
+      <div className="mb-4 space-y-3">
+        {/* Linha principal: Busca + Filtros + Ordenação */}
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar cliente, voucher…"
+              data-search-input="true"
+              ref={searchInputRef}
+              aria-label="Buscar entregas"
+              title="Dica: pressione / para buscar"
+              className="
+                w-full pl-10 pr-9 py-2.5
+                border border-gray-200 dark:border-gray-700 
+                bg-white dark:bg-gray-800/80 
+                text-gray-900 dark:text-white 
+                rounded-xl 
+                focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 
+                placeholder:text-gray-400 dark:placeholder:text-gray-500 
+                text-sm
+                transition-all duration-200
+                hover:border-gray-300 dark:hover:border-gray-600
+              "
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Limpar busca"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Botão Filtros - Abre o modal */}
+          <button
+            type="button"
+            onClick={() => setIsFiltersModalOpen(true)}
+            className={`
+              relative inline-flex items-center gap-2 px-4 py-2.5
+              border rounded-xl font-medium text-sm
+              transition-all duration-200
+              ${
+                advancedFiltersCount > 0
+                  ? "border-pink-300 dark:border-pink-700 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/50"
+                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }
+            `}
+            title="Filtros avançados"
+          >
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline">Filtros</span>
+            {advancedFiltersCount > 0 && (
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold">
+                {advancedFiltersCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Sort - Desktop (select) */}
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortOption)}
-          className="hidden md:block px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm min-w-[140px]"
-          aria-label="Ordenar"
-        >
-          <option value="newest">Mais recentes</option>
-          <option value="oldest">Mais antigas</option>
-          <option value="status">Por status</option>
-          <option value="client">Por cliente</option>
-        </select>
-
-        {/* Sort - Mobile (icon button that opens modal) */}
-        <button
-          type="button"
-          onClick={() => setIsSortModalOpen(true)}
-          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-          aria-label="Ordenar"
-          title="Ordenar"
-        >
-          <ArrowUpDown className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Status Chips (ghost style, inline) */}
-      <div className="mb-3">
+        {/* Status Chips - Redesenhados */}
         <div
-          className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1"
+          className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1 -mx-1 px-1"
           role="radiogroup"
           aria-label="Filtrar entregas por status"
         >
@@ -1370,152 +1459,139 @@ export function DeliveriesListPage() {
               setStatusFilter("archived");
             }}
           />
-
-          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-
-          <button
-            type="button"
-            onClick={() => {
-              const details = document.getElementById("presets-details");
-              if (details) {
-                (details as HTMLDetailsElement).open = !(
-                  details as HTMLDetailsElement
-                ).open;
-              }
-            }}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-              selectedPresetId
-                ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300"
-                : "bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-            title="Presets de filtros"
-          >
-            <Bookmark className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Presets</span>
-          </button>
         </div>
 
+        {/* Hint mobile - Deslize */}
         <p
-          className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center mt-1"
+          className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center -mt-2"
           aria-hidden="true"
         >
-          ← Deslize →
+          ← Deslize para ver mais →
         </p>
       </div>
 
-      {/* Presets Dropdown (hidden by default) */}
-      <details id="presets-details" className="mb-3 group">
-        <summary className="sr-only">Presets de filtros</summary>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <select
-              value={selectedPresetId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setSelectedPresetId(id);
-                const preset = [...BUILTIN_PRESETS, ...presets].find(
-                  (p) => p.id === id,
-                );
-                if (preset) applyPreset(preset);
-              }}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              aria-label="Preset de filtros"
-            >
-              <option value="">Selecionar preset…</option>
-              <optgroup label="Sugestões">
-                {BUILTIN_PRESETS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Meus presets">
-                {presets.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+      {/* Filtros Ativos - Chips removíveis */}
+      {hasAnyFiltersActive && (
+        <div className="mb-4 flex items-start gap-3 animate-fade-in">
+          <div className="flex flex-wrap gap-2 flex-1">
+            {statusFilter !== "all" && (
+              <ActiveFilterChip
+                label={`Status: ${statusConfig[statusFilter]?.label || statusFilter}`}
+                onClear={() => setStatusFilter("all")}
+              />
+            )}
 
-            {isCreatingPreset ? (
-              <div className="flex items-center gap-2">
-                <input
-                  value={newPresetName}
-                  onChange={(e) => setNewPresetName(e.target.value)}
-                  placeholder="Nome..."
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={createPreset}
-                  className="p-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600"
-                  title="Salvar"
-                >
-                  <Save className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreatingPreset(false);
-                    setNewPresetName("");
-                  }}
-                  className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                  title="Cancelar"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingPreset(true)}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  title="Salvar filtros atuais"
-                >
-                  <Save className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  disabled={!selectedUserPreset || isBuiltinPresetSelected}
-                  onClick={upsertSelectedPreset}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
-                  title={
-                    isBuiltinPresetSelected
-                      ? "Presets sugeridos não podem ser editados"
-                      : "Atualizar preset"
-                  }
-                >
-                  <Bookmark className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  disabled={!selectedUserPreset || isBuiltinPresetSelected}
-                  onClick={deleteSelectedPreset}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
-                  title={
-                    isBuiltinPresetSelected
-                      ? "Presets sugeridos não podem ser excluídos"
-                      : "Excluir preset"
-                  }
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+            {searchTerm.trim() && (
+              <ActiveFilterChip
+                label={`Busca: "${searchTerm.trim()}"`}
+                onClear={() => setSearchTerm("")}
+              />
+            )}
+
+            {voucherFilter !== "all" && (
+              <ActiveFilterChip
+                label={voucherFilter === "with" ? "Com voucher" : "Sem voucher"}
+                onClear={() => setVoucherFilter("all")}
+              />
+            )}
+
+            {redeemedFilter !== "all" && (
+              <ActiveFilterChip
+                label={
+                  redeemedFilter === "redeemed" ? "Resgatadas" : "Não resgatadas"
+                }
+                onClear={() => setRedeemedFilter("all")}
+              />
+            )}
+
+            {creditFilter !== "all" && (
+              <ActiveFilterChip
+                label={
+                  creditFilter === "reserved"
+                    ? "Crédito reservado"
+                    : creditFilter === "consumed"
+                      ? "Crédito usado"
+                      : creditFilter === "refunded"
+                        ? "Crédito devolvido"
+                        : creditFilter === "not_required"
+                          ? "Sem custo"
+                          : "Crédito: ?"
+                }
+                onClear={() => setCreditFilter("all")}
+              />
+            )}
+
+            {viewFilter !== "all" && (
+              <ActiveFilterChip
+                label="Precisa de ação"
+                onClear={() => setViewFilter("all")}
+              />
+            )}
+
+            {createdPeriod !== "all" && (
+              <ActiveFilterChip
+                label={
+                  createdPeriod === "custom" && (createdFrom || createdTo)
+                    ? `Criadas: ${createdFrom || "…"} → ${createdTo || "…"}`
+                    : `Criadas: ${getPeriodLabel(createdPeriod)}`
+                }
+                onClear={() => {
+                  setCreatedPeriod("all");
+                  setCreatedFrom("");
+                  setCreatedTo("");
+                }}
+              />
+            )}
+
+            {redeemedPeriod !== "all" && (
+              <ActiveFilterChip
+                label={
+                  redeemedPeriod === "custom" && (redeemedFrom || redeemedTo)
+                    ? `Resgate: ${redeemedFrom || "…"} → ${redeemedTo || "…"}`
+                    : `Resgate: ${getPeriodLabel(redeemedPeriod)}`
+                }
+                onClear={() => {
+                  setRedeemedPeriod("all");
+                  setRedeemedFrom("");
+                  setRedeemedTo("");
+                }}
+              />
+            )}
+
+            {sort !== "newest" && (
+              <ActiveFilterChip
+                label={
+                  sort === "oldest"
+                    ? "Mais antigas"
+                    : sort === "status"
+                      ? "Por status"
+                      : "Por cliente"
+                }
+                onClear={() => setSort("newest")}
+              />
             )}
           </div>
-        </div>
-      </details>
 
-      {/* Sort Modal (Mobile) */}
+          <button
+            type="button"
+            onClick={resetAllFilters}
+            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Limpar todos os filtros"
+          >
+            <X className="w-3.5 h-3.5" />
+            Limpar
+          </button>
+        </div>
+      )}
+
+      {/* Modal de Ordenação Mobile */}
       {isSortModalOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 animate-fade-in"
             onClick={() => setIsSortModalOpen(false)}
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl p-4 pb-8 animate-in slide-in-from-bottom">
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl p-4 pb-8 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Ordenar por
@@ -1542,7 +1618,7 @@ export function DeliveriesListPage() {
                     setSort(option.value as SortOption);
                     setIsSortModalOpen(false);
                   }}
-                  className={`w-full px-4 py-3 rounded-lg text-left text-sm font-medium transition-colors ${
+                  className={`w-full px-4 py-3 rounded-xl text-left text-sm font-medium transition-colors ${
                     sort === option.value
                       ? "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
                       : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -1556,367 +1632,27 @@ export function DeliveriesListPage() {
         </div>
       )}
 
-      {hasAnyFiltersActive ? (
-        <div className="mb-3 flex items-center gap-2 flex-wrap">
-          <div
-            className="text-xs text-gray-500 dark:text-gray-400 flex-1 min-w-0 truncate"
-            title={activeFiltersSummaryDisplay.full}
-          >
-            <span className="font-medium text-gray-700 dark:text-gray-200">
-              Filtros:
-            </span>{" "}
-            {activeFiltersSummaryDisplay.text}
-          </div>
-
-          <div className="w-full flex flex-wrap gap-2">
-            {statusFilter !== "all" ? (
-              <ActiveFilterChip
-                label={`Status: ${statusConfig[statusFilter]?.label || statusFilter}`}
-                onClear={() => setStatusFilter("all")}
-              />
-            ) : null}
-
-            {searchTerm.trim() ? (
-              <ActiveFilterChip
-                label={`Busca: “${searchTerm.trim()}”`}
-                onClear={() => setSearchTerm("")}
-              />
-            ) : null}
-
-            {voucherFilter !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  voucherFilter === "with" ? "Voucher: com" : "Voucher: sem"
-                }
-                onClear={() => setVoucherFilter("all")}
-              />
-            ) : null}
-
-            {redeemedFilter !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  redeemedFilter === "redeemed"
-                    ? "Resgate: resgatadas"
-                    : "Resgate: não resgatadas"
-                }
-                onClear={() => setRedeemedFilter("all")}
-              />
-            ) : null}
-
-            {creditFilter !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  creditFilter === "reserved"
-                    ? "Crédito: reservado"
-                    : creditFilter === "consumed"
-                      ? "Crédito: usado"
-                      : creditFilter === "refunded"
-                        ? "Crédito: devolvido"
-                        : creditFilter === "not_required"
-                          ? "Crédito: sem custo"
-                          : "Crédito: desconhecido"
-                }
-                onClear={() => setCreditFilter("all")}
-              />
-            ) : null}
-
-            {viewFilter !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  viewFilter === "needs_action"
-                    ? "Visão: precisa de ação"
-                    : "Visão"
-                }
-                onClear={() => setViewFilter("all")}
-              />
-            ) : null}
-
-            {createdPeriod !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  createdPeriod === "custom" &&
-                  (createdFrom.trim() || createdTo.trim())
-                    ? `Criadas: ${createdFrom.trim() || "…"} → ${
-                        createdTo.trim() || "…"
-                      }`
-                    : `Criadas: ${getPeriodLabel(createdPeriod)}`
-                }
-                onClear={() => {
-                  setCreatedPeriod("all");
-                  setCreatedFrom("");
-                  setCreatedTo("");
-                }}
-              />
-            ) : null}
-
-            {redeemedPeriod !== "all" ? (
-              <ActiveFilterChip
-                label={
-                  redeemedPeriod === "custom" &&
-                  (redeemedFrom.trim() || redeemedTo.trim())
-                    ? `Resgate (data): ${redeemedFrom.trim() || "…"} → ${
-                        redeemedTo.trim() || "…"
-                      }`
-                    : `Resgate (data): ${getPeriodLabel(redeemedPeriod)}`
-                }
-                onClear={() => {
-                  setRedeemedPeriod("all");
-                  setRedeemedFrom("");
-                  setRedeemedTo("");
-                }}
-              />
-            ) : null}
-
-            {sort !== "newest" ? (
-              <ActiveFilterChip
-                label={
-                  sort === "oldest"
-                    ? "Ordenação: mais antigas"
-                    : sort === "status"
-                      ? "Ordenação: status"
-                      : "Ordenação: cliente"
-                }
-                onClear={() => setSort("newest")}
-              />
-            ) : null}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setSearchTerm("");
-              setStatusFilter("all");
-              setIncludeArchived(false);
-              setSort("newest");
-              setVoucherFilter("all");
-              setRedeemedFilter("all");
-              setCreditFilter("all");
-              setViewFilter("all");
-              setCreatedPeriod("all");
-              setCreatedFrom("");
-              setCreatedTo("");
-              setRedeemedPeriod("all");
-              setRedeemedFrom("");
-              setRedeemedTo("");
-            }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-          >
-            <X className="w-3.5 h-3.5" />
-            Limpar
-          </button>
-        </div>
-      ) : null}
-
-      <details className="mb-3 group">
-        <summary className="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
-          <span className="inline-flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            Filtros avançados
-            {(voucherFilter !== "all" ||
-              redeemedFilter !== "all" ||
-              creditFilter !== "all" ||
-              viewFilter !== "all" ||
-              createdPeriod !== "all" ||
-              redeemedPeriod !== "all") && (
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold">
-                {(voucherFilter !== "all" ? 1 : 0) +
-                  (redeemedFilter !== "all" ? 1 : 0) +
-                  (creditFilter !== "all" ? 1 : 0) +
-                  (viewFilter !== "all" ? 1 : 0) +
-                  (createdPeriod !== "all" ? 1 : 0) +
-                  (redeemedPeriod !== "all" ? 1 : 0)}
-              </span>
-            )}
-          </span>
-          <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Visão
-            </span>
-            <select
-              value={viewFilter}
-              onChange={(e) => setViewFilter(e.target.value as ViewFilter)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Todas</option>
-              <option value="needs_action">Precisa de ação</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Voucher
-            </span>
-            <select
-              value={voucherFilter}
-              onChange={(e) =>
-                setVoucherFilter(e.target.value as VoucherFilter)
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Todos</option>
-              <option value="with">Com voucher</option>
-              <option value="without">Sem voucher</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Resgate
-            </span>
-            <select
-              value={redeemedFilter}
-              onChange={(e) =>
-                setRedeemedFilter(e.target.value as RedeemedFilter)
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Todas</option>
-              <option value="not_redeemed">Não resgatadas</option>
-              <option value="redeemed">Resgatadas</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Crédito
-            </span>
-            <select
-              value={creditFilter}
-              onChange={(e) => setCreditFilter(e.target.value as CreditFilter)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Todos</option>
-              <option value="reserved">Reservado</option>
-              <option value="consumed">Usado</option>
-              <option value="refunded">Devolvido</option>
-              <option value="not_required">Sem custo</option>
-              <option value="unknown">Desconhecido</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Criadas
-            </span>
-            <select
-              value={createdPeriod}
-              onChange={(e) => {
-                const next = e.target.value as PeriodFilter;
-                setCreatedPeriod(next);
-                if (next !== "custom") {
-                  setCreatedFrom("");
-                  setCreatedTo("");
-                }
-              }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Tudo</option>
-              <option value="last_7">Últimos 7 dias</option>
-              <option value="last_30">Últimos 30 dias</option>
-              <option value="last_90">Últimos 90 dias</option>
-              <option value="custom">Intervalo…</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Resgate (data)
-            </span>
-            <select
-              value={redeemedPeriod}
-              onChange={(e) => {
-                const next = e.target.value as PeriodFilter;
-                setRedeemedPeriod(next);
-                if (next !== "custom") {
-                  setRedeemedFrom("");
-                  setRedeemedTo("");
-                }
-                if (next !== "all") {
-                  setRedeemedFilter("redeemed");
-                }
-              }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              <option value="all">Tudo</option>
-              <option value="last_7">Últimos 7 dias</option>
-              <option value="last_30">Últimos 30 dias</option>
-              <option value="last_90">Últimos 90 dias</option>
-              <option value="custom">Intervalo…</option>
-            </select>
-          </label>
-        </div>
-
-        {(createdPeriod === "custom" || redeemedPeriod === "custom") && (
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {createdPeriod === "custom" ? (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
-                <div className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  Criadas — intervalo
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <label className="block">
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      De
-                    </span>
-                    <input
-                      type="date"
-                      value={createdFrom}
-                      onChange={(e) => setCreatedFrom(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      Até
-                    </span>
-                    <input
-                      type="date"
-                      value={createdTo}
-                      onChange={(e) => setCreatedTo(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </label>
-                </div>
-              </div>
-            ) : null}
-
-            {redeemedPeriod === "custom" ? (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
-                <div className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  Resgate — intervalo
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <label className="block">
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      De
-                    </span>
-                    <input
-                      type="date"
-                      value={redeemedFrom}
-                      onChange={(e) => setRedeemedFrom(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      Até
-                    </span>
-                    <input
-                      type="date"
-                      value={redeemedTo}
-                      onChange={(e) => setRedeemedTo(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </label>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-      </details>
+      {/* Modal de Filtros Avançados */}
+      <DeliveryFiltersModal
+        isOpen={isFiltersModalOpen}
+        onClose={() => setIsFiltersModalOpen(false)}
+        filters={currentModalFilters}
+        onApply={applyFiltersFromModal}
+        onReset={resetAllFilters}
+        presets={presets}
+        builtinPresets={BUILTIN_PRESETS}
+        selectedPresetId={selectedPresetId}
+        onSelectPreset={(preset) => {
+          setSelectedPresetId(preset.id);
+          applyPreset(preset);
+          setIsFiltersModalOpen(false);
+        }}
+        onSavePreset={createPresetFromModal}
+        onUpdatePreset={upsertSelectedPreset}
+        onDeletePreset={deleteSelectedPreset}
+        isBuiltinSelected={isBuiltinPresetSelected}
+        hasUserPreset={!!selectedUserPreset}
+      />
       {isLoading ? (
         <PartnerLoadingState variant="section" label="Carregando entregas…" />
       ) : filteredDeliveries.length === 0 ? (

@@ -256,8 +256,21 @@ class QueueConsumer:
             while True:
                 try:
                     messages = await self.backend.fetch(self.concurrency)
-                except Exception:  # pragma: no cover - logging runtime falhas externas
-                    logger.exception("Falha ao buscar jobs na fila")
+                except Exception as e:  # pragma: no cover - logging runtime falhas externas
+                    error_msg = str(e)
+                    is_conn_error = (
+                        "ConnectionRefusedError" in error_msg
+                        or "CannotConnectNowError" in error_msg
+                        or "connection" in error_msg.lower()
+                    )
+                    if is_conn_error:
+                        logger.warning(
+                            "Falha de conexão com o banco/fila (%s). Tentando novamente em %s segundos...",
+                            type(e).__name__,
+                            self.poll_interval,
+                        )
+                    else:
+                        logger.exception("Falha ao buscar jobs na fila")
                     await asyncio.sleep(self.poll_interval)
                     continue
                 if not messages:
