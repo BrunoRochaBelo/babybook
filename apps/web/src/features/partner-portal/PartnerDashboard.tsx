@@ -8,7 +8,7 @@
  */
 
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   CreditCard,
@@ -51,24 +51,15 @@ import { StatCard } from "@/layouts/StatCard";
 import { PartnerErrorState } from "@/layouts/partnerStates";
 import { PartnerOnboarding } from "./PartnerOnboarding";
 import { PartnerDetailedStats } from "./PartnerDetailedStats";
-import { GuidedTour } from "@/components/GuidedTour";
 
-function formatDate(dateString: string, locale: string): string {
-  try {
-    return new Date(dateString).toLocaleDateString(locale, {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
-}
+type TFn = (key: string, options?: Record<string, unknown>) => string;
+
+
 
 /**
  * Retorna saudação baseada no horário atual
  */
-function getGreeting(t: (key: string, options?: any) => string): string {
+function getGreeting(t: TFn): string {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return t("partner.dashboard.welcomeMorning");
   if (hour >= 12 && hour < 18) return t("partner.dashboard.welcomeAfternoon");
@@ -86,7 +77,7 @@ function getContextualTip(
     deliveriesCount: number;
     redeemedCount: number;
   },
-  t: (key: string, options?: any) => string,
+  t: TFn,
 ): { icon: typeof Lightbulb; text: string; color: string } | null {
   const {
     hasLowCredits,
@@ -141,67 +132,13 @@ function getContextualTip(
   return null;
 }
 
-function DeliveryStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  const config: Record<string, { icon: typeof Clock; className: string }> = {
-    draft: {
-      icon: Clock,
-      className:
-        "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
-    },
-    pending_upload: {
-      icon: Clock,
-      className:
-        "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300",
-    },
-    processing: {
-      icon: Loader2,
-      className:
-        "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300",
-    },
-    ready: {
-      icon: CheckCircle2,
-      className:
-        "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300",
-    },
-    delivered: {
-      icon: Gift,
-      className:
-        "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300",
-    },
-    failed: {
-      icon: AlertCircle,
-      className: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
-    },
-    archived: {
-      icon: Package,
-      className:
-        "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
-    },
-  };
-
-  const normalized = normalizePartnerDeliveryStatus(status);
-  const cfg = config[normalized] || config.draft;
-  const Icon = cfg.icon;
-  // TODO: Use translation for status labels
-  const meta = getPartnerDeliveryStatusMeta(normalized);
-
-  return (
-    <span
-      title={t(meta.hint)}
-      aria-label={`${t(meta.label)}. ${t(meta.hint)}`}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.className}`}
-    >
-      <Icon className="w-3 h-3" />
-      {/* Fallback to meta label if translation key structure doesn't match */}
-      {t(`partner.deliveries.status.${normalized}`, {
-        defaultValue: t(meta.shortLabel),
-      })}
-    </span>
-  );
-}
+// DeliveryStatusBadge removed - using shared StatusBadge from table/card components
+import { DeliveryCardMobile } from "./components/DeliveryCardMobile";
+import { DeliveryTableRow } from "./components/DeliveryTableRow";
+import { formatDate } from "./utils";
 
 export function PartnerDashboard() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { language } = useLanguage();
   // const t = (k: string) => k;
@@ -582,7 +519,9 @@ export function PartnerDashboard() {
       </div>
 
       {/* Alertas Contextuais (só aparecem quando há algo relevante) */}
-      {(pendingUpload || (stats?.ready_deliveries || 0) > 0 || hasLowCredits) && (
+      {(pendingUpload ||
+        (stats?.ready_deliveries || 0) > 0 ||
+        hasLowCredits) && (
         <div className="mb-6 sm:mb-8 flex flex-wrap gap-3">
           {pendingUpload && (
             <Link
@@ -597,7 +536,9 @@ export function PartnerDashboard() {
                   {t("partner.dashboard.tips.pendingUpload")}
                 </p>
                 <p className="text-xs text-yellow-600 dark:text-yellow-300 truncate">
-                  {pendingUpload.title || pendingUpload.client_name || "Entrega"}{" "}
+                  {pendingUpload.title ||
+                    pendingUpload.client_name ||
+                    "Entrega"}{" "}
                   wait
                 </p>
               </div>
@@ -741,142 +682,52 @@ export function PartnerDashboard() {
           <>
             {/* Mobile: cards */}
             <div className="lg:hidden grid gap-3 p-1">
-              {deliveries.map((delivery) => {
-                const normalizedStatus = normalizePartnerDeliveryStatus(
-                  delivery.status,
-                );
-                const voucherMissingTitle =
-                  normalizedStatus === "ready"
-                    ? "Entrega pronta. Gere o voucher nos detalhes."
-                    : "O voucher aparece após a entrega ficar pronta.";
-
-                return (
-                  <Link
-                    key={delivery.id}
-                    to={`/partner/deliveries/${delivery.id}`}
-                    className="block rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all"
-                    aria-label={`Abrir detalhes da entrega ${delivery.title || delivery.client_name || "sem título"}`}
-                  >
-                    {/* Main Content */}
-                    <div className="p-4">
-                      {/* Row 1: Icon + Title/Client + Status Badge */}
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-11 h-11 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-medium text-gray-900 dark:text-white text-base leading-tight line-clamp-2">
-                                {delivery.title ||
-                                  delivery.client_name ||
-                                  t("common.none")}
-                              </h3>
-                              {delivery.client_name && delivery.title && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                  {delivery.client_name}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex-shrink-0">
-                              <DeliveryStatusBadge status={delivery.status} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Row 2: Date + Voucher Code */}
-                      <div className="flex items-center justify-between gap-3 text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">
-                          {formatDate(delivery.created_at, language)}
-                        </span>
-                        {delivery.voucher_code ? (
-                          <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-md">
-                            {delivery.voucher_code}
-                          </span>
-                        ) : (
-                          <span
-                            className="text-xs text-gray-400 dark:text-gray-500 italic"
-                            title={voucherMissingTitle}
-                          >
-                            {PLACEHOLDER_NOT_GENERATED}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Row 3: Credit Badge + Action */}
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
-                      <CreditStatusBadge status={delivery.credit_status} />
-
-                      <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors">
-                        {t("common.details")}
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {deliveries.map((delivery) => (
+                <DeliveryCardMobile
+                  key={delivery.id}
+                  delivery={delivery}
+                  onArchive={() => {}}
+                  isArchiving={false}
+                  variant="dashboard"
+                />
+              ))}
             </div>
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
+                <thead className="bg-gray-50 dark:bg-gray-900/30 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
                   <tr>
-                    <th className="px-6 py-4 text-left tracking-wider">
-                      {t("partner.deliveries.create.step1")}
+                    <th className="px-6 py-4 text-left tracking-wider font-medium text-sm normal-case">
+                      Entrega
                     </th>
-                    <th className="px-6 py-4 text-left tracking-wider">
-                      {t("partner.deliveries.create.recipientName")}
+                    <th className="px-6 py-4 text-left tracking-wider font-medium text-sm normal-case">
+                      Cliente
                     </th>
-                    <th className="px-6 py-4 text-left tracking-wider">
-                      {t("partner.deliveries.status.all")}
+                    <th className="px-6 py-4 text-left tracking-wider font-medium text-sm normal-case">
+                      Status
                     </th>
-                    <th className="px-6 py-4 text-left tracking-wider">
-                      {t("common.date")}
+                    <th className="px-6 py-4 text-left tracking-wider font-medium text-sm normal-case">
+                      Criada em
                     </th>
-                    <th className="px-6 py-4 text-right tracking-wider">
-                      {t("common.actions")}
+                    <th className="px-6 py-4 text-left tracking-wider font-medium text-sm normal-case">
+                      Voucher / Crédito
+                    </th>
+                    <th className="px-6 py-4 text-right tracking-wider font-medium text-sm normal-case">
+                      Ações
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                   {deliveries.map((delivery) => (
-                    <tr
+                    <DeliveryTableRow
                       key={delivery.id}
-                      className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                            <Image className="w-5 h-5" />
-                          </div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {delivery.title ||
-                              delivery.client_name ||
-                              t("common.none")}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                        {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
-                      </td>
-                      <td className="px-6 py-4">
-                        <DeliveryStatusBadge status={delivery.status} />
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(delivery.created_at, language)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          to={`/partner/deliveries/${delivery.id}`}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors"
-                        >
-                          {t("common.details")}
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
-                      </td>
-                    </tr>
+                      delivery={delivery}
+                      isSelected={false}
+                      onPreview={() => navigate(`/partner/deliveries/${delivery.id}`)}
+                      onArchive={() => {}}
+                      isArchiving={false}
+                      variant="dashboard"
+                    />
                   ))}
                 </tbody>
               </table>

@@ -23,7 +23,7 @@ import {
   Sparkles,
   Sun,
 } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
@@ -36,6 +36,14 @@ import {
 } from "@/layouts/partnerPageHeader";
 import { usePartnerKeyboardShortcuts } from "@/hooks/usePartnerKeyboardShortcuts";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  DrawerFooter,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
@@ -66,6 +74,13 @@ const MOCK_NOTIFICATIONS = [
     unread: false,
   },
 ];
+
+const dropdownVariants = {
+  initial: { opacity: 0, scale: 0.95, y: -10 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.95, y: -10 },
+  transition: { duration: 0.2 },
+};
 
 export function PartnerLayout() {
   const navigate = useNavigate();
@@ -226,47 +241,58 @@ export function PartnerLayout() {
                   )}
                 </button>
 
-                {/* Notifications Dropdown */}
-                {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden z-50">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Notificações
-                      </h3>
-                      <button className="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
-                        Marcar como lidas
-                      </button>
-                    </div>
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-80 overflow-y-auto">
-                      {MOCK_NOTIFICATIONS.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={cn(
-                            "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer",
-                            notification.unread &&
-                              "bg-pink-50/50 dark:bg-pink-900/20",
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            {notification.unread && (
-                              <span className="w-2 h-2 mt-1.5 bg-pink-500 rounded-full flex-shrink-0" />
+                {/* Notifications Drawer */}
+                <Drawer
+                  open={isNotificationsOpen}
+                  onOpenChange={setNotificationsOpen}
+                  direction="right"
+                >
+                  <DrawerContent className="h-full w-full sm:max-w-sm">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <DrawerTitle className="text-base font-semibold">Notificações</DrawerTitle>
+                        <button className="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
+                          Marcar como lidas
+                        </button>
+                      </div>
+                    </DrawerHeader>
+                    <DrawerBody className="p-0">
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {MOCK_NOTIFICATIONS.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={cn(
+                              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors",
+                              notification.unread &&
+                                "bg-pink-50/50 dark:bg-pink-900/10",
                             )}
-                            <div className={notification.unread ? "" : "ml-5"}>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.title}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                {notification.description}
-                              </p>
-                              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
-                                {notification.time}
-                              </p>
+                          >
+                            <div className="flex items-start gap-3">
+                              {notification.unread && (
+                                <span className="w-2 h-2 mt-1.5 bg-pink-500 rounded-full flex-shrink-0" />
+                              )}
+                              <div className={notification.unread ? "" : "ml-5"}>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {notification.title}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                  {notification.description}
+                                </p>
+                                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                                  {notification.time}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+                        ))}
+                        {MOCK_NOTIFICATIONS.length === 0 && (
+                          <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+                            Nenhuma notificação recente
+                          </div>
+                        )}
+                      </div>
+                    </DrawerBody>
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-4">
                       <Link
                         to="/partner/notifications"
                         onClick={() => setNotificationsOpen(false)}
@@ -274,9 +300,9 @@ export function PartnerLayout() {
                       >
                         Ver todas as notificações
                       </Link>
-                    </div>
-                  </div>
-                )}
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
               </div>
 
               {/* User Menu */}
@@ -300,100 +326,111 @@ export function PartnerLayout() {
                   <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">
                     {profile?.studio_name || profile?.name || "Parceiro"}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 </button>
 
-                {/* User Dropdown */}
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden z-50">
-                    {/* User Info */}
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {profile?.studio_name || profile?.name || "Parceiro"}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {profile?.email}
-                      </p>
-                    </div>
-
-                    {/* Theme Selector */}
-                    <div className="py-2 px-4">
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                        Tema
-                      </p>
-                      <div className="grid grid-cols-3 gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                        <button
-                          type="button"
-                          onClick={() => setTheme("light")}
-                          title="Tema Claro"
-                          className={cn(
-                            "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
-                            theme === "light"
-                              ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-                          )}
-                        >
-                          <Sun className="w-5 h-5" />
-                          <span className="hidden sm:inline">Claro</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTheme("dark")}
-                          title="Tema Escuro"
-                          className={cn(
-                            "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
-                            theme === "dark"
-                              ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-                          )}
-                        >
-                          <MoonStar className="w-6 h-6" />
-                          <span className="hidden sm:inline">Escuro</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTheme("system")}
-                          title="Seguir Sistema"
-                          className={cn(
-                            "flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
-                            theme === "system"
-                              ? "bg-white dark:bg-gray-600 text-pink-600 dark:text-pink-400 shadow-sm"
-                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-                          )}
-                        >
-                          <Monitor className="w-5 h-5" />
-                          <span className="hidden sm:inline">Auto</span>
-                        </button>
+                {/* User Drawer */}
+                <Drawer
+                  open={isUserMenuOpen}
+                  onOpenChange={setUserMenuOpen}
+                  direction="right"
+                >
+                  <DrawerContent className="h-full w-full sm:max-w-xs">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+                       <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {profile?.studio_name?.[0] || profile?.name?.[0] || "P"}
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <DrawerTitle className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {profile?.studio_name || profile?.name || "Parceiro"}
+                          </DrawerTitle>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {profile?.email}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    </DrawerHeader>
+                    
+                    <DrawerBody className="p-4 space-y-6">
+                      {/* Theme Selector */}
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">
+                          Aparência
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setTheme("light")}
+                            className={cn(
+                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              theme === "light"
+                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                            )}
+                          >
+                            <Sun className="w-5 h-5" />
+                            <span className="text-xs font-medium">Claro</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("dark")}
+                            className={cn(
+                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              theme === "dark"
+                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                            )}
+                          >
+                            <MoonStar className="w-5 h-5" />
+                            <span className="text-xs font-medium">Escuro</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("system")}
+                            className={cn(
+                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              theme === "system"
+                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                            )}
+                          >
+                            <Monitor className="w-5 h-5" />
+                            <span className="text-xs font-medium">Auto</span>
+                          </button>
+                        </div>
+                      </div>
 
-                    {/* Menu Items */}
-                    <div className="border-t border-gray-100 dark:border-gray-700 py-1">
-                      <Link
-                        to="/partner/settings"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-                      >
-                        <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        Configurações
-                      </Link>
-                    </div>
+                      {/* Menu Links */}
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
+                          Conta
+                        </p>
+                        <Link
+                          to="/partner/settings"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 -mx-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors dark:text-gray-200 dark:hover:bg-gray-800"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                            <Settings className="w-4 h-4" />
+                          </div>
+                          Configurações
+                        </Link>
+                      </div>
+                    </DrawerBody>
 
-                    {/* Logout */}
-                    <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-4">
                       <button
                         onClick={handleLogout}
                         disabled={logoutMutation.isPending}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 dark:text-red-400 rounded-xl transition-colors disabled:opacity-50"
                       >
                         <LogOut className="w-4 h-4" />
-                        {logoutMutation.isPending ? "Saindo..." : "Sair"}
+                        {logoutMutation.isPending ? "Saindo..." : "Sair da conta"}
                       </button>
-                    </div>
-                  </div>
-                )}
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
               </div>
-
             </div>
           </div>
         </div>
