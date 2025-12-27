@@ -1,0 +1,463 @@
+{
+  "nav": {
+    "howItWorks": "Como Funciona",
+    "pricing": "Preço",
+    "login": "Entrar",
+    "start": "Começar"
+  },
+  "hero": {
+    "socialProof": "+500 famílias já preservam suas histórias",
+    "headline": "A história do seu filho merece <br class=\"hidden sm:block\" /> <span class=\"text-orange-600 italic\">um lugar para sempre.</span>",
+    "subheadline": "Transforme fotos e memórias soltas em uma história organizada que atravessa gerações.",
+    "pills": {
+      "lifetime": "Acesso vitalício",
+      "privacy": "Privacidade total",
+      "noSubscription": "Sem mensalidade"
+    },
+    "cta": {
+      "primary": "Começar por R$297",
+      "secondary": "🎁 Presentear alguém"
+    },
+    "guarantee": "Garantia de 7 dias",
+    "comparison": "Menos que um fotolivro físico"
+  },
+  "chaos": {
+    "eyebrow": "O vazio que ninguém percebe",
+    "headline": "A tradição de registrar a infância nunca saiu de moda. <br> <span class=\"text-gray-500 transition-colors duration-500\" id=\"chaos-highlight\">Só precisava caber na vida real.</span>",
+    "p1": "Antes as vovós e titias faziam com cola, canetinha e fotos reveladas. Era trabalhoso, virava relíquia ou se perdia.",
+    "p2": "Hoje você tem 10x mais registros — e nenhum lugar onde eles virem história. O Baby Book organiza esse caos com afeto."
+  },
+  "books": {
+    "intro": {
+      "eyebrow": "A Coleção",
+      "title": "Quatro livros.<br>Uma infância completa."
+    },
+    "cards": {
+      "journey": {
+        "title": "Jornada",
+        "desc": "A vida dele em capítulos prontos. Do primeiro choro ao primeiro passo, organizado cronologicamente."
+      },
+      "health": {
+        "title": "Saúde",
+        "desc": "Vacinas, consultas, crescimento. Tudo registrado e fácil de achar quando o médico perguntar."
+      },
+      "visits": {
+        "title": "Visitas",
+        "desc": "Recados de quem ama. Aprovados por você, guardados para sempre. O livro de visitas digital."
+      },
+      "vault": {
+        "locked": {
+          "title": "Cofre Bloqueado",
+          "action": "Role para destrancar"
+        },
+        "unlocked": {
+          "title": "Cofre",
+          "desc": "Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão."
+        }
+      }
+    }
+  },
+  "howItWorks": {
+    "intro": {
+      "eyebrow": "Como Funciona",
+      "title": "Três minutos. Uma história."
+    },
+    "step1": {
+      "title": "<span class=\"step-emoji emoji-calendar\">📅</span> Escolha o momento",
+      "desc": "Nascimento? Primeiro banho? Primeira palavra? Os capítulos já estão prontos esperando por você. Selecione o marco especial que deseja registrar."
+    },
+    "step2": {
+      "title": "<span class=\"step-emoji emoji-camera\">📸</span> Adicione afeto",
+      "desc": "Fotos, vídeos, áudios. Escreva se quiser. Só o essencial, nada de excesso ou filtros complicados. Capture os momentos com o coração."
+    },
+    "step3": {
+      "title": "<span class=\"step-emoji emoji-cloud\">☁️</span> Pronto. Para sempre.",
+      "desc": "A história cresce no seu ritmo. Sem pressa, sem cobrança, organizada automaticamente. Guardada na nuvem, segura e acessível a qualquer momento."
+    }
+  },
+  "families": {
+    "title": "Feito para famílias reais.",
+    "quotes": {
+      "1": {
+        "title": "Tenho mil fotos e nenhuma história",
+        "desc": "Você registra tudo, mas nunca consegue organizar. O Baby Book faz isso por você."
+      },
+      "2": {
+        "title": "Quero privacidade de verdade",
+        "desc": "Sem feed público. Sem likes. Só quem você convidar vê a história."
+      },
+      "3": {
+        "title": "Não sou de fazer essas coisas",
+        "desc": "Por isso mesmo. A gente guia cada passo. Você só preenche com carinho."
+      },
+      "4": {
+        "title": "Quero presentear algo especial",
+        "desc": "O presente que não vira doação. Vira legado."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Um pagamento.<br>Uma vida inteira.",
+    "subtitle": "Acesso vitalício completo",
+    "features": {
+      "books": "4 livros digitais completos",
+      "updates": "Atualizações e novos recursos inclusos",
+      "noSub": "Sem mensalidade. Nunca."
+    },
+    "guarantee": "Garantia de 7 dias ou seu dinheiro de volta",
+    "cta": "Começar minha história",
+    "links": {
+      "voucher": "Já tenho um código",
+      "gift": "Quero presentear"
+    },
+    "footer": "Menos que um fotolivro impresso · Para toda a primeira infância",
+    "trust": {
+      "lifetime": "Acesso vitalício • Pague uma vez. Use para sempre.",
+      "privacy": "100% Privado • Suas memórias, suas regras (LGPD).",
+      "export": "Exportação • Seus dados sempre saem com você.",
+      "support": "Suporte Humanizado • Feito por pais para pais."
+    }
+  },
+  "future": {
+    "tag": "Em desenvolvimento",
+    "title": "Uma plataforma que <span class=\"text-orange-600\">cresce junto</span> com a sua família.",
+    "desc": "No futuro, você poderá transformar sua história em novos formatos e continuar criando memórias.",
+    "soon": "Em breve",
+    "cards": {
+      "photobooks": {
+        "title": "Fotolivros impressos",
+        "desc": "A jornada digital vira livro físico de alta qualidade para tocar e guardar"
+      },
+      "timecapsules": {
+        "title": "Cápsulas do tempo",
+        "desc": "Cartas e mensagens escritas hoje, programadas para serem abertas no futuro"
+      },
+      "chapters": {
+        "title": "Novos capítulos",
+        "desc": "Conforme seu filho cresce, a história continua com novas fases e marcos"
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas que importam.",
+    "q1": {
+      "question": "E se vocês fecharem?",
+      "answer": "Suas memórias podem ser exportadas. A qualquer momento. A história é sua, não nossa."
+    },
+    "q2": {
+      "question": "Posso usar para mais de um filho?",
+      "answer": "Sim. Um álbum completo para cada criança. Mesma conta."
+    },
+    "q3": {
+      "question": "Tem limite de fotos?",
+      "answer": "O Baby Book valoriza a curadoria: cada momento que você escolhe é especial. Diferente de um backup infinito, aqui você guarda só o que realmente importa — e isso torna a história mais significativa."
+    },
+    "q4": {
+      "question": "Minha família precisa baixar o app?",
+      "answer": "Não. Você pode compartilhar por links privados. Eles veem no navegador."
+    },
+    "q5": {
+      "question": "Posso começar e completar aos poucos?",
+      "answer": "Exatamente a ideia. Sem pressa, sem cobrança. No seu tempo."
+    },
+    "q6": {
+      "question": "Por que R$297 é um bom investimento?",
+      "answer": "Um fotolivro impresso custa entre R$200-400 e cobre apenas alguns meses. O Baby Book é para toda a primeira infância, com acesso vitalício, atualizações inclusas e backup seguro. Menos de R$5 por mês nos primeiros 5 anos."
+    }
+  },
+  "ctaFinal": {
+    "tag": "Comece hoje!",
+    "title": "A infância <span class=\"text-gradient-orange inline-block animate-pulse-slow\">não espera.</span>",
+    "sub": "A história pode ser preservada.",
+    "buttons": {
+      "primary": "Eternizar a história do meu filho",
+      "secondary": "🎁 Presentear"
+    }
+  },
+  "footer": {
+    "slogan": "Eternizando momentos",
+    "description": "Feito com afeto para famílias que valorizam memórias. Preservando histórias que duram para sempre.",
+    "nav": {
+      "title": "Navegação",
+      "howItWorks": "Como Funciona",
+      "pricing": "Preço",
+      "future": "Futuro",
+      "start": "Começar Agora →"
+    },
+    "support": {
+      "title": "Suporte",
+      "terms": "Termos de Uso",
+      "privacy": "Política de Privacidade"
+    },
+    "copyright": "© 2025 Baby Book. Todos os direitos reservados."
+  },
+  "exitPopup": {
+    "title": "Espere! Não Perca Esta Oferta Especial",
+    "text": "Ganhe <strong>20% de desconto</strong> no seu primeiro livro do bebê! Cadastre seu e-mail e comece a preservar as memórias hoje mesmo.",
+    "button": "Quero o Desconto",
+    "privacy": "🔒 Seus dados estão seguros. Sem spam, prometemos!",
+    "benefits": {
+      "lifetime": "Acesso vitalício",
+      "noSub": "Sem mensalidades",
+      "delivery": "Entrega em 7 dias"
+    }
+  },
+  "pro": {
+    "meta": {
+      "title": "Baby Book PRO - Entrega premium para fotógrafos",
+      "description": "Compre vouchers em lote, pague uma vez por cliente e entregue o Baby Book como presente premium. Sem mensalidade, sem suporte pós-venda para você."
+    },
+    "nav": {
+      "subtitle": "Para fotógrafos profissionais",
+      "problem": "Problema",
+      "benefits": "Benefícios",
+      "value": "Valor",
+      "packages": "Pacotes",
+      "faq": "FAQ",
+      "login": "Entrar",
+      "register": "Criar conta de Parceiro",
+      "mobile": {
+        "login": "Entrar",
+        "register": "Criar conta de Parceiro"
+      }
+    },
+    "hero": {
+      "socialProof": "<strong class='text-white'>+150</strong> fotógrafos já usam",
+      "headline": "Suas fotos merecem <br class='hidden sm:block'> <span class='gradient-text-animated'>mais que um link que expira</span>",
+      "subheadline": "Entregue suas fotos em um <strong class='text-white'>app permanente</strong> que o cliente acessa para sempre. <span class='text-pink-300'>Sem reenvios. Sem links que expiram. Sem perda de qualidade.</span>",
+      "pills": {
+        "noMonthly": "Sem mensalidade",
+        "quality": "Qualidade Retina/4K",
+        "noExpire": "Créditos não expiram"
+      },
+      "cta": "Começar gratuitamente",
+      "trust": {
+        "signup": "Cadastro em 30 segundos",
+        "rating": "4.9/5 avaliação",
+        "warranty": "Garantia 7 dias"
+      },
+      "floatingBadge": "Diferencial competitivo",
+      "card": {
+        "title": "Vantagens exclusivas",
+        "subtitle": "Diferenciais que você não encontra em outro lugar",
+        "features": {
+          "support": {
+            "title": "Suporte por nossa conta",
+            "desc": "Você não atende dúvidas técnicas"
+          },
+          "brand": {
+            "title": "Sua marca no app",
+            "desc": "Logo e cores personalizadas"
+          },
+          "engagement": {
+            "title": "Cliente usa toda semana",
+            "desc": "4 livros que mantêm engajamento"
+          }
+        },
+        "testimonial": {
+          "text": "\"Depois que comecei a entregar pelo Baby Book, recebi 4 indicações só no primeiro mês. As clientes compartilham o app com a família e todo mundo pergunta quem fez as fotos.\"",
+          "author": "— Camila M., Fotógrafa de Famílias"
+        }
+      },
+      "bottomTrust": {
+        "safe": "Fotos seguras para sempre",
+        "backup": "Backup automático",
+        "photographers": "Feito para fotógrafos"
+      }
+    },
+    "pain": {
+      "title": "A parte que ninguém te conta sobre ser fotógrafo",
+      "description": "A sessão acaba em algumas horas. O que fica é a entrega — e ela define o quanto seu trabalho é lembrado (e recomendado).",
+      "current": {
+        "label": "Cenário Atual",
+        "title": "O Ciclo da Frustração",
+        "step1": {
+          "title": "Você envia um link temporário",
+          "desc": "Google Drive, WeTransfer... <span class='text-rose-600 font-medium'>expira em 7 a 30 dias.</span>"
+        },
+        "step2": {
+          "title": "O cliente não baixa corretamente",
+          "desc": "Tira print pelo celular, manda por WhatsApp... <span class='text-rose-600 font-medium'>sua edição vira imagem borrada.</span>"
+        },
+        "step3": {
+          "title": "A mensagem temida aparece",
+          "quote": "\"Troquei de celular e perdi todas as fotos. Você ainda tem?\"",
+          "note": "Situação comum que gera retrabalho e desgaste"
+        }
+      },
+      "new": {
+        "label": "Com Baby Book PRO",
+        "title": "A Nova Experiência",
+        "item1": {
+          "title": "Entrega definitiva com sua marca",
+          "desc": "App elegante e personalizado que valoriza seu trabalho"
+        },
+        "item2": {
+          "title": "Qualidade Retina/4K preservada",
+          "desc": "Sem perdas na compressão — sua edição aparece como você criou"
+        },
+        "item3": {
+          "title": "Acesso vitalício ao app",
+          "desc": "Cliente nunca perde as fotos — <span class='text-emerald-400'>zero retrabalho e custo pra você</span>"
+        }
+      }
+    },
+    "benefits": {
+      "badge": "Ecossistema completo para famílias",
+      "title": "Muito mais que fotos em um Drive",
+      "description": "4 livros digitais que mantêm seu cliente <strong class='text-gray-900'>engajado</strong> e lembrando de você em cada fase da jornada da vida.",
+      "cards": {
+        "journey": {
+          "title": "Jornada",
+          "desc": "A vida do bebê em capítulos. Do primeiro choro ao primeiro passo, organizado cronologicamente.",
+          "note": "<span class='text-gray-700 font-medium'>Para você:</span> Sua arte preservada + lembretes de datas especiais"
+        },
+        "health": {
+          "title": "Saúde",
+          "desc": "Vacinas, consultas e crescimento registrados. Fácil de achar quando o médico perguntar.",
+          "note": "<span class='text-gray-700 font-medium'>Para você:</span> Cliente abre o app toda semana e vê suas fotos"
+        },
+        "visits": {
+          "title": "Visitas",
+          "desc": "Recados de quem ama, aprovados por você. O livro de visitas digital do bebê.",
+          "note": "<span class='text-gray-700 font-medium'>Para você:</span> Mais pessoas veem seu trabalho = mais indicações"
+        },
+        "vault": {
+          "title": "Cofre",
+          "desc": "Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.",
+          "note": "<span class='text-gray-700 font-medium'>Para você:</span> Percepção de valor premium na entrega"
+        }
+      },
+      "hint": "Tudo isso <strong class='text-gray-700'>agrega valor ao seu serviço</strong> sem esforço adicional"
+    },
+    "value": {
+      "badge": "ROI comprovado por fotógrafos",
+      "title": "Não é custo. É <span class='gradient-text-animated'>investimento que se paga.</span>",
+      "description": "O que parece um custo por cliente vira <strong class='text-white'>vantagem competitiva</strong> que gera retorno em indicações. Faça a conta:",
+      "stats": {
+        "currency": "R$",
+        "price": {
+          "badge": "PREÇO COMERCIAL",
+          "label": "O cliente percebe",
+          "sub": "de valor no presente que você entrega"
+        },
+        "investment": {
+          "badge": "SEU INVESTIMENTO",
+          "label": "Pagamento único por cliente",
+          "sub": "Acesso vitalício para a família toda"
+        },
+        "return": {
+          "badge": "RETORNO MÉDIO",
+          "label": "Indicações por cliente",
+          "sub": "Quando a entrega é memorável"
+        }
+      },
+      "math": {
+        "invested": { "val": "R$ 120", "label": "investido" },
+        "clients": { "val": "3 indicações", "label": "= novos clientes" },
+        "revenue": { "val": "R$ 4.500+", "label": "em novos ensaios" },
+        "note": "Considerando ticket médio de R$ 1.500 por ensaio"
+      },
+      "pitch": {
+        "badge1": "Na hora da venda",
+        "badge2": "Copie este script",
+        "text": "<span class='text-gray-400 not-italic'>\"</span><span class='italic'>Dona Maria, sua entrega inclui o <strong class='text-white not-italic'>Baby Book Vitalício</strong> — uma experiência premium onde cada foto fica organizada <strong class='text-white not-italic'>para sempre</strong>, com backup seguro. Você pode trocar de celular, formatar tudo... as fotos <strong class='text-pink-300 not-italic'>nunca se perdem</strong>. É um álbum digital elegante que acompanha a família por gerações.</span><span class='text-gray-400 not-italic'>\"</span>",
+        "result": "<strong class='text-white'>Resultado:</strong> Cliente encantada indica para amigas — você cresce no boca a boca, sem gastar com anúncios."
+      },
+      "cta": {
+        "button": "Ver pacotes e começar",
+        "trust": {
+          "noMonthly": "Sem mensalidade",
+          "noExpire": "Créditos não expiram",
+          "warranty": "Garantia de 7 dias"
+        }
+      }
+    },
+    "packages": {
+      "badge": "Créditos nunca expiram",
+      "title": "Escolha seu <span class='text-pink-600'>Pacote</span>",
+      "description": "Sem assinaturas. Sem surpresas. Compre uma vez, use quando quiser.",
+      "starter": {
+        "title": "Starter Pack",
+        "price": "R$700",
+        "unit": "/lote",
+        "sub": "Sai a R$140 por cliente",
+        "features": {
+          "licenses": "<strong class='text-gray-900'>5</strong> Licenças Vitalícias",
+          "panel": "Painel Administrativo",
+          "support": "Suporte Técnico Incluso"
+        },
+        "button": "Começar com Starter"
+      },
+      "pro": {
+        "badge": "MAIS POPULAR",
+        "title": "PRO Pack",
+        "price": "R$1.200",
+        "unit": "/lote",
+        "sub": "Sai a R$120/cliente",
+        "discount": "-14% OFF",
+        "features": {
+          "licenses": "<strong class='text-gray-900'>10</strong> Licenças Vitalícias",
+          "cost": "<strong class='text-pink-600'>Melhor custo por entrega</strong>",
+          "panel": "Painel Administrativo Completo",
+          "support": "Suporte Prioritário"
+        },
+        "button": "Quero ser Parceiro PRO"
+      },
+      "trust": "✓ Pagamento único · ✓ Garantia de 7 dias · ✓ Suporte humanizado"
+    },
+    "ctaUrgency": {
+      "tag": "Conheça por dentro",
+      "title": "Explore o painel <span class='text-pink-300'>gratuitamente</span>",
+      "description": "Crie sua conta de parceiro e veja como funciona. Sem compromisso, sem cartão.",
+      "button": "Conhecer o painel",
+      "note": "Totalmente grátis · Leva 30 segundos",
+      "link": "Quer ver como fica para seu cliente? <a href='/index.html' class='text-pink-400 hover:text-pink-300 font-medium transition-colors'>Visite a página do produto →</a>"
+    },
+    "faq": {
+      "badge": "Tire suas dúvidas",
+      "title": "Perguntas <span class='text-pink-600'>Frequentes</span>",
+      "description": "Tudo que você precisa saber antes de começar",
+      "q1": {
+        "q": "Existe mensalidade ou taxa de manutenção?",
+        "a": "<strong class='text-gray-900'>Não. Zero.</strong> Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa. Suas licenças nunca expiram."
+      },
+      "q2": {
+        "q": "E se meu cliente perder o celular?",
+        "a": "O acesso é vinculado à <strong class='text-gray-900'>conta, não ao aparelho</strong>. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo — basta fazer login no novo celular."
+      },
+      "q3": {
+        "q": "O cliente final paga alguma coisa?",
+        "a": "<strong class='text-gray-900'>Não.</strong> O acesso vitalício é um diferencial que você inclui no pacote (ou vende como upsell). Para a mãe/pai, o aplicativo é <strong class='text-gray-900'>gratuito e livre de anúncios</strong>. Você agrega valor ao seu serviço."
+      },
+      "q4": {
+        "q": "Como entrego as fotos para o cliente?",
+        "a": "Você recebe acesso ao <strong class='text-gray-900'>Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para o cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class='text-gray-900'>menos de 2 minutos</strong>."
+      },
+      "q5": {
+        "q": "E se eu não gostar, tem garantia?",
+        "a": "Sim! Oferecemos <strong class='text-gray-900'>garantia de 7 dias</strong>. Se não ficar satisfeito, devolvemos seu investimento sem burocracia. Confiamos tanto no produto que assumimos o risco."
+      },
+      "more": "Ainda tem dúvidas?",
+      "contact": "Fale conosco"
+    },
+    "footer": {
+      "subtitle": "Para fotógrafos profissionais",
+      "description": "Feito com afeto para profissionais que valorizam a entrega. Preservando histórias que duram para sempre.",
+      "nav": {
+        "title": "Navegação",
+        "pain": "Problema",
+        "benefits": "Benefícios",
+        "packages": "Pacotes",
+        "faq": "FAQ",
+        "start": "Começar Agora →"
+      },
+      "support": {
+        "title": "Suporte",
+        "terms": "Termos de Uso",
+        "privacy": "Política de Privacidade"
+      },
+      "copyright": "© 2025 Baby Book Pro. Todos os direitos reservados."
+    }
+  }
+}

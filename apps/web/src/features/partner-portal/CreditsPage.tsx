@@ -31,6 +31,7 @@ import {
   PartnerErrorState,
 } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
+import { useTranslation, useLanguage } from "@babybook/i18n";
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -63,6 +64,8 @@ function centsPerVoucher(totalCents: number, voucherCount: number): number {
 }
 
 export function CreditsPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] =
     useState<CreditPaymentMethod>("pix");
@@ -71,11 +74,11 @@ export function CreditsPage() {
   usePartnerPageHeader(
     useMemo(
       () => ({
-        title: "Créditos",
+        title: t("partner.credits.title"),
         backTo: "/partner",
-        backLabel: "Voltar ao portal",
+        backLabel: t("partner.deliveries.list.backToPortal"),
       }),
-      [],
+      [t],
     ),
   );
 
@@ -157,19 +160,19 @@ export function CreditsPage() {
     <PartnerPage>
       {/* Desktop Header */}
       <div className="hidden md:block mb-8">
-        <PartnerBackButton to="/partner" label="Voltar ao portal" />
+        <PartnerBackButton to="/partner" label={t("partner.deliveries.list.backToPortal")} />
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          Comprar Créditos
+          {t("partner.credits.purchase.buyCredits")}
         </h1>
         <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
-          Escolha o pacote ideal para suas entregas
+          {t("partner.credits.subtitle")}
         </p>
       </div>
 
       {/* Mobile summary - botão voltar via header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Comprar créditos para gerar vouchers e finalizar entregas.
+          {t("partner.credits.subtitle")}
         </p>
       </div>
       {/* Current Balance - Destaque especial (consistente com Dashboard) */}
@@ -188,13 +191,13 @@ export function CreditsPage() {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
-                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1">
                   <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    Disponível
+                    {t("partner.credits.available")}
                   </p>
                   <span
                     className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                    title="Créditos prontos para usar em novas entregas"
+                    title={t("partner.credits.availableTooltip")}
                   >
                     <Info className="w-3 h-3" />
                   </span>
@@ -203,19 +206,17 @@ export function CreditsPage() {
                   {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}
                 </p>
                 <p className="text-[11px] text-pink-100">
-                  {(stats?.voucher_balance ?? 0) === 1
-                    ? "crédito pronto"
-                    : "créditos prontos"}
+                  {t("partner.credits.ready", { count: stats?.voucher_balance ?? 0 })}
                 </p>
               </div>
               <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
                 <div className="flex items-center gap-1">
                   <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    Reservado
+                    {t("partner.credits.reserved")}
                   </p>
                   <span
                     className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                    title="Créditos já alocados para entregas criadas. Serão consumidos ou estornados quando o cliente resgatar."
+                    title={t("partner.credits.reservedTooltip")}
                   >
                     <Info className="w-3 h-3" />
                   </span>
@@ -224,14 +225,13 @@ export function CreditsPage() {
                   {stats?.reserved_credits ?? 0}
                 </p>
                 <p className="text-[11px] text-pink-100">
-                  aguardando resgate
+                  {t("partner.credits.waitingRedemption")}
                 </p>
               </div>
             </div>
             <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
               <Lightbulb className="w-3.5 h-3.5" />
-              Dica: quando o cliente resgata, o crédito é consumido ou
-              estornado automaticamente.
+              {t("partner.credits.info.consumed")}
             </p>
           </div>
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 hidden sm:flex">
@@ -243,7 +243,7 @@ export function CreditsPage() {
       {/* Package Selection */}
       <div className="space-y-4 mb-8 animate-in fade-in-0 slide-in-from-bottom-3 duration-500 delay-100">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Selecione um pacote
+          {t("partner.credits.purchase.selectPackage")}
         </h2>
 
         <div className="grid gap-4">
@@ -282,7 +282,7 @@ export function CreditsPage() {
                   )}
                 </div>
                 <p className="text-sm font-medium text-gray-400 dark:text-gray-200 uppercase tracking-wide">
-                  Total a pagar
+                  {t("partner.credits.purchase.totalToPay")}
                 </p>
               </div>
               <p className="text-3xl sm:text-4xl font-bold text-white">
@@ -293,25 +293,15 @@ export function CreditsPage() {
                   {paymentMethod === "pix" ? (
                     <p className="text-sm text-green-400 dark:text-green-300 flex items-center gap-1.5">
                       <Check className="w-4 h-4" />
-                      Economia de {formatCurrency(totals.card - totals.pix)} vs cartão
+                      {t("partner.credits.purchase.savingsVsCard", { value: formatCurrency(totals.card - totals.pix) })}
                     </p>
                   ) : (
                     <>
-                      <p className="text-sm text-gray-300 dark:text-gray-100">
-                        Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
-                        <span className="font-semibold text-white">
-                          {formatCurrency(
-                            approxInstallmentCents(
-                              totals.card,
-                              MAX_INSTALLMENTS_NO_INTEREST,
-                            ),
-                          )}
-                        </span>{" "}
-                        sem juros
+                        <p className="text-sm text-gray-300 dark:text-gray-100">
+                        <span dangerouslySetInnerHTML={{ __html: t("partner.credits.purchase.installmentsInfo", { count: MAX_INSTALLMENTS_NO_INTEREST, value: formatCurrency(approxInstallmentCents(totals.card, MAX_INSTALLMENTS_NO_INTEREST)) }).replace("<bold>", '<span class="font-semibold text-white">').replace("</bold>", "</span>") }} />
                       </p>
-                      <p className="text-sm text-green-400 dark:text-green-300">
-                        💡 No PIX: {formatCurrency(totals.pix)} (economize{" "}
-                        {formatCurrency(totals.card - totals.pix)})
+                        <p className="text-sm text-green-400 dark:text-green-300">
+                        {t("partner.credits.purchase.pixInfo", { value: formatCurrency(totals.pix), savings: formatCurrency(totals.card - totals.pix) })}
                       </p>
                     </>
                   )}
@@ -319,7 +309,7 @@ export function CreditsPage() {
               )}
               {!selectedPkg && (
                 <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                  Selecione um pacote acima para continuar
+                  {t("partner.credits.purchase.selectToContinue")}
                 </p>
               )}
             </div>
@@ -327,7 +317,7 @@ export function CreditsPage() {
               onClick={handlePurchase}
               disabled={!selectedPackage || purchaseMutation.isPending}
               title={
-                !selectedPackage ? "Selecione um pacote primeiro" : undefined
+                !selectedPackage ? t("partner.credits.purchase.selectPackage") : undefined
               }
               className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base transition-all shadow-lg ${
                 selectedPackage
@@ -338,7 +328,7 @@ export function CreditsPage() {
               {purchaseMutation.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Processando...
+                  {t("partner.credits.purchase.processing")}
                 </>
               ) : (
                 <>
@@ -347,13 +337,13 @@ export function CreditsPage() {
                   ) : (
                     <CreditCard className="w-5 h-5" />
                   )}
-                  {paymentMethod === "pix" ? "Pagar via PIX" : "Pagar com Cartão"}
+                  {paymentMethod === "pix" ? t("partner.credits.purchase.payWithPix") : t("partner.credits.purchase.payWithCard")}
                 </>
               )}
             </button>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-300 mt-4 text-center sm:text-left">
-            🔒 Você será redirecionado para o checkout seguro (Stripe) para completar o pagamento.
+            {t("partner.credits.purchase.secureCheckout")}
           </p>
         </div>
       </div>
@@ -361,21 +351,19 @@ export function CreditsPage() {
       {/* Info Section */}
       <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
         <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
-          ℹ️ Como funcionam os créditos?
+          {t("partner.credits.purchase.howItWorks")}
         </h3>
         <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
           <li>
-            • Ao gerar um voucher, <strong>1 crédito fica RESERVED</strong> (em
-            trânsito)
+            • <span dangerouslySetInnerHTML={{ __html: t("partner.credits.purchase.info.reserved").replace("RESERVED", "<strong>RESERVED</strong>") }} />
           </li>
           <li>
-            • No resgate: novo Baby Book → <strong>CONSUMED</strong>; bebê
-            existente → <strong>REFUNDED</strong> (estorno automático)
+            • <span dangerouslySetInnerHTML={{ __html: t("partner.credits.purchase.info.consumed").replace("CONSUMED", "<strong>CONSUMED</strong>").replace("REFUNDED", "<strong>REFUNDED</strong>") }} />
           </li>
           <li>
-            • O voucher é único por entrega e dá acesso às fotos daquele ensaio
+            • {t("partner.credits.purchase.info.unique")}
           </li>
-          <li>• Créditos não expiram</li>
+          <li>• {t("partner.credits.purchase.info.expiration")}</li>
         </ul>
       </div>
     </PartnerPage>
@@ -400,6 +388,7 @@ function PackageCard({
   selected,
   onSelect,
 }: PackageCardProps) {
+  const { t } = useTranslation();
   const pixTotal = getPixPriceCents(pkg);
   const cardTotal = pkg.price_cents;
   const activeTotal = paymentMethod === "pix" ? pixTotal : cardTotal;
@@ -459,7 +448,7 @@ function PackageCard({
             {pkg.is_popular && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
                 <Star className="w-3 h-3" />
-                Mais Popular
+                {t("partner.credits.purchase.mostPopular")}
               </span>
             )}
           </div>
@@ -471,8 +460,8 @@ function PackageCard({
           <div className="mt-3">
             <div className="text-xs text-gray-500 dark:text-gray-400">
               {paymentMethod === "pix"
-                ? "Total no PIX (à vista)"
-                : `Total no cartão (até ${MAX_INSTALLMENTS_NO_INTEREST}x s/ juros)`}
+                ? t("partner.credits.purchase.totalPix")
+                : t("partner.credits.purchase.totalCard", { installments: MAX_INSTALLMENTS_NO_INTEREST })}
             </div>
             <div className="flex items-baseline gap-2">
               <span
@@ -492,31 +481,31 @@ function PackageCard({
               {paymentMethod === "pix" ? (
                 <>
                   <span>
-                    No cartão:{" "}
+                    {t("partner.credits.purchase.compare.onCard")}:{" "}
                     <span className="font-medium">
                       {formatCurrency(cardTotal)}
                     </span>
                   </span>
                   {savingsCents > 0 ? (
                     <span className="text-green-700 dark:text-green-300">
-                      • economize {formatCurrency(savingsCents)}
+                      • {t("partner.credits.purchase.savings", { value: formatCurrency(savingsCents) })}
                     </span>
                   ) : null}
                 </>
               ) : (
                 <>
                   <span className="text-gray-500 dark:text-gray-400">
-                    Até {MAX_INSTALLMENTS_NO_INTEREST}x sem juros
+                    <span dangerouslySetInnerHTML={{ __html: t("partner.credits.purchase.installmentsInfo", { count: MAX_INSTALLMENTS_NO_INTEREST, value: "" }).replace("<bold></bold>", "") }} />
                   </span>
                   <span>
-                    • No PIX:{" "}
+                    • {t("partner.credits.purchase.compare.onPix")}:{" "}
                     <span className="font-medium">
                       {formatCurrency(pixTotal)}
                     </span>
                   </span>
                   {savingsCents > 0 ? (
                     <span className="text-green-700 dark:text-green-300">
-                      (economize {formatCurrency(savingsCents)})
+                      ({t("partner.credits.purchase.savings", { value: formatCurrency(savingsCents) })})
                     </span>
                   ) : null}
                 </>
@@ -528,7 +517,7 @@ function PackageCard({
               <div className="mt-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Forma de pagamento
+                    {t("partner.credits.purchase.paymentMethod")}
                   </p>
                   <div className="flex w-full sm:w-auto rounded-xl border border-gray-200 dark:border-gray-700 p-1 bg-gray-50 dark:bg-gray-900/30">
                     <button
@@ -563,55 +552,46 @@ function PackageCard({
                       aria-pressed={paymentMethod === "card"}
                     >
                       <CreditCard className="w-4 h-4" />
-                      Cartão
+                      {t("partner.credits.purchase.compare.card")}
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Comparativo:{" "}
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {otherMethod === "pix" ? "PIX" : "Cartão"}
-                    </span>
-                    {": "}
-                    <span className="font-medium">
-                      {formatCurrency(otherTotal)}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {" "}
-                      ({formatCurrency(otherUnit)}/voucher)
-                    </span>
-                    {otherMethod === "pix" && savingsCents > 0 ? (
-                      <span className="text-green-700 dark:text-green-300">
-                        {" "}
-                        • economize {formatCurrency(savingsCents)} (
-                        {formatCurrency(savingsPerVoucherCents)}/voucher)
+                  <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t("partner.credits.purchase.compare.label")}:{" "}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {otherMethod === "pix" ? t("partner.credits.purchase.compare.pix") : t("partner.credits.purchase.compare.card")}
                       </span>
-                    ) : null}
-                  </p>
-
-                  {paymentMethod === "card" && (
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
-                      {formatCurrency(
-                        approxInstallmentCents(
-                          cardTotal,
-                          MAX_INSTALLMENTS_NO_INTEREST,
-                        ),
-                      )}{" "}
-                      sem juros. Acima disso, juros e total aparecem no
-                      checkout.
+                      {": "}
+                      <span className="font-medium">
+                        {formatCurrency(otherTotal)}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {" "}
+                        ({t("partner.credits.purchase.perVoucher", { value: formatCurrency(otherUnit) }).replace("/voucher", formatCurrency(otherUnit) + "/voucher") /* Hack: Key is just /voucher but we need value */ })
+                      </span>
+                      {otherMethod === "pix" && savingsCents > 0 ? (
+                        <span className="text-green-700 dark:text-green-300">
+                          {" "}
+                          • {t("partner.credits.purchase.savings", { value: formatCurrency(savingsCents) })} ({formatCurrency(savingsPerVoucherCents)}/voucher)
+                        </span>
+                      ) : null}
                     </p>
-                  )}
-                </div>
+
+                    {paymentMethod === "card" && (
+                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        {t("partner.credits.purchase.compare.installmentsDetails", { count: MAX_INSTALLMENTS_NO_INTEREST, value: formatCurrency(approxInstallmentCents(cardTotal, MAX_INSTALLMENTS_NO_INTEREST)) })}
+                      </p>
+                    )}
+                  </div>
               </div>
             )}
           </div>
 
           {pkg.savings_percent > 0 && (
             <p className="mt-3 text-xs text-green-700 dark:text-green-300 font-medium">
-              Desconto por volume: {pkg.savings_percent}%
+              {t("partner.credits.purchase.volumeDiscount", { value: pkg.savings_percent })}
             </p>
           )}
         </div>

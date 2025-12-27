@@ -64,16 +64,18 @@ import {
   type DeliveryFilters,
 } from "./components/DeliveryFiltersModal";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("pt-BR", {
+import { useTranslation, useLanguage } from "@babybook/i18n";
+
+function formatDate(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString("pt-BR", {
+function formatDateTime(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -82,74 +84,76 @@ function formatDateTime(dateString: string): string {
   });
 }
 
+// Configuração agora armazena chaves de tradução
 const statusConfig: Record<
   DeliveryStatus,
-  { icon: typeof Clock; className: string; label: string; shortLabel: string }
+  { icon: typeof Clock; className: string; labelKey: string; shortLabelKey: string }
 > = {
   draft: {
     icon: Clock,
     className: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
-    label: "Rascunho",
-    shortLabel: "Rascunho",
+    labelKey: "partner.status.draft.label",
+    shortLabelKey: "partner.status.draft.shortLabel",
   },
   pending_upload: {
     icon: Clock,
     className:
       "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300",
-    label: "Aguardando upload",
-    shortLabel: "Upload",
+    labelKey: "partner.status.pending_upload.label",
+    shortLabelKey: "partner.status.pending_upload.shortLabel",
   },
   processing: {
     icon: Loader2,
     className:
       "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300",
-    label: "Processando",
-    shortLabel: "Proc.",
+    labelKey: "partner.status.processing.label",
+    shortLabelKey: "partner.status.processing.shortLabel",
   },
   ready: {
     icon: CheckCircle2,
     className:
       "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300",
-    label: "Pronta",
-    shortLabel: "Pronta",
+    labelKey: "partner.status.ready.label",
+    shortLabelKey: "partner.status.ready.shortLabel",
   },
   delivered: {
     icon: Gift,
     className:
       "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300",
-    label: "Entregue",
-    shortLabel: "Entregue",
+    labelKey: "partner.status.delivered.label",
+    shortLabelKey: "partner.status.delivered.shortLabel",
   },
   failed: {
     icon: X,
     className: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
-    label: "Falhou",
-    shortLabel: "Erro",
+    labelKey: "partner.status.failed.label",
+    shortLabelKey: "partner.status.failed.shortLabel",
   },
   archived: {
     icon: Package,
     className: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
-    label: "Arquivada",
-    shortLabel: "Arq.",
+    labelKey: "partner.status.archived.label",
+    shortLabelKey: "partner.status.archived.shortLabel",
   },
 };
 
 function StatusBadge({ status }: { status: DeliveryStatus }) {
+  const { t } = useTranslation();
   const cfg = statusConfig[status] || statusConfig.draft;
   const Icon = cfg.icon;
   const meta = getPartnerDeliveryStatusMeta(status);
 
   return (
     <span
-      title={meta.hint}
-      aria-label={`${cfg.label}. ${meta.hint}`}
+      title={t(meta.hint)}
+      aria-label={`${t(cfg.labelKey)}. ${t(meta.hint)}`}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.className}`}
     >
       <Icon
         className={`w-3 h-3 ${status === "processing" ? "animate-spin" : ""}`}
       />
-      <span className="sm:hidden">{cfg.shortLabel}</span>
-      <span className="hidden sm:inline">{cfg.label}</span>
+      <span className="sm:hidden">{t(cfg.shortLabelKey)}</span>
+      <span className="hidden sm:inline">{t(cfg.labelKey)}</span>
     </span>
   );
 }
@@ -180,7 +184,8 @@ type PeriodFilter = "all" | "last_7" | "last_30" | "last_90" | "custom";
 
 type DeliveriesFilterPreset = {
   id: string;
-  name: string;
+  name: string; // Mantido como string, mas para builtins usaremos chave
+  nameKey?: string; // Opcional para built-ins traduzíveis
   created_at: string;
   updated_at: string;
   filters: {
@@ -208,6 +213,7 @@ const BUILTIN_PRESETS: DeliveriesFilterPreset[] = [
   {
     id: "builtin:needs_action",
     name: "Precisa de ação",
+    nameKey: "partner.deliveries.list.filters.presets.needsAction",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     filters: {
@@ -226,6 +232,7 @@ const BUILTIN_PRESETS: DeliveriesFilterPreset[] = [
   {
     id: "builtin:without_voucher",
     name: "Sem voucher",
+    nameKey: "partner.deliveries.list.filters.presets.withoutVoucher",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     filters: {
@@ -244,6 +251,7 @@ const BUILTIN_PRESETS: DeliveriesFilterPreset[] = [
   {
     id: "builtin:redeemed",
     name: "Resgatadas",
+    nameKey: "partner.deliveries.list.filters.presets.redeemed",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     filters: {
@@ -290,12 +298,16 @@ function sumCounts(obj: Record<string, number> | undefined): number {
   return Object.values(obj).reduce((acc, v) => acc + (Number(v) || 0), 0);
 }
 
-function getPeriodLabel(period: PeriodFilter): string {
-  if (period === "last_7") return "últimos 7 dias";
-  if (period === "last_30") return "últimos 30 dias";
-  if (period === "last_90") return "últimos 90 dias";
-  if (period === "custom") return "intervalo";
-  return "tudo";
+function getPeriodLabel(
+  period: PeriodFilter,
+  t: (key: string) => string,
+): string {
+  // TODO: Add translation keys for periods
+  if (period === "last_7") return "7 dias";
+  if (period === "last_30") return "30 dias";
+  if (period === "last_90") return "90 dias";
+  if (period === "custom") return t("partner.credits.period.custom") || "intervalo";
+  return t("partner.credits.period.all") || "tudo";
 }
 
 function StatusCounterChip({
@@ -363,6 +375,8 @@ function ActiveFilterChip({
 }
 
 export function DeliveriesListPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -370,19 +384,19 @@ export function DeliveriesListPage() {
   usePartnerPageHeader(
     useMemo(
       () => ({
-        title: "Entregas",
+        title: t("partner.deliveries.list.title"),
         backTo: "/partner",
-        backLabel: "Voltar ao portal",
+        backLabel: t("partner.deliveries.list.backToPortal"),
         actions: (
           <PartnerPageHeaderAction
             to="/partner/deliveries/new"
-            label="Nova entrega"
+            label={t("partner.deliveries.newDelivery")}
             tone="primary"
             icon={<Plus className="w-4 h-4" />}
           />
         ),
       }),
-      [],
+      [t],
     ),
   );
 
@@ -783,7 +797,7 @@ export function DeliveriesListPage() {
 
     if (statusFilter !== "all") {
       parts.push(
-        `Status: ${statusConfig[statusFilter]?.label || statusFilter}`,
+        `${t("partner.deliveries.list.filters.status")}: ${statusConfig[statusFilter]?.labelKey ? t(statusConfig[statusFilter].labelKey) : statusFilter}`,
       );
     }
     if (searchTerm.trim()) {
@@ -822,8 +836,8 @@ export function DeliveriesListPage() {
     if (createdPeriod !== "all") {
       const label =
         createdPeriod === "custom" && (createdFrom.trim() || createdTo.trim())
-          ? `Criadas: ${createdFrom.trim() || "…"} → ${createdTo.trim() || "…"}`
-          : `Criadas: ${getPeriodLabel(createdPeriod)}`;
+          ? `${t("partner.deliveries.list.filters.date")} ${createdFrom.trim() || "…"} → ${createdTo.trim() || "…"}`
+          : `${t("partner.deliveries.list.filters.date")}: ${getPeriodLabel(createdPeriod, t)}`;
       parts.push(label);
     }
 
@@ -831,8 +845,8 @@ export function DeliveriesListPage() {
       const label =
         redeemedPeriod === "custom" &&
         (redeemedFrom.trim() || redeemedTo.trim())
-          ? `Resgate (data): ${redeemedFrom.trim() || "…"} → ${redeemedTo.trim() || "…"}`
-          : `Resgate (data): ${getPeriodLabel(redeemedPeriod)}`;
+          ? `${t("partner.deliveries.list.filters.redeemed")} ${redeemedFrom.trim() || "…"} → ${redeemedTo.trim() || "…"}`
+          : `${t("partner.deliveries.list.filters.redeemed")}: ${getPeriodLabel(redeemedPeriod, t)}`;
       parts.push(label);
     }
     if (sort !== "newest") {
@@ -1253,11 +1267,11 @@ export function DeliveriesListPage() {
 
       {/* Desktop Header */}
       <div className="hidden md:block mb-8">
-        <PartnerBackButton to="/partner" label="Voltar ao portal" />
+        <PartnerBackButton to="/partner" label={t("partner.deliveries.list.backToPortal")} />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Minhas Entregas
+              {t("partner.deliveries.list.title")}
             </h1>
             <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
               {aggregations ? (
@@ -1265,14 +1279,14 @@ export function DeliveriesListPage() {
                   <span className="font-medium text-gray-700 dark:text-gray-200">
                     {aggregations.total}
                   </span>{" "}
-                  no total •{" "}
+                  {t("partner.deliveries.list.total")} •{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-200">
                     {aggregations.archived}
                   </span>{" "}
-                  arquivadas
+                  {t("partner.deliveries.list.archived")}
                 </>
               ) : (
-                <>{total} entregas</>
+                <>{total} {t("partner.deliveries.list.deliveriesSuffix")}</>
               )}
             </p>
           </div>
@@ -1281,7 +1295,7 @@ export function DeliveriesListPage() {
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Nova Entrega</span>
+            <span className="hidden sm:inline">{t("partner.deliveries.newDelivery")}</span>
           </Link>
         </div>
       </div>
@@ -1361,11 +1375,11 @@ export function DeliveriesListPage() {
         <div
           className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1 -mx-1 px-1"
           role="radiogroup"
-          aria-label="Filtrar entregas por status"
+          aria-label={t("partner.deliveries.list.filters.status")}
         >
           <StatusCounterChip
-            label="Tudo"
-            title="Todas as entregas (ativas + arquivadas)"
+            label={t("partner.deliveries.list.filters.options.all")}
+            title={t("partner.deliveries.status.all")}
             count={statusCounters.totalAll}
             active={includeArchived && statusFilter === "all"}
             onClick={() => {
@@ -1374,8 +1388,8 @@ export function DeliveriesListPage() {
             }}
           />
           <StatusCounterChip
-            label="Ativas"
-            title="Entregas ativas (não arquivadas)"
+            label={t("partner.status.active")}
+            title={t("partner.status.active")}
             count={statusCounters.activeTotal}
             active={!includeArchived && statusFilter === "all"}
             onClick={() => {
@@ -1386,72 +1400,31 @@ export function DeliveriesListPage() {
 
           <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
 
-          <StatusCounterChip
-            label={statusConfig.draft.shortLabel}
-            title={statusConfig.draft.label}
-            count={statusCounters.byStatus.draft}
-            active={statusFilter === "draft"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("draft");
-            }}
-          />
-          <StatusCounterChip
-            label={statusConfig.pending_upload.shortLabel}
-            title={statusConfig.pending_upload.label}
-            count={statusCounters.byStatus.pending_upload}
-            active={statusFilter === "pending_upload"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("pending_upload");
-            }}
-          />
-          <StatusCounterChip
-            label={statusConfig.processing.shortLabel}
-            title={statusConfig.processing.label}
-            count={statusCounters.byStatus.processing}
-            active={statusFilter === "processing"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("processing");
-            }}
-          />
-          <StatusCounterChip
-            label={statusConfig.failed.shortLabel}
-            title={statusConfig.failed.label}
-            count={statusCounters.byStatus.failed}
-            active={statusFilter === "failed"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("failed");
-            }}
-          />
-          <StatusCounterChip
-            label={statusConfig.ready.shortLabel}
-            title={statusConfig.ready.label}
-            count={statusCounters.byStatus.ready}
-            active={statusFilter === "ready"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("ready");
-            }}
-          />
-          <StatusCounterChip
-            label={statusConfig.delivered.shortLabel}
-            title={statusConfig.delivered.label}
-            count={statusCounters.byStatus.delivered}
-            active={statusFilter === "delivered"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("delivered");
-            }}
-          />
+          {Object.entries(statusConfig).map(([key, config]) => {
+            if (key === "archived") return null; // Renderizado separadamente
+            return (
+              <StatusCounterChip
+                key={key}
+                label={t(config.shortLabelKey)}
+                title={t(config.labelKey)}
+                count={
+                  statusCounters.byStatus[key as keyof typeof statusCounters.byStatus] ||
+                  0
+                }
+                active={statusFilter === key}
+                onClick={() => {
+                  setIncludeArchived(false);
+                  setStatusFilter(key as FilterStatus);
+                }}
+              />
+            );
+          })}
 
           <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
 
           <StatusCounterChip
-            label="Arq."
-            title="Arquivadas"
+            label={t(statusConfig.archived.shortLabelKey)}
+            title={t(statusConfig.archived.labelKey)}
             count={statusCounters.archivedCount}
             active={includeArchived && statusFilter === "archived"}
             onClick={() => {
@@ -1476,7 +1449,7 @@ export function DeliveriesListPage() {
           <div className="flex flex-wrap gap-2 flex-1">
             {statusFilter !== "all" && (
               <ActiveFilterChip
-                label={`Status: ${statusConfig[statusFilter]?.label || statusFilter}`}
+                label={`${t("partner.deliveries.list.filters.status")}: ${statusConfig[statusFilter]?.labelKey ? t(statusConfig[statusFilter].labelKey) : statusFilter}`}
                 onClear={() => setStatusFilter("all")}
               />
             )}
@@ -1532,8 +1505,8 @@ export function DeliveriesListPage() {
               <ActiveFilterChip
                 label={
                   createdPeriod === "custom" && (createdFrom || createdTo)
-                    ? `Criadas: ${createdFrom || "…"} → ${createdTo || "…"}`
-                    : `Criadas: ${getPeriodLabel(createdPeriod)}`
+                    ? `${t("partner.deliveries.list.filters.date")}: ${createdFrom || "…"} → ${createdTo || "…"}`
+                    : `${t("partner.deliveries.list.filters.date")}: ${getPeriodLabel(createdPeriod, t)}`
                 }
                 onClear={() => {
                   setCreatedPeriod("all");
@@ -1547,8 +1520,8 @@ export function DeliveriesListPage() {
               <ActiveFilterChip
                 label={
                   redeemedPeriod === "custom" && (redeemedFrom || redeemedTo)
-                    ? `Resgate: ${redeemedFrom || "…"} → ${redeemedTo || "…"}`
-                    : `Resgate: ${getPeriodLabel(redeemedPeriod)}`
+                    ? `${t("partner.deliveries.list.filters.redeemed")}: ${redeemedFrom || "…"} → ${redeemedTo || "…"}`
+                    : `${t("partner.deliveries.list.filters.redeemed")}: ${getPeriodLabel(redeemedPeriod, t)}`
                 }
                 onClear={() => {
                   setRedeemedPeriod("all");
@@ -1811,6 +1784,8 @@ interface DeliveryRowProps {
 }
 
 function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const isArchived = isDeliveryArchived(delivery);
   const displayStatus = getDeliveryDisplayStatus(delivery);
   const hasVoucher = Boolean(delivery.voucher_code);
@@ -1853,7 +1828,7 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
         {/* Row 2: Date + Voucher Code */}
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">
-            {formatDate(delivery.created_at)}
+            {formatDate(delivery.created_at, language)}
           </span>
           {delivery.voucher_code ? (
             <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-md">
@@ -1892,8 +1867,8 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
             }}
             disabled={isArchiving}
             className="p-2.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
-            title={isArchived ? "Desarquivar" : "Arquivar"}
-            aria-label={isArchived ? "Desarquivar entrega" : "Arquivar entrega"}
+            title={isArchived ? t("partner.deliveries.archive.unarchive") : t("partner.deliveries.archive.action")}
+            aria-label={isArchived ? t("partner.deliveries.archive.unarchive") : t("partner.deliveries.archive.action")}
           >
             {isArchiving ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -1910,7 +1885,7 @@ function DeliveryCard({ delivery, onArchive, isArchiving }: DeliveryRowProps) {
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
-            Ver
+            {t("partner.deliveries.actions.open")}
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -1938,6 +1913,8 @@ function DeliveryTableRow({
   onArchive,
   isArchiving,
 }: DeliveryTableRowProps) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const isArchived = isDeliveryArchived(delivery);
   const displayStatus = getDeliveryDisplayStatus(delivery);
   const hasVoucher = Boolean(delivery.voucher_code);
@@ -1994,7 +1971,7 @@ function DeliveryTableRow({
         <StatusBadge status={displayStatus} />
       </td>
       <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
-        {formatDate(delivery.created_at)}
+        {formatDate(delivery.created_at, language)}
       </td>
       <td className="px-4 py-2.5">
         <div className="flex flex-col gap-1">
@@ -2030,8 +2007,8 @@ function DeliveryTableRow({
               onPreview();
             }}
             className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Prévia"
-            aria-label="Abrir prévia"
+            title={t("partner.deliveries.actions.preview")}
+            aria-label={t("partner.deliveries.actions.preview")}
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -2045,8 +2022,8 @@ function DeliveryTableRow({
           <Link
             to={`/partner/deliveries/${delivery.id}`}
             className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Abrir detalhes"
-            aria-label="Abrir detalhes"
+            title={t("partner.deliveries.actions.open")}
+            aria-label={t("partner.deliveries.actions.open")}
           >
             <ChevronRight className="w-4 h-4" />
           </Link>
@@ -2095,6 +2072,7 @@ function ArchiveAction({
     setShowConfirm(false);
   };
 
+  const { t } = useTranslation();
   if (showConfirm) {
     return (
       <span className="inline-flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg px-2 py-1">
@@ -2105,8 +2083,8 @@ function ArchiveAction({
           type="button"
           onClick={handleConfirmArchive}
           className="p-1 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded transition-colors"
-          title="Confirmar"
-          aria-label="Confirmar arquivamento"
+          title={t("common.confirm")}
+          aria-label={t("common.confirm")}
         >
           <CheckCircle2 className="w-4 h-4" />
         </button>
@@ -2114,8 +2092,8 @@ function ArchiveAction({
           type="button"
           onClick={handleCancelArchive}
           className="p-1 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded transition-colors"
-          title="Cancelar"
-          aria-label="Cancelar arquivamento"
+          title={t("common.cancel")}
+          aria-label={t("common.cancel")}
         >
           <X className="w-4 h-4" />
         </button>
@@ -2128,8 +2106,8 @@ function ArchiveAction({
       type="button"
       onClick={handleArchiveClick}
       disabled={isArchiving}
-      title={isArchived ? "Desarquivar entrega" : "Arquivar entrega"}
-      aria-label={isArchived ? "Desarquivar entrega" : "Arquivar entrega"}
+      title={isArchived ? t("partner.deliveries.archive.unarchive") : t("partner.deliveries.archive.action")}
+      aria-label={isArchived ? t("partner.deliveries.archive.unarchive") : t("partner.deliveries.archive.action")}
       className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
     >
       {isArchiving ? (
@@ -2162,9 +2140,11 @@ function DeliveryQuickPreview({
   canPrev: boolean;
   canNext: boolean;
 }) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const isArchived = isDeliveryArchived(delivery);
   const displayStatus = getDeliveryDisplayStatus(delivery);
-  const title = delivery.title || delivery.client_name || "Entrega";
+  const title = delivery.title || delivery.client_name || t("common.delivery");
   const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
   const hasVoucher = Boolean(delivery.voucher_code);
   const canGenerateVoucher =
@@ -2187,7 +2167,7 @@ function DeliveryQuickPreview({
         document.body.removeChild(el);
         setCopiedMessage(message);
       } catch {
-        setCopiedMessage("Não foi possível copiar");
+        setCopiedMessage(t("partner.deliveries.actions.copyFailed"));
       }
     } finally {
       window.setTimeout(() => setCopiedMessage(null), 1600);
@@ -2199,7 +2179,7 @@ function DeliveryQuickPreview({
     window.location.origin,
   ).toString();
 
-  const timeline = getDeliveryTimeline(delivery);
+  const timeline = getDeliveryTimeline(delivery, language, t);
 
   return (
     <div className="fixed inset-0 z-50">
@@ -2215,7 +2195,7 @@ function DeliveryQuickPreview({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Prévia
+                  {t("partner.deliveries.actions.preview")}
                 </p>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                   {title}
@@ -2278,19 +2258,19 @@ function DeliveryQuickPreview({
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(deliveryUrl, "Link copiado")}
+                    onClick={() => copyToClipboard(deliveryUrl, t("partner.deliveries.actions.linkCopied"))}
                     className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
                   >
                     <Eye className="w-4 h-4" />
-                    Copiar link
+                    {t("partner.deliveries.actions.copyLink")}
                   </button>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(delivery.id, "ID copiado")}
+                    onClick={() => copyToClipboard(delivery.id, t("partner.deliveries.actions.idCopied"))}
                     className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
                   >
                     <Package className="w-4 h-4" />
-                    Copiar ID
+                    {t("partner.deliveries.actions.copyId")}
                   </button>
                   {delivery.voucher_code ? (
                     <button
@@ -2298,15 +2278,15 @@ function DeliveryQuickPreview({
                       onClick={() =>
                         copyToClipboard(
                           delivery.voucher_code!,
-                          "Voucher copiado",
+                          t("partner.deliveries.actions.voucherCopied"),
                         )
                       }
                       className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-                      title="Copiar voucher"
-                      aria-label="Copiar voucher"
+                      title={t("partner.deliveries.actions.copyVoucher")}
+                      aria-label={t("partner.deliveries.actions.copyVoucher")}
                     >
                       <Gift className="w-4 h-4" />
-                      Copiar voucher
+                      {t("partner.deliveries.actions.copyVoucher")}
                     </button>
                   ) : canGenerateVoucher ? (
                     <Link
@@ -2351,14 +2331,14 @@ function DeliveryQuickPreview({
 
               <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Cliente
+                  {t("partner.deliveries.sections.client")}
                 </p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
                 </p>
                 {delivery.redeemed_at && (
                   <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    Resgatado em {formatDateTime(delivery.redeemed_at)}
+                    Resgatado em {formatDateTime(delivery.redeemed_at, language)}
                     {delivery.redeemed_by ? ` por ${delivery.redeemed_by}` : ""}
                   </p>
                 )}
@@ -2377,7 +2357,7 @@ function DeliveryQuickPreview({
                     Criada em
                   </p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatDate(delivery.created_at)}
+                    {formatDate(delivery.created_at, language)}
                   </p>
                 </div>
               </div>
@@ -2469,7 +2449,11 @@ type TimelineItem = {
   icon: typeof Clock;
 };
 
-function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
+function getDeliveryTimeline(
+  delivery: Delivery,
+  language: string,
+  t: (key: string) => string,
+): TimelineItem[] {
   const effectiveStatus: DeliveryStatus =
     delivery.status === "failed" ? "processing" : delivery.status;
 
@@ -2488,7 +2472,7 @@ function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
   const created: TimelineItem = {
     key: "created",
     title: "Entrega criada",
-    subtitle: formatDateTime(delivery.created_at),
+    subtitle: formatDateTime(delivery.created_at, language),
     state: "done",
     icon: Clock,
   };
@@ -2559,7 +2543,7 @@ function getDeliveryTimeline(delivery: Delivery): TimelineItem[] {
     key: "redeemed",
     title: "Resgate",
     subtitle: delivery.redeemed_at
-      ? formatDateTime(delivery.redeemed_at)
+      ? formatDateTime(delivery.redeemed_at, language)
       : "Aguardando cliente",
     state: delivery.redeemed_at
       ? "done"

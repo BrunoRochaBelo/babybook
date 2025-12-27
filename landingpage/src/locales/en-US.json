@@ -1,0 +1,463 @@
+{
+  "nav": {
+    "howItWorks": "How it Works",
+    "pricing": "Pricing",
+    "login": "Login",
+    "start": "Get Started"
+  },
+  "hero": {
+    "socialProof": "+500 families already preserve their stories",
+    "headline": "Your child's story deserves <br class=\"hidden sm:block\" /> <span class=\"text-orange-600 italic\">a forever home.</span>",
+    "subheadline": "Transform scattered photos and memories into an organized story that spans generations.",
+    "pills": {
+      "lifetime": "Lifetime access",
+      "privacy": "Total privacy",
+      "noSubscription": "No monthly fees"
+    },
+    "cta": {
+      "primary": "Start for R$297",
+      "secondary": "🎁 Gift someone"
+    },
+    "guarantee": "7-day guarantee",
+    "comparison": "Less than a physical photobook"
+  },
+  "chaos": {
+    "eyebrow": "The void nobody notices",
+    "headline": "The tradition of documenting childhood never went out of style. <br> <span class=\"text-gray-500 transition-colors duration-500\" id=\"chaos-highlight\">It just needed to fit into real life.</span>",
+    "p1": "Before, grandmas used glue, markers, and printed photos. It was laborious, became a relic, or got lost.",
+    "p2": "Today you have 10x more records — and nowhere for them to become a story. Baby Book organizes this chaos with affection."
+  },
+  "books": {
+    "intro": {
+      "eyebrow": "The Collection",
+      "title": "Four books.<br>A complete childhood."
+    },
+    "cards": {
+      "journey": {
+        "title": "Journey",
+        "desc": "Their life in ready-made chapters. From the first cry to the first step, organized chronologically."
+      },
+      "health": {
+        "title": "Health",
+        "desc": "Vaccines, appointments, growth. Everything recorded and easy to find when the doctor asks."
+      },
+      "visits": {
+        "title": "Visits",
+        "desc": "Messages from loved ones. Approved by you, kept forever. The digital guestbook."
+      },
+      "vault": {
+        "locked": {
+          "title": "Vault Locked",
+          "action": "Scroll to unlock"
+        },
+        "unlocked": {
+          "title": "Vault",
+          "desc": "Important documents protected. Birth certificate, exams, essentials always at hand."
+        }
+      }
+    }
+  },
+  "howItWorks": {
+    "intro": {
+      "eyebrow": "How It Works",
+      "title": "Three minutes. One story."
+    },
+    "step1": {
+      "title": "<span class=\"step-emoji emoji-calendar\">📅</span> Pick the moment",
+      "desc": "Birth? First bath? First word? The chapters are ready waiting for you. Select the special milestone you want to record."
+    },
+    "step2": {
+      "title": "<span class=\"step-emoji emoji-camera\">📸</span> Add affection",
+      "desc": "Photos, videos, audios. Write if you want. Only the essential, no excess or complicated filters. Capture moments with your heart."
+    },
+    "step3": {
+      "title": "<span class=\"step-emoji emoji-cloud\">☁️</span> Done. Forever.",
+      "desc": "The story grows at your pace. No rush, no pressure, automatically organized. Stored in the cloud, safe and accessible anytime."
+    }
+  },
+  "families": {
+    "title": "Made for real families.",
+    "quotes": {
+      "1": {
+        "title": "I have thousands of photos and no story",
+        "desc": "You record everything, but never manage to organize it. Baby Book does it for you."
+      },
+      "2": {
+        "title": "I want real privacy",
+        "desc": "No public feed. No likes. Only those you invite see the story."
+      },
+      "3": {
+        "title": "I'm not good at doing this stuff",
+        "desc": "That's exactly why. We guide every step. You just fill it with affection."
+      },
+      "4": {
+        "title": "I want to gift something special",
+        "desc": "The gift that doesn't become a donation. It becomes a legacy."
+      }
+    }
+  },
+  "pricing": {
+    "title": "One payment.<br>A lifetime.",
+    "subtitle": "Complete lifetime access",
+    "features": {
+      "books": "4 complete digital books",
+      "updates": "Updates and new features included",
+      "noSub": "No monthly fees. Ever."
+    },
+    "guarantee": "7-day money-back guarantee",
+    "cta": "Start my story",
+    "links": {
+      "voucher": "I have a code",
+      "gift": "Gift someone"
+    },
+    "footer": "Less than a printed photobook · For the entire early childhood",
+    "trust": {
+      "lifetime": "Lifetime access • Pay once. Use forever.",
+      "privacy": "100% Private • Your memories, your rules.",
+      "export": "Export • Your data always leaves with you.",
+      "support": "Human Support • Made by parents for parents."
+    }
+  },
+  "future": {
+    "tag": "In development",
+    "title": "A platform that <span class=\"text-orange-600\">grows along</span> with your family.",
+    "desc": "In the future, you will be able to transform your story into new formats and continue creating memories.",
+    "soon": "Coming soon",
+    "cards": {
+      "photobooks": {
+        "title": "Printed Photobooks",
+        "desc": "The digital journey becomes a high-quality physical book to touch and keep"
+      },
+      "timecapsules": {
+        "title": "Time Capsules",
+        "desc": "Letters and messages written today, scheduled to be opened in the future"
+      },
+      "chapters": {
+        "title": "New Chapters",
+        "desc": "As your child grows, the story continues with new phases and milestones"
+      }
+    }
+  },
+  "faq": {
+    "title": "Questions that matter.",
+    "q1": {
+      "question": "What if you close down?",
+      "answer": "Your memories can be exported. Anytime. The story is yours, not ours."
+    },
+    "q2": {
+      "question": "Can I use it for more than one child?",
+      "answer": "Yes. A complete album for each child. Same account."
+    },
+    "q3": {
+      "question": "Is there a photo limit?",
+      "answer": "Baby Book values curation: every moment you choose is special. Unlike an endless backup, here you keep only what truly matters — and that makes the story more meaningful."
+    },
+    "q4": {
+      "question": "Does my family need to download the app?",
+      "answer": "No. You can share via private links. They view it in the browser."
+    },
+    "q5": {
+      "question": "Can I start and complete it gradually?",
+      "answer": "That's exactly the idea. No rush, no pressure. At your own pace."
+    },
+    "q6": {
+      "question": "Why is R$297 a good investment?",
+      "answer": "A printed photobook costs between R$200-400 and covers only a few months. Baby Book is for the entire early childhood, with lifetime access, updates included, and secure backup. Less than R$5 per month for the first 5 years."
+    }
+  },
+  "ctaFinal": {
+    "tag": "Start today!",
+    "title": "Childhood <span class=\"text-gradient-orange inline-block animate-pulse-slow\">doesn't wait.</span>",
+    "sub": "The story can be preserved.",
+    "buttons": {
+      "primary": "Eternize my child's story",
+      "secondary": "🎁 Gift someone"
+    }
+  },
+  "footer": {
+    "slogan": "Preserving moments",
+    "description": "Made with affection for families who value memories. Preserving stories that last forever.",
+    "nav": {
+      "title": "Navigation",
+      "howItWorks": "How It Works",
+      "pricing": "Pricing",
+      "future": "Future",
+      "start": "Start Now →"
+    },
+    "support": {
+      "title": "Support",
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy"
+    },
+    "copyright": "© 2025 Baby Book. All rights reserved."
+  },
+  "exitPopup": {
+    "title": "Wait! Don't Miss This Special Offer",
+    "text": "Get <strong>20% off</strong> your first baby book! Sign up and start preserving memories today.",
+    "button": "Get Discount",
+    "privacy": "🔒 Your data is safe. No spam, we promise!",
+    "benefits": {
+      "lifetime": "Lifetime access",
+      "noSub": "No monthly fees",
+      "delivery": "7-day delivery"
+    }
+  },
+  "pro": {
+    "meta": {
+      "title": "Baby Book PRO - Premium delivery for photographers",
+      "description": "Buy vouchers in bulk, pay once per client and deliver the Baby Book as a premium gift. No monthly fees, no after-sales support for you."
+    },
+    "nav": {
+      "subtitle": "For professional photographers",
+      "problem": "Problem",
+      "benefits": "Benefits",
+      "value": "Value",
+      "packages": "Packages",
+      "faq": "FAQ",
+      "login": "Login",
+      "register": "Create Partner Account",
+      "mobile": {
+        "login": "Login",
+        "register": "Create Partner Account"
+      }
+    },
+    "hero": {
+      "socialProof": "<strong class='text-white'>+150</strong> photographers already use it",
+      "headline": "Your photos deserve <br class='hidden sm:block'> <span class='gradient-text-animated'>more than an expiring link</span>",
+      "subheadline": "Deliver your photos in a <strong class='text-white'>permanent app</strong> that the client accesses forever. <span class='text-pink-300'>No resends. No expiring links. No quality loss.</span>",
+      "pills": {
+        "noMonthly": "No monthly fees",
+        "quality": "Retina/4K Quality",
+        "noExpire": "Credits never expire"
+      },
+      "cta": "Start for free",
+      "trust": {
+        "signup": "30-second sign up",
+        "rating": "4.9/5 rating",
+        "warranty": "7-day warranty"
+      },
+      "floatingBadge": "Competitive advantage",
+      "card": {
+        "title": "Exclusive advantages",
+        "subtitle": "Differentiators you won't find elsewhere",
+        "features": {
+          "support": {
+            "title": "Support on us",
+            "desc": "You don't handle technical questions"
+          },
+          "brand": {
+            "title": "Your brand in the app",
+            "desc": "Custom logo and colors"
+          },
+          "engagement": {
+            "title": "Client uses every week",
+            "desc": "4 books that keep engagement"
+          }
+        },
+        "testimonial": {
+          "text": "\"After I started delivering via Baby Book, I received 4 referrals in the first month alone. Clients share the app with family and everyone asks who took the photos.\"",
+          "author": "— Camila M., Family Photographer"
+        }
+      },
+      "bottomTrust": {
+        "safe": "Photos safe forever",
+        "backup": "Automatic backup",
+        "photographers": "Made for photographers"
+      }
+    },
+    "pain": {
+      "title": "The part no one tells you about being a photographer",
+      "description": "The session ends in a few hours. What remains is the delivery — and it defines how much your work is remembered (and recommended).",
+      "current": {
+        "label": "Current Scenario",
+        "title": "The Frustration Cycle",
+        "step1": {
+          "title": "You send a temporary link",
+          "desc": "Google Drive, WeTransfer... <span class='text-rose-600 font-medium'>expires in 7 to 30 days.</span>"
+        },
+        "step2": {
+          "title": "The client doesn't download correctly",
+          "desc": "Screenshots on mobile, sent via WhatsApp... <span class='text-rose-600 font-medium'>your edit becomes a blurry image.</span>"
+        },
+        "step3": {
+          "title": "The dreaded message appears",
+          "quote": "\"I changed phones and lost all photos. Do you still have them?\"",
+          "note": "Common situation that generates rework and stress"
+        }
+      },
+      "new": {
+        "label": "With Baby Book PRO",
+        "title": "The New Experience",
+        "item1": {
+          "title": "Definitive delivery with your brand",
+          "desc": "Elegant and personalized app that values your work"
+        },
+        "item2": {
+          "title": "Retina/4K Quality preserved",
+          "desc": "No compression loss — your edit appears as you created it"
+        },
+        "item3": {
+          "title": "Lifetime access to the app",
+          "desc": "Client never loses photos — <span class='text-emerald-400'>zero rework and cost for you</span>"
+        }
+      }
+    },
+    "benefits": {
+      "badge": "Complete ecosystem for families",
+      "title": "Much more than photos in a Drive",
+      "description": "4 digital books that keep your client <strong class='text-gray-900'>engaged</strong> and remembering you at every stage of life's journey.",
+      "cards": {
+        "journey": {
+          "title": "Journey",
+          "desc": "Baby's life in chapters. From first cry to first step, chronologically organized.",
+          "note": "<span class='text-gray-700 font-medium'>For you:</span> Your art preserved + special date reminders"
+        },
+        "health": {
+          "title": "Health",
+          "desc": "Vaccines, appointments and growth registered. Easy to find when the doctor asks.",
+          "note": "<span class='text-gray-700 font-medium'>For you:</span> Client opens the app every week and sees your photos"
+        },
+        "visits": {
+          "title": "Visits",
+          "desc": "Messages from loved ones, approved by you. The baby's digital guestbook.",
+          "note": "<span class='text-gray-700 font-medium'>For you:</span> More people see your work = more referrals"
+        },
+        "vault": {
+          "title": "Vault",
+          "desc": "Important documents protected. Birth certificate, exams, essentials always at hand.",
+          "note": "<span class='text-gray-700 font-medium'>For you:</span> Premium value perception in delivery"
+        }
+      },
+      "hint": "All this <strong class='text-gray-700'>adds value to your service</strong> without extra effort"
+    },
+    "value": {
+      "badge": "ROI proven by photographers",
+      "title": "Not a cost. It's <span class='gradient-text-animated'>investment that pays off.</span>",
+      "description": "What looks like a cost per client becomes a <strong class='text-white'>competitive advantage</strong> that generates return in referrals. Do the math:",
+      "stats": {
+        "currency": "$",
+        "price": {
+          "badge": "COMMERCIAL PRICE",
+          "label": "Client perceives",
+          "sub": "of value in the gift you deliver"
+        },
+        "investment": {
+          "badge": "YOUR INVESTMENT",
+          "label": "One-time payment per client",
+          "sub": "Lifetime access for the whole family"
+        },
+        "return": {
+          "badge": "AVERAGE RETURN",
+          "label": "Referrals per client",
+          "sub": "When delivery is memorable"
+        }
+      },
+      "math": {
+        "invested": { "val": "$ 120", "label": "invested" },
+        "clients": { "val": "3 referrals", "label": "= new clients" },
+        "revenue": { "val": "$ 4.500+", "label": "in new sessions" },
+        "note": "Considering average ticket of $ 1.500 per session"
+      },
+      "pitch": {
+        "badge1": "At sales time",
+        "badge2": "Copy this script",
+        "text": "<span class='text-gray-400 not-italic'>\"</span><span class='italic'>Mrs. Smith, your delivery includes the <strong class='text-white not-italic'>Lifetime Baby Book</strong> — a premium experience where every photo stays organized <strong class='text-white not-italic'>forever</strong>, with secure backup. You can change phones, format everything... photos <strong class='text-pink-300 not-italic'>are never lost</strong>. It's an elegant digital album that accompanies the family for generations.</span><span class='text-gray-400 not-italic'>\"</span>",
+        "result": "<strong class='text-white'>Result:</strong> Delighted client refers friends — you grow via word of mouth, without spending on ads."
+      },
+      "cta": {
+        "button": "View packages and start",
+        "trust": {
+          "noMonthly": "No monthly fees",
+          "noExpire": "Credits do not expire",
+          "warranty": "7-day warranty"
+        }
+      }
+    },
+    "packages": {
+      "badge": "Credits never expire",
+      "title": "Choose your <span class='text-pink-600'>Package</span>",
+      "description": "No subscriptions. No surprises. Buy once, use anytime.",
+      "starter": {
+        "title": "Starter Pack",
+        "price": "$700",
+        "unit": "/batch",
+        "sub": "Costs $140 per client",
+        "features": {
+          "licenses": "<strong class='text-gray-900'>5</strong> Lifetime Licenses",
+          "panel": "Administrative Panel",
+          "support": "Tech Support Included"
+        },
+        "button": "Start with Starter"
+      },
+      "pro": {
+        "badge": "MOST POPULAR",
+        "title": "PRO Pack",
+        "price": "$1.200",
+        "unit": "/batch",
+        "sub": "Costs $120/client",
+        "discount": "-14% OFF",
+        "features": {
+          "licenses": "<strong class='text-gray-900'>10</strong> Lifetime Licenses",
+          "cost": "<strong class='text-pink-600'>Best cost per delivery</strong>",
+          "panel": "Full Admin Panel",
+          "support": "Priority Support"
+        },
+        "button": "I want to be a PRO Partner"
+      },
+      "trust": "✓ One-time payment · ✓ 7-day warranty · ✓ Humanized support"
+    },
+    "ctaUrgency": {
+      "tag": "See inside",
+      "title": "Explore the dashboard <span class='text-pink-300'>for free</span>",
+      "description": "Create your partner account and see how it works. No commitment, no credit card.",
+      "button": "Explore dashboard",
+      "note": "Totally free · Takes 30 seconds",
+      "link": "Want to see how it looks for your client? <a href='/index.html' class='text-pink-400 hover:text-pink-300 font-medium transition-colors'>Visit product page →</a>"
+    },
+    "faq": {
+      "badge": "Clear your doubts",
+      "title": "Frequently <span class='text-pink-600'>Asked Questions</span>",
+      "description": "Everything you need to know before starting",
+      "q1": {
+        "q": "Is there a monthly fee or maintenance fee?",
+        "a": "<strong class='text-gray-900'>No. Zero.</strong> You buy the batch of licenses and they are yours forever until you use them. If it takes 1 month or 1 year to sell, it doesn't matter. Your licenses never expire."
+      },
+      "q2": {
+        "q": "What if my client loses their phone?",
+        "a": "Access is linked to the <strong class='text-gray-900'>account, not the device</strong>. Photos and data are saved in the cloud with redundant backup. It's safer than an external hard drive — just log in on the new phone."
+      },
+      "q3": {
+        "q": "Does the end client pay anything?",
+        "a": "<strong class='text-gray-900'>No.</strong> Lifetime access is a differentiator you include in the package (or sell as an upsell). For the parent, the app is <strong class='text-gray-900'>free and ad-free</strong>. You add value to your service."
+      },
+      "q4": {
+        "q": "How do I deliver photos to the client?",
+        "a": "You get access to the <strong class='text-gray-900'>Partner Panel</strong>. Upload high-res photos, generate a unique code and send it to the client (physical or digital). They download the app, enter the code and done — in <strong class='text-gray-900'>less than 2 minutes</strong>."
+      },
+      "q5": {
+        "q": "What if I don't like it, is there a warranty?",
+        "a": "Yes! We offer a <strong class='text-gray-900'>7-day warranty</strong>. If you are not satisfied, we refund your investment without bureaucracy. We trust the product so much we take the risk."
+      },
+      "more": "Still have doubts?",
+      "contact": "Contact us"
+    },
+    "footer": {
+      "subtitle": "For professional photographers",
+      "description": "Made with affection for professionals who value delivery. Preserving stories that last forever.",
+      "nav": {
+        "title": "Navigation",
+        "pain": "Problem",
+        "benefits": "Benefits",
+        "packages": "Packages",
+        "faq": "FAQ",
+        "start": "Start Now →"
+      },
+      "support": {
+        "title": "Support",
+        "terms": "Terms of Use",
+        "privacy": "Privacy Policy"
+      },
+      "copyright": "© 2025 Baby Book Pro. All rights reserved."
+    }
+  }
+}

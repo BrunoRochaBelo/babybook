@@ -7,8 +7,9 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Save, Upload, X } from "lucide-react";
+import { Camera, Save, Upload, X, Globe } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@babybook/i18n";
 import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
@@ -20,8 +21,11 @@ import {
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { useUnsavedChangesWarning } from "@/hooks/useOnlineStatus";
 import { SuccessButton } from "@/components/SuccessButton";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 export function PartnerSettingsPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -29,11 +33,11 @@ export function PartnerSettingsPage() {
   usePartnerPageHeader(
     useMemo(
       () => ({
-        title: "Configurações",
+        title: t("partner.settings.title"),
         backTo: "/partner",
-        backLabel: "Voltar",
+        backLabel: t("common.back"),
       }),
-      [],
+      [t],
     ),
   );
 
@@ -84,7 +88,7 @@ export function PartnerSettingsPage() {
   // Alertar ao sair com alterações não salvas
   useUnsavedChangesWarning(
     hasUnsavedChanges,
-    "Você tem alterações não salvas. Tem certeza que deseja sair?",
+    t("errors.validation"),
   );
 
   // Estado de sucesso para o botão
@@ -100,11 +104,11 @@ export function PartnerSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partner", "profile"] });
       setSaveSuccess(true);
-      toast.success("Alterações salvas com sucesso!");
+      toast.success(t("common.success"));
     },
     onError: (err) => {
       toast.error(
-        err instanceof Error ? err.message : "Erro ao salvar alterações",
+        err instanceof Error ? err.message : t("errors.generic"),
       );
     },
   });
@@ -113,7 +117,7 @@ export function PartnerSettingsPage() {
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("Nome é obrigatório");
+      toast.error(t("common.required"));
       return;
     }
 
@@ -132,12 +136,12 @@ export function PartnerSettingsPage() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Selecione uma imagem válida");
+        toast.error(t("errors.validation"));
         return;
       }
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        toast.error("A imagem deve ter no máximo 2MB");
+        toast.error(t("errors.validation"));
         return;
       }
       setLogoFile(file);
@@ -176,33 +180,33 @@ export function PartnerSettingsPage() {
   if (isError) {
     return (
       <PartnerErrorState
-        title="Não foi possível carregar suas configurações"
+        title={t("errors.generic")}
         onRetry={refetch}
       />
     );
   }
 
   if (isLoading) {
-    return <PartnerLoadingState label="Carregando configurações…" />;
+    return <PartnerLoadingState label={t("common.loading")} />;
   }
 
   return (
     <PartnerPage>
       {/* Desktop Header */}
       <div className="hidden md:block mb-8">
-        <PartnerBackButton label="Voltar" />
+        <PartnerBackButton label={t("common.back")} />
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          Configurações do Perfil
+          {t("partner.settings.profile.title")}
         </h1>
         <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
-          Gerencie as informações do seu estúdio
+          {t("partner.settings.title")}
         </p>
       </div>
 
       {/* Mobile summary - botão voltar via header sticky */}
       <div className="md:hidden mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Atualize dados do estúdio, logo e informações da conta.
+          {t("partner.settings.title")}
         </p>
       </div>
 
@@ -210,7 +214,7 @@ export function PartnerSettingsPage() {
         {/* Logo Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Logo do Estúdio
+            {t("partner.settings.profile.logo")}
           </h2>
           <div className="flex items-center gap-6">
             <div className="relative">
@@ -225,8 +229,8 @@ export function PartnerSettingsPage() {
                     type="button"
                     onClick={handleRemoveLogo}
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                    aria-label="Remover logo"
-                    title="Remover logo"
+                    aria-label={t("partner.settings.profile.removeLogo")}
+                    title={t("partner.settings.profile.removeLogo")}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -251,7 +255,7 @@ export function PartnerSettingsPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Escolher Imagem
+                {t("partner.settings.profile.uploadLogo")}
               </button>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 JPG ou PNG até 2MB. Recomendado: 200x200 pixels
@@ -263,7 +267,7 @@ export function PartnerSettingsPage() {
         {/* Profile Fields */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Informações do Perfil
+            {t("partner.settings.profile.title")}
           </h2>
           <div className="space-y-4">
             <div>
@@ -271,14 +275,14 @@ export function PartnerSettingsPage() {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Seu Nome *
+                {t("partner.settings.profile.contactName")} *
               </label>
               <input
                 id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Seu nome completo"
+                placeholder={t("partner.settings.profile.contactName")}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
@@ -288,18 +292,18 @@ export function PartnerSettingsPage() {
                 htmlFor="studioName"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Nome do Estúdio
+                {t("partner.settings.profile.companyName")}
               </label>
               <input
                 id="studioName"
                 type="text"
                 value={studioName}
                 onChange={(e) => setStudioName(e.target.value)}
-                placeholder="Ex: Studio Encanto Fotografia"
+                placeholder={t("partner.settings.profile.companyName")}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Este nome aparecerá nos cartões-convite dos seus clientes
+                {t("partner.settings.profile.companyName")}
               </p>
             </div>
 
@@ -308,7 +312,7 @@ export function PartnerSettingsPage() {
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                WhatsApp
+                {t("common.phone")}
               </label>
               <input
                 id="phone"
@@ -322,7 +326,7 @@ export function PartnerSettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                E-mail
+                {t("common.email")}
               </label>
               <input
                 type="email"
@@ -331,8 +335,31 @@ export function PartnerSettingsPage() {
                 className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                O e-mail não pode ser alterado
+                {t("common.email")}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Preferences Section - Language */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-gray-500" />
+            {t("partner.settings.preferences.title")}
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("partner.settings.preferences.language")}
+              </label>
+              <LanguageSelector />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("partner.settings.preferences.theme")}
+              </label>
+              <ThemeSelector />
             </div>
           </div>
         </div>
@@ -340,25 +367,25 @@ export function PartnerSettingsPage() {
         {/* Account Info */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Informações da Conta
+            {t("partner.settings.title")}
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("common.status")}</p>
               <p className="font-medium text-gray-900 dark:text-white capitalize">
                 {profile?.status === "approved"
-                  ? "✓ Aprovado"
+                  ? `✓ ${t("partner.deliveries.status.delivered")}`
                   : profile?.status === "pending"
-                    ? "⏳ Pendente"
+                    ? `⏳ ${t("partner.deliveries.status.pending")}`
                     : profile?.status}
               </p>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Saldo de Créditos
+                {t("partner.credits.balance")}
               </p>
               <p className="font-medium text-gray-900 dark:text-white">
-                {profile?.voucher_balance || 0} créditos
+                {profile?.voucher_balance || 0} {t("partner.credits.title").toLowerCase()}
               </p>
             </div>
           </div>
@@ -370,13 +397,13 @@ export function PartnerSettingsPage() {
             type="submit"
             isLoading={updateMutation.isPending}
             isSuccess={saveSuccess}
-            loadingText="Salvando..."
-            successText="Salvo!"
+            loadingText={t("common.loading")}
+            successText={t("common.success")}
             onSuccessEnd={() => setSaveSuccess(false)}
             icon={<Save className="w-5 h-5" />}
             size="lg"
           >
-            Salvar Alterações
+            {t("common.save")}
           </SuccessButton>
         </div>
       </form>

@@ -80,6 +80,9 @@ import { initFooterBehavior } from "./features/footerBehavior";
 import { mountCheckout } from "./features/checkout";
 import { injectCheckoutStyles } from "./features/checkout/styles";
 
+// Features - i18n
+import { setupLanguageSelector } from "./features/languageSelector";
+
 // Utils
 import {
   setupScrollDepthTracking,
@@ -131,6 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Core Features
   safeInit("Scroll Progress", () => initScrollProgress());
+  safeInit("Language Selector", () => setupLanguageSelector());
+  
   if (isFeatureEnabled("navigation")) {
     safeInit("Navigation", () => initNavigation());
   }

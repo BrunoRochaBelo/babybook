@@ -27,6 +27,7 @@ import {
   TrendingUp,
   Info,
 } from "lucide-react";
+import { useTranslation, useLanguage } from "@babybook/i18n";
 import {
   getPartnerProfile,
   getPartnerDashboardStats,
@@ -52,34 +53,41 @@ import { PartnerOnboarding } from "./PartnerOnboarding";
 import { PartnerDetailedStats } from "./PartnerDetailedStats";
 import { GuidedTour } from "@/components/GuidedTour";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+function formatDate(dateString: string, locale: string): string {
+  try {
+    return new Date(dateString).toLocaleDateString(locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateString;
+  }
 }
 
 /**
  * Retorna saudação baseada no horário atual
  */
-function getGreeting(): string {
+function getGreeting(t: (key: string, options?: any) => string): string {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Bom dia";
-  if (hour >= 12 && hour < 18) return "Boa tarde";
-  return "Boa noite";
+  if (hour >= 5 && hour < 12) return t("partner.dashboard.welcomeMorning");
+  if (hour >= 12 && hour < 18) return t("partner.dashboard.welcomeAfternoon");
+  return t("partner.dashboard.welcomeEvening");
 }
 
 /**
  * Retorna uma dica contextual baseada no estado do usuário
  */
-function getContextualTip(options: {
-  hasLowCredits: boolean;
-  hasReadyDeliveries: boolean;
-  hasPendingUpload: boolean;
-  deliveriesCount: number;
-  redeemedCount: number;
-}): { icon: typeof Lightbulb; text: string; color: string } | null {
+function getContextualTip(
+  options: {
+    hasLowCredits: boolean;
+    hasReadyDeliveries: boolean;
+    hasPendingUpload: boolean;
+    deliveriesCount: number;
+    redeemedCount: number;
+  },
+  t: (key: string, options?: any) => string,
+): { icon: typeof Lightbulb; text: string; color: string } | null {
   const {
     hasLowCredits,
     hasReadyDeliveries,
@@ -92,7 +100,7 @@ function getContextualTip(options: {
   if (hasPendingUpload) {
     return {
       icon: Clock,
-      text: "Você tem fotos aguardando upload. Complete para enviar ao cliente!",
+      text: t("partner.dashboard.tips.pendingUpload"),
       color: "text-yellow-600 dark:text-yellow-400",
     };
   }
@@ -100,7 +108,7 @@ function getContextualTip(options: {
   if (hasReadyDeliveries) {
     return {
       icon: Gift,
-      text: "Entregas prontas! Gere o link/voucher para seus clientes resgatarem.",
+      text: t("partner.dashboard.tips.readyDeliveries"),
       color: "text-green-600 dark:text-green-400",
     };
   }
@@ -108,7 +116,7 @@ function getContextualTip(options: {
   if (hasLowCredits) {
     return {
       icon: CreditCard,
-      text: "Seu saldo está baixo. Garanta créditos para não pausar entregas.",
+      text: t("partner.dashboard.tips.lowCredits"),
       color: "text-pink-600 dark:text-pink-400",
     };
   }
@@ -117,7 +125,7 @@ function getContextualTip(options: {
   if (redeemedCount > 0 && deliveriesCount >= 5) {
     return {
       icon: TrendingUp,
-      text: `${redeemedCount} clientes já resgataram suas fotos. Continue crescendo!`,
+      text: t("partner.dashboard.tips.growth", { count: redeemedCount }),
       color: "text-purple-600 dark:text-purple-400",
     };
   }
@@ -125,7 +133,7 @@ function getContextualTip(options: {
   if (deliveriesCount === 0) {
     return {
       icon: Sparkles,
-      text: "Crie sua primeira entrega e surpreenda seus clientes!",
+      text: t("partner.dashboard.tips.firstDelivery"),
       color: "text-pink-600 dark:text-pink-400",
     };
   }
@@ -134,6 +142,7 @@ function getContextualTip(options: {
 }
 
 function DeliveryStatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const config: Record<string, { icon: typeof Clock; className: string }> = {
     draft: {
       icon: Clock,
@@ -174,21 +183,30 @@ function DeliveryStatusBadge({ status }: { status: string }) {
   const normalized = normalizePartnerDeliveryStatus(status);
   const cfg = config[normalized] || config.draft;
   const Icon = cfg.icon;
+  // TODO: Use translation for status labels
   const meta = getPartnerDeliveryStatusMeta(normalized);
 
   return (
     <span
-      title={meta.hint}
-      aria-label={`${meta.label}. ${meta.hint}`}
+      title={t(meta.hint)}
+      aria-label={`${t(meta.label)}. ${t(meta.hint)}`}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.className}`}
     >
       <Icon className="w-3 h-3" />
-      {meta.shortLabel}
+      {/* Fallback to meta label if translation key structure doesn't match */}
+      {t(`partner.deliveries.status.${normalized}`, {
+        defaultValue: t(meta.shortLabel),
+      })}
     </span>
   );
 }
 
 export function PartnerDashboard() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  // const t = (k: string) => k;
+  // const language = "pt-BR";
+
   // Queries
   const {
     data: profile,
@@ -270,17 +288,17 @@ export function PartnerDashboard() {
   usePartnerPageHeader(
     useMemo(
       () => ({
-        title: "Dashboard",
+        title: t("partner.dashboard.title"),
         actions: (
           <PartnerPageHeaderAction
             to="/partner/deliveries/new"
-            label="Nova entrega"
+            label={t("partner.deliveries.newDelivery")}
             tone="primary"
             icon={<Plus className="w-4 h-4" />}
           />
         ),
       }),
-      [],
+      [t],
     ),
   );
 
@@ -323,13 +341,16 @@ export function PartnerDashboard() {
   // Dica contextual para o usuário (hooks precisam ser chamados antes de early-return)
   const contextualTip = useMemo(() => {
     if (isError) return null;
-    return getContextualTip({
-      hasLowCredits,
-      hasReadyDeliveries: readyDeliveries > 0,
-      hasPendingUpload: Boolean(pendingUpload),
-      deliveriesCount: stats?.total_deliveries ?? 0,
-      redeemedCount: stats?.redeemed_vouchers ?? 0,
-    });
+    return getContextualTip(
+      {
+        hasLowCredits,
+        hasReadyDeliveries: readyDeliveries > 0,
+        hasPendingUpload: Boolean(pendingUpload),
+        deliveriesCount: stats?.total_deliveries ?? 0,
+        redeemedCount: stats?.redeemed_vouchers ?? 0,
+      },
+      t,
+    );
   }, [
     isError,
     hasLowCredits,
@@ -337,6 +358,7 @@ export function PartnerDashboard() {
     pendingUpload,
     stats?.total_deliveries,
     stats?.redeemed_vouchers,
+    t,
   ]);
 
   // Dados para o onboarding
@@ -411,7 +433,7 @@ export function PartnerDashboard() {
         errorDetails={errorMessage}
         onRetry={handleRetry}
         secondaryAction={{
-          label: "Ir para entregas",
+          label: t("partner.dashboard.viewAllDeliveries"),
           to: "/partner/deliveries",
           icon: Package,
         }}
@@ -428,8 +450,8 @@ export function PartnerDashboard() {
       >
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            {getGreeting()},{" "}
-            {profile?.studio_name || profile?.name || "Parceiro"}!
+            {getGreeting(t)},{" "}
+            {profile?.studio_name || profile?.name || t("common.name")}!
           </h1>
           {contextualTip ? (
             <div
@@ -440,7 +462,7 @@ export function PartnerDashboard() {
             </div>
           ) : (
             <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
-              Acompanhe suas entregas e gerencie seu estúdio.
+              {t("partner.dashboard.welcomeNewUser")}
             </p>
           )}
         </div>
@@ -449,17 +471,19 @@ export function PartnerDashboard() {
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 active:scale-[0.98] transition-all font-medium shadow-sm hover:shadow-md"
         >
           <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Nova Entrega</span>
-          <span className="sm:hidden">Nova</span>
+          <span className="hidden sm:inline">
+            {t("partner.deliveries.newDelivery")}
+          </span>
+          <span className="sm:hidden">{t("common.actions")}</span>
         </Link>
       </div>
 
       {/* Mobile intro (mantém contexto sem duplicar o header) */}
       <div className="md:hidden mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          {getGreeting()},{" "}
+          {getGreeting(t)},{" "}
           <span className="font-semibold text-gray-900 dark:text-white">
-            {profile?.studio_name || profile?.name || "Parceiro"}
+            {profile?.studio_name || profile?.name || t("common.name")}
           </span>
           ! 👋
         </p>
@@ -486,11 +510,11 @@ export function PartnerDashboard() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-pink-100 text-xs sm:text-sm font-medium uppercase tracking-wide">
-                  Créditos
+                  {t("partner.credits.title")}
                 </p>
                 {hasLowCredits ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 text-white border border-white/20">
-                    Saldo baixo
+                    {t("partner.dashboard.tips.lowCredits")}
                   </span>
                 ) : null}
               </div>
@@ -498,11 +522,11 @@ export function PartnerDashboard() {
                 <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
                   <div className="flex items-center gap-1">
                     <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                      Disponível
+                      {t("partner.credits.available")}
                     </p>
                     <span
                       className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                      title="Créditos prontos para usar em novas entregas"
+                      title={t("partner.credits.availableTooltip")}
                     >
                       <Info className="w-3 h-3" />
                     </span>
@@ -519,11 +543,11 @@ export function PartnerDashboard() {
                 <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
                   <div className="flex items-center gap-1">
                     <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                      Reservado
+                      {t("partner.credits.reserved")}
                     </p>
                     <span
                       className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                      title="Créditos já alocados para entregas criadas. Serão consumidos ou estornados quando o cliente resgatar."
+                      title={t("partner.credits.reservedTooltip")}
                     >
                       <Info className="w-3 h-3" />
                     </span>
@@ -538,8 +562,7 @@ export function PartnerDashboard() {
               </div>
               <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
                 <Lightbulb className="w-3.5 h-3.5" />
-                Dica: quando o cliente resgata, o crédito é consumido ou
-                estornado automaticamente.
+                {t("partner.dashboard.tips.creditsInfo")}
               </p>
             </div>
             <Link
@@ -547,17 +570,19 @@ export function PartnerDashboard() {
               className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-white text-pink-600 rounded-xl hover:bg-pink-50 active:scale-[0.98] transition-all font-semibold shadow-sm"
             >
               <CreditCard className="w-5 h-5" />
-              <span className="hidden sm:inline">Comprar Créditos</span>
-              <span className="sm:hidden">Comprar</span>
+              <span className="hidden sm:inline">
+                {t("partner.credits.purchase.buyCredits")}
+              </span>
+              <span className="sm:hidden">
+                {t("partner.credits.purchase.buyCredits")}
+              </span>
             </Link>
           </div>
         </div>
       </div>
 
       {/* Alertas Contextuais (só aparecem quando há algo relevante) */}
-      {(pendingUpload ||
-        (stats?.ready_deliveries || 0) > 0 ||
-        hasLowCredits) && (
+      {(pendingUpload || (stats?.ready_deliveries || 0) > 0 || hasLowCredits) && (
         <div className="mb-6 sm:mb-8 flex flex-wrap gap-3">
           {pendingUpload && (
             <Link
@@ -569,13 +594,11 @@ export function PartnerDashboard() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                  Upload pendente
+                  {t("partner.dashboard.tips.pendingUpload")}
                 </p>
                 <p className="text-xs text-yellow-600 dark:text-yellow-300 truncate">
-                  {pendingUpload.title ||
-                    pendingUpload.client_name ||
-                    "Entrega"}{" "}
-                  aguarda arquivos
+                  {pendingUpload.title || pendingUpload.client_name || "Entrega"}{" "}
+                  wait
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
@@ -594,11 +617,11 @@ export function PartnerDashboard() {
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
                   {stats?.ready_deliveries}{" "}
                   {stats?.ready_deliveries === 1
-                    ? "entrega pronta"
-                    : "entregas prontas"}
+                    ? t("partner.dashboard.tips.readyDeliveries")
+                    : t("partner.dashboard.tips.readyDeliveries")}
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-300">
-                  Aguardando link/voucher
+                  Link/voucher
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -615,12 +638,10 @@ export function PartnerDashboard() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-pink-800 dark:text-pink-200">
-                  Saldo baixo
+                  {t("partner.dashboard.tips.lowCredits")}
                 </p>
                 <p className="text-xs text-pink-600 dark:text-pink-300">
-                  Apenas {availableCredits}{" "}
-                  {availableCredits === 1 ? "crédito" : "créditos"} restante
-                  {availableCredits === 1 ? "" : "s"}
+                  {t("partner.credits.balance")}: {availableCredits}
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-pink-600 dark:text-pink-400 flex-shrink-0" />
@@ -636,25 +657,25 @@ export function PartnerDashboard() {
       >
         <StatCard
           icon={Package}
-          label="Total Entregas"
+          label={t("partner.dashboard.stats.totalDeliveries")}
           value={stats?.total_deliveries || 0}
           color="blue"
           to="/partner/deliveries"
-          description="Ver histórico completo"
+          description={t("partner.dashboard.viewAllDeliveries")}
         />
         <StatCard
           icon={CheckCircle2}
-          label="Prontas"
+          label={t("partner.deliveries.status.ready")}
           value={readyDeliveries}
           color="green"
           to="/partner/deliveries?status=ready"
           description={
-            readyDeliveries > 0 ? "Gerar link/voucher →" : "Nenhuma pendente"
+            readyDeliveries > 0 ? "Link/voucher →" : t("common.none")
           }
         />
         <StatCard
           icon={Ticket}
-          label="Vouchers Pendentes"
+          label={t("partner.dashboard.stats.pendingDeliveries")}
           value={stats?.pending_vouchers || 0}
           color="purple"
           to="/partner/deliveries?voucher=with&redeemed=not_redeemed"
@@ -662,11 +683,11 @@ export function PartnerDashboard() {
         />
         <StatCard
           icon={Gift}
-          label="Concluídas"
+          label={t("partner.dashboard.stats.completedDeliveries")}
           value={stats?.delivered_deliveries || 0}
           color="pink"
           to="/partner/deliveries?status=delivered"
-          description="Resgatadas/importadas"
+          description={t("partner.deliveries.status.delivered")}
         />
       </div>
 
@@ -686,13 +707,13 @@ export function PartnerDashboard() {
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Entregas Recentes
+            {t("partner.dashboard.recentDeliveries")}
           </h2>
           <Link
             to="/partner/deliveries"
             className="text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 font-medium inline-flex items-center gap-1"
           >
-            Ver todas
+            {t("common.all")}
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -703,22 +724,18 @@ export function PartnerDashboard() {
               <Sparkles className="w-8 h-8 text-pink-500 dark:text-pink-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Comece sua primeira entrega!
+              {t("partner.dashboard.startFirstDelivery")}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-              Envie fotos incríveis para seus clientes e crie uma experiência
-              única de descoberta para a família.
+              {t("partner.deliveries.list.emptyDescription")}
             </p>
             <Link
               to="/partner/deliveries/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 active:scale-[0.98] transition-all font-medium shadow-sm hover:shadow-md"
             >
               <Plus className="w-5 h-5" />
-              Criar Primeira Entrega
+              {t("partner.deliveries.newDelivery")}
             </Link>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-              💡 Cada entrega gera um voucher exclusivo para o cliente
-            </p>
           </div>
         ) : (
           <>
@@ -751,7 +768,9 @@ export function PartnerDashboard() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <h3 className="font-medium text-gray-900 dark:text-white text-base leading-tight line-clamp-2">
-                                {delivery.title || delivery.client_name || "Sem título"}
+                                {delivery.title ||
+                                  delivery.client_name ||
+                                  t("common.none")}
                               </h3>
                               {delivery.client_name && delivery.title && (
                                 <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
@@ -769,7 +788,7 @@ export function PartnerDashboard() {
                       {/* Row 2: Date + Voucher Code */}
                       <div className="flex items-center justify-between gap-3 text-sm">
                         <span className="text-gray-500 dark:text-gray-400">
-                          {formatDate(delivery.created_at)}
+                          {formatDate(delivery.created_at, language)}
                         </span>
                         {delivery.voucher_code ? (
                           <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-md">
@@ -789,9 +808,9 @@ export function PartnerDashboard() {
                     {/* Row 3: Credit Badge + Action */}
                     <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
                       <CreditStatusBadge status={delivery.credit_status} />
-                      
+
                       <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors">
-                        Ver
+                        {t("common.details")}
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -799,106 +818,61 @@ export function PartnerDashboard() {
                 );
               })}
             </div>
-
-            {/* Desktop: table */}
+            {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
                   <tr>
-                    <th className="text-left font-medium px-4 py-2.5">
-                      Entrega
+                    <th className="px-6 py-4 text-left tracking-wider">
+                      {t("partner.deliveries.create.step1")}
                     </th>
-                    <th className="text-left font-medium px-4 py-2.5">
-                      Cliente
+                    <th className="px-6 py-4 text-left tracking-wider">
+                      {t("partner.deliveries.create.recipientName")}
                     </th>
-                    <th className="text-left font-medium px-4 py-2.5">
-                      Status
+                    <th className="px-6 py-4 text-left tracking-wider">
+                      {t("partner.deliveries.status.all")}
                     </th>
-                    <th className="text-left font-medium px-4 py-2.5">
-                      Criada em
+                    <th className="px-6 py-4 text-left tracking-wider">
+                      {t("common.date")}
                     </th>
-                    <th className="text-left font-medium px-4 py-2.5">
-                      Voucher / Crédito
+                    <th className="px-6 py-4 text-right tracking-wider">
+                      {t("common.actions")}
                     </th>
-                    <th className="text-right font-medium px-4 py-2.5">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                   {deliveries.map((delivery) => (
                     <tr
                       key={delivery.id}
-                      className="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
                     >
-                      <td className="px-4 py-2.5">
-                        <Link
-                          to={`/partner/deliveries/${delivery.id}`}
-                          className="flex items-center gap-3 min-w-0"
-                          aria-label={`Abrir detalhes da entrega ${
-                            delivery.title ||
-                            delivery.client_name ||
-                            "sem título"
-                          }`}
-                        >
-                          <div className="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Image className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                            <Image className="w-5 h-5" />
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-medium text-gray-900 dark:text-white truncate">
-                              {delivery.title ||
-                                delivery.client_name ||
-                                "Sem título"}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                              ID: {delivery.id}
-                            </div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {delivery.title ||
+                              delivery.client_name ||
+                              t("common.none")}
                           </div>
-                        </Link>
+                        </div>
                       </td>
-                      <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                         {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-6 py-4">
                         <DeliveryStatusBadge status={delivery.status} />
                       </td>
-                      <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200">
-                        {formatDate(delivery.created_at)}
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {formatDate(delivery.created_at, language)}
                       </td>
-                      <td className="px-4 py-2.5">
-                        {(() => {
-                          const normalizedStatus =
-                            normalizePartnerDeliveryStatus(delivery.status);
-                          const voucherMissingTitle =
-                            normalizedStatus === "ready"
-                              ? "Entrega pronta. Gere o voucher nos detalhes."
-                              : "O voucher aparece após a entrega ficar pronta.";
-
-                          return (
-                            <div className="flex flex-col gap-2">
-                              {delivery.voucher_code ? (
-                                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded w-fit">
-                                  {delivery.voucher_code}
-                                </span>
-                              ) : (
-                                <span
-                                  className="text-gray-400 dark:text-gray-500"
-                                  title={voucherMissingTitle}
-                                >
-                                  {PLACEHOLDER_NOT_GENERATED}
-                                </span>
-                              )}
-                              <CreditStatusBadge
-                                status={delivery.credit_status}
-                              />
-                            </div>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
+                      <td className="px-6 py-4 text-right">
                         <Link
                           to={`/partner/deliveries/${delivery.id}`}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors"
                         >
-                          Abrir detalhes
+                          {t("common.details")}
                           <ChevronRight className="w-4 h-4" />
                         </Link>
                       </td>
@@ -910,9 +884,6 @@ export function PartnerDashboard() {
           </>
         )}
       </div>
-
-      {/* Tour Guiado para novos usuários */}
-      <GuidedTour />
     </PartnerPage>
   );
 }

@@ -43,16 +43,18 @@ import {
 } from "@/layouts/partnerStates";
 import { getPartnerDeliveryStatusMeta } from "./deliveryStatus";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("pt-BR", {
+import { useTranslation, useLanguage } from "@babybook/i18n";
+
+function formatDate(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
 }
 
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString("pt-BR", {
+function formatDateTime(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -61,11 +63,20 @@ function formatDateTime(dateString: string): string {
   });
 }
 
+function safeHtml(html: string) {
+  return {
+    __html: html
+      .replace(/<bold>/g, '<strong class="font-medium text-gray-900 dark:text-white">')
+      .replace(/<\/bold>/g, "</strong>"),
+  };
+}
+
 function getStatusLabel(status: DeliveryStatus): string {
   return getPartnerDeliveryStatusMeta(status).label;
 }
 
 function StatusBadge({ status }: { status: DeliveryStatus }) {
+  const { t } = useTranslation();
   const meta = getPartnerDeliveryStatusMeta(status);
   const tone =
     status === "ready"
@@ -84,11 +95,11 @@ function StatusBadge({ status }: { status: DeliveryStatus }) {
 
   return (
     <span
-      title={meta.hint}
-      aria-label={`${getStatusLabel(status)}. ${meta.hint}`}
+      title={t(meta.hint)}
+      aria-label={`${t(meta.label)}. ${t(meta.hint)}`}
       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${tone}`}
     >
-      {getStatusLabel(status)}
+      {t(meta.label)}
     </span>
   );
 }
@@ -123,6 +134,8 @@ function formatFileSize(bytes: number): string {
 }
 
 export function DeliveryDetailPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const { deliveryId } = useParams<{ deliveryId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -162,8 +175,8 @@ export function DeliveryDetailPage() {
       if (error) return null;
 
       const title = delivery
-        ? delivery.title || delivery.client_name || "Entrega"
-        : "Entrega";
+        ? delivery.title || delivery.client_name || t("partner.details.title")
+        : t("partner.details.title");
 
       const hasVoucherLocal = Boolean(delivery?.voucher_code);
       const canGenerateVoucherLocal = Boolean(
@@ -189,7 +202,7 @@ export function DeliveryDetailPage() {
       // Se já existe voucher, o CTA principal fica concentrado na seção "Voucher".
       const actions = canGenerateVoucherLocal ? (
         <PartnerPageHeaderAction
-          label="Gerar voucher"
+          label={t("partner.voucher.generate")}
           tone="primary"
           onClick={() => setShowVoucherModal(true)}
           icon={<Ticket className="w-4 h-4" />}
@@ -199,16 +212,16 @@ export function DeliveryDetailPage() {
       return {
         title,
         backTo: "/partner/deliveries",
-        backLabel: "Voltar às entregas",
+        backLabel: t("partner.details.backToDeliveries"),
         badge: delivery?.status
           ? {
-              text: getStatusLabel(delivery.status),
+              text: t(getPartnerDeliveryStatusMeta(delivery.status).label),
               tone: tone(delivery.status),
             }
           : undefined,
         actions,
       };
-    }, [delivery, deliveryId, error]),
+    }, [delivery, deliveryId, error, t]),
   );
 
   // Delete asset mutation
@@ -232,15 +245,15 @@ export function DeliveryDetailPage() {
   });
 
   if (isLoading) {
-    return <PartnerLoadingState label="Carregando entrega…" />;
+    return <PartnerLoadingState label={t("partner.upload.loading")} />;
   }
 
   if (error || !delivery) {
     return (
       <PartnerErrorState
-        title="Entrega não encontrada"
+        title={t("partner.upload.notFound")}
         primaryAction={{
-          label: "Voltar às entregas",
+          label: t("partner.details.backToDeliveries"),
           to: "/partner/deliveries",
         }}
       />
@@ -282,13 +295,14 @@ export function DeliveryDetailPage() {
 
     // Edge-case: pedido para abrir voucher, mas não há arquivos nem voucher.
     // Mantemos feedback discreto e orientamos o próximo passo.
-    setCopiedMessage("Envie arquivos para liberar a geração do voucher");
+    setCopiedMessage(t("partner.voucher.clipboardWarning"));
   }, [
     canGenerateVoucher,
     hasVoucher,
     location.pathname,
     location.search,
     navigate,
+    t,
   ]);
 
   // Nota de UX: evitamos repetir informações/ações do voucher em múltiplos lugares.
@@ -303,7 +317,7 @@ export function DeliveryDetailPage() {
           className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 mb-4 transition-all duration-200 rounded-lg px-2 py-1 -ml-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Voltar às entregas</span>
+          <span>{t("partner.details.backToDeliveries")}</span>
         </Link>
 
         {/* Mobile meta (evita duplicar o header grande) */}
@@ -317,7 +331,7 @@ export function DeliveryDetailPage() {
                 {" • "}
               </>
             ) : null}
-            Criada em {formatDate(delivery.created_at)}
+            {t("partner.details.created")} {formatDate(delivery.created_at, language)}
           </p>
         </div>
 
@@ -325,7 +339,7 @@ export function DeliveryDetailPage() {
         <div className="hidden md:block mb-6">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {delivery.title || delivery.client_name || "Entrega"}
+              {delivery.title || delivery.client_name || t("partner.details.title")}
             </h1>
             <StatusBadge status={delivery.status} />
           </div>
@@ -341,7 +355,7 @@ export function DeliveryDetailPage() {
             )}
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
-              {formatDate(delivery.created_at)}
+              {formatDate(delivery.created_at, language)}
             </span>
           </div>
         </div>
@@ -358,12 +372,12 @@ export function DeliveryDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Voucher
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t("partner.voucher.label")}
                 </p>
                 {hasVoucher ? (
                   <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                    Pronto
+                    {t("partner.voucher.ready")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
@@ -379,15 +393,15 @@ export function DeliveryDetailPage() {
                   </p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     {delivery.redeemed_at
-                      ? `Resgatado em ${formatDateTime(delivery.redeemed_at)}`
-                      : "Ainda não resgatado"}
+                      ? t("partner.voucher.redeemedAt", { date: formatDateTime(delivery.redeemed_at, language) })
+                      : t("partner.voucher.notRedeemed")}
                   </p>
                 </>
               ) : (
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                   {delivery.assets_count > 0
-                    ? "Quando gerar, você terá um cartão (QR Code) e um código para enviar ao cliente."
-                    : "Envie os arquivos desta entrega para liberar a geração do voucher."}
+                    ? t("partner.voucher.explanation")
+                    : t("partner.voucher.explanationNoFiles")}
                 </p>
               )}
             </div>
@@ -401,7 +415,7 @@ export function DeliveryDetailPage() {
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
                   >
                     <QrCode className="w-4 h-4" />
-                    Abrir cartão
+                    {t("partner.voucher.openCard")}
                   </button>
                   <button
                     type="button"
@@ -409,13 +423,13 @@ export function DeliveryDetailPage() {
                       if (!delivery.voucher_code) return;
                       const ok = await copyToClipboard(delivery.voucher_code);
                       setCopiedMessage(
-                        ok ? "Voucher copiado" : "Não foi possível copiar",
+                        ok ? t("partner.voucher.copied") : t("partner.voucher.copyFailed"),
                       );
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
                   >
                     <Copy className="w-4 h-4" />
-                    Copiar
+                    {t("partner.voucher.copy")}
                   </button>
                 </>
               ) : canGenerateVoucher ? (
@@ -425,7 +439,7 @@ export function DeliveryDetailPage() {
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
                 >
                   <Ticket className="w-4 h-4" />
-                  Gerar voucher
+                  {t("partner.voucher.generate")}
                 </button>
               ) : canUploadAssets ? (
                 <Link
@@ -433,7 +447,7 @@ export function DeliveryDetailPage() {
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
                 >
                   <Plus className="w-4 h-4" />
-                  Enviar arquivos
+                  {t("partner.details.sendFiles")}
                 </Link>
               ) : (
                 <button
@@ -443,7 +457,7 @@ export function DeliveryDetailPage() {
                   title="Entrega finalizada"
                 >
                   <Ticket className="w-4 h-4" />
-                  Voucher indisponível
+                  {t("partner.voucher.unavailable")}
                 </button>
               )}
             </div>
@@ -457,16 +471,16 @@ export function DeliveryDetailPage() {
               <div className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span>
-                  Evento:{" "}
+                  {t("partner.details.event")}:{" "}
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {formatDate(delivery.event_date)}
+                    {formatDate(delivery.event_date, language)}
                   </span>
                 </span>
               </div>
             )}
             {delivery.description && (
               <div className="text-gray-600 dark:text-gray-300">
-                <span className="text-gray-400">Descrição:</span>{" "}
+                <span className="text-gray-400">{t("partner.details.description")}:</span>{" "}
                 {delivery.description}
               </div>
             )}
@@ -477,7 +491,7 @@ export function DeliveryDetailPage() {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Arquivos ({delivery.assets_count})
+              {t("partner.details.files")} ({delivery.assets_count})
             </h2>
             {!hasVoucher ? (
               <Link
@@ -485,11 +499,11 @@ export function DeliveryDetailPage() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
               >
                 <Plus className="w-4 h-4" />
-                Adicionar
+                {t("partner.details.add")}
               </Link>
             ) : (
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                Entrega finalizada (não é possível adicionar)
+                {t("partner.details.finalizedAdd")}
               </span>
             )}
           </div>
@@ -498,14 +512,14 @@ export function DeliveryDetailPage() {
             <div className="p-8 text-center">
               <Image className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Nenhum arquivo enviado ainda
+                {t("partner.details.noFiles")}
               </p>
               <Link
                 to={`/partner/deliveries/${deliveryId}/upload`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Enviar Arquivos
+                {t("partner.details.sendFiles")}
               </Link>
             </div>
           ) : (
@@ -529,7 +543,7 @@ export function DeliveryDetailPage() {
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatFileSize(asset.size_bytes)} •{" "}
-                          {formatDateTime(asset.uploaded_at)}
+                          {formatDateTime(asset.uploaded_at, language)}
                         </p>
                       </div>
                     </div>
@@ -580,13 +594,14 @@ function AssetDeleteAction({
   disabled: boolean;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
 
   if (confirming) {
     return (
       <span className="inline-flex items-center gap-1 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1">
         <span className="text-[11px] text-yellow-800 dark:text-yellow-200 hidden sm:inline">
-          Remover?
+          {t("partner.details.removeConfirm")}
         </span>
         <button
           type="button"
@@ -598,8 +613,8 @@ function AssetDeleteAction({
             onConfirm();
           }}
           className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 disabled:opacity-50"
-          title="Confirmar"
-          aria-label="Confirmar remoção"
+          title={t("common.confirm")}
+          aria-label={t("common.confirm")}
         >
           <Check className="w-4 h-4" />
         </button>
@@ -611,8 +626,8 @@ function AssetDeleteAction({
             setConfirming(false);
           }}
           className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-200"
-          title="Cancelar"
-          aria-label="Cancelar remoção"
+          title={t("common.cancel")}
+          aria-label={t("common.cancel")}
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -630,8 +645,8 @@ function AssetDeleteAction({
         setConfirming(true);
       }}
       className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-      title="Remover arquivo"
-      aria-label="Remover arquivo"
+      title={t("partner.details.removeFile")}
+      aria-label={t("partner.details.removeFile")}
     >
       <Trash2 className="w-4 h-4" />
     </button>
@@ -659,6 +674,7 @@ function VoucherModal({
   onGenerate,
   onClose,
 }: VoucherModalProps) {
+  const { t } = useTranslation();
   const [beneficiaryName, setBeneficiaryName] = useState(
     delivery.client_name || "",
   );
@@ -692,58 +708,42 @@ function VoucherModal({
           {showGenerateForm ? (
             <>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                {isDirectImport ? "Gerar link de importação" : "Gerar Voucher"}
+                {isDirectImport
+                  ? t("partner.voucher.modal.titleImport")
+                  : t("partner.voucher.modal.titleVoucher")}
               </h2>
 
-              {isDirectImport ? (
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Este cliente <strong>já tem conta</strong> no Baby Book. Por
-                  isso, <strong>não precisamos de voucher</strong>.
-                  <br />
-                  Ao finalizar, geramos um <strong>link de importação</strong>:
-                  <br />• se o cliente importar em um{" "}
-                  <strong>filho com acesso</strong>, não há cobrança;
-                  <br />• se o cliente criar um <strong>novo Baby Book</strong>,
-                  será consumido <strong>1 crédito</strong>.
-                </p>
-              ) : (
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Isso irá <strong>reservar 1 crédito</strong> (em trânsito). No
-                  resgate:
-                  <br />• se o cliente criar um <strong>novo Baby Book</strong>,
-                  o crédito vira <strong>CONSUMED</strong>;
-                  <br />• se o cliente vincular a um{" "}
-                  <strong>bebê existente</strong>, o crédito vira{" "}
-                  <strong>REFUNDED</strong> (estorno automático).
-                  <br />
-                  <span className="inline-block mt-2">
-                    O voucher será único para esta entrega.
-                  </span>
-                </p>
-              )}
+              <p
+                className="text-gray-600 dark:text-gray-300 mb-6"
+                dangerouslySetInnerHTML={safeHtml(
+                  isDirectImport
+                    ? t("partner.voucher.modal.descImport")
+                    : t("partner.voucher.modal.descVoucher"),
+                )}
+              />
 
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Nome do Beneficiário
+                    {t("partner.voucher.modal.beneficiary")}
                   </label>
                   <input
                     type="text"
                     value={beneficiaryName}
                     onChange={(e) => setBeneficiaryName(e.target.value)}
-                    placeholder="Nome que aparecerá no cartão"
+                    placeholder={t("partner.voucher.modal.beneficiaryPlaceholder")}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Mensagem (opcional)
+                    {t("partner.voucher.modal.message")}
                   </label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     rows={3}
-                    placeholder="Uma mensagem especial para o cliente..."
+                    placeholder={t("partner.voucher.modal.messagePlaceholder")}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
@@ -760,7 +760,7 @@ function VoucherModal({
                   onClick={onClose}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  Cancelar
+                  {t("partner.voucher.modal.cancel")}
                 </button>
                 <button
                   onClick={() =>
@@ -775,12 +775,14 @@ function VoucherModal({
                   {isGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Finalizando...
+                      {t("partner.voucher.modal.finalize")}
                     </>
                   ) : (
                     <>
                       <Ticket className="w-4 h-4" />
-                      {isDirectImport ? "Gerar Link" : "Gerar Voucher"}
+                      {isDirectImport
+                        ? t("partner.voucher.modal.generateLink")
+                        : t("partner.voucher.modal.generateBtn")}
                     </>
                   )}
                 </button>
@@ -789,7 +791,7 @@ function VoucherModal({
           ) : cardData ? (
             <>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                Cartão-Convite
+                {t("partner.voucher.modal.titleCard")}
               </h2>
 
               {/* Use VoucherCard Component */}
@@ -799,7 +801,7 @@ function VoucherModal({
                 onClick={onClose}
                 className="w-full mt-6 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                Fechar
+                {t("common.close")}
               </button>
             </>
           ) : null}

@@ -588,19 +588,21 @@
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-sm">BB</div>
         <div>
           <p class="font-serif text-base text-white font-bold italic tracking-tight">Baby Book <span class="text-pink-300">PRO</span></p>
-          <p class="text-[10px] text-slate-400 font-medium">Para fotógrafos profissionais</p>
+          <p class="text-[10px] text-slate-400 font-medium" data-i18n="pro.nav.subtitle">Para fotógrafos profissionais</p>
         </div>
       </div>
       <div class="hidden md:flex items-center gap-3 justify-center flex-1 text-sm text-slate-200">
-        <a href="#dor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Problema</a>
-        <a href="#beneficios" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Benefícios</a>
-        <a href="#valor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Valor</a>
-        <a href="#pacotes" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">Pacotes</a>
-        <a href="#faq" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors">FAQ</a>
+        <a href="#dor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.problem">Problema</a>
+        <a href="#beneficios" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.benefits">Benefícios</a>
+        <a href="#valor" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.value">Valor</a>
+        <a href="#pacotes" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.packages">Pacotes</a>
+        <a href="#faq" class="nav-link hover:text-pink-300 px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.faq">FAQ</a>
       </div>
       <div class="ml-auto flex items-center gap-3">
-        <a href="javascript:navigateToApp('/pro/login')" class="text-sm text-slate-200 hover:text-white px-3 py-2 rounded-full transition-colors">Entrar</a>
-        <a href="javascript:navigateToApp('/pro/register?source=landing')" class="hidden md:inline-flex btn-primary inline-flex items-center justify-center text-white px-4 py-2 rounded-full text-sm font-semibold">Criar conta de Parceiro</a>
+        <!-- Language Selector Container -->
+        <div id="lang-selector-container" class="mr-2"></div>
+        <a href="javascript:navigateToApp('/pro/login')" class="text-sm text-slate-200 hover:text-white px-3 py-2 rounded-full transition-colors" data-i18n="pro.nav.login">Entrar</a>
+        <a href="javascript:navigateToApp('/pro/register?source=landing')" class="hidden md:inline-flex btn-primary inline-flex items-center justify-center text-white px-4 py-2 rounded-full text-sm font-semibold" data-i18n="pro.nav.register">Criar conta de Parceiro</a>
         <!-- Mobile menu toggle -->
         <button id="mobile-nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-slate-200 hover:bg-white/5" aria-expanded="false" aria-label="Abrir menu">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -612,14 +614,14 @@
     <!-- Mobile menu (hidden by default) -->
     <div id="mobile-nav" class="md:hidden hidden mt-4 bg-white/5 backdrop-blur rounded-xl p-4 max-w-3xl mx-auto">
       <div class="flex flex-col gap-3 text-sm">
-        <a href="#dor" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">Problema</a>
-        <a href="#beneficios" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">Benefícios</a>
-        <a href="#valor" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">Valor</a>
-        <a href="#pacotes" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">Pacotes</a>
-        <a href="#faq" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">FAQ</a>
+        <a href="#dor" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.problem">Problema</a>
+        <a href="#beneficios" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.benefits">Benefícios</a>
+        <a href="#valor" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.value">Valor</a>
+        <a href="#pacotes" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.packages">Pacotes</a>
+        <a href="#faq" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.faq">FAQ</a>
         <div class="mt-2 border-t border-white/10 pt-3">
-          <a href="javascript:navigateToApp('/pro/login')" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5">Entrar</a>
-          <a href="javascript:navigateToApp('/pro/register?source=landing')" class="mt-2 block text-center btn-primary px-4 py-2 rounded-md text-white font-semibold">Criar conta de Parceiro</a>
+          <a href="javascript:navigateToApp('/pro/login')" class="block px-3 py-2 rounded-md text-gray-100 hover:bg-white/5" data-i18n="pro.nav.mobile.login">Entrar</a>
+          <a href="javascript:navigateToApp('/pro/register?source=landing')" class="mt-2 block text-center btn-primary px-4 py-2 rounded-md text-white font-semibold" data-i18n="pro.nav.mobile.register">Criar conta de Parceiro</a>
         </div>
       </div>
     </div>
@@ -642,17 +644,17 @@
                 <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 border-2 border-white/20"></div>
                 <div class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-white/20"></div>
               </div>
-              <span><strong class="text-white">+150</strong> fotógrafos já usam</span>
+              <span data-i18n="pro.hero.socialProof" data-i18n-html="true"><strong class="text-white">+150</strong> fotógrafos já usam</span>
             </div>
 
             <!-- Headline - Pain focused -->
-            <h1 class="font-serif heading-display text-4xl md:text-5xl lg:text-[3.5rem] text-white mb-5 leading-[1.15] fade-in-up stagger-1">
+            <h1 class="font-serif heading-display text-4xl md:text-5xl lg:text-[3.5rem] text-white mb-5 leading-[1.15] fade-in-up stagger-1" data-i18n="pro.hero.headline" data-i18n-html="true">
               Suas fotos merecem <br class="hidden sm:block">
               <span class="gradient-text-animated">mais que um link que expira</span>
             </h1>
 
             <!-- Subheadline - Value + Differentiation -->
-            <p class="text-lg md:text-xl text-gray-200 mb-6 max-w-xl leading-relaxed fade-in-up stagger-2">
+            <p class="text-lg md:text-xl text-gray-200 mb-6 max-w-xl leading-relaxed fade-in-up stagger-2" data-i18n="pro.hero.subheadline" data-i18n-html="true">
               Entregue suas fotos em um <strong class="text-white">app permanente</strong> que o cliente acessa para sempre.
               <span class="text-pink-300">Sem reenvios. Sem links que expiram. Sem perda de qualidade.</span>
             </p>
@@ -663,19 +665,19 @@
                 <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                Sem mensalidade
+                <span data-i18n="pro.hero.pills.noMonthly">Sem mensalidade</span>
               </div>
               <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
                 <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                Qualidade Retina/4K
+                <span data-i18n="pro.hero.pills.quality">Qualidade Retina/4K</span>
               </div>
               <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 text-sm text-gray-100">
                 <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                Créditos não expiram
+                <span data-i18n="pro.hero.pills.noExpire">Créditos não expiram</span>
               </div>
             </div>
 
@@ -683,7 +685,7 @@
             <div class="flex flex-col gap-4 fade-in-up stagger-3">
               <!-- Primary CTA - Clear benefit -->
               <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-bold text-lg group">
-                <span>Começar gratuitamente</span>
+                <span data-i18n="pro.hero.cta">Começar gratuitamente</span>
                 <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
@@ -695,19 +697,19 @@
                   <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
-                  <span>Cadastro em 30 segundos</span>
+                  <span data-i18n="pro.hero.trust.signup">Cadastro em 30 segundos</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
-                  <span>4.9/5 avaliação</span>
+                  <span data-i18n="pro.hero.trust.rating">4.9/5 avaliação</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                   </svg>
-                  <span>Garantia 7 dias</span>
+                  <span data-i18n="pro.hero.trust.warranty">Garantia 7 dias</span>
                 </div>
               </div>
             </div>
@@ -721,7 +723,7 @@
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
-                <span>Diferencial competitivo</span>
+                <span data-i18n="pro.hero.floatingBadge">Diferencial competitivo</span>
               </div>
             </div>
 
@@ -734,8 +736,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="font-serif text-xl font-bold">Vantagens exclusivas</h3>
-                  <p class="text-gray-300 text-sm">Diferenciais que você não encontra em outro lugar</p>
+                  <h3 class="font-serif text-xl font-bold" data-i18n="pro.hero.card.title">Vantagens exclusivas</h3>
+                  <p class="text-gray-300 text-sm" data-i18n="pro.hero.card.subtitle">Diferenciais que você não encontra em outro lugar</p>
                 </div>
               </div>
 
@@ -744,22 +746,22 @@
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
                   <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
                   <div>
-                    <span class="text-white font-medium">Suporte por nossa conta</span>
-                    <p class="text-gray-400 text-sm">Você não atende dúvidas técnicas</p>
+                    <span class="text-white font-medium" data-i18n="pro.hero.card.features.support.title">Suporte por nossa conta</span>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.hero.card.features.support.desc">Você não atende dúvidas técnicas</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
                   <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
                   <div>
-                    <span class="text-white font-medium">Sua marca no app</span>
-                    <p class="text-gray-400 text-sm">Logo e cores personalizadas</p>
+                    <span class="text-white font-medium" data-i18n="pro.hero.card.features.brand.title">Sua marca no app</span>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.hero.card.features.brand.desc">Logo e cores personalizadas</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 transition-colors hover:bg-white/10">
                   <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg flex-shrink-0">✓</span>
                   <div>
-                    <span class="text-white font-medium">Cliente usa toda semana</span>
-                    <p class="text-gray-400 text-sm">4 livros que mantêm engajamento</p>
+                    <span class="text-white font-medium" data-i18n="pro.hero.card.features.engagement.title">Cliente usa toda semana</span>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.hero.card.features.engagement.desc">4 livros que mantêm engajamento</p>
                   </div>
                 </div>
               </div>
@@ -769,8 +771,8 @@
                 <div class="flex items-start gap-3">
                   <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">CM</div>
                   <div class="flex-1">
-                    <p class="text-gray-200 text-sm italic leading-relaxed">"Depois que comecei a entregar pelo Baby Book, recebi 4 indicações só no primeiro mês. As clientes compartilham o app com a família e todo mundo pergunta quem fez as fotos."</p>
-                    <p class="text-pink-300 text-xs font-medium mt-1">— Camila M., Fotógrafa de Famílias</p>
+                    <p class="text-gray-200 text-sm italic leading-relaxed" data-i18n="pro.hero.card.testimonial.text">"Depois que comecei a entregar pelo Baby Book, recebi 4 indicações só no primeiro mês. As clientes compartilham o app com a família e todo mundo pergunta quem fez as fotos."</p>
+                    <p class="text-pink-300 text-xs font-medium mt-1" data-i18n="pro.hero.card.testimonial.author">— Camila M., Fotógrafa de Famílias</p>
                   </div>
                 </div>
               </div>
@@ -785,19 +787,19 @@
               <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span>Fotos seguras para sempre</span>
+              <span data-i18n="pro.hero.bottomTrust.safe">Fotos seguras para sempre</span>
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
               </svg>
-              <span>Backup automático</span>
+              <span data-i18n="pro.hero.bottomTrust.backup">Backup automático</span>
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <span>Feito para fotógrafos</span>
+              <span data-i18n="pro.hero.bottomTrust.photographers">Feito para fotógrafos</span>
             </div>
           </div>
         </div>
@@ -807,8 +809,8 @@
     <section id="dor" class="section-light section-spaced">
       <div class="max-w-6xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">A parte que ninguém te conta sobre ser fotógrafo</h2>
-          <p class="text-gray-600 text-lg max-w-3xl mx-auto">A sessão acaba em algumas horas. O que fica é a entrega — e ela define o quanto seu trabalho é lembrado (e recomendado).</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4" data-i18n="pro.pain.title">A parte que ninguém te conta sobre ser fotógrafo</h2>
+          <p class="text-gray-600 text-lg max-w-3xl mx-auto" data-i18n="pro.pain.description">A sessão acaba em algumas horas. O que fica é a entrega — e ela define o quanto seu trabalho é lembrado (e recomendado).</p>
         </div>
         <div class="grid md:grid-cols-2 gap-6 lg:gap-10">
           <div class="card-premium tilt-card p-8 bg-white border border-rose-100 shadow-md relative overflow-hidden">
@@ -817,8 +819,8 @@
 
             <div class="relative z-10">
               <!-- Header -->
-              <span class="text-rose-600 font-bold text-xs uppercase tracking-wider">Cenário Atual</span>
-              <h3 class="font-serif text-2xl font-bold text-gray-900 mb-6">O Ciclo da Frustração</h3>
+              <span class="text-rose-600 font-bold text-xs uppercase tracking-wider" data-i18n="pro.pain.current.label">Cenário Atual</span>
+              <h3 class="font-serif text-2xl font-bold text-gray-900 mb-6" data-i18n="pro.pain.current.title">O Ciclo da Frustração</h3>
 
               <!-- Timeline visual -->
               <div class="space-y-0">
@@ -829,8 +831,8 @@
                   <!-- Step number -->
                   <div class="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 z-10 shadow-md shadow-rose-200">1</div>
                   <div class="flex-1">
-                    <p class="font-semibold text-gray-900 mb-1">Você envia um link temporário</p>
-                    <p class="text-gray-600 text-sm leading-relaxed">Google Drive, WeTransfer... <span class="text-rose-600 font-medium">expira em 7 a 30 dias.</span></p>
+                    <p class="font-semibold text-gray-900 mb-1" data-i18n="pro.pain.current.step1.title">Você envia um link temporário</p>
+                    <p class="text-gray-600 text-sm leading-relaxed" data-i18n="pro.pain.current.step1.desc" data-i18n-html="true">Google Drive, WeTransfer... <span class="text-rose-600 font-medium">expira em 7 a 30 dias.</span></p>
                   </div>
                 </div>
 
@@ -841,8 +843,8 @@
                   <!-- Step number -->
                   <div class="w-8 h-8 rounded-full bg-rose-400 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 z-10 shadow-md shadow-rose-200">2</div>
                   <div class="flex-1">
-                    <p class="font-semibold text-gray-900 mb-1">O cliente não baixa corretamente</p>
-                    <p class="text-gray-600 text-sm leading-relaxed">Tira print pelo celular, manda por WhatsApp... <span class="text-rose-600 font-medium">sua edição vira imagem borrada.</span></p>
+                    <p class="font-semibold text-gray-900 mb-1" data-i18n="pro.pain.current.step2.title">O cliente não baixa corretamente</p>
+                    <p class="text-gray-600 text-sm leading-relaxed" data-i18n="pro.pain.current.step2.desc" data-i18n-html="true">Tira print pelo celular, manda por WhatsApp... <span class="text-rose-600 font-medium">sua edição vira imagem borrada.</span></p>
                   </div>
                 </div>
 
@@ -851,9 +853,9 @@
                   <!-- Step number -->
                   <div class="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 z-10 shadow-md shadow-rose-200 ring-2 ring-rose-100">3</div>
                   <div class="flex-1">
-                    <p class="font-semibold text-gray-900 mb-1">A mensagem temida aparece</p>
-                    <p class="text-gray-600 text-sm leading-relaxed italic border-l-2 border-rose-300 pl-3 bg-rose-50/50 py-2 rounded-r">"Troquei de celular e perdi todas as fotos. Você ainda tem?"</p>
-                    <p class="text-rose-600 text-xs font-medium mt-2">Situação comum que gera retrabalho e desgaste</p>
+                    <p class="font-semibold text-gray-900 mb-1" data-i18n="pro.pain.current.step3.title">A mensagem temida aparece</p>
+                    <p class="text-gray-600 text-sm leading-relaxed italic border-l-2 border-rose-300 pl-3 bg-rose-50/50 py-2 rounded-r" data-i18n="pro.pain.current.step3.quote">"Troquei de celular e perdi todas as fotos. Você ainda tem?"</p>
+                    <p class="text-rose-600 text-xs font-medium mt-2" data-i18n="pro.pain.current.step3.note">Situação comum que gera retrabalho e desgaste</p>
                   </div>
                 </div>
               </div>
@@ -866,8 +868,8 @@
 
             <div class="relative z-10">
               <!-- Header -->
-              <span class="text-emerald-400 font-bold text-xs uppercase tracking-wider">Com Baby Book PRO</span>
-              <h3 class="font-serif text-2xl font-bold mb-6">A Nova Experiência</h3>
+              <span class="text-emerald-400 font-bold text-xs uppercase tracking-wider" data-i18n="pro.pain.new.label">Com Baby Book PRO</span>
+              <h3 class="font-serif text-2xl font-bold mb-6" data-i18n="pro.pain.new.title">A Nova Experiência</h3>
 
               <!-- Benefits with enhanced styling -->
               <div class="space-y-4">
@@ -878,8 +880,8 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-white font-medium">Entrega definitiva com sua marca</p>
-                    <p class="text-gray-400 text-sm">App elegante e personalizado que valoriza seu trabalho</p>
+                    <p class="text-white font-medium" data-i18n="pro.pain.new.item1.title">Entrega definitiva com sua marca</p>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.pain.new.item1.desc">App elegante e personalizado que valoriza seu trabalho</p>
                   </div>
                 </div>
 
@@ -890,8 +892,8 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-white font-medium">Qualidade Retina/4K preservada</p>
-                    <p class="text-gray-400 text-sm">Sem perdas na compressão — sua edição aparece como você criou</p>
+                    <p class="text-white font-medium" data-i18n="pro.pain.new.item2.title">Qualidade Retina/4K preservada</p>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.pain.new.item2.desc">Sem perdas na compressão — sua edição aparece como você criou</p>
                   </div>
                 </div>
 
@@ -902,8 +904,8 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-white font-medium">Acesso vitalício ao app</p>
-                    <p class="text-gray-400 text-sm">Cliente nunca perde as fotos — <span class="text-emerald-400">zero retrabalho e custo pra você</span></p>
+                    <p class="text-white font-medium" data-i18n="pro.pain.new.item3.title">Acesso vitalício ao app</p>
+                    <p class="text-gray-400 text-sm" data-i18n="pro.pain.new.item3.desc" data-i18n-html="true">Cliente nunca perde as fotos — <span class="text-emerald-400">zero retrabalho e custo pra você</span></p>
                   </div>
                 </div>
               </div>
@@ -926,10 +928,10 @@
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span>Ecossistema completo para famílias</span>
+            <span data-i18n="pro.benefits.badge">Ecossistema completo para famílias</span>
           </div>
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Muito mais que fotos em um Drive</h2>
-          <p class="text-gray-600 text-lg max-w-3xl mx-auto">4 livros digitais que mantêm seu cliente <strong class="text-gray-900">engajado</strong> e lembrando de você em cada fase da jornada da vida.</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4" data-i18n="pro.benefits.title">Muito mais que fotos em um Drive</h2>
+          <p class="text-gray-600 text-lg max-w-3xl mx-auto" data-i18n="pro.benefits.description" data-i18n-html="true">4 livros digitais que mantêm seu cliente <strong class="text-gray-900">engajado</strong> e lembrando de você em cada fase da jornada da vida.</p>
         </div>
 
         <!-- Feature cards grid -->
@@ -949,11 +951,11 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-xl font-bold text-gray-900">Jornada</h3>
+                  <h3 class="text-xl font-bold text-gray-900" data-i18n="pro.benefits.cards.journey.title">Jornada</h3>
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed mb-3">A vida do bebê em capítulos. Do primeiro choro ao primeiro passo, organizado cronologicamente.</p>
-              <p class="text-xs text-gray-500"><span class="text-gray-700 font-medium">Para você:</span> Sua arte preservada + lembretes de datas especiais</p>
+              <p class="text-gray-600 leading-relaxed mb-3" data-i18n="pro.benefits.cards.journey.desc">A vida do bebê em capítulos. Do primeiro choro ao primeiro passo, organizado cronologicamente.</p>
+              <p class="text-xs text-gray-500" data-i18n="pro.benefits.cards.journey.note" data-i18n-html="true"><span class="text-gray-700 font-medium">Para você:</span> Sua arte preservada + lembretes de datas especiais</p>
             </div>
           </div>
 
@@ -971,11 +973,11 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-xl font-bold text-gray-900">Saúde</h3>
+                  <h3 class="text-xl font-bold text-gray-900" data-i18n="pro.benefits.cards.health.title">Saúde</h3>
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed mb-3">Vacinas, consultas e crescimento registrados. Fácil de achar quando o médico perguntar.</p>
-              <p class="text-xs text-gray-500"><span class="text-gray-700 font-medium">Para você:</span> Cliente abre o app toda semana e vê suas fotos</p>
+              <p class="text-gray-600 leading-relaxed mb-3" data-i18n="pro.benefits.cards.health.desc">Vacinas, consultas e crescimento registrados. Fácil de achar quando o médico perguntar.</p>
+              <p class="text-xs text-gray-500" data-i18n="pro.benefits.cards.health.note" data-i18n-html="true"><span class="text-gray-700 font-medium">Para você:</span> Cliente abre o app toda semana e vê suas fotos</p>
             </div>
           </div>
 
@@ -992,11 +994,11 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-xl font-bold text-gray-900">Visitas</h3>
+                  <h3 class="text-xl font-bold text-gray-900" data-i18n="pro.benefits.cards.visits.title">Visitas</h3>
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed mb-3">Recados de quem ama, aprovados por você. O livro de visitas digital do bebê.</p>
-              <p class="text-xs text-gray-500"><span class="text-gray-700 font-medium">Para você:</span> Mais pessoas veem seu trabalho = mais indicações</p>
+              <p class="text-gray-600 leading-relaxed mb-3" data-i18n="pro.benefits.cards.visits.desc">Recados de quem ama, aprovados por você. O livro de visitas digital do bebê.</p>
+              <p class="text-xs text-gray-500" data-i18n="pro.benefits.cards.visits.note" data-i18n-html="true"><span class="text-gray-700 font-medium">Para você:</span> Mais pessoas veem seu trabalho = mais indicações</p>
             </div>
           </div>
 
@@ -1014,18 +1016,18 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-xl font-bold text-gray-900">Cofre</h3>
+                  <h3 class="text-xl font-bold text-gray-900" data-i18n="pro.benefits.cards.vault.title">Cofre</h3>
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed mb-3">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
-              <p class="text-xs text-gray-500"><span class="text-gray-700 font-medium">Para você:</span> Percepção de valor premium na entrega</p>
+              <p class="text-gray-600 leading-relaxed mb-3" data-i18n="pro.benefits.cards.vault.desc">Documentos importantes protegidos. Certidão, exames, o essencial sempre à mão.</p>
+              <p class="text-xs text-gray-500" data-i18n="pro.benefits.cards.vault.note" data-i18n-html="true"><span class="text-gray-700 font-medium">Para você:</span> Percepção de valor premium na entrega</p>
             </div>
           </div>
         </div>
 
         <!-- Bottom CTA hint -->
         <div class="text-center mt-16">
-          <p class="text-gray-500 text-sm">Tudo isso <strong class="text-gray-700">agrega valor ao seu serviço</strong> sem esforço adicional</p>
+          <p class="text-gray-500 text-sm" data-i18n="pro.benefits.hint" data-i18n-html="true">Tudo isso <strong class="text-gray-700">agrega valor ao seu serviço</strong> sem esforço adicional</p>
         </div>
       </div>
     </section>
@@ -1044,10 +1046,10 @@
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
             </svg>
-            <span>ROI comprovado por fotógrafos</span>
+            <span data-i18n="pro.value.badge">ROI comprovado por fotógrafos</span>
           </div>
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4">Não é custo. É <span class="gradient-text-animated">investimento que se paga.</span></h2>
-          <p class="text-gray-300 text-lg max-w-2xl mx-auto">O que parece um custo por cliente vira <strong class="text-white">vantagem competitiva</strong> que gera retorno em indicações. Faça a conta:</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-white mb-4" data-i18n="pro.value.title" data-i18n-html="true">Não é custo. É <span class="gradient-text-animated">investimento que se paga.</span></h2>
+          <p class="text-gray-300 text-lg max-w-2xl mx-auto" data-i18n="pro.value.description" data-i18n-html="true">O que parece um custo por cliente vira <strong class="text-white">vantagem competitiva</strong> que gera retorno em indicações. Faça a conta:</p>
         </div>
 
         <!-- Stats Grid with Counters - Improved -->
@@ -1064,16 +1066,16 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <p class="text-xs uppercase tracking-[0.2em] text-blue-200 mb-2">O cliente percebe</p>
-              <p class="text-5xl font-extrabold text-white mb-1">R$ <span data-counter="297" class="counter-value">0</span></p>
-              <p class="text-blue-200/80 text-sm">de valor no presente que você entrega</p>
+              <p class="text-xs uppercase tracking-[0.2em] text-blue-200 mb-2" data-i18n="pro.value.stats.price.label">O cliente percebe</p>
+              <p class="text-5xl font-extrabold text-white mb-1"><span data-i18n="pro.value.stats.currency">R$</span> <span data-counter="297" class="counter-value">0</span></p>
+              <p class="text-blue-200/80 text-sm" data-i18n="pro.value.stats.price.sub">de valor no presente que você entrega</p>
             </div>
           </div>
 
           <!-- Stat 2: Your investment - HIGHLIGHTED -->
           <div class="card-premium tilt-card bg-gradient-to-br from-emerald-500/25 to-emerald-600/15 border-2 border-emerald-400/40 p-8 pt-10 text-center text-white relative overflow-hidden transform md:scale-105 shadow-xl shadow-emerald-500/10">
             <div class="absolute top-2 right-2 z-10">
-              <div class="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse">SEU INVESTIMENTO</div>
+              <div class="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse" data-i18n="pro.value.stats.investment.badge">SEU INVESTIMENTO</div>
             </div>
             <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
             <div class="relative z-10">
@@ -1082,16 +1084,16 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p class="text-xs uppercase tracking-[0.2em] text-emerald-200 mb-2">Pagamento único por cliente</p>
-              <p class="text-5xl font-extrabold text-emerald-300 mb-1">R$ <span data-counter="120" class="counter-value">0</span></p>
-              <p class="text-emerald-200/80 text-sm">Acesso vitalício para a família toda</p>
+              <p class="text-xs uppercase tracking-[0.2em] text-emerald-200 mb-2" data-i18n="pro.value.stats.investment.label">Pagamento único por cliente</p>
+              <p class="text-5xl font-extrabold text-emerald-300 mb-1"><span data-i18n="pro.value.stats.currency">R$</span> <span data-counter="120" class="counter-value">0</span></p>
+              <p class="text-emerald-200/80 text-sm" data-i18n="pro.value.stats.investment.sub">Acesso vitalício para a família toda</p>
             </div>
           </div>
 
           <!-- Stat 3: Return / Indicações -->
           <div class="card-premium tilt-card bg-white/10 border border-white/15 p-8 pt-10 text-center text-white relative overflow-hidden">
             <div class="absolute top-2 right-2 z-10">
-              <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">RETORNO MÉDIO</div>
+              <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg" data-i18n="pro.value.stats.return.badge">RETORNO MÉDIO</div>
             </div>
             <div class="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl"></div>
             <div class="relative z-10">
@@ -1100,9 +1102,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
-              <p class="text-xs uppercase tracking-[0.2em] text-pink-200 mb-2">Indicações por cliente</p>
+              <p class="text-xs uppercase tracking-[0.2em] text-pink-200 mb-2" data-i18n="pro.value.stats.return.label">Indicações por cliente</p>
               <p class="text-5xl font-extrabold text-pink-300 mb-1">+<span data-counter="3" class="counter-value">0</span></p>
-              <p class="text-pink-200/80 text-sm">Quando a entrega é memorável</p>
+              <p class="text-pink-200/80 text-sm" data-i18n="pro.value.stats.return.sub">Quando a entrega é memorável</p>
             </div>
           </div>
         </div>
@@ -1111,25 +1113,25 @@
         <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-10">
           <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-center md:text-left">
             <div class="flex items-center gap-3">
-              <span class="text-2xl md:text-3xl font-bold text-gray-400">R$ 120</span>
-              <span class="text-gray-500">investido</span>
+              <span class="text-2xl md:text-3xl font-bold text-gray-400" data-i18n="pro.value.math.invested.val">R$ 120</span>
+              <span class="text-gray-500" data-i18n="pro.value.math.invested.label">investido</span>
             </div>
             <svg class="w-6 h-6 text-gray-500 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
             <div class="flex items-center gap-3">
-              <span class="text-2xl md:text-3xl font-bold text-emerald-400">3 indicações</span>
-              <span class="text-gray-400">= novos clientes</span>
+              <span class="text-2xl md:text-3xl font-bold text-emerald-400" data-i18n="pro.value.math.clients.val">3 indicações</span>
+              <span class="text-gray-400" data-i18n="pro.value.math.clients.label">= novos clientes</span>
             </div>
             <svg class="w-6 h-6 text-gray-500 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
             <div class="flex items-center gap-3">
-              <span class="text-2xl md:text-3xl font-bold text-pink-400">R$ 4.500+</span>
-              <span class="text-gray-400">em novos ensaios</span>
+              <span class="text-2xl md:text-3xl font-bold text-pink-400" data-i18n="pro.value.math.revenue.val">R$ 4.500+</span>
+              <span class="text-gray-400" data-i18n="pro.value.math.revenue.label">em novos ensaios</span>
             </div>
           </div>
-          <p class="text-center text-gray-500 text-sm mt-4">Considerando ticket médio de R$ 1.500 por ensaio</p>
+          <p class="text-center text-gray-500 text-sm mt-4" data-i18n="pro.value.math.note">Considerando ticket médio de R$ 1.500 por ensaio</p>
         </div>
 
         <!-- Sales Pitch Card - Improved -->
@@ -1144,17 +1146,17 @@
             </div>
             <div class="flex-1">
               <div class="flex flex-wrap items-center gap-3 mb-4">
-                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Na hora da venda</span>
-                <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">Copie este script</span>
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400" data-i18n="pro.value.pitch.badge1">Na hora da venda</span>
+                <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full" data-i18n="pro.value.pitch.badge2">Copie este script</span>
               </div>
-              <p class="text-xl leading-relaxed text-gray-100 mb-4">
+              <p class="text-xl leading-relaxed text-gray-100 mb-4" data-i18n="pro.value.pitch.text" data-i18n-html="true">
                 <span class="text-gray-400 not-italic">"</span><span class="italic">Dona Maria, sua entrega inclui o <strong class="text-white not-italic">Baby Book Vitalício</strong> — uma experiência premium onde cada foto fica organizada <strong class="text-white not-italic">para sempre</strong>, com backup seguro. Você pode trocar de celular, formatar tudo... as fotos <strong class="text-pink-300 not-italic">nunca se perdem</strong>. É um álbum digital elegante que acompanha a família por gerações.</span><span class="text-gray-400 not-italic">"</span>
               </p>
               <div class="flex items-start gap-3 text-emerald-300 font-medium mt-6 pt-4 border-t border-white/10">
                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
-                <span><strong class="text-white">Resultado:</strong> Cliente encantada indica para amigas — você cresce no boca a boca, sem gastar com anúncios.</span>
+                <span data-i18n="pro.value.pitch.result" data-i18n-html="true"><strong class="text-white">Resultado:</strong> Cliente encantada indica para amigas — você cresce no boca a boca, sem gastar com anúncios.</span>
               </div>
             </div>
           </div>
@@ -1163,7 +1165,7 @@
         <!-- CTA with guarantees -->
         <div class="text-center mt-10">
           <a href="#pacotes" class="btn-primary magnetic-btn inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-bold text-lg group">
-            <span>Ver pacotes e começar</span>
+            <span data-i18n="pro.value.cta.button">Ver pacotes e começar</span>
             <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
@@ -1175,19 +1177,19 @@
               <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
-              <span>Sem mensalidade</span>
+              <span data-i18n="pro.value.cta.trust.noMonthly">Sem mensalidade</span>
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
-              <span>Créditos não expiram</span>
+              <span data-i18n="pro.value.cta.trust.noExpire">Créditos não expiram</span>
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
-              <span>Garantia de 7 dias</span>
+              <span data-i18n="pro.value.cta.trust.warranty">Garantia de 7 dias</span>
             </div>
           </div>
         </div>
@@ -1205,10 +1207,10 @@
             <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span>Créditos nunca expiram</span>
+            <span data-i18n="pro.packages.badge">Créditos nunca expiram</span>
           </div>
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Escolha seu <span class="text-pink-600">Pacote</span></h2>
-          <p class="text-gray-600 text-lg max-w-2xl mx-auto">Sem assinaturas. Sem surpresas. Compre uma vez, use quando quiser.</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4" data-i18n="pro.packages.title" data-i18n-html="true">Escolha seu <span class="text-pink-600">Pacote</span></h2>
+          <p class="text-gray-600 text-lg max-w-2xl mx-auto" data-i18n="pro.packages.description">Sem assinaturas. Sem surpresas. Compre uma vez, use quando quiser.</p>
         </div>
 
         <!-- Pricing Cards -->
@@ -1216,12 +1218,12 @@
           <!-- Starter Pack -->
           <div class="card-premium tilt-card p-8 border border-gray-200 bg-white relative h-full flex flex-col">
             <div class="mb-6">
-              <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Starter Pack</p>
+              <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3" data-i18n="pro.packages.starter.title">Starter Pack</p>
               <div class="flex items-baseline gap-2 mb-2">
-                <span class="text-5xl font-extrabold text-gray-900">R$700</span>
-                <span class="text-gray-500 font-medium">/lote</span>
+                <span class="text-5xl font-extrabold text-gray-900" data-i18n="pro.packages.starter.price">R$700</span>
+                <span class="text-gray-500 font-medium" data-i18n="pro.packages.starter.unit">/lote</span>
               </div>
-              <p class="text-pink-600 font-semibold text-lg">Sai a R$140 por cliente</p>
+              <p class="text-pink-600 font-semibold text-lg" data-i18n="pro.packages.starter.sub">Sai a R$140 por cliente</p>
             </div>
 
             <ul class="space-y-4 mb-8">
@@ -1231,7 +1233,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700"><strong class="text-gray-900">5</strong> Licenças Vitalícias</span>
+                <span class="text-gray-700" data-i18n="pro.packages.starter.features.licenses" data-i18n-html="true"><strong class="text-gray-900">5</strong> Licenças Vitalícias</span>
               </li>
               <li class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -1239,7 +1241,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700">Painel Administrativo</span>
+                <span class="text-gray-700" data-i18n="pro.packages.starter.features.panel">Painel Administrativo</span>
               </li>
               <li class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -1247,11 +1249,11 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700">Suporte Técnico Incluso</span>
+                <span class="text-gray-700" data-i18n="pro.packages.starter.features.support">Suporte Técnico Incluso</span>
               </li>
             </ul>
 
-            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="mt-auto btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-4 text-base">
+            <a href="javascript:navigateToApp('/pro/register?plan=starter')" class="mt-auto btn-secondary w-full inline-flex items-center justify-center rounded-xl font-semibold py-4 text-base" data-i18n="pro.packages.starter.button">
               Começar com Starter
             </a>
           </div>
@@ -1264,19 +1266,19 @@
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
-                <span>MAIS POPULAR</span>
+                <span data-i18n="pro.packages.pro.badge">MAIS POPULAR</span>
               </div>
             </div>
 
             <div class="mb-6 pt-2">
-              <p class="text-sm font-bold text-pink-600 uppercase tracking-wider mb-3">PRO Pack</p>
+              <p class="text-sm font-bold text-pink-600 uppercase tracking-wider mb-3" data-i18n="pro.packages.pro.title">PRO Pack</p>
               <div class="flex items-baseline gap-2 mb-2">
-                <span class="text-5xl font-extrabold text-gray-900">R$1.200</span>
-                <span class="text-gray-500 font-medium">/lote</span>
+                <span class="text-5xl font-extrabold text-gray-900" data-i18n="pro.packages.pro.price">R$1.200</span>
+                <span class="text-gray-500 font-medium" data-i18n="pro.packages.pro.unit">/lote</span>
               </div>
               <div class="flex items-center gap-3">
-                <p class="text-pink-600 font-semibold text-lg">Sai a R$120/cliente</p>
-                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">-14% OFF</span>
+                <p class="text-pink-600 font-semibold text-lg" data-i18n="pro.packages.pro.sub">Sai a R$120/cliente</p>
+                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full" data-i18n="pro.packages.pro.discount">-14% OFF</span>
               </div>
             </div>
 
@@ -1287,7 +1289,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700"><strong class="text-gray-900">10</strong> Licenças Vitalícias</span>
+                <span class="text-gray-700" data-i18n="pro.packages.pro.features.licenses" data-i18n-html="true"><strong class="text-gray-900">10</strong> Licenças Vitalícias</span>
               </li>
               <li class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
@@ -1295,7 +1297,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700"><strong class="text-pink-600">Melhor custo por entrega</strong></span>
+                <span class="text-gray-700" data-i18n="pro.packages.pro.features.cost" data-i18n-html="true"><strong class="text-pink-600">Melhor custo por entrega</strong></span>
               </li>
               <li class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
@@ -1303,7 +1305,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700">Painel Administrativo Completo</span>
+                <span class="text-gray-700" data-i18n="pro.packages.pro.features.panel">Painel Administrativo Completo</span>
               </li>
               <li class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
@@ -1311,12 +1313,12 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="text-gray-700">Suporte Prioritário</span>
+                <span class="text-gray-700" data-i18n="pro.packages.pro.features.support">Suporte Prioritário</span>
               </li>
             </ul>
 
             <a href="javascript:navigateToApp('/pro/register?plan=pro')" class="mt-auto btn-primary magnetic-btn text-white w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold py-4 text-base group">
-              <span>Quero ser Parceiro PRO</span>
+              <span data-i18n="pro.packages.pro.button">Quero ser Parceiro PRO</span>
               <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -1326,7 +1328,7 @@
 
         <!-- Trust note -->
         <div class="text-center mt-10 text-gray-500 text-sm">
-          <p>✓ Pagamento único · ✓ Garantia de 7 dias · ✓ Suporte humanizado</p>
+          <p data-i18n="pro.packages.trust">✓ Pagamento único · ✓ Garantia de 7 dias · ✓ Suporte humanizado</p>
         </div>
       </div>
     </section>
@@ -1342,21 +1344,21 @@
 
       <div class="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
         <div class="text-center">
-          <p class="text-pink-400 font-semibold text-sm uppercase tracking-wider mb-4">Conheça por dentro</p>
-          <h3 class="font-serif text-3xl md:text-4xl text-white mb-4">Explore o painel <span class="text-pink-300">gratuitamente</span></h3>
-          <p class="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">Crie sua conta de parceiro e veja como funciona. Sem compromisso, sem cartão.</p>
+          <p class="text-pink-400 font-semibold text-sm uppercase tracking-wider mb-4" data-i18n="pro.ctaUrgency.tag">Conheça por dentro</p>
+          <h3 class="font-serif text-3xl md:text-4xl text-white mb-4" data-i18n="pro.ctaUrgency.title" data-i18n-html="true">Explore o painel <span class="text-pink-300">gratuitamente</span></h3>
+          <p class="text-gray-300 text-lg mb-8 max-w-2xl mx-auto" data-i18n="pro.ctaUrgency.description">Crie sua conta de parceiro e veja como funciona. Sem compromisso, sem cartão.</p>
 
           <a href="javascript:navigateToApp('/pro/register?source=landing')" class="btn-primary magnetic-btn inline-flex items-center justify-center gap-3 text-white px-8 py-4 rounded-2xl font-bold text-lg group">
-            <span>Conhecer o painel</span>
+            <span data-i18n="pro.ctaUrgency.button">Conhecer o painel</span>
             <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </a>
 
-          <p class="text-gray-500 text-sm mt-4">Totalmente grátis · Leva 30 segundos</p>
+          <p class="text-gray-500 text-sm mt-4" data-i18n="pro.ctaUrgency.note">Totalmente grátis · Leva 30 segundos</p>
 
           <div class="mt-6 pt-6 border-t border-white/10">
-            <p class="text-gray-400 text-sm">Quer ver como fica para seu cliente? <a href="/index.html" class="text-pink-400 hover:text-pink-300 font-medium transition-colors">Visite a página do produto →</a></p>
+            <p class="text-gray-400 text-sm" data-i18n="pro.ctaUrgency.link" data-i18n-html="true">Quer ver como fica para seu cliente? <a href="/index.html" class="text-pink-400 hover:text-pink-300 font-medium transition-colors">Visite a página do produto →</a></p>
           </div>
         </div>
       </div>
@@ -1370,10 +1372,10 @@
             <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Tire suas dúvidas</span>
+            <span data-i18n="pro.faq.badge">Tire suas dúvidas</span>
           </div>
-          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4">Perguntas <span class="text-pink-600">Frequentes</span></h2>
-          <p class="text-gray-600 text-lg max-w-2xl mx-auto">Tudo que você precisa saber antes de começar</p>
+          <h2 class="font-serif heading-section text-3xl md:text-5xl text-gray-900 mb-4" data-i18n="pro.faq.title" data-i18n-html="true">Perguntas <span class="text-pink-600">Frequentes</span></h2>
+          <p class="text-gray-600 text-lg max-w-2xl mx-auto" data-i18n="pro.faq.description">Tudo que você precisa saber antes de começar</p>
         </div>
 
         <!-- FAQ Accordion -->
@@ -1385,7 +1387,7 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">01</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Existe mensalidade ou taxa de manutenção?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors" data-i18n="pro.faq.q1.q">Existe mensalidade ou taxa de manutenção?</h3>
               </div>
               <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1393,7 +1395,7 @@
             </button>
             <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p><strong class="text-gray-900">Não. Zero.</strong> Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa. Suas licenças nunca expiram.</p>
+                <p data-i18n="pro.faq.q1.a" data-i18n-html="true"><strong class="text-gray-900">Não. Zero.</strong> Você compra o lote de licenças e elas são suas para sempre até você usar. Se levar 1 mês ou 1 ano para vender, não importa. Suas licenças nunca expiram.</p>
               </div>
             </div>
           </div>
@@ -1405,7 +1407,7 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">02</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se meu cliente perder o celular?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors" data-i18n="pro.faq.q2.q">E se meu cliente perder o celular?</h3>
               </div>
               <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1413,7 +1415,7 @@
             </button>
             <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p>O acesso é vinculado à <strong class="text-gray-900">conta, não ao aparelho</strong>. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo — basta fazer login no novo celular.</p>
+                <p data-i18n="pro.faq.q2.a" data-i18n-html="true">O acesso é vinculado à <strong class="text-gray-900">conta, não ao aparelho</strong>. As fotos e dados estão salvos na nuvem com backup redundante. É mais seguro que HD externo — basta fazer login no novo celular.</p>
               </div>
             </div>
           </div>
@@ -1425,7 +1427,7 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">03</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">O cliente final paga alguma coisa?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors" data-i18n="pro.faq.q3.q">O cliente final paga alguma coisa?</h3>
               </div>
               <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1433,7 +1435,7 @@
             </button>
             <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p><strong class="text-gray-900">Não.</strong> O acesso vitalício é um diferencial que você inclui no pacote (ou vende como upsell). Para a mãe/pai, o aplicativo é <strong class="text-gray-900">gratuito e livre de anúncios</strong>. Você agrega valor ao seu serviço.</p>
+                <p data-i18n="pro.faq.q3.a" data-i18n-html="true"><strong class="text-gray-900">Não.</strong> O acesso vitalício é um diferencial que você inclui no pacote (ou vende como upsell). Para a mãe/pai, o aplicativo é <strong class="text-gray-900">gratuito e livre de anúncios</strong>. Você agrega valor ao seu serviço.</p>
               </div>
             </div>
           </div>
@@ -1445,7 +1447,7 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">04</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">Como entrego as fotos para o cliente?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors" data-i18n="pro.faq.q4.q">Como entrego as fotos para o cliente?</h3>
               </div>
               <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1453,7 +1455,7 @@
             </button>
             <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p>Você recebe acesso ao <strong class="text-gray-900">Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para o cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class="text-gray-900">menos de 2 minutos</strong>.</p>
+                <p data-i18n="pro.faq.q4.a" data-i18n-html="true">Você recebe acesso ao <strong class="text-gray-900">Painel do Parceiro</strong>. Faz o upload das fotos em alta, gera um código único e envia para o cliente (físico ou digital). Ela baixa o app, insere o código e pronto — em <strong class="text-gray-900">menos de 2 minutos</strong>.</p>
               </div>
             </div>
           </div>
@@ -1465,7 +1467,7 @@
                 <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-200 transition-colors">
                   <span class="text-pink-600 font-bold text-sm">05</span>
                 </div>
-                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors">E se eu não gostar, tem garantia?</h3>
+                <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600 transition-colors" data-i18n="pro.faq.q5.q">E se eu não gostar, tem garantia?</h3>
               </div>
               <svg class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1473,7 +1475,7 @@
             </button>
             <div class="faq-content">
               <div class="ml-14 text-gray-600 leading-relaxed">
-                <p>Sim! Oferecemos <strong class="text-gray-900">garantia de 7 dias</strong>. Se não ficar satisfeito, devolvemos seu investimento sem burocracia. Confiamos tanto no produto que assumimos o risco.</p>
+                <p data-i18n="pro.faq.q5.a" data-i18n-html="true">Sim! Oferecemos <strong class="text-gray-900">garantia de 7 dias</strong>. Se não ficar satisfeito, devolvemos seu investimento sem burocracia. Confiamos tanto no produto que assumimos o risco.</p>
               </div>
             </div>
           </div>
@@ -1481,12 +1483,12 @@
 
         <!-- More questions CTA -->
         <div class="text-center mt-10">
-          <p class="text-gray-500 text-sm mb-3">Ainda tem dúvidas?</p>
+          <p class="text-gray-500 text-sm mb-3" data-i18n="pro.faq.more">Ainda tem dúvidas?</p>
           <a href="mailto:contato@babybook.app" class="inline-flex items-center gap-2 text-pink-600 font-semibold hover:text-pink-700 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span>Fale conosco</span>
+            <span data-i18n="pro.faq.contact">Fale conosco</span>
           </a>
         </div>
       </div>
@@ -1501,32 +1503,32 @@
             <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center text-white font-bold">BB</div>
             <div>
               <p class="font-serif text-white font-bold text-xl italic tracking-tight">Baby Book <span class="text-pink-300">PRO</span></p>
-              <p class="text-sm text-slate-400">Para fotógrafos profissionais</p>
+              <p class="text-sm text-slate-400" data-i18n="pro.footer.subtitle">Para fotógrafos profissionais</p>
             </div>
           </div>
-          <p class="text-slate-400 max-w-xl leading-relaxed">Feito com afeto para profissionais que valorizam a entrega. Preservando histórias que duram para sempre.</p>
+          <p class="text-slate-400 max-w-xl leading-relaxed" data-i18n="pro.footer.description">Feito com afeto para profissionais que valorizam a entrega. Preservando histórias que duram para sempre.</p>
         </div>
         <div>
-          <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4">Navegação</h3>
+          <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4" data-i18n="pro.footer.nav.title">Navegação</h3>
           <div class="flex flex-col gap-3 text-sm text-slate-300">
-            <a href="#dor" class="hover:text-pink-300 transition-colors">Problema</a>
-            <a href="#beneficios" class="hover:text-pink-300 transition-colors">Benefícios</a>
-            <a href="#pacotes" class="hover:text-pink-300 transition-colors">Pacotes</a>
-            <a href="#faq" class="hover:text-pink-300 transition-colors">FAQ</a>
-            <a href="javascript:navigateToApp('/pro/register?source=landing')" class="hover:text-pink-300 transition-colors font-medium">Começar Agora →</a>
+            <a href="#dor" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.nav.pain">Problema</a>
+            <a href="#beneficios" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.nav.benefits">Benefícios</a>
+            <a href="#pacotes" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.nav.packages">Pacotes</a>
+            <a href="#faq" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.nav.faq">FAQ</a>
+            <a href="javascript:navigateToApp('/pro/register?source=landing')" class="hover:text-pink-300 transition-colors font-medium" data-i18n="pro.footer.nav.start">Começar Agora →</a>
           </div>
         </div>
         <div>
-          <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4">Suporte</h3>
+          <h3 class="text-white font-semibold text-sm uppercase tracking-widest mb-4" data-i18n="pro.footer.support.title">Suporte</h3>
           <div class="flex flex-col gap-3 text-sm text-slate-300">
             <a href="mailto:contato@babybook.app" class="hover:text-pink-300 transition-colors">contato@babybook.app</a>
-            <a href="/termos" class="hover:text-pink-300 transition-colors">Termos de Uso</a>
-            <a href="/privacidade" class="hover:text-pink-300 transition-colors">Política de Privacidade</a>
+            <a href="/termos" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.support.terms">Termos de Uso</a>
+            <a href="/privacidade" class="hover:text-pink-300 transition-colors" data-i18n="pro.footer.support.privacy">Política de Privacidade</a>
           </div>
         </div>
       </div>
       <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-sm">
-        <p>© 2025 Baby Book Pro. Todos os direitos reservados.</p>
+        <p data-i18n="pro.footer.copyright">© 2025 Baby Book Pro. Todos os direitos reservados.</p>
         <div class="flex items-center gap-3">
           <a href="https://instagram.com" class="w-10 h-10 bg-white/5 hover:bg-pink-500/20 rounded-xl flex items-center justify-center text-gray-300 hover:text-pink-300 transition-all duration-300 border border-white/10" title="Instagram"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.914 4.914 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.913 4.913 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.466.182-.8.398-1.15.748-.35.35-.566.684-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.398.8.748 1.15.35.35.684.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.684.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" />
@@ -1931,6 +1933,7 @@
 
     console.log('🚀 Baby Book PRO - Interactive effects loaded');
   </script>
+  <script type="module" src="/src/main-pro.ts"></script>
 </body>
 
 </html>

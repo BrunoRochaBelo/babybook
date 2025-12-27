@@ -8,39 +8,39 @@ export type PartnerDeliveryStatusMeta = {
 
 const STATUS_META: Record<DeliveryStatus, PartnerDeliveryStatusMeta> = {
   draft: {
-    label: "Rascunho",
-    shortLabel: "Rascunho",
-    hint: "Entrega criada, mas ainda não enviada. Adicione os arquivos para continuar.",
+    label: "partner.status.draft.label",
+    shortLabel: "partner.status.draft.shortLabel",
+    hint: "partner.status.draft.hint",
   },
   pending_upload: {
-    label: "Aguardando upload",
-    shortLabel: "Upload",
-    hint: "Estamos esperando você enviar os arquivos desta entrega.",
+    label: "partner.status.pending_upload.label",
+    shortLabel: "partner.status.pending_upload.shortLabel",
+    hint: "partner.status.pending_upload.hint",
   },
   processing: {
-    label: "Processando",
-    shortLabel: "Proc.",
-    hint: "Seus arquivos estão sendo preparados. Isso pode levar alguns minutos.",
+    label: "partner.status.processing.label",
+    shortLabel: "partner.status.processing.shortLabel",
+    hint: "partner.status.processing.hint",
   },
   ready: {
-    label: "Pronta",
-    shortLabel: "Pronta",
-    hint: "Entrega pronta para envio. Gere o voucher/link para seu cliente.",
+    label: "partner.status.ready.label",
+    shortLabel: "partner.status.ready.shortLabel",
+    hint: "partner.status.ready.hint",
   },
   delivered: {
-    label: "Entregue",
-    shortLabel: "Entregue",
-    hint: "Seu cliente já resgatou/importou a entrega.",
+    label: "partner.status.delivered.label",
+    shortLabel: "partner.status.delivered.shortLabel",
+    hint: "partner.status.delivered.hint",
   },
   failed: {
-    label: "Falhou",
-    shortLabel: "Erro",
-    hint: "Houve um erro no processamento. Tente novamente ou contate o suporte com o ID da entrega.",
+    label: "partner.status.failed.label",
+    shortLabel: "partner.status.failed.shortLabel",
+    hint: "partner.status.failed.hint",
   },
   archived: {
-    label: "Arquivada",
-    shortLabel: "Arq.",
-    hint: "Entrega arquivada (oculta na lista ativa). Você pode desarquivar a qualquer momento.",
+    label: "partner.status.archived.label",
+    shortLabel: "partner.status.archived.shortLabel",
+    hint: "partner.status.archived.hint",
   },
 };
 

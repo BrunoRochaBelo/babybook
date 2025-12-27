@@ -1,4 +1,452 @@
 {
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "close": "Fechar",
+    "actions": "Ações",
+    "status": "Status",
+    "date": "Data",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "description": "Descrição",
+    "total": "Total",
+    "details": "Detalhes",
+    "all": "Todos",
+    "none": "Nenhum",
+    "yes": "Sim",
+    "no": "Não",
+    "or": "ou",
+    "and": "e",
+    "of": "de",
+    "error": "Erro",
+    "success": "Sucesso",
+    "warning": "Aviso",
+    "info": "Informação",
+    "retry": "Tentar novamente",
+    "reload": "Recarregar página",
+    "noResults": "Nenhum resultado encontrado",
+    "required": "Obrigatório"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Cadastrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar senha",
+    "forgotPassword": "Esqueci minha senha",
+    "rememberMe": "Lembrar de mim",
+    "loginTitle": "Acesse sua conta",
+    "registerTitle": "Crie sua conta",
+    "loginButton": "Entrar",
+    "registerButton": "Cadastrar",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "invalidCredentials": "E-mail ou senha inválidos",
+    "logoutSuccess": "Você saiu da sua conta"
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "deliveries": "Entregas",
+    "credits": "Créditos",
+    "settings": "Configurações",
+    "notifications": "Notificações",
+    "help": "Ajuda",
+    "profile": "Perfil"
+  },
+  "partner": {
+    "dashboard": {
+      "title": "Painel do Parceiro",
+      "welcome": "Olá",
+      "welcomeMorning": "Bom dia",
+      "welcomeAfternoon": "Boa tarde",
+      "welcomeEvening": "Boa noite",
+      "welcomeNewUser": "Bem-vindo ao Baby Book!",
+      "stats": {
+        "totalDeliveries": "Total de Entregas",
+        "pendingDeliveries": "Entregas Pendentes",
+        "completedDeliveries": "Entregas Concluídas",
+        "availableCredits": "Créditos Disponíveis",
+        "reservedCredits": "Créditos Reservados"
+      },
+      "recentDeliveries": "Entregas Recentes",
+      "noRecentDeliveries": "Nenhuma entrega recente",
+      "startFirstDelivery": "Comece sua primeira entrega",
+      "viewAllDeliveries": "Ver todas as entregas",
+      "tips": {
+        "pendingUpload": "Você tem fotos aguardando upload. Complete para enviar ao cliente!",
+        "readyDeliveries": "Entregas prontas! Gere o link/voucher para seus clientes resgatarem.",
+        "lowCredits": "Seu saldo está baixo. Garanta créditos para não pausar entregas.",
+        "growth": "{{count}} clientes já resgataram suas fotos. Continue crescendo!",
+        "firstDelivery": "Crie sua primeira entrega e surpreenda seus clientes!",
+        "creditsInfo": "Dica: quando o cliente resgata, o crédito é consumido ou estornado automaticamente."
+      }
+    },
+    "deliveries": {
+      "title": "Entregas",
+      "newDelivery": "Nova Entrega",
+      "list": {
+        "title": "Entregas",
+        "backToPortal": "Voltar ao portal",
+        "empty": "Você ainda não tem entregas",
+        "emptyDescription": "Crie sua primeira entrega para começar",
+        "filters": {
+          "title": "Filtros",
+          "active": "Filtros ativos:",
+          "clearAll": "Limpar todos",
+          "searchPlaceholder": "Buscar por cliente ou título",
+          "status": "Status",
+          "voucher": "Voucher",
+          "redeemed": "Resgate",
+          "date": "Data",
+          "presets": {
+            "needsAction": "Precisa de ação",
+            "withoutVoucher": "Sem voucher",
+            "redeemed": "Resgatadas"
+          },
+          "options": {
+            "all": "Todos",
+            "with": "Com voucher",
+            "without": "Sem voucher",
+            "redeemed": "Resgatado",
+            "notRedeemed": "Não resgatado"
+          }
+        },
+        "table": {
+          "client": "Cliente",
+          "status": "Status",
+          "date": "Data",
+          "actions": "Ações"
+        },
+        "total": "no total",
+        "archived": "arquivadas",
+        "deliveriesSuffix": "entregas"
+      },
+      "status": {
+        "pending": "Pendente",
+        "processing": "Processando",
+        "ready": "Pronta",
+        "delivered": "Entregue",
+        "cancelled": "Cancelada",
+        "all": "Todas"
+      },
+      "detail": {
+        "title": "Detalhes da Entrega",
+        "recipientInfo": "Informações do Destinatário",
+        "deliveryInfo": "Informações da Entrega",
+        "mediaFiles": "Arquivos de Mídia",
+        "timeline": "Linha do Tempo"
+      },
+      "create": {
+        "title": "Nova Entrega",
+        "step1": "Informações",
+        "step2": "Upload de Mídia",
+        "step3": "Revisão",
+        "recipientName": "Nome do Destinatário",
+        "recipientEmail": "E-mail do Destinatário",
+        "recipientPhone": "Telefone do Destinatário",
+        "message": "Mensagem",
+        "uploadMedia": "Enviar Mídia",
+        "dragDrop": "Arraste e solte arquivos aqui",
+        "orClickToUpload": "ou clique para selecionar",
+        "supportedFormats": "Formatos suportados: JPG, PNG, MP4, PDF",
+        "review": "Revise os dados antes de confirmar",
+        "confirmDelivery": "Confirmar Entrega",
+        "deliveryCreated": "Entrega criada com sucesso!"
+      },
+      "upload": {
+        "title": "Upload de Mídia",
+        "uploading": "Enviando...",
+        "uploaded": "Enviado",
+        "failed": "Falha no envio",
+        "retryFailed": "Reenviar falhas",
+        "retryAll": "Reenviar todos",
+        "removeFile": "Remover arquivo",
+        "progress": "{{current}} de {{total}} arquivos enviados"
+      },
+      "archive": {
+        "action": "Arquivar",
+        "unarchive": "Desarquivar",
+        "success": "Entrega arquivada: {{title}}",
+        "unarchiveSuccess": "Entrega desarquivada: {{title}}",
+        "undo": "Desfazer"
+      },
+      "actions": {
+        "copyLink": "Copiar link",
+        "copyId": "Copiar ID",
+        "copyVoucher": "Copiar voucher",
+        "generateVoucher": "Gerar voucher",
+        "generateLink": "Gerar link",
+        "open": "Abrir",
+        "details": "Ver detalhes",
+        "preview": "Prévia",
+        "close": "Fechar",
+        "linkCopied": "Link copiado",
+        "idCopied": "ID copiado",
+        "voucherCopied": "Voucher copiado",
+        "copyFailed": "Não foi possível copiar"
+      },
+      "sections": {
+        "client": "Cliente",
+        "files": "Arquivos",
+        "created": "Criada em",
+        "history": "Histórico",
+        "voucherCredit": "Voucher / Crédito",
+        "quickActions": "Ações rápidas"
+      },
+      "hints": {
+        "openDetailsToGenerate": "Dica: abra os detalhes para gerar o voucher.",
+        "keyboardShortcuts": "Dica: Esc fecha • ←/→ navega."
+      }
+    },
+    "credits": {
+      "title": "Créditos",
+      "subtitle": "Escolha o pacote ideal para suas entregas",
+      "balance": "Saldo de Créditos",
+      "yourCredits": "Seus Créditos",
+      "available": "Disponível",
+      "reserved": "Reservado",
+      "lowBalance": "Saldo baixo",
+      "ready_one": "crédito pronto",
+      "ready_other": "créditos prontos",
+      "waitingRedemption": "aguardando resgate",
+      "availableTooltip": "Créditos disponíveis para uso imediato em novas entregas",
+      "reservedTooltip": "Créditos reservados para entregas em andamento",
+      "history": "Histórico de Transações",
+      "noHistory": "Nenhuma transação encontrada",
+      "info": {
+        "consumed": "O crédito é consumido apenas quando o cliente resgata as fotos."
+      },
+      "purchase": {
+        "buyCredits": "Comprar Créditos",
+        "selectPackage": "Selecione um pacote",
+        "mostPopular": "Mais Popular",
+        "vouchers": "vouchers",
+        "totalPix": "Total no PIX (à vista)",
+        "totalCard": "Total no cartão (até {{installments}}x s/ juros)",
+        "perVoucher": "/voucher",
+        "savings": "economize {{value}}",
+        "paymentMethod": "Forma de pagamento",
+        "payWithPix": "Pagar via PIX",
+        "payWithCard": "Pagar com Cartão",
+        "totalToPay": "Total a pagar",
+        "secureCheckout": "🔒 Você será redirecionado para o checkout seguro (Stripe) para completar o pagamento.",
+        "howItWorks": "ℹ️ Como funcionam os créditos?",
+        "savingsVsCard": "Economia de {{value}} vs cartão",
+        "installmentsInfo": "Até {{count}}x de <bold>{{value}}</bold> sem juros",
+        "pixInfo": "💡 No PIX: {{value}} (economize {{savings}})",
+        "selectToContinue": "Selecione um pacote acima para continuar",
+        "processing": "Processando...",
+        "volumeDiscount": "Desconto por volume: {{value}}%",
+        "compare": {
+          "label": "Comparativo",
+          "pix": "PIX",
+          "card": "Cartão",
+          "onCard": "No cartão",
+          "onPix": "No PIX",
+          "installmentsDetails": "Até {{count}}x de {{value}} sem juros. Acima disso, juros e total aparecem no checkout."
+        },
+        "info": {
+          "reserved": "Ao gerar um voucher, 1 crédito fica RESERVED (em trânsito)",
+          "consumed": "No resgate: novo Baby Book → CONSUMED; bebê existente → REFUNDED (estorno automático)",
+          "unique": "O voucher é único por entrega e dá acesso às fotos daquele ensaio",
+          "expiration": "Créditos não expiram"
+        }
+      },
+      "transaction": {
+        "purchase": "Compra de créditos",
+        "usage": "Uso em entrega",
+        "refund": "Reembolso",
+        "bonus": "Bônus"
+      }
+    },
+    "settings": {
+      "title": "Configurações",
+      "profile": {
+        "title": "Perfil",
+        "companyName": "Nome da Empresa",
+        "contactName": "Nome do Contato",
+        "email": "E-mail",
+        "phone": "Telefone",
+        "logo": "Logo",
+        "uploadLogo": "Enviar Logo",
+        "removeLogo": "Remover Logo"
+      },
+      "preferences": {
+        "title": "Preferências",
+        "language": "Idioma",
+        "theme": "Tema",
+        "themeLight": "Claro",
+        "themeDark": "Escuro",
+        "themeSystem": "Sistema",
+        "notifications": "Notificações",
+        "emailNotifications": "Notificações por e-mail",
+        "pushNotifications": "Notificações push"
+      },
+      "security": {
+        "title": "Segurança",
+        "changePassword": "Alterar Senha",
+        "currentPassword": "Senha Atual",
+        "newPassword": "Nova Senha",
+        "confirmNewPassword": "Confirmar Nova Senha",
+        "twoFactor": "Autenticação de dois fatores"
+      }
+    },
+    "onboarding": {
+      "title": "Configure sua conta",
+      "subtitle": "Complete os passos abaixo para começar",
+      "steps": {
+        "profile": "Complete seu perfil",
+        "logo": "Adicione seu logo",
+        "firstDelivery": "Crie sua primeira entrega"
+      },
+      "completed": "🎉 Parabéns! Você completou a configuração!",
+      "skip": "Pular por enquanto"
+    },
+    "upload": {
+      "title": "Adicionar Fotos",
+      "backToDelivery": "Voltar à entrega",
+      "deliveryLabel": "Entrega",
+      "loading": "Carregando entrega...",
+      "notFound": "Entrega não encontrada",
+      "backToDeliveries": "Voltar às entregas",
+      "finalizedTitle": "Entrega finalizada",
+      "finalizedDescription": "Não é possível adicionar fotos após o voucher ser gerado.",
+      "viewDelivery": "Ver entrega",
+      "stats": {
+        "photosInDelivery": "Fotos na entrega",
+        "uploadedNow": "Enviadas agora"
+      },
+      "zone": {
+        "dragDrop": "Arraste as fotos ou clique para selecionar",
+        "formats": "JPG, PNG, WEBP • Até 20MB por arquivo",
+        "ariaLabel": "Selecionar fotos para upload"
+      },
+      "list": {
+        "title": "Uploads",
+        "retry": "Tentar novamente",
+        "remove": "Remover",
+        "wait": "Aguarde...",
+        "finish": "Concluir",
+        "cancel": "Cancelar"
+      }
+    },
+    "details": {
+      "title": "Entrega",
+      "backToDeliveries": "Voltar às entregas",
+      "created": "Criada em",
+      "event": "Evento",
+      "description": "Descrição",
+      "files": "Arquivos",
+      "add": "Adicionar",
+      "finalizedAdd": "Entrega finalizada (não é possível adicionar)",
+      "noFiles": "Nenhum arquivo enviado ainda",
+      "sendFiles": "Enviar Arquivos",
+      "removeFile": "Remover arquivo",
+      "removeConfirm": "Remover?"
+    },
+    "voucher": {
+      "label": "Voucher",
+      "ready": "Pronto",
+      "redeemedAt": "Resgatado em {{date}}",
+      "notRedeemed": "Ainda não resgatado",
+      "explanation": "Quando gerar, você terá um cartão (QR Code) e um código para enviar ao cliente.",
+      "explanationNoFiles": "Envie os arquivos desta entrega para liberar a geração do voucher.",
+      "openCard": "Abrir cartão",
+      "copy": "Copiar",
+      "copied": "Voucher copiado",
+      "copyFailed": "Não foi possível copiar",
+      "generate": "Gerar voucher",
+      "unavailable": "Voucher indisponível",
+      "clipboardWarning": "Envie arquivos para liberar a geração do voucher",
+      "modal": {
+        "titleImport": "Gerar link de importação",
+        "titleVoucher": "Gerar Voucher",
+        "titleCard": "Cartão-Convite",
+        "descImport": "Este cliente <bold>já tem conta</bold> no Baby Book. Por isso, <bold>não precisamos de voucher</bold>. Ao finalizar, geramos um <bold>link de importação</bold>: • se o cliente importar em um <bold>filho com acesso</bold>, não há cobrança; • se o cliente criar um <bold>novo Baby Book</bold>, será consumido <bold>1 crédito</bold>.",
+        "descVoucher": "Isso irá <bold>reservar 1 crédito</bold> (em trânsito). No resgate: • se o cliente criar um <bold>novo Baby Book</bold>, o crédito vira <bold>CONSUMED</bold>; • se o cliente vincular a um <bold>bebê existente</bold>, o crédito vira <bold>REFUNDED</bold> (estorno automático). O voucher será único para esta entrega.",
+        "beneficiary": "Nome do Beneficiário",
+        "beneficiaryPlaceholder": "Nome que aparecerá no cartão",
+        "message": "Mensagem (opcional)",
+        "messagePlaceholder": "Uma mensagem especial para o cliente...",
+        "cancel": "Cancelar",
+        "finalize": "Finalizando...",
+        "generateLink": "Gerar Link",
+        "generateBtn": "Gerar Voucher"
+      }
+    },
+    "status": {
+      "draft": {
+        "label": "Rascunho",
+        "shortLabel": "Rascunho",
+        "hint": "Entrega criada, mas ainda não enviada. Adicione os arquivos para continuar."
+      },
+      "pending_upload": {
+        "label": "Aguardando upload",
+        "shortLabel": "Upload",
+        "hint": "Estamos esperando você enviar os arquivos desta entrega."
+      },
+      "processing": {
+        "label": "Processando",
+        "shortLabel": "Proc.",
+        "hint": "Seus arquivos estão sendo preparados. Isso pode levar alguns minutos."
+      },
+      "ready": {
+        "label": "Pronta",
+        "shortLabel": "Pronta",
+        "hint": "Entrega pronta para envio. Gere o voucher/link para seu cliente."
+      },
+      "delivered": {
+        "label": "Entregue",
+        "shortLabel": "Entregue",
+        "hint": "Seu cliente já resgatou/importou a entrega."
+      },
+      "failed": {
+        "label": "Falhou",
+        "shortLabel": "Erro",
+        "hint": "Houve um erro no processamento. Tente novamente ou contate o suporte com o ID da entrega."
+      },
+      "archived": {
+        "label": "Arquivada",
+        "shortLabel": "Arq.",
+        "hint": "Entrega arquivada (oculta na lista ativa). Você pode desarquivar a qualquer momento."
+      },
+      "active": "Ativas"
+    }
+  },
+  "errors": {
+    "generic": "Algo deu errado. Tente novamente.",
+    "network": "Erro de conexão. Verifique sua internet.",
+    "notFound": "Recurso não encontrado",
+    "unauthorized": "Você não tem permissão para acessar este recurso",
+    "sessionExpired": "Sua sessão expirou. Faça login novamente.",
+    "validation": "Por favor, corrija os erros no formulário",
+    "serverError": "Erro no servidor. Tente novamente mais tarde.",
+    "offline": "Você está offline",
+    "offlineDescription": "Verifique sua conexão com a internet"
+  },
+  "time": {
+    "justNow": "Agora mesmo",
+    "minutesAgo": "há {{count}} minuto",
+    "minutesAgo_plural": "há {{count}} minutos",
+    "hoursAgo": "há {{count}} hora",
+    "hoursAgo_plural": "há {{count}} horas",
+    "daysAgo": "há {{count}} dia",
+    "daysAgo_plural": "há {{count}} dias",
+    "weeksAgo": "há {{count}} semana",
+    "weeksAgo_plural": "há {{count}} semanas"
+  },
   "dashboard": {
     "title": "Seu Baby Book está seguro e atualizado.",
     "storage": "Armazenamento",

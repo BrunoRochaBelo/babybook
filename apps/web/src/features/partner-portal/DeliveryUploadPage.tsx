@@ -27,8 +27,10 @@ import {
   PartnerErrorState,
   PartnerLoadingState,
 } from "@/layouts/partnerStates";
+import { useTranslation } from "@babybook/i18n";
 
 export function DeliveryUploadPage() {
+  const { t } = useTranslation();
   const { deliveryId } = useParams<{ deliveryId: string }>();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,13 +38,13 @@ export function DeliveryUploadPage() {
   usePartnerPageHeader(
     useMemo(
       () => ({
-        title: "Adicionar fotos",
+        title: t("partner.upload.title"),
         backTo: deliveryId
           ? `/partner/deliveries/${deliveryId}`
           : "/partner/deliveries",
-        backLabel: "Voltar à entrega",
+        backLabel: t("partner.upload.backToDelivery"),
       }),
-      [deliveryId],
+      [deliveryId, t],
     ),
   );
 
@@ -95,16 +97,16 @@ export function DeliveryUploadPage() {
   const openFilePicker = () => fileInputRef.current?.click();
 
   if (isLoading) {
-    return <PartnerLoadingState size="narrow" label="Carregando entrega…" />;
+    return <PartnerLoadingState size="narrow" label={t("partner.upload.loading")} />;
   }
 
   if (error || !delivery) {
     return (
       <PartnerErrorState
         size="narrow"
-        title="Entrega não encontrada"
+        title={t("partner.upload.notFound")}
         primaryAction={{
-          label: "Voltar às entregas",
+          label: t("partner.upload.backToDeliveries"),
           to: "/partner/deliveries",
         }}
       />
@@ -118,10 +120,10 @@ export function DeliveryUploadPage() {
         size="narrow"
         tone="warning"
         icon={AlertCircle}
-        title="Entrega finalizada"
-        description="Não é possível adicionar fotos após o voucher ser gerado."
+        title={t("partner.upload.finalizedTitle")}
+        description={t("partner.upload.finalizedDescription")}
         primaryAction={{
-          label: "Ver entrega",
+          label: t("partner.upload.viewDelivery"),
           to: deliveryId
             ? `/partner/deliveries/${deliveryId}`
             : "/partner/deliveries",
@@ -138,24 +140,24 @@ export function DeliveryUploadPage() {
         className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 mb-4 transition-all duration-200 rounded-lg px-2 py-1 -ml-2"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Voltar à entrega</span>
+        <span>{t("partner.upload.backToDelivery")}</span>
       </Link>
 
       {/* Page Header */}
       <div className="hidden md:block mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-          Adicionar Fotos
+          {t("partner.upload.title")}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Entrega: {delivery.title || delivery.client_name || "Sem título"}
+          {t("partner.upload.deliveryLabel")}: {delivery.title || delivery.client_name || t("common.noTitle")}
         </p>
       </div>
 
       <div className="md:hidden mb-4">
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Entrega:{" "}
+          {t("partner.upload.deliveryLabel")}:{" "}
           <span className="font-medium text-gray-700 dark:text-gray-200">
-            {delivery.title || delivery.client_name || "Sem título"}
+            {delivery.title || delivery.client_name || t("common.noTitle")}
           </span>
         </p>
       </div>
@@ -168,7 +170,7 @@ export function DeliveryUploadPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Fotos na entrega
+                {t("partner.upload.stats.photosInDelivery")}
               </p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {delivery.assets_count}
@@ -178,7 +180,7 @@ export function DeliveryUploadPage() {
           {completedCount > 0 && (
             <div className="text-right">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Enviadas agora
+                {t("partner.upload.stats.uploadedNow")}
               </p>
               <p className="text-xl font-bold text-green-600 dark:text-green-400">
                 +{completedCount}
@@ -194,7 +196,7 @@ export function DeliveryUploadPage() {
         onDragOver={handleDragOver}
         role="button"
         tabIndex={0}
-        aria-label="Selecionar fotos para upload"
+        aria-label={t("partner.upload.zone.ariaLabel")}
         className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
         onClick={openFilePicker}
         onKeyDown={(e) => {
@@ -214,10 +216,10 @@ export function DeliveryUploadPage() {
         />
         <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
         <p className="text-gray-600 dark:text-gray-300 font-medium">
-          Arraste as fotos ou clique para selecionar
+          {t("partner.upload.zone.dragDrop")}
         </p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-          JPG, PNG, WEBP • Até 20MB por arquivo
+          {t("partner.upload.zone.formats")}
         </p>
       </div>
 
@@ -226,7 +228,7 @@ export function DeliveryUploadPage() {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Uploads ({completedCount}/{totalCount})
+              {t("partner.upload.list.title")} ({completedCount}/{totalCount})
             </h2>
             {isUploading && (
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -273,8 +275,8 @@ export function DeliveryUploadPage() {
                   <button
                     onClick={() => retryUpload(upload.id)}
                     className="p-1 text-gray-400 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400"
-                    aria-label="Tentar novamente"
-                    title="Tentar novamente"
+                    aria-label={t("partner.upload.list.retry")}
+                    title={t("partner.upload.list.retry")}
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
@@ -286,8 +288,8 @@ export function DeliveryUploadPage() {
                 <button
                   onClick={() => removeUpload(upload.id)}
                   className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
-                  aria-label="Remover"
-                  title="Remover"
+                  aria-label={t("partner.upload.list.remove")}
+                  title={t("partner.upload.list.remove")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -303,14 +305,14 @@ export function DeliveryUploadPage() {
           onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
           className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
         >
-          Cancelar
+          {t("partner.upload.list.cancel")}
         </button>
         <button
           onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
           disabled={isUploading}
           className="flex-1 px-4 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 font-medium"
         >
-          {isUploading ? "Aguarde..." : "Concluir"}
+          {isUploading ? t("partner.upload.list.wait") : t("partner.upload.list.finish")}
         </button>
       </div>
     </PartnerPage>

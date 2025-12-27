@@ -1,0 +1,456 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "description": "Description",
+    "total": "Total",
+    "details": "Details",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and",
+    "of": "of",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "retry": "Try again",
+    "reload": "Reload page",
+    "noResults": "No results found",
+    "required": "Required"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password",
+    "rememberMe": "Remember me",
+    "loginTitle": "Sign in to your account",
+    "registerTitle": "Create your account",
+    "loginButton": "Sign in",
+    "registerButton": "Sign up",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "invalidCredentials": "Invalid email or password",
+    "logoutSuccess": "You have been signed out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "deliveries": "Deliveries",
+    "credits": "Credits",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "help": "Help",
+    "profile": "Profile"
+  },
+  "partner": {
+    "dashboard": {
+      "title": "Partner Dashboard",
+      "welcome": "Hello",
+      "welcomeMorning": "Good morning",
+      "welcomeAfternoon": "Good afternoon",
+      "welcomeEvening": "Good evening",
+      "welcomeNewUser": "Welcome to Baby Book!",
+      "stats": {
+        "totalDeliveries": "Total Deliveries",
+        "pendingDeliveries": "Pending Deliveries",
+        "completedDeliveries": "Completed Deliveries",
+        "availableCredits": "Available Credits",
+        "reservedCredits": "Reserved Credits"
+      },
+      "recentDeliveries": "Recent Deliveries",
+      "noRecentDeliveries": "No recent deliveries",
+      "startFirstDelivery": "Start your first delivery",
+      "viewAllDeliveries": "View all deliveries",
+      "tips": {
+        "pendingUpload": "You have photos waiting for upload. Complete to send to client!",
+        "readyDeliveries": "Deliveries ready! Generate link/voucher for your clients.",
+        "lowCredits": "Your balance is low. Get credits to avoid pausing deliveries.",
+        "growth": "{{count}} clients have already redeemed their photos. Keep growing!",
+        "firstDelivery": "Create your first delivery and surprise your clients!",
+        "creditsInfo": "Tip: when a client redeems, the credit is consumed or refunded automatically."
+      }
+    },
+    "deliveries": {
+      "title": "Deliveries",
+      "newDelivery": "New Delivery",
+      "list": {
+        "title": "Deliveries",
+        "backToPortal": "Back to portal",
+        "empty": "You don't have any deliveries yet",
+        "emptyDescription": "Create your first delivery to get started",
+        "filters": {
+          "title": "Filters",
+          "active": "Active filters:",
+          "clearAll": "Clear all",
+          "searchPlaceholder": "Search by client or title",
+          "status": "Status",
+          "voucher": "Voucher",
+          "redeemed": "Redeemed",
+          "date": "Date",
+          "presets": {
+            "needsAction": "Needs action",
+            "withoutVoucher": "Without voucher",
+            "redeemed": "Redeemed"
+          },
+          "options": {
+            "all": "All",
+            "with": "With voucher",
+            "without": "Without voucher",
+            "redeemed": "Redeemed",
+            "notRedeemed": "Not redeemed"
+          }
+        },
+        "table": {
+          "client": "Client",
+          "status": "Status",
+          "date": "Date",
+          "actions": "Actions"
+        },
+        "total": "total",
+        "archived": "archived",
+        "deliveriesSuffix": "deliveries"
+      },
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "ready": "Ready",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+        "all": "All",
+        "active": "Active"
+      },
+      "detail": {
+        "title": "Delivery Details",
+        "recipientInfo": "Recipient Information",
+        "deliveryInfo": "Delivery Information",
+        "mediaFiles": "Media Files",
+        "timeline": "Timeline"
+      },
+      "create": {
+        "title": "New Delivery",
+        "step1": "Information",
+        "step2": "Media Upload",
+        "step3": "Review",
+        "recipientName": "Recipient Name",
+        "recipientEmail": "Recipient Email",
+        "recipientPhone": "Recipient Phone",
+        "message": "Message",
+        "uploadMedia": "Upload Media",
+        "dragDrop": "Drag and drop files here",
+        "orClickToUpload": "or click to select",
+        "supportedFormats": "Supported formats: JPG, PNG, MP4, PDF",
+        "review": "Review the data before confirming",
+        "confirmDelivery": "Confirm Delivery",
+        "deliveryCreated": "Delivery created successfully!"
+      },
+      "upload": {
+        "title": "Media Upload",
+        "uploading": "Uploading...",
+        "uploaded": "Uploaded",
+        "failed": "Upload failed",
+        "retryFailed": "Retry failed",
+        "retryAll": "Retry all",
+        "removeFile": "Remove file",
+        "progress": "{{current}} of {{total}} files uploaded"
+      },
+      "archive": {
+        "action": "Archive",
+        "unarchive": "Unarchive",
+        "success": "Delivery archived: {{title}}",
+        "unarchiveSuccess": "Delivery unarchived: {{title}}",
+        "undo": "Undo"
+      },
+      "actions": {
+        "copyLink": "Copy link",
+        "copyId": "Copy ID",
+        "copyVoucher": "Copy voucher",
+        "generateVoucher": "Generate voucher",
+        "generateLink": "Generate link",
+        "open": "Open",
+        "details": "View details",
+        "preview": "Preview",
+        "close": "Close",
+        "linkCopied": "Link copied",
+        "idCopied": "ID copied",
+        "voucherCopied": "Voucher copied",
+        "copyFailed": "Could not copy"
+      },
+      "sections": {
+        "client": "Client",
+        "files": "Files",
+        "created": "Created at",
+        "history": "History",
+        "voucherCredit": "Voucher / Credit",
+        "quickActions": "Quick actions"
+      },
+      "hints": {
+        "openDetailsToGenerate": "Tip: open details to generate voucher.",
+        "keyboardShortcuts": "Tip: Esc to close • ←/→ to navigate."
+      }
+    },
+    "credits": {
+      "title": "Credits",
+      "subtitle": "Choose the ideal package for your deliveries",
+      "balance": "Credit Balance",
+      "yourCredits": "Your Credits",
+      "available": "Available",
+      "reserved": "Reserved",
+      "lowBalance": "Low balance",
+      "ready_one": "ready credit",
+      "ready_other": "ready credits",
+      "waitingRedemption": "awaiting redemption",
+      "availableTooltip": "Credits available for immediate use on new deliveries",
+      "reservedTooltip": "Credits reserved for deliveries in progress",
+      "history": "Transaction History",
+      "noHistory": "No transactions found",
+      "info": {
+        "consumed": "Credit is consumed only when the client redeems photos."
+      },
+      "purchase": {
+        "buyCredits": "Buy Credits",
+        "selectPackage": "Select a package",
+        "mostPopular": "Most Popular",
+        "vouchers": "vouchers",
+        "totalPix": "Total via PIX (cash)",
+        "totalCard": "Total via card (up to {{installments}}x no interest)",
+        "perVoucher": "/voucher",
+        "savings": "save {{value}}",
+        "paymentMethod": "Payment method",
+        "payWithPix": "Pay with PIX",
+        "payWithCard": "Pay with Card",
+        "totalToPay": "Total to pay",
+        "secureCheckout": "🔒 You will be redirected to secure checkout (Stripe) to complete payment.",
+        "howItWorks": "ℹ️ How credits work?",
+        "savingsVsCard": "Save {{value}} vs card",
+        "installmentsInfo": "Up to {{count}}x of <bold>{{value}}</bold> interest-free",
+        "pixInfo": "💡 With PIX: {{value}} (save {{savings}})",
+        "selectToContinue": "Select a package above to continue",
+        "processing": "Processing...",
+        "volumeDiscount": "Volume discount: {{value}}%",
+        "compare": {
+          "label": "Comparison",
+          "pix": "PIX",
+          "card": "Card",
+          "onCard": "On card",
+          "onPix": "On PIX",
+          "installmentsDetails": "Up to {{count}}x of {{value}} interest-free. Above that, interest and total appear at checkout."
+        },
+        "info": {
+          "reserved": "When generating a voucher, 1 credit becomes RESERVED (in transit)",
+          "consumed": "On redemption: new Baby Book → CONSUMED; existing baby → REFUNDED (automatic refund)",
+          "unique": "The voucher is unique per delivery and grants access to that session's photos",
+          "expiration": "Credits do not expire"
+        }
+      },
+      "transaction": {
+        "purchase": "Credit purchase",
+        "usage": "Delivery usage",
+        "refund": "Refund",
+        "bonus": "Bonus"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "profile": {
+        "title": "Profile",
+        "companyName": "Company Name",
+        "contactName": "Contact Name",
+        "email": "Email",
+        "phone": "Phone",
+        "logo": "Logo",
+        "uploadLogo": "Upload Logo",
+        "removeLogo": "Remove Logo"
+      },
+      "preferences": {
+        "title": "Preferences",
+        "language": "Language",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "themeSystem": "System",
+        "notifications": "Notifications",
+        "emailNotifications": "Email notifications",
+        "pushNotifications": "Push notifications"
+      },
+      "security": {
+        "title": "Security",
+        "changePassword": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmNewPassword": "Confirm New Password",
+        "twoFactor": "Two-factor authentication"
+      }
+    },
+    "onboarding": {
+      "title": "Set up your account",
+      "subtitle": "Complete the steps below to get started",
+      "steps": {
+        "profile": "Complete your profile",
+        "logo": "Add your logo",
+        "firstDelivery": "Create your first delivery"
+      },
+      "completed": "🎉 Congratulations! You've completed the setup!",
+      "skip": "Skip for now"
+    },
+    "upload": {
+      "title": "Add Photos",
+      "backToDelivery": "Back to delivery",
+      "deliveryLabel": "Delivery",
+      "loading": "Loading delivery...",
+      "notFound": "Delivery not found",
+      "backToDeliveries": "Back to deliveries",
+      "finalizedTitle": "Delivery finalized",
+      "finalizedDescription": "Cannot add photos after voucher has been generated.",
+      "viewDelivery": "View delivery",
+      "stats": {
+        "photosInDelivery": "Photos in delivery",
+        "uploadedNow": "Uploaded now"
+      },
+      "zone": {
+        "dragDrop": "Drag photos or click to select",
+        "formats": "JPG, PNG, WEBP • Up to 20MB per file",
+        "ariaLabel": "Select photos for upload"
+      },
+      "list": {
+        "title": "Uploads",
+        "retry": "Retry",
+        "remove": "Remove",
+        "wait": "Wait...",
+        "finish": "Finish",
+        "cancel": "Cancel"
+      }
+    },
+    "details": {
+      "title": "Delivery",
+      "backToDeliveries": "Back to deliveries",
+      "created": "Created at",
+      "event": "Event",
+      "description": "Description",
+      "files": "Files",
+      "add": "Add",
+      "finalizedAdd": "Delivery finalized (cannot add files)",
+      "noFiles": "No files uploaded yet",
+      "sendFiles": "Send Files",
+      "removeFile": "Remove file",
+      "removeConfirm": "Remove?"
+    },
+    "voucher": {
+      "label": "Voucher",
+      "ready": "Ready",
+      "redeemedAt": "Redeemed at {{date}}",
+      "notRedeemed": "Not yet redeemed",
+      "explanation": "Once generated, you'll have a card (QR Code) and a code to send to the client.",
+      "explanationNoFiles": "Upload files for this delivery to enable voucher generation.",
+      "openCard": "Open card",
+      "copy": "Copy",
+      "copied": "Voucher copied",
+      "copyFailed": "Could not copy",
+      "generate": "Generate voucher",
+      "unavailable": "Voucher unavailable",
+      "clipboardWarning": "Upload files to enable voucher generation",
+      "modal": {
+        "titleImport": "Generate import link",
+        "titleVoucher": "Generate Voucher",
+        "titleCard": "Invitation Card",
+        "descImport": "This client <bold>already has</bold> a Baby Book account. So <bold>we don't need a voucher</bold>. Upon completion, we generate an <bold>import link</bold>: • if the client imports to a <bold>child with access</bold>, there is no charge; • if the client creates a <bold>new Baby Book</bold>, <bold>1 credit</bold> will be consumed.",
+        "descVoucher": "This will <bold>reserve 1 credit</bold> (in transit). Upon redemption: • if the client creates a <bold>new Baby Book</bold>, the credit becomes <bold>CONSUMED</bold>; • if the client links to an <bold>existing baby</bold>, the credit becomes <bold>REFUNDED</bold> (automatic refund). The voucher will be unique to this delivery.",
+        "beneficiary": "Beneficiary Name",
+        "beneficiaryPlaceholder": "Name that will appear on the card",
+        "message": "Message (optional)",
+        "messagePlaceholder": "A special message for the client...",
+        "cancel": "Cancel",
+        "finalize": "Finalizing...",
+        "generateLink": "Generate Link",
+        "generateBtn": "Generate Voucher"
+      }
+    },
+    "status": {
+      "draft": {
+        "label": "Draft",
+        "shortLabel": "Draft",
+        "hint": "Delivery created but not sent. Add files to continue."
+      },
+      "pending_upload": {
+        "label": "Pending upload",
+        "shortLabel": "Upload",
+        "hint": "We are waiting for you to upload files for this delivery."
+      },
+      "processing": {
+        "label": "Processing",
+        "shortLabel": "Proc.",
+        "hint": "Your files are being processed. This may take a few minutes."
+      },
+      "ready": {
+        "label": "Ready",
+        "shortLabel": "Ready",
+        "hint": "Delivery ready to send. Generate voucher/link for your client."
+      },
+      "delivered": {
+        "label": "Delivered",
+        "shortLabel": "Delivered",
+        "hint": "Your client has redeemed/imported the delivery."
+      },
+      "failed": {
+        "label": "Failed",
+        "shortLabel": "Error",
+        "hint": "There was an error processing. Try again or contact support with the delivery ID."
+      },
+      "archived": {
+        "label": "Archived",
+        "shortLabel": "Arch.",
+        "hint": "Delivery archived (hidden from active list). You can unarchive at any time."
+      }
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Connection error. Check your internet.",
+    "notFound": "Resource not found",
+    "unauthorized": "You don't have permission to access this resource",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "validation": "Please fix the errors in the form",
+    "serverError": "Server error. Please try again later.",
+    "offline": "You are offline",
+    "offlineDescription": "Check your internet connection"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minute ago",
+    "minutesAgo_plural": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hour ago",
+    "hoursAgo_plural": "{{count}} hours ago",
+    "daysAgo": "{{count}} day ago",
+    "daysAgo_plural": "{{count}} days ago",
+    "weeksAgo": "{{count}} week ago",
+    "weeksAgo_plural": "{{count}} weeks ago"
+  },
+  "dashboard": {
+    "title": "Your Baby Book is safe and up to date.",
+    "storage": "Storage",
+    "moments": "Moments",
+    "recurrent": "Recurrences"
+  }
+}
