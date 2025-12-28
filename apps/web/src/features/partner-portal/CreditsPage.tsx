@@ -126,6 +126,7 @@ export function CreditsPage() {
       <PartnerErrorState
         title="Não foi possível carregar os pacotes"
         onRetry={refetch}
+        skeleton={<CreditsSkeleton />}
       />
     );
   }

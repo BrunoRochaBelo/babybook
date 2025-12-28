@@ -109,6 +109,7 @@ export function DeliveryUploadPage() {
           label: t("partner.upload.backToDeliveries"),
           to: "/partner/deliveries",
         }}
+        skeleton={<UploadSkeleton />}
       />
     );
   }

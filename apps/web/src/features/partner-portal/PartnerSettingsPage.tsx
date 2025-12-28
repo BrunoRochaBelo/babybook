@@ -182,6 +182,7 @@ export function PartnerSettingsPage() {
       <PartnerErrorState
         title={t("errors.generic")}
         onRetry={refetch}
+        skeleton={<SettingsSkeleton />}
       />
     );
   }

@@ -306,6 +306,7 @@ export function DeliveryDetailPage() {
           label: t("partner.details.backToDeliveries"),
           to: "/partner/deliveries",
         }}
+        skeleton={<DeliveryDetailLoadingSkeleton />}
       />
     );
   }

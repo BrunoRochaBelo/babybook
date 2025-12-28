@@ -661,6 +661,7 @@ export function DeliveriesListPage() {
     <PartnerErrorState
       title="Não foi possível carregar as entregas"
       onRetry={refetch}
+      skeleton={<DeliveriesLoadingSkeleton />}
     />
   ) : null;
 

@@ -244,6 +244,7 @@ export function PartnerErrorState({
   onRetry,
   primaryAction,
   secondaryAction,
+  skeleton,
   autoReloadInDev = true,
 }: {
   variant?: PartnerStateVariant;
@@ -254,6 +255,7 @@ export function PartnerErrorState({
   onRetry?: () => void;
   primaryAction?: PartnerStateAction;
   secondaryAction?: PartnerStateAction;
+  skeleton?: ReactNode;
   /**
    * Se true, recarrega automaticamente a página em desenvolvimento.
    * Isso resolve problemas de HMR, MSW, etc. Padrão: true
@@ -261,17 +263,30 @@ export function PartnerErrorState({
   autoReloadInDev?: boolean;
 }) {
   const isDev = import.meta.env.DEV;
+  // Namespace para evitar colisão
+  const RELOAD_KEY = "babybook_reload_attempts";
+  const MAX_RETRIES = 3;
 
   // Em desenvolvimento, SEMPRE fazer auto-reload silencioso
   const shouldAutoReload = isDev && autoReloadInDev;
 
   React.useEffect(() => {
     if (shouldAutoReload) {
+      const attempts = parseInt(sessionStorage.getItem(RELOAD_KEY) || "0", 10);
+
+      // Se já tentamos demais, desistimos do auto-reload e mostramos o erro
+      if (attempts >= MAX_RETRIES) {
+        return;
+      }
+
       console.info(
-        "[babybook] Erro detectado em desenvolvimento. Recarregando página automaticamente...",
+        `[babybook] Erro detectado em desenvolvimento. Tentativa ${attempts + 1}/${MAX_RETRIES} de recarregar...`,
       );
 
       const timeoutId = setTimeout(() => {
+        // Incrementa contador
+        sessionStorage.setItem(RELOAD_KEY, (attempts + 1).toString());
+
         // Limpa cache do service worker se existir
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -287,30 +302,46 @@ export function PartnerErrorState({
         }
 
         window.location.reload();
-      }, 200);
+      }, 1000); // 1s para o usuário ver o "Flash" do skeleton se quiser, ou apenas dar tempo
 
       return () => clearTimeout(timeoutId);
     }
   }, [shouldAutoReload]);
 
-  // Se estamos em auto-reload, mostra apenas indicador mínimo
+  // Se estamos em auto-reload e ainda não excedemos o limite
   if (shouldAutoReload) {
-    const loadingBody = (
-      <div className="flex items-center justify-center py-24">
-        <div className="inline-flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-          <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
-          <span>Atualizando...</span>
-        </div>
-      </div>
+    const attempts = parseInt(
+      typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem(RELOAD_KEY) || "0"
+        : "0",
+      10,
     );
 
-    if (variant === "page") {
-      return <PartnerPage size={size}>{loadingBody}</PartnerPage>;
+    if (attempts < MAX_RETRIES) {
+      if (skeleton) {
+        return <>{skeleton}</>;
+      }
+
+      const loadingBody = (
+        <div className="flex items-center justify-center py-24">
+          <div className="inline-flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+            <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
+            <span>Atualizando...</span>
+          </div>
+        </div>
+      );
+
+      if (variant === "page") {
+        return <PartnerPage size={size}>{loadingBody}</PartnerPage>;
+      }
+      return loadingBody;
     }
-    return loadingBody;
   }
 
   const handleReload = () => {
+    // Resetar contador ao forçar reload manual
+    sessionStorage.removeItem(RELOAD_KEY);
+
     // Limpa cache do service worker se existir
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {

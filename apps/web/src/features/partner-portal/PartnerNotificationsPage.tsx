@@ -23,6 +23,7 @@ import {
 } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
+import { PartnerErrorState } from "@/layouts/partnerStates";
 
 
 
@@ -48,7 +49,12 @@ const notificationColors: Record<NotificationType, string> = {
 };
 
 export function PartnerNotificationsPage() {
-  const { data: notifications = [], isLoading } = useQuery({
+  const {
+    data: notifications = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["partner", "notifications"],
     queryFn: getNotifications,
     staleTime: 60 * 1000,
@@ -111,6 +117,16 @@ export function PartnerNotificationsPage() {
 
   if (isLoading) {
     return <NotificationsSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar as notificações"
+        onRetry={refetch}
+        skeleton={<NotificationsSkeleton />}
+      />
+    );
   }
 
   return (

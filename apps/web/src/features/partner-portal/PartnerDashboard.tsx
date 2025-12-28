@@ -312,6 +312,7 @@ export function PartnerDashboard() {
         variant="page"
         errorDetails={errorMessage}
         onRetry={handleRetry}
+        skeleton={<DashboardSkeleton />}
         secondaryAction={{
           label: t("partner.dashboard.viewAllDeliveries"),
           to: "/partner/deliveries",
