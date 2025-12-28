@@ -117,6 +117,95 @@ export async function checkEligibility(
 }
 
 // ============================================================
+// Notifications
+// ============================================================
+
+export type NotificationType =
+  | "voucher_redeemed"
+  | "credits_added"
+  | "delivery_ready"
+  | "system";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  description: string;
+  time: string;
+  unread: boolean;
+  link?: string;
+}
+
+const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: "1",
+    type: "voucher_redeemed",
+    title: "Voucher resgatado",
+    description:
+      "Cliente Maria resgatou o voucher #ABC123 e criou sua conta Baby Book.",
+    time: "Há 2 horas",
+    unread: true,
+    link: "/partner/deliveries",
+  },
+  {
+    id: "2",
+    type: "credits_added",
+    title: "Créditos adicionados",
+    description:
+      "5 créditos foram adicionados à sua conta após pagamento confirmado.",
+    time: "Ontem às 14:30",
+    unread: true,
+  },
+  {
+    id: "3",
+    type: "delivery_ready",
+    title: "Entrega pronta",
+    description:
+      "A entrega 'Ensaio Newborn - João' está pronta para gerar voucher.",
+    time: "Ontem às 10:15",
+    unread: false,
+    link: "/partner/deliveries",
+  },
+  {
+    id: "4",
+    type: "voucher_redeemed",
+    title: "Voucher resgatado",
+    description: "Cliente Ana Paula resgatou o voucher #XYZ789.",
+    time: "2 dias atrás",
+    unread: false,
+  },
+  {
+    id: "5",
+    type: "system",
+    title: "Bem-vindo ao Baby Book PRO!",
+    description:
+      "Sua conta foi aprovada. Comece comprando créditos para criar suas primeiras entregas.",
+    time: "3 dias atrás",
+    unread: false,
+    link: "/partner/credits",
+  },
+  {
+    id: "6",
+    type: "credits_added",
+    title: "Créditos adicionados",
+    description:
+      "10 créditos foram adicionados à sua conta (pacote inicial de boas-vindas).",
+    time: "3 dias atrás",
+    unread: false,
+  },
+];
+
+/**
+ * Get partner notifications
+ * (Mocked with delay)
+ */
+export async function getNotifications(): Promise<Notification[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 800));
+  return [...MOCK_NOTIFICATIONS];
+}
+
+// ============================================================
 // Credits & Packages
 // ============================================================
 

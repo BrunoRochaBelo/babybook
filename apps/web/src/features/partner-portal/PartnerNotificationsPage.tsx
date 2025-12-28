@@ -24,82 +24,11 @@ import {
 import { PartnerPage } from "@/layouts/PartnerPage";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 
-// Tipo de notificação
-type NotificationType =
-  | "voucher_redeemed"
-  | "credits_added"
-  | "delivery_ready"
-  | "system";
 
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  description: string;
-  time: string;
-  unread: boolean;
-  link?: string;
-}
 
-// Mock notifications - TODO: Replace with real API
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    type: "voucher_redeemed",
-    title: "Voucher resgatado",
-    description:
-      "Cliente Maria resgatou o voucher #ABC123 e criou sua conta Baby Book.",
-    time: "Há 2 horas",
-    unread: true,
-    link: "/partner/deliveries",
-  },
-  {
-    id: "2",
-    type: "credits_added",
-    title: "Créditos adicionados",
-    description:
-      "5 créditos foram adicionados à sua conta após pagamento confirmado.",
-    time: "Ontem às 14:30",
-    unread: true,
-  },
-  {
-    id: "3",
-    type: "delivery_ready",
-    title: "Entrega pronta",
-    description:
-      "A entrega 'Ensaio Newborn - João' está pronta para gerar voucher.",
-    time: "Ontem às 10:15",
-    unread: false,
-    link: "/partner/deliveries",
-  },
-  {
-    id: "4",
-    type: "voucher_redeemed",
-    title: "Voucher resgatado",
-    description: "Cliente Ana Paula resgatou o voucher #XYZ789.",
-    time: "2 dias atrás",
-    unread: false,
-  },
-  {
-    id: "5",
-    type: "system",
-    title: "Bem-vindo ao Baby Book PRO!",
-    description:
-      "Sua conta foi aprovada. Comece comprando créditos para criar suas primeiras entregas.",
-    time: "3 dias atrás",
-    unread: false,
-    link: "/partner/credits",
-  },
-  {
-    id: "6",
-    type: "credits_added",
-    title: "Créditos adicionados",
-    description:
-      "10 créditos foram adicionados à sua conta (pacote inicial de boas-vindas).",
-    time: "3 dias atrás",
-    unread: false,
-  },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { NotificationsSkeleton } from "./components/NotificationsSkeleton";
+import { getNotifications, type NotificationType, type Notification } from "./api";
 
 const notificationIcons: Record<NotificationType, typeof Bell> = {
   voucher_redeemed: Gift,
@@ -119,24 +48,39 @@ const notificationColors: Record<NotificationType, string> = {
 };
 
 export function PartnerNotificationsPage() {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ["partner", "notifications"],
+    queryFn: getNotifications,
+    staleTime: 60 * 1000,
+  });
+
+  const queryClient = useQueryClient();
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  const handleMarkAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, unread: false } : n)),
-    );
-  }, []);
+  const handleMarkAsRead = useCallback(
+    (id: string) => {
+      queryClient.setQueryData(
+        ["partner", "notifications"],
+        (old: Notification[] | undefined) =>
+          old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? [],
+      );
+    },
+    [queryClient],
+  );
 
   const handleMarkAllAsRead = useCallback(async () => {
     setIsMarkingAll(true);
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    queryClient.setQueryData(
+      ["partner", "notifications"],
+      (old: Notification[] | undefined) =>
+        old?.map((n) => ({ ...n, unread: false })) ?? [],
+    );
     setIsMarkingAll(false);
-  }, []);
+  }, [queryClient]);
 
   usePartnerPageHeader(
     useMemo(
@@ -164,6 +108,10 @@ export function PartnerNotificationsPage() {
       [handleMarkAllAsRead, isMarkingAll, unreadCount],
     ),
   );
+
+  if (isLoading) {
+    return <NotificationsSkeleton />;
+  }
 
   return (
     <PartnerPage size="narrow">

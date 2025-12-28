@@ -7,7 +7,7 @@
 
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
-import { Spinner } from "@/components/ui/spinner";
+import { PartnerLoadingSkeleton } from "@/features/partner-portal/components/PartnerLoadingSkeleton";
 
 interface RequirePhotographerProps {
   children: JSX.Element;
@@ -20,11 +20,7 @@ export function RequirePhotographer({ children }: RequirePhotographerProps) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="py-16 flex items-center justify-center min-h-screen">
-        <Spinner />
-      </div>
-    );
+    return <PartnerLoadingSkeleton />;
   }
 
   // Not authenticated - redirect to partner login
