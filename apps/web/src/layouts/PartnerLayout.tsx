@@ -85,34 +85,7 @@ export function PartnerLayout() {
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
   const [isCreditsOpen, setCreditsOpen] = useState(false);
 
-  // Notifications State (Synced via React Query)
-  const { data: notifications = [] } = useQuery({
-    queryKey: ["partner", "notifications"],
-    queryFn: getNotifications,
-    staleTime: 60 * 1000,
-  });
 
-  const handleMarkAllAsRead = () => {
-    queryClient.setQueryData(
-      ["partner", "notifications"],
-      (old: Notification[] | undefined) =>
-        old?.map((n) => ({ ...n, unread: false })) ?? []
-    );
-  };
-
-  const handleMarkAsRead = (id: string) => {
-    queryClient.setQueryData(
-      ["partner", "notifications"],
-      (old: Notification[] | undefined) =>
-        old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? []
-    );
-  };
-
-  const handleNotificationClick = (notification: Notification) => {
-    handleMarkAsRead(notification.id);
-    setNotificationsOpen(false);
-    navigate(notification.link || "/partner/notifications");
-  };
 
   // Fetch partner profile
   const { data: profile } = useQuery({
@@ -130,9 +103,36 @@ export function PartnerLayout() {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch notifications
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["partner", "notifications"],
+    queryFn: getNotifications,
+  });
+
   const availableCredits = stats?.voucher_balance ?? 0;
   const hasLowCredits = availableCredits <= 2;
   const hasNoCredits = availableCredits === 0;
+
+  const handleMarkAllAsRead = () => {
+    queryClient.setQueryData<Notification[]>(
+      ["partner", "notifications"],
+      (old) => old?.map((n) => ({ ...n, unread: false })) ?? []
+    );
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    queryClient.setQueryData<Notification[]>(
+      ["partner", "notifications"],
+      (old) =>
+        old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? []
+    );
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
+    setNotificationsOpen(false);
+    navigate(notification.link || "/partner/notifications");
+  };
 
   const handleLogout = async () => {
     try {
@@ -234,7 +234,6 @@ export function PartnerLayout() {
 
                     <DrawerBody className="p-6 space-y-8">
                       {/* Balance Card "Mostrador" */}
-                      {/* Balance Card "Mostrador" */}
                       <div className="rounded-3xl bg-white dark:bg-gray-950 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
                         {/* Abstract shapes for "digital" feel */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 dark:bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
@@ -267,34 +266,37 @@ export function PartnerLayout() {
                         )}
                       </div>
 
-                      {/* How it works - Clean/Transparent */}
-                      <div className="px-1">
-                        <h4 className="flex items-center gap-2 font-semibold text-sm text-gray-900 dark:text-white mb-4">
-                          <div className="p-1.5 rounded-md bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400">
-                             <Info className="w-4 h-4" />
-                          </div>
+                      {/* How it works */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider pl-1">
                           Como funciona
-                        </h4>
-                        <ul className="space-y-4">
-                          <li className="flex gap-4 items-start">
-                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                               Cada <strong>1 crédito</strong> equivale a um voucher para criar um BabyBook completo.
-                            </span>
-                          </li>
-                          <li className="flex gap-4 items-start">
-                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                               Os créditos <strong>não expiram</strong> enquanto sua conta estiver ativa.
-                            </span>
-                          </li>
-                          <li className="flex gap-4 items-start">
-                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                               Compre pacotes maiores para obter <strong>descontos progressivos</strong>.
-                            </span>
-                          </li>
-                        </ul>
+                        </p>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              1
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              Compre créditos para usar os recursos PRO.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              2
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              Cada recurso utiliza uma quantidade específica de créditos.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              3
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              Créditos não utilizados expiram após 12 meses.
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </DrawerBody>
 
@@ -302,10 +304,10 @@ export function PartnerLayout() {
                       <Link
                         to="/partner/credits"
                         onClick={() => setCreditsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white py-4 rounded-xl font-bold transition-all active:scale-[0.98] shadow-lg shadow-pink-500/20"
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
                       >
-                        <CreditCard className="w-4 h-4" />
-                        Comprar mais créditos
+                        <Coins className="w-4 h-4" />
+                        Comprar Créditos
                       </Link>
                     </DrawerFooter>
                   </DrawerContent>
@@ -433,7 +435,7 @@ export function PartnerLayout() {
                       <Link
                         to="/partner/notifications"
                         onClick={() => setNotificationsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
+                        className="w-full block text-center text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
                       >
                         Ver todas as notificações
                       </Link>
@@ -593,6 +595,7 @@ export function PartnerLayout() {
                     </DrawerBody>
 
                     <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6">
+
                       <button
                         onClick={handleLogout}
                         disabled={logoutMutation.isPending}
