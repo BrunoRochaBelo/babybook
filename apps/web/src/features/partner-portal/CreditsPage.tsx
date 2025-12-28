@@ -27,7 +27,6 @@ import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
 import {
-  PartnerLoadingState,
   PartnerErrorState,
 } from "@/layouts/partnerStates";
 import { CreditsSkeleton } from "./components/CreditsSkeleton";
