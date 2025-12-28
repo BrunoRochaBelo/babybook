@@ -20,6 +20,7 @@ import {
   Coins,
   CreditCard,
   Home,
+  Info,
   LogOut,
   Monitor,
   MoonStar,
@@ -96,6 +97,7 @@ export function PartnerLayout() {
 
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
+  const [isCreditsOpen, setCreditsOpen] = useState(false);
 
 
 
@@ -171,21 +173,122 @@ export function PartnerLayout() {
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
               {/* Credit Balance Badge */}
-              <Link
-                to="/partner/credits"
-                title={`${availableCredits} créditos disponíveis. Clique para gerenciar.`}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95",
-                  hasNoCredits
-                    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-800"
-                    : hasLowCredits
-                      ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800"
-                      : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-800",
-                )}
-              >
-                <Coins className="w-4 h-4" />
-                <span>{availableCredits}</span>
-              </Link>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    setNotificationsOpen(false);
+                    setCreditsOpen(true);
+                  }}
+                  title={`${availableCredits} créditos disponíveis. Clique para gerenciar.`}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95",
+                    hasNoCredits
+                      ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-800"
+                      : hasLowCredits
+                        ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800"
+                        : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-800",
+                  )}
+                >
+                  <Coins className="w-4 h-4" />
+                  <span>{availableCredits}</span>
+                </button>
+
+                {/* Credits Drawer */}
+                <Drawer
+                  open={isCreditsOpen}
+                  onOpenChange={setCreditsOpen}
+                  direction="right"
+                >
+                  <DrawerContent className="h-full w-full sm:max-w-sm">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/20">
+                          <Coins className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <DrawerTitle className="text-base font-bold text-gray-900 dark:text-white">
+                            Saldo de Créditos
+                          </DrawerTitle>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Gerencie seus vauchers
+                          </p>
+                        </div>
+                      </div>
+                    </DrawerHeader>
+
+                    <DrawerBody className="p-0">
+                      <div className="p-6 text-center">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                          Disponíveis
+                        </p>
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className="text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                            {availableCredits}
+                          </span>
+                        </div>
+                        {hasLowCredits && (
+                          <span className="inline-block px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded-full text-xs font-semibold">
+                            Saldo baixo
+                          </span>
+                        )}
+
+                        {(stats?.reserved_credits || 0) > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2">
+                            <Package className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              <strong>{stats?.reserved_credits}</strong> créditos
+                              reservados
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="bg-gray-50 dark:bg-gray-800/50 p-6 space-y-4">
+                        <h4 className="flex items-center gap-2 font-semibold text-sm text-gray-900 dark:text-white">
+                          <Info className="w-4 h-4 text-pink-500" />
+                          Como funciona
+                        </h4>
+                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+                          <li className="flex gap-3">
+                            <span className="w-1.5 h-1.5 mt-2 rounded-full bg-pink-400 flex-shrink-0" />
+                            <span>
+                              1 crédito = 1 voucher para criar um BabyBook
+                              completo.
+                            </span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-1.5 h-1.5 mt-2 rounded-full bg-pink-400 flex-shrink-0" />
+                            <span>
+                              Os créditos não expiram enquanto sua conta estiver
+                              ativa.
+                            </span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-1.5 h-1.5 mt-2 rounded-full bg-pink-400 flex-shrink-0" />
+                            <span>
+                              Compre pacotes maiores para obter descontos
+                              progressivos.
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </DrawerBody>
+
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-4">
+                      <Link
+                        to="/partner/credits"
+                        onClick={() => setCreditsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-3 rounded-xl font-semibold shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        Comprar mais créditos
+                      </Link>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+              </div>
 
               {/* Notifications */}
               <div className="relative">
@@ -271,7 +374,7 @@ export function PartnerLayout() {
                       <Link
                         to="/partner/notifications"
                         onClick={() => setNotificationsOpen(false)}
-                        className="w-full block text-center text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-3 rounded-xl font-semibold shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
                       >
                         Ver todas as notificações
                       </Link>
@@ -401,7 +504,7 @@ export function PartnerLayout() {
                       <button
                         onClick={handleLogout}
                         disabled={logoutMutation.isPending}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 dark:text-red-400 rounded-xl transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <LogOut className="w-4 h-4" />
                         {logoutMutation.isPending
