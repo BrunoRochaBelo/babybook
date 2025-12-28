@@ -48,6 +48,14 @@ async def _create_paid_child_for_account(account_id: uuid.UUID, *, name: str = "
         return child
 
 
+async def _create_unpaid_child_for_account(account_id: uuid.UUID, *, name: str = "Bebê") -> Child:
+    async with TestingSessionLocal() as session:
+        child = Child(id=uuid.uuid4(), account_id=account_id, name=name, pce_status="unpaid")
+        session.add(child)
+        await session.commit()
+        return child
+
+
 async def _set_all_children_paid(account_id: uuid.UUID) -> None:
     async with TestingSessionLocal() as session:
         rows = await session.execute(select(Child).where(Child.account_id == account_id))
@@ -238,6 +246,72 @@ def test_partner_create_delivery_direct_import_does_not_debit() -> None:
     assert delivery.target_email == "ana@example.com"
     assert bool((delivery.assets_payload or {}).get("direct_import")) is True
     assert bool((delivery.assets_payload or {}).get("credit_reserved")) is False
+
+
+def test_partner_create_delivery_existing_child_requires_target_child_id_for_multi_child() -> None:
+    # Ana tem conta (seed). Criamos 2 filhos: 1 pago e 1 sem acesso.
+    ana = asyncio.run(_get_user_by_email("ana@example.com"))
+    paid = asyncio.run(_create_paid_child_for_account(ana.account_id, name="Bia"))
+    unpaid = asyncio.run(_create_unpaid_child_for_account(ana.account_id, name="Cleo"))
+
+    user, partner, password = asyncio.run(_create_partner_user(voucher_balance=3))
+    pro_client = TestClient(app)
+    csrf = _login(pro_client, email=user.email, password=password)
+
+    # 1) Intenção explícita de EXISTING_CHILD sem target_child_id => 400
+    resp0 = pro_client.post(
+        "/partner/deliveries",
+        headers={"X-CSRF-Token": csrf},
+        json={
+            "client_name": "Ana",
+            "target_email": "ana@example.com",
+            "intended_import_action": "EXISTING_CHILD",
+        },
+    )
+    assert resp0.status_code == 400
+
+    # 2) Selecionando o filho pago => custo 0 e vínculo ao child
+    resp1 = pro_client.post(
+        "/partner/deliveries",
+        headers={"X-CSRF-Token": csrf},
+        json={
+            "client_name": "Ana",
+            "target_email": "ana@example.com",
+            "intended_import_action": "EXISTING_CHILD",
+            "target_child_id": str(paid.id),
+        },
+    )
+    assert resp1.status_code == 201, resp1.text
+    body1 = resp1.json()
+    assert body1["credit_status"] == "not_required"
+
+    # Não debita créditos
+    p = asyncio.run(_fetch_partner(partner.id))
+    assert p.voucher_balance == 3
+    assert asyncio.run(_count_partner_ledger(partner.id)) == 0
+
+    async def _fetch_delivery(delivery_id: str) -> Delivery:
+        async with TestingSessionLocal() as session:
+            d = await session.get(Delivery, uuid.UUID(delivery_id))
+            assert d is not None
+            return d
+
+    d = asyncio.run(_fetch_delivery(body1["id"]))
+    assert d.target_child_id == paid.id
+    assert (d.assets_payload or {}).get("target_child_id") == str(paid.id)
+
+    # 3) Selecionando o filho sem acesso => 400
+    resp2 = pro_client.post(
+        "/partner/deliveries",
+        headers={"X-CSRF-Token": csrf},
+        json={
+            "client_name": "Ana",
+            "target_email": "ana@example.com",
+            "intended_import_action": "EXISTING_CHILD",
+            "target_child_id": str(unpaid.id),
+        },
+    )
+    assert resp2.status_code == 400
 
 
 def test_partner_create_delivery_reserved_debits() -> None:

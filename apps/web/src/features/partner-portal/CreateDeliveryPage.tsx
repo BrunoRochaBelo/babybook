@@ -26,7 +26,7 @@ import {
   UserPlus,
   CreditCard,
 } from "lucide-react";
-import { createDelivery, checkEligibility } from "./api";
+import { createDelivery, checkClientAccess } from "./api";
 import { usePartnerUpload } from "./usePartnerUpload";
 import type { CreateDeliveryRequest } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
@@ -70,6 +70,12 @@ export function CreateDeliveryPage() {
   const [description, setDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
 
+  // Destino da entrega (multi-filho): Livro existente (grátis) vs Novo Livro (1 crédito)
+  const [deliveryTargetMode, setDeliveryTargetMode] = useState<
+    "existing" | "new"
+  >("new");
+  const [selectedChildId, setSelectedChildId] = useState<string>("");
+
   // Access verification state
   const [accessStatus, setAccessStatus] = useState<AccessCheckResult | null>(
     null,
@@ -82,7 +88,7 @@ export function CreateDeliveryPage() {
     [],
   );
 
-  const runEligibilityCheck = useCallback(
+  const runAccessCheck = useCallback(
     async (rawEmail: string) => {
       const normalizedEmail = rawEmail.trim().toLowerCase();
       if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
@@ -96,28 +102,49 @@ export function CreateDeliveryPage() {
       setAccessStatus(null);
 
       try {
-        const response = await checkEligibility(normalizedEmail);
+        const response = await checkClientAccess(normalizedEmail);
 
         // Evita race condition quando o usuário digita rápido
         if (requestId !== checkReqIdRef.current) return;
 
+        const children = (response.children || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          hasAccess: Boolean(c.has_access),
+        }));
+
         setAccessStatus({
-          hasAccess: response.is_eligible,
-          children: [],
-          message: response.is_eligible
-            ? "Elegível: este e-mail já tem pelo menos 1 Baby Book ativo. Esta entrega pode ser enviada sem custo agora."
-            : "Novo cliente: esta entrega deve consumir 1 crédito do fotógrafo.",
+          hasAccount: Boolean(response.has_access),
+          children,
+          message: response.message,
         });
+
+        // Defaults seguros para evitar ambiguidade no multi-filho.
+        if (response.has_access) {
+          const paidChildren = children.filter((c) => c.hasAccess);
+          if (paidChildren.length > 0) {
+            setDeliveryTargetMode("existing");
+            setSelectedChildId(paidChildren[0]?.id ?? "");
+          } else {
+            setDeliveryTargetMode("new");
+            setSelectedChildId("");
+          }
+        } else {
+          setDeliveryTargetMode("new");
+          setSelectedChildId("");
+        }
       } catch {
         if (requestId !== checkReqIdRef.current) return;
 
         // Fail-safe: se falhar, assumimos 'novo cliente'
         setAccessStatus({
-          hasAccess: false,
+          hasAccount: false,
           children: [],
           message:
             "Não consegui validar agora. Vou assumir novo cliente (1 crédito) para evitar erro no fluxo.",
         });
+        setDeliveryTargetMode("new");
+        setSelectedChildId("");
       } finally {
         if (requestId === checkReqIdRef.current) setIsCheckingAccess(false);
       }
@@ -135,16 +162,16 @@ export function CreateDeliveryPage() {
     }
 
     const handle = window.setTimeout(() => {
-      void runEligibilityCheck(email);
+      void runAccessCheck(email);
     }, 500);
 
     return () => window.clearTimeout(handle);
-  }, [clientEmail, runEligibilityCheck]);
+  }, [clientEmail, runAccessCheck]);
 
   // Botão opcional (re-check) — também usado por teclado
   const handleCheckAccess = useCallback(() => {
-    void runEligibilityCheck(clientEmail);
-  }, [clientEmail, runEligibilityCheck]);
+    void runAccessCheck(clientEmail);
+  }, [clientEmail, runAccessCheck]);
 
   // Create delivery mutation
   const createMutation = useMutation({
@@ -166,6 +193,25 @@ export function CreateDeliveryPage() {
     }
     setError(null);
 
+    const hasAccount = Boolean(accessStatus?.hasAccount);
+    const paidChildren = (accessStatus?.children || []).filter(
+      (c) => c.hasAccess,
+    );
+    const canUseExisting = hasAccount && paidChildren.length > 0;
+
+    const intended_import_action: CreateDeliveryRequest["intended_import_action"] =
+      canUseExisting && deliveryTargetMode === "existing"
+        ? "EXISTING_CHILD"
+        : "NEW_CHILD";
+
+    const target_child_id =
+      intended_import_action === "EXISTING_CHILD" ? selectedChildId : undefined;
+
+    if (intended_import_action === "EXISTING_CHILD" && !target_child_id) {
+      setError("Selecione qual Livro (criança) deve receber a entrega.");
+      return;
+    }
+
     const titleFallback = `Ensaio - ${
       childName.trim() || clientName.trim() || normalizedEmail
     }`;
@@ -173,6 +219,8 @@ export function CreateDeliveryPage() {
       target_email: normalizedEmail,
       client_name: clientName.trim() || undefined,
       child_name: childName.trim() || undefined,
+      intended_import_action,
+      target_child_id,
       title: title.trim() || titleFallback,
       description: description.trim() || undefined,
       event_date: eventDate || undefined,
@@ -271,6 +319,10 @@ export function CreateDeliveryPage() {
           accessStatus={accessStatus}
           isCheckingAccess={isCheckingAccess}
           onCheckAccess={handleCheckAccess}
+          deliveryTargetMode={deliveryTargetMode}
+          setDeliveryTargetMode={setDeliveryTargetMode}
+          selectedChildId={selectedChildId}
+          setSelectedChildId={setSelectedChildId}
           onNext={handleCreateDelivery}
           isLoading={createMutation.isPending}
         />
@@ -350,14 +402,17 @@ interface ClientStepProps {
   accessStatus: AccessCheckResult | null;
   isCheckingAccess: boolean;
   onCheckAccess: () => void;
+  deliveryTargetMode: "existing" | "new";
+  setDeliveryTargetMode: (v: "existing" | "new") => void;
+  selectedChildId: string;
+  setSelectedChildId: (v: string) => void;
   onNext: () => void;
   isLoading: boolean;
 }
 
 // Resultado da verificação de acesso
 interface AccessCheckResult {
-  hasAccess: boolean;
-  childName?: string;
+  hasAccount: boolean;
   children: Array<{ id: string; name: string; hasAccess: boolean }>;
   message: string;
 }
@@ -378,22 +433,36 @@ function ClientStep({
   accessStatus,
   isCheckingAccess,
   onCheckAccess,
+  deliveryTargetMode,
+  setDeliveryTargetMode,
+  selectedChildId,
+  setSelectedChildId,
   onNext,
   isLoading,
 }: ClientStepProps) {
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail);
 
+  const paidChildren = useMemo(
+    () => (accessStatus?.children || []).filter((c) => c.hasAccess),
+    [accessStatus],
+  );
+  const canUseExisting =
+    Boolean(accessStatus?.hasAccount) && paidChildren.length > 0;
+  const effectiveTargetMode: "existing" | "new" = canUseExisting
+    ? deliveryTargetMode
+    : "new";
+
   const costEstimate = useMemo(() => {
     if (!accessStatus) return null;
 
-    if (accessStatus.hasAccess) {
+    if (accessStatus.hasAccount && effectiveTargetMode === "existing") {
       return {
         tone: "success" as const,
         title: "Estimativa de custo",
         icon: Gift,
-        headline: "0 crédito (elegível)",
+        headline: "0 crédito (Livro existente)",
         detail:
-          "Este e-mail já possui pelo menos 1 Baby Book ativo. A entrega é criada sem custo agora.",
+          "Importar em um Livro existente com acesso é grátis (licença por criança).",
       };
     }
 
@@ -401,11 +470,12 @@ function ClientStep({
       tone: "info" as const,
       title: "Estimativa de custo",
       icon: CreditCard,
-      headline: "1 crédito (novo cliente)",
-      detail:
-        "Este e-mail ainda não tem Baby Book ativo. A criação desta entrega deve consumir 1 crédito.",
+      headline: "1 crédito (novo Livro)",
+      detail: accessStatus.hasAccount
+        ? "Se o cliente criar um novo Livro na importação, consome 1 crédito do fotógrafo."
+        : "Novo cliente (sem conta). A criação desta entrega deve consumir 1 crédito.",
     };
-  }, [accessStatus]);
+  }, [accessStatus, effectiveTargetMode]);
 
   return (
     <div className="space-y-6">
@@ -417,11 +487,11 @@ function ClientStep({
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Validação silenciosa
+              Verificar conta e Livros
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Digite o e-mail do responsável. A elegibilidade é verificada
-              automaticamente.
+              Digite o e-mail do responsável. Se ele já tiver conta, você verá
+              os Livros (crianças) cadastrados.
             </p>
           </div>
         </div>
@@ -460,25 +530,65 @@ function ClientStep({
         {accessStatus && (
           <div
             className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
-              accessStatus.hasAccess
+              accessStatus.hasAccount
                 ? "bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800"
                 : "bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
             }`}
           >
-            {accessStatus.hasAccess ? (
+            {accessStatus.hasAccount ? (
               <>
                 <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center flex-shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-green-800 dark:text-green-200">
-                    Elegível
+                    Conta encontrada
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                     {accessStatus.message}
                   </p>
-                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
-                    <Gift className="w-4 h-4" />0 crédito na criação
+                  <div className="mt-3 flex flex-col gap-2">
+                    <label className="inline-flex items-center gap-2 text-sm text-green-800 dark:text-green-200">
+                      <input
+                        type="radio"
+                        checked={effectiveTargetMode === "existing"}
+                        onChange={() => setDeliveryTargetMode("existing")}
+                        disabled={!canUseExisting}
+                      />
+                      <span>
+                        Importar em Livro existente (grátis)
+                        {!canUseExisting ? " — indisponível" : ""}
+                      </span>
+                    </label>
+
+                    {canUseExisting && effectiveTargetMode === "existing" && (
+                      <div className="pl-6">
+                        <select
+                          className="w-full mt-1 rounded-lg border border-green-200 dark:border-green-800 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
+                          value={selectedChildId}
+                          onChange={(e) => setSelectedChildId(e.target.value)}
+                        >
+                          {paidChildren.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="mt-1 text-xs text-green-700 dark:text-green-300">
+                          Importar neste Livro é grátis. (A licença é por
+                          criança.)
+                        </p>
+                      </div>
+                    )}
+
+                    <label className="inline-flex items-center gap-2 text-sm text-green-800 dark:text-green-200">
+                      <input
+                        type="radio"
+                        checked={effectiveTargetMode === "new"}
+                        onChange={() => setDeliveryTargetMode("new")}
+                      />
+                      <span>Criar novo Livro (1 crédito)</span>
+                    </label>
                   </div>
 
                   {accessStatus.children.length > 0 && (
@@ -495,12 +605,20 @@ function ClientStep({
                             <button
                               type="button"
                               key={c.id}
-                              onClick={() => setChildName(c.name)}
+                              onClick={() => {
+                                if (c.hasAccess) {
+                                  setDeliveryTargetMode("existing");
+                                  setSelectedChildId(c.id);
+                                } else {
+                                  setDeliveryTargetMode("new");
+                                }
+                                setChildName(c.name);
+                              }}
                               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cls} hover:opacity-90 transition-opacity`}
                               title={
                                 c.hasAccess
-                                  ? "Clique para preencher o nome da criança (acesso ativo)"
-                                  : "Clique para preencher o nome da criança (sem acesso)"
+                                  ? "Selecionar este Livro existente (grátis)"
+                                  : "Preencher nome (novo Livro / sem acesso)"
                               }
                             >
                               {c.name}
@@ -510,8 +628,9 @@ function ClientStep({
                         })}
                       </div>
                       <p className="mt-2 text-xs text-green-700 dark:text-green-300">
-                        Dica: importar em um filho com acesso é grátis. Criar
-                        novo filho custa 1 crédito.
+                        Dica: a escolha é por criança. Se o responsável tiver
+                        mais de um Livro com acesso, selecione exatamente qual
+                        deve receber.
                       </p>
                     </div>
                   )}
@@ -657,13 +776,23 @@ function ClientStep({
         <div className="mt-8 flex justify-end">
           <button
             onClick={onNext}
-            disabled={!clientName.trim() || !childName.trim() || isLoading}
+            disabled={
+              !clientName.trim() ||
+              (effectiveTargetMode === "existing"
+                ? !selectedChildId
+                : !childName.trim()) ||
+              isLoading
+            }
             title={
               !clientName.trim()
                 ? "Preencha o nome do responsável"
-                : !childName.trim()
-                  ? "Preencha o nome da criança"
-                  : undefined
+                : effectiveTargetMode === "existing"
+                  ? !selectedChildId
+                    ? "Selecione o Livro de destino"
+                    : undefined
+                  : !childName.trim()
+                    ? "Preencha o nome da criança"
+                    : undefined
             }
             className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >

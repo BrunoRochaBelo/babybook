@@ -165,6 +165,14 @@ class CheckEligibilityRequest(BaseModel):
     """
 
     email: EmailStr = Field(..., description="E-mail do responsável")
+    child_id: Optional[str] = Field(
+        None,
+        description=(
+            "(Opcional) Quando fornecido, valida elegibilidade para um Child específico. "
+            "Útil quando o responsável tem mais de um filho e o parceiro precisa saber "
+            "se ESTE Livro possui Baby Book ativo."
+        ),
+    )
 
 
 class CheckEligibilityResponse(BaseModel):
@@ -183,6 +191,23 @@ class CreateDeliveryRequest(BaseModel):
     target_email: EmailStr = Field(..., description="E-mail destino da entrega (hard lock de resgate)")
     client_name: Optional[str] = Field(None, min_length=2, max_length=200, description="Nome do responsável")
     child_name: Optional[str] = Field(None, max_length=200, description="Nome da criança")
+
+    intended_import_action: Optional[Literal["EXISTING_CHILD", "NEW_CHILD"]] = Field(
+        None,
+        description=(
+            "(Opcional) Intenção do parceiro para a importação: "
+            "EXISTING_CHILD (grátis para um Livro existente com acesso) ou "
+            "NEW_CHILD (criar novo Livro; deve consumir 1 crédito). "
+            "Quando usado com EXISTING_CHILD, 'target_child_id' se torna obrigatório."
+        ),
+    )
+    target_child_id: Optional[str] = Field(
+        None,
+        description=(
+            "(Opcional) ID do Child (Livro) de destino quando a entrega for para um Livro existente. "
+            "Recomendado quando o responsável tem múltiplos filhos para evitar ambiguidade."
+        ),
+    )
     title: Optional[str] = Field(None, max_length=200, description="Título da entrega")
     description: Optional[str] = Field(None, description="Descrição opcional")
     event_date: Optional[datetime] = Field(None, description="Data do evento (parto, ensaio, etc)")

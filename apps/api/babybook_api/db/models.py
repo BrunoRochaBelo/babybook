@@ -663,6 +663,16 @@ class Delivery(TimestampMixin, Base):
         ForeignKey("accounts.id", ondelete="SET NULL"),
         nullable=True,
     )
+
+    # Quando a entrega é criada como "para um Livro existente", podemos vincular
+    # a um Child específico. Isso evita a ambiguidade quando o responsável tem
+    # múltiplos filhos (licença é por criança).
+    target_child_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("children.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     assets_transferred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
@@ -679,6 +689,7 @@ class Delivery(TimestampMixin, Base):
 
     partner: Mapped[Partner] = relationship(back_populates="deliveries")
     target_account: Mapped["Account | None"] = relationship()
+    target_child: Mapped["Child | None"] = relationship(foreign_keys=[target_child_id])
     voucher: Mapped["Voucher | None"] = relationship(
         back_populates="delivery",
         foreign_keys="Voucher.delivery_id",

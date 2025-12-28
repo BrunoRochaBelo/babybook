@@ -452,6 +452,26 @@ async def check_eligibility(
     if user is None:
         return CheckEligibilityResponse(is_eligible=False, reason="NEW_USER")
 
+    # Se o partner já sabe qual Child é o alvo (multi-filho), validamos especificamente.
+    if body.child_id:
+        try:
+            child_uuid = UUID(body.child_id)
+        except ValueError:
+            # Não damos muita informação (anti-enumeração), apenas marcamos como não elegível.
+            return CheckEligibilityResponse(is_eligible=False, reason="NEW_USER")
+
+        paid_child = await db.scalar(
+            select(Child.id).where(
+                Child.id == child_uuid,
+                Child.account_id == user.account_id,
+                Child.deleted_at.is_(None),
+                Child.pce_status == "paid",
+            )
+        )
+        if paid_child is not None:
+            return CheckEligibilityResponse(is_eligible=True, reason="EXISTING_ACTIVE_CHILD")
+        return CheckEligibilityResponse(is_eligible=False, reason="NEW_USER")
+
     paid_child_count = await db.scalar(
         select(func.count(Child.id)).where(
             Child.account_id == user.account_id,
@@ -713,19 +733,116 @@ async def create_delivery(
     existing_user = await db.scalar(select(User).where(User.email == normalized_target_email))
     existing_target_account_id = existing_user.account_id if existing_user is not None else None
 
-    has_paid_child = False
-    if existing_user is not None:
-        paid_child_count = await db.scalar(
-            select(func.count(Child.id)).where(
+    intended_action = request.intended_import_action
+
+    selected_child: Child | None = None
+    if intended_action == "EXISTING_CHILD":
+        if existing_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Não é possível selecionar um Livro existente sem conta do cliente.",
+            )
+        if not request.target_child_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Selecione qual Livro (criança) deve receber a entrega.",
+            )
+        try:
+            child_uuid = UUID(request.target_child_id)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="target_child_id inválido.",
+            ) from exc
+
+        selected_child = await db.scalar(
+            select(Child)
+            .where(
+                Child.id == child_uuid,
                 Child.account_id == existing_user.account_id,
                 Child.deleted_at.is_(None),
-                Child.pce_status == "paid",
             )
         )
-        has_paid_child = int(paid_child_count or 0) > 0
+        if selected_child is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Livro (Child) não encontrado para este cliente.",
+            )
+        if selected_child.pce_status != "paid":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Este Livro não está com acesso ativo (PCE). "
+                    "Para criar um novo Livro, escolha a opção de novo Livro (1 crédito)."
+                ),
+            )
 
-    credit_status = "not_required" if has_paid_child else "reserved"
-    credit_reserved = not has_paid_child
+    elif intended_action == "NEW_CHILD":
+        # Explicitamente criando um novo Livro (custa 1 crédito).
+        if request.target_child_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Não envie target_child_id quando a intenção é criar um novo Livro.",
+            )
+
+    else:
+        # Compatibilidade: se vier target_child_id, validamos o alvo específico.
+        if request.target_child_id and existing_user is not None:
+            try:
+                child_uuid = UUID(request.target_child_id)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="target_child_id inválido.",
+                ) from exc
+
+            selected_child = await db.scalar(
+                select(Child)
+                .where(
+                    Child.id == child_uuid,
+                    Child.account_id == existing_user.account_id,
+                    Child.deleted_at.is_(None),
+                )
+            )
+            if selected_child is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Livro (Child) não encontrado para este cliente.",
+                )
+            if selected_child.pce_status != "paid":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Este Livro ainda não está com acesso ativo (PCE).",
+                )
+
+    # Define o comportamento de crédito:
+    # - intended_action=EXISTING_CHILD: custo 0 agora
+    # - intended_action=NEW_CHILD: reserva 1 crédito agora
+    # - compatibilidade: usa elegibilidade por conta (>=1 child pago)
+    if intended_action == "EXISTING_CHILD":
+        credit_status = "not_required"
+        credit_reserved = False
+    elif intended_action == "NEW_CHILD":
+        credit_status = "reserved"
+        credit_reserved = True
+    else:
+        if selected_child is not None:
+            credit_status = "not_required"
+            credit_reserved = False
+        else:
+            has_paid_child = False
+            if existing_user is not None:
+                paid_child_count = await db.scalar(
+                    select(func.count(Child.id)).where(
+                        Child.account_id == existing_user.account_id,
+                        Child.deleted_at.is_(None),
+                        Child.pce_status == "paid",
+                    )
+                )
+                has_paid_child = int(paid_child_count or 0) > 0
+
+            credit_status = "not_required" if has_paid_child else "reserved"
+            credit_reserved = not has_paid_child
 
     if credit_reserved:
         # Reserva 1 crédito sob lock transacional (evita condição de corrida/double-spend)
@@ -739,7 +856,12 @@ async def create_delivery(
         locked_partner.voucher_balance -= 1
     
     # Cria delivery
-    title_hint = request.child_name or request.client_name or normalized_target_email
+    title_hint = (
+        request.child_name
+        or (selected_child.name if selected_child is not None else None)
+        or request.client_name
+        or normalized_target_email
+    )
     title = request.title or f"Ensaio - {title_hint}"
     delivery = Delivery(
         id=uuid4(),
@@ -759,11 +881,14 @@ async def create_delivery(
             "client_email": normalized_target_email,
             "target_email": normalized_target_email,
             "child_name": request.child_name,
+            "target_child_id": str(selected_child.id) if selected_child is not None else None,
+            "intended_import_action": intended_action,
             "credit_reserved": credit_reserved,
             # Novo fluxo: sempre é importação direta via link (hard lock por e-mail)
             "direct_import": True,
         },
         target_account_id=existing_target_account_id,
+        target_child_id=(selected_child.id if selected_child is not None else None),
     )
     db.add(delivery)
 
@@ -1515,6 +1640,8 @@ async def finalize_delivery(
         await db.commit()
 
         import_url = f"{settings.frontend_url}/jornada/importar-entrega/{delivery.id}"
+        if delivery.target_child_id is not None:
+            import_url = f"{import_url}?childId={delivery.target_child_id}"
         return VoucherCardResponse(
             mode="direct_import",
             voucher_code=None,

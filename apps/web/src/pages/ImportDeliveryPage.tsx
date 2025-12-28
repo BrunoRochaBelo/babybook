@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, Loader2, PackageOpen } from "lucide-react";
 
 import {
@@ -12,6 +12,12 @@ import { ApiError } from "@/lib/api-client";
 export function ImportDeliveryPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const childIdHint = useMemo(() => {
+    const v = searchParams.get("childId");
+    return v && v.trim() ? v.trim() : null;
+  }, [searchParams]);
 
   const pendingQuery = usePendingDirectDeliveries({
     enabled: Boolean(deliveryId),
@@ -36,6 +42,27 @@ export function ImportDeliveryPage() {
   const [error, setError] = useState<string | null>(null);
 
   const isBusy = pendingQuery.isLoading || childrenQuery.isLoading;
+
+  // Se o link veio com childId, tentamos pré-selecionar (multi-filho).
+  useEffect(() => {
+    if (!childrenQuery.isSuccess) return;
+
+    if (!children.length) {
+      setMode("new");
+      setSelectedChildId("");
+      return;
+    }
+
+    if (childIdHint && children.some((c) => c.id === childIdHint)) {
+      setMode("existing");
+      setSelectedChildId(childIdHint);
+      return;
+    }
+
+    // Fallback: mantém comportamento atual (primeiro da lista)
+    setMode((prev) => (prev === "new" ? "existing" : prev));
+    setSelectedChildId((prev) => prev || children[0]?.id || "");
+  }, [childIdHint, children, childrenQuery.isSuccess]);
 
   const onSubmit = async () => {
     if (!deliveryId) return;

@@ -617,6 +617,7 @@ export interface MockDelivery {
   title: string;
   clientName: string | null;
   targetEmail?: string | null;
+  targetChildId?: string | null;
   directImport?: boolean;
   description: string | null;
   eventDate: string | null;

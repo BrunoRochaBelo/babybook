@@ -230,6 +230,63 @@ const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
 const mutableDeliveries: MockDelivery[] = [...mockDeliveries];
 
+type MockClientChildAccess = {
+  id: string;
+  name: string;
+  hasAccess: boolean;
+};
+
+type MockClientAccessInfo = {
+  hasAccount: boolean;
+  email: string;
+  clientName: string | null;
+  children: MockClientChildAccess[];
+};
+
+const BRUNO_CLIENT_EMAIL = "bruno@example.com";
+const BRUNO_CLIENT_ACCESS: MockClientAccessInfo = {
+  hasAccount: true,
+  email: BRUNO_CLIENT_EMAIL,
+  clientName: "Bruno",
+  children: [
+    {
+      id: "child-luisa-001",
+      name: "Luísa",
+      hasAccess: true,
+    },
+  ],
+};
+
+const resolveClientAccess = (rawEmail: string): MockClientAccessInfo => {
+  const email = normalizeEmail(rawEmail ?? "");
+
+  if (email === BRUNO_CLIENT_EMAIL) return BRUNO_CLIENT_ACCESS;
+
+  // Heurística para DEV: e-mails contendo "ana" ou "paid" simulam conta existente
+  // com ao menos 1 Livro (Child) com acesso pago.
+  if (email.includes("ana") || email.includes("paid")) {
+    return {
+      hasAccount: true,
+      email,
+      clientName: "Cliente Demo",
+      children: [
+        {
+          id: "child-paid-001",
+          name: "Sofia",
+          hasAccess: true,
+        },
+      ],
+    };
+  }
+
+  return {
+    hasAccount: false,
+    email,
+    clientName: null,
+    children: [],
+  };
+};
+
 const normalizeDeliveryStatus = (delivery: MockDelivery) => {
   if (delivery.archivedAt) return "archived";
   if (delivery.status === "completed") return "delivered";
@@ -761,7 +818,10 @@ export const handlers = [
     }
 
     const url = new URL(request.url);
-    const statusFilter = url.searchParams.get("status_filter") ?? url.searchParams.get("status") ?? undefined;
+    const statusFilter =
+      url.searchParams.get("status_filter") ??
+      url.searchParams.get("status") ??
+      undefined;
     const includeArchivedParam =
       url.searchParams.get("include_archived") ?? "false";
     const includeArchived =
@@ -818,6 +878,58 @@ export const handlers = [
     });
   }),
 
+  // Check client access - /partner/check-access
+  http.get(withBase("/partner/check-access"), ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    if (activeUser.role !== "photographer") {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "partner.forbidden",
+            message: "Acesso restrito a parceiros",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
+    const url = new URL(request.url);
+    const emailParam = url.searchParams.get("email") ?? "";
+    const email = normalizeEmail(emailParam);
+    if (!email) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "request.validation_error",
+            message: "Parâmetro 'email' é obrigatório",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    const access = resolveClientAccess(email);
+    const hasPaidChild = access.children.some((c) => c.hasAccess);
+
+    const message = !access.hasAccount
+      ? "Não encontramos uma conta para este e-mail. Para este ensaio, será necessário gerar voucher (1 crédito)."
+      : hasPaidChild
+        ? "Conta encontrada. Você pode escolher um Livro existente (grátis) ou criar um novo Livro (1 crédito)."
+        : "Conta encontrada, mas sem Livro ativo. Para este ensaio, use Novo Livro (1 crédito).";
+
+    return HttpResponse.json({
+      has_access: access.hasAccount,
+      email: access.email,
+      client_name: access.clientName,
+      children: access.children.map((c) => ({
+        id: c.id,
+        name: c.name,
+        has_access: c.hasAccess,
+      })),
+      message,
+    });
+  }),
+
   // Validação silenciosa (eligibilidade) - /partner/check-eligibility
   http.post(withBase("/partner/check-eligibility"), async ({ request }) => {
     if (!sessionActive) return sessionRequiredResponse();
@@ -835,7 +947,9 @@ export const handlers = [
 
     const body = (await request.json()) as { email?: string };
     const email = normalizeEmail(body.email ?? "");
-    const isEligible = email.includes("ana") || email.includes("paid");
+    const access = resolveClientAccess(email);
+    const isEligible =
+      access.hasAccount && access.children.some((c) => c.hasAccess);
 
     return HttpResponse.json({
       is_eligible: isEligible,
@@ -862,6 +976,8 @@ export const handlers = [
       title?: string;
       client_name?: string;
       child_name?: string;
+      intended_import_action?: "EXISTING_CHILD" | "NEW_CHILD";
+      target_child_id?: string;
       description?: string;
       event_date?: string;
     };
@@ -879,8 +995,31 @@ export const handlers = [
       );
     }
 
-    const isEligible =
-      targetEmail.includes("ana") || targetEmail.includes("paid");
+    const access = resolveClientAccess(targetEmail);
+    const canUseExisting =
+      access.hasAccount && access.children.some((c) => c.hasAccess);
+
+    const intendedImportAction =
+      body.intended_import_action ??
+      (canUseExisting ? "EXISTING_CHILD" : "NEW_CHILD");
+    const targetChildId = body.target_child_id?.trim() || "";
+
+    if (intendedImportAction === "EXISTING_CHILD") {
+      const paidChildren = access.children.filter((c) => c.hasAccess);
+      const validChild = paidChildren.some((c) => c.id === targetChildId);
+      if (!access.hasAccount || !targetChildId || !validChild) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "request.validation_error",
+              message:
+                "Para Livro existente, selecione um Livro válido com acesso pago.",
+            },
+          },
+          { status: 422 },
+        );
+      }
+    }
     const title =
       body.title?.trim() ||
       `Ensaio - ${body.child_name?.trim() || body.client_name?.trim() || targetEmail}`;
@@ -891,13 +1030,16 @@ export const handlers = [
       title,
       clientName: body.client_name ?? null,
       targetEmail,
-      directImport: true,
+      targetChildId:
+        intendedImportAction === "EXISTING_CHILD" ? targetChildId : null,
+      directImport: access.hasAccount,
       description: body.description ?? null,
       eventDate: body.event_date ?? null,
       status: "draft",
       assetsCount: 0,
       voucherCode: null,
-      creditStatus: isEligible ? "not_required" : "reserved",
+      creditStatus:
+        intendedImportAction === "EXISTING_CHILD" ? "not_required" : "reserved",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -928,6 +1070,96 @@ export const handlers = [
       assets: [], // Mock empty assets for now
     });
   }),
+
+  // Finalize delivery (voucher card / direct import link)
+  http.post(
+    withBase("/partner/deliveries/:deliveryId/finalize"),
+    async ({ params, request }) => {
+      if (!sessionActive) return sessionRequiredResponse();
+      if (activeUser.role !== "photographer") {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "partner.forbidden",
+              message: "Acesso restrito a parceiros",
+            },
+          },
+          { status: 403 },
+        );
+      }
+
+      const delivery = mutableDeliveries.find(
+        (d) => d.id === params.deliveryId,
+      );
+      if (!delivery) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "delivery.not_found",
+              message: "Entrega não encontrada",
+            },
+          },
+          { status: 404 },
+        );
+      }
+
+      const body = (await request.json().catch(() => ({}))) as {
+        beneficiary_name?: string;
+        message?: string;
+        voucher_prefix?: string;
+        expires_days?: number;
+      };
+
+      const origin =
+        typeof window !== "undefined" && window.location?.origin
+          ? window.location.origin
+          : "";
+
+      const baseImportUrl = `${origin}/jornada/importar-entrega/${encodeURIComponent(delivery.id)}`;
+      const importUrl = delivery.targetChildId
+        ? `${baseImportUrl}?childId=${encodeURIComponent(delivery.targetChildId)}`
+        : baseImportUrl;
+
+      if (delivery.directImport) {
+        delivery.status = "ready";
+        delivery.updatedAt = new Date().toISOString();
+
+        return HttpResponse.json({
+          mode: "direct_import",
+          voucher_code: null,
+          redeem_url: null,
+          qr_data: null,
+          import_url: importUrl,
+          studio_name: mockPartner.studioName ?? mockPartner.name,
+          studio_logo_url: mockPartner.logoUrl,
+          beneficiary_name: body.beneficiary_name ?? null,
+          message: body.message ?? "",
+          assets_count: delivery.assetsCount,
+          expires_at: null,
+        });
+      }
+
+      const prefix = (body.voucher_prefix ?? "BB").trim() || "BB";
+      const code = `${prefix}-${nanoid(6).toUpperCase()}`;
+      delivery.voucherCode = code;
+      delivery.status = "ready";
+      delivery.updatedAt = new Date().toISOString();
+
+      return HttpResponse.json({
+        mode: "voucher",
+        voucher_code: code,
+        redeem_url: `${origin}/voucher/redeem/${encodeURIComponent(code)}`,
+        qr_data: code,
+        import_url: null,
+        studio_name: mockPartner.studioName ?? mockPartner.name,
+        studio_logo_url: mockPartner.logoUrl,
+        beneficiary_name: body.beneficiary_name ?? null,
+        message: body.message ?? "",
+        assets_count: delivery.assetsCount,
+        expires_at: null,
+      });
+    },
+  ),
 
   // Credit packages - synced with backend CREDIT_PACKAGES
   // Values from apps/api/babybook_api/routes/partner_portal.py

@@ -128,6 +128,8 @@ export interface CreateDeliveryRequest {
   target_email: string; // E-mail do responsável (hard lock no resgate)
   client_name?: string;
   child_name?: string; // Nome da criança (opcional)
+  intended_import_action?: "EXISTING_CHILD" | "NEW_CHILD";
+  target_child_id?: string;
   title?: string;
   description?: string;
   event_date?: string;
