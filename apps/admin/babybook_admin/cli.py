@@ -50,22 +50,22 @@ def migrate(
         "head",
         "--target",
         "-t",
-        help="Revis�o alvo para upgrade (padr�o: head).",
+        help="Revisao alvo para upgrade (padrao: head).",
     ),
     database_url: Optional[str] = typer.Option(
         None,
         "--database-url",
         envvar="BABYBOOK_DATABASE_URL",
-        help="Override do banco usado na migra��o.",
+        help="Override do banco usado na migracao.",
     ),
 ) -> None:
     """Executa alembic upgrade."""
     cfg = _alembic_config(database_url)
     try:
         alembic_command.upgrade(cfg, target)
-        console.print(f"[green]Migra��es aplicadas at� {target}[/green]")
+        console.print(f"[green]Migracoes aplicadas ate {target}[/green]")
     except Exception as exc:  # pragma: no cover
-        console.print(f"[red]Falha ao executar migra��o:[/red] {exc}")
+        console.print(f"[red]Falha ao executar migracao:[/red] {exc}")
         raise typer.Exit(code=1) from exc
 
 
@@ -75,20 +75,20 @@ def downgrade(
         "-1",
         "--target",
         "-t",
-        help="Revis�o alvo para downgrade (padr�o: revis�o anterior).",
+        help="Revisao alvo para downgrade (padrao: revisao anterior).",
     ),
     database_url: Optional[str] = typer.Option(
         None,
         "--database-url",
         envvar="BABYBOOK_DATABASE_URL",
-        help="Override do banco usado na migra��o.",
+        help="Override do banco usado na migracao.",
     ),
 ) -> None:
     """Executa alembic downgrade."""
     cfg = _alembic_config(database_url)
     try:
         alembic_command.downgrade(cfg, target)
-        console.print(f"[yellow]Downgrade executado at� {target}[/yellow]")
+        console.print(f"[yellow]Downgrade executado ate {target}[/yellow]")
     except Exception as exc:  # pragma: no cover
         console.print(f"[red]Falha ao executar downgrade:[/red] {exc}")
         raise typer.Exit(code=1) from exc
@@ -96,7 +96,7 @@ def downgrade(
 
 @app.command()
 def quota_report() -> None:
-    console.print("Usu�rios com quota acima de 80% ser�o listados aqui.")
+    console.print("Usuarios com quota acima de 80% serao listados aqui.")
 
 
 @app.command("seed-moment-templates")

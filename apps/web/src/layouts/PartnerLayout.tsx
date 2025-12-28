@@ -6,12 +6,17 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
-  ChevronDown,
   Coins,
   CreditCard,
   Home,
@@ -23,12 +28,15 @@ import {
   Sparkles,
   Sun,
 } from "lucide-react";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
 import { useTheme } from "@/hooks/useTheme";
-import { getPartnerProfile, getPartnerDashboardStats } from "@/features/partner-portal/api";
+import {
+  getPartnerProfile,
+  getPartnerDashboardStats,
+} from "@/features/partner-portal/api";
 import {
   PartnerPageHeaderContext,
   type PartnerPageHeaderBadgeTone,
@@ -52,10 +60,7 @@ const NAV_LINKS = [
 ];
 
 // Rotas onde a navbar flutuante não deve aparecer
-const HIDE_NAV_ROUTES = [
-  "/partner/settings",
-  "/partner/notifications",
-];
+const HIDE_NAV_ROUTES = ["/partner/settings", "/partner/notifications"];
 
 // Placeholder notifications - TODO: integrate with real API
 const MOCK_NOTIFICATIONS = [
@@ -74,13 +79,6 @@ const MOCK_NOTIFICATIONS = [
     unread: false,
   },
 ];
-
-const dropdownVariants = {
-  initial: { opacity: 0, scale: 0.95, y: -10 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.95, y: -10 },
-  transition: { duration: 0.2 },
-};
 
 export function PartnerLayout() {
   const navigate = useNavigate();
@@ -195,8 +193,6 @@ export function PartnerLayout() {
               </Link>
             </div>
 
-
-
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
               {/* Credit Balance Badge */}
@@ -250,7 +246,9 @@ export function PartnerLayout() {
                   <DrawerContent className="h-full w-full sm:max-w-sm">
                     <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-3">
                       <div className="flex items-center justify-between">
-                        <DrawerTitle className="text-base font-semibold">Notificações</DrawerTitle>
+                        <DrawerTitle className="text-base font-semibold">
+                          Notificações
+                        </DrawerTitle>
                         <button className="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
                           Marcar como lidas
                         </button>
@@ -271,7 +269,9 @@ export function PartnerLayout() {
                               {notification.unread && (
                                 <span className="w-2 h-2 mt-1.5 bg-pink-500 rounded-full flex-shrink-0" />
                               )}
-                              <div className={notification.unread ? "" : "ml-5"}>
+                              <div
+                                className={notification.unread ? "" : "ml-5"}
+                              >
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                                   {notification.title}
                                 </p>
@@ -336,13 +336,17 @@ export function PartnerLayout() {
                 >
                   <DrawerContent className="h-full w-full sm:max-w-xs">
                     <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
-                       <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                          {profile?.studio_name?.[0] || profile?.name?.[0] || "P"}
+                          {profile?.studio_name?.[0] ||
+                            profile?.name?.[0] ||
+                            "P"}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
                           <DrawerTitle className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {profile?.studio_name || profile?.name || "Parceiro"}
+                            {profile?.studio_name ||
+                              profile?.name ||
+                              "Parceiro"}
                           </DrawerTitle>
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {profile?.email}
@@ -350,7 +354,7 @@ export function PartnerLayout() {
                         </div>
                       </div>
                     </DrawerHeader>
-                    
+
                     <DrawerBody className="p-4 space-y-6">
                       {/* Theme Selector */}
                       <div>
@@ -365,7 +369,7 @@ export function PartnerLayout() {
                               "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
                               theme === "light"
                                 ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
                             )}
                           >
                             <Sun className="w-5 h-5" />
@@ -378,7 +382,7 @@ export function PartnerLayout() {
                               "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
                               theme === "dark"
                                 ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
                             )}
                           >
                             <MoonStar className="w-5 h-5" />
@@ -391,7 +395,7 @@ export function PartnerLayout() {
                               "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
                               theme === "system"
                                 ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
                             )}
                           >
                             <Monitor className="w-5 h-5" />
@@ -425,7 +429,9 @@ export function PartnerLayout() {
                         className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 dark:text-red-400 rounded-xl transition-colors disabled:opacity-50"
                       >
                         <LogOut className="w-4 h-4" />
-                        {logoutMutation.isPending ? "Saindo..." : "Sair da conta"}
+                        {logoutMutation.isPending
+                          ? "Saindo..."
+                          : "Sair da conta"}
                       </button>
                     </DrawerFooter>
                   </DrawerContent>
@@ -485,61 +491,65 @@ export function PartnerLayout() {
       </PartnerPageHeaderContext.Provider>
 
       {/* Floating Bottom Navigation - hidden on settings/notifications */}
-      {!HIDE_NAV_ROUTES.some(route => location.pathname.startsWith(route)) && (
-      <nav
-        className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center rounded-full border border-gray-200/60 dark:border-gray-600/40 bg-white/95 dark:bg-gray-800/95 px-2 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.03),0_0_30px_rgba(244,114,182,0.12)] backdrop-blur-lg ring-1 ring-black/[0.03] dark:ring-white/[0.06]"
-        aria-label="Navegação principal"
-      >
-        <LayoutGroup id="partner-nav">
-          {NAV_LINKS.map((link) => {
-            const Icon = link.icon;
-            return (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.end}
-                className={({ isActive }) =>
-                  cn(
-                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800",
-                    isActive
-                      ? "px-4 py-2.5 text-white"
-                      : "px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/60 dark:hover:bg-gray-700/40",
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive && (
-                      <motion.span
-                        layoutId="partner-nav-pill"
-                        className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_4px_16px_rgba(236,72,153,0.4),0_0_12px_rgba(244,114,182,0.3)]"
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 30,
-                        }}
-                      />
-                    )}
-                    <span className="relative z-10 inline-flex items-center justify-center gap-2">
-                      <Icon
-                        className={cn(
-                          "h-5 w-5 transition-all duration-300",
-                          isActive ? "text-white" : "text-gray-500 dark:text-gray-400",
-                        )}
-                      />
+      {!HIDE_NAV_ROUTES.some((route) =>
+        location.pathname.startsWith(route),
+      ) && (
+        <nav
+          className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center rounded-full border border-gray-200/60 dark:border-gray-600/40 bg-white/95 dark:bg-gray-800/95 px-2 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.03),0_0_30px_rgba(244,114,182,0.12)] backdrop-blur-lg ring-1 ring-black/[0.03] dark:ring-white/[0.06]"
+          aria-label="Navegação principal"
+        >
+          <LayoutGroup id="partner-nav">
+            {NAV_LINKS.map((link) => {
+              const Icon = link.icon;
+              return (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800",
+                      isActive
+                        ? "px-4 py-2.5 text-white"
+                        : "px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/60 dark:hover:bg-gray-700/40",
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
                       {isActive && (
-                        <span className="text-sm font-semibold tracking-tight">
-                          {link.label}
-                        </span>
+                        <motion.span
+                          layoutId="partner-nav-pill"
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_4px_16px_rgba(236,72,153,0.4),0_0_12px_rgba(244,114,182,0.3)]"
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 30,
+                          }}
+                        />
                       )}
-                    </span>
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
-        </LayoutGroup>
-      </nav>
+                      <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                        <Icon
+                          className={cn(
+                            "h-5 w-5 transition-all duration-300",
+                            isActive
+                              ? "text-white"
+                              : "text-gray-500 dark:text-gray-400",
+                          )}
+                        />
+                        {isActive && (
+                          <span className="text-sm font-semibold tracking-tight">
+                            {link.label}
+                          </span>
+                        )}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </LayoutGroup>
+        </nav>
       )}
 
       {/* Offline Banner */}

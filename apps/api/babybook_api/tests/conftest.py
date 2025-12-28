@@ -14,6 +14,7 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PACKAGE_ROOT))
 
 from babybook_api.db.models import Account, Base, User
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.deps import get_db_session
 from babybook_api.main import app
 from babybook_api.security import hash_password
@@ -94,7 +95,7 @@ def login(client: TestClient) -> None:
         json={"email": DEFAULT_EMAIL, "password": DEFAULT_PASSWORD, "csrf_token": csrf},
     )
     assert resp.status_code == 204
-    assert "__Host-session" in client.cookies
+    assert SESSION_COOKIE_NAME in client.cookies
 
 
 @pytest.fixture

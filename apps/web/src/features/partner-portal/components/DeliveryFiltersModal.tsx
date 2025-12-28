@@ -24,6 +24,7 @@ import {
   ArrowUpDown,
   X,
 } from "lucide-react";
+import { motion } from "motion/react";
 import {
   Drawer,
   DrawerContent,
@@ -119,17 +120,6 @@ interface DeliveryFiltersModalProps {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getPeriodLabel(period: PeriodFilter): string {
-  const labels: Record<PeriodFilter, string> = {
-    all: "Todos",
-    last_7: "Últimos 7 dias",
-    last_30: "Últimos 30 dias",
-    last_90: "Últimos 90 dias",
-    custom: "Período personalizado",
-  };
-  return labels[period];
-}
-
 function countActiveFilters(filters: DeliveryFilters): number {
   let count = 0;
   if (filters.voucher !== "all") count++;
@@ -146,6 +136,21 @@ function countActiveFilters(filters: DeliveryFilters): number {
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 },
+};
+
 interface FilterSectionProps {
   icon: React.ReactNode;
   title: string;
@@ -154,7 +159,10 @@ interface FilterSectionProps {
 
 function FilterSection({ icon, title, children }: FilterSectionProps) {
   return (
-    <div className="space-y-3 pb-5 border-b border-gray-100 dark:border-gray-800 last:border-0 last:pb-0">
+    <motion.div
+      variants={itemVariants}
+      className="space-y-3 pb-5 border-b border-gray-100 dark:border-gray-800 last:border-0 last:pb-0"
+    >
       <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-800 dark:text-gray-100">
         <span className="p-1.5 rounded-lg bg-pink-50 dark:bg-pink-900/30 text-pink-500 dark:text-pink-400">
           {icon}
@@ -162,7 +170,7 @@ function FilterSection({ icon, title, children }: FilterSectionProps) {
         {title}
       </div>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -272,7 +280,6 @@ export function DeliveryFiltersModal({
     }
   }, [isOpen, initialFilters]);
 
-
   const handleApply = useCallback(() => {
     onApply(localFilters);
     onClose();
@@ -308,7 +315,7 @@ export function DeliveryFiltersModal({
     <K extends keyof DeliveryFilters>(key: K, value: DeliveryFilters[K]) => {
       setLocalFilters((prev) => ({ ...prev, [key]: value }));
     },
-    []
+    [],
   );
 
   const activeCount = countActiveFilters(localFilters);
@@ -385,7 +392,12 @@ export function DeliveryFiltersModal({
         {/* Content */}
         <DrawerBody>
           {activeTab === "filters" ? (
-            <div className="space-y-5">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              className="space-y-5"
+            >
               {/* Ordenação */}
               <FilterSection
                 icon={<ArrowUpDown className="w-4 h-4" />}
@@ -460,7 +472,10 @@ export function DeliveryFiltersModal({
               </FilterSection>
 
               {/* Resgate */}
-              <FilterSection icon={<Gift className="w-4 h-4" />} title="Resgate">
+              <FilterSection
+                icon={<Gift className="w-4 h-4" />}
+                title="Resgate"
+              >
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: "all", label: "Todas" },
@@ -608,8 +623,8 @@ export function DeliveryFiltersModal({
                     </label>
                   </div>
                 )}
-                </FilterSection>
-            </div>
+              </FilterSection>
+            </motion.div>
           ) : (
             /* Presets Tab */
             <div className="space-y-4">
@@ -665,7 +680,7 @@ export function DeliveryFiltersModal({
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Guarde sua configuração para usar novamente
                       </p>
-                      
+
                       {!isCreatingPreset ? (
                         <button
                           type="button"
@@ -686,7 +701,8 @@ export function DeliveryFiltersModal({
                             className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleSavePreset();
-                              if (e.key === "Escape") setIsCreatingPreset(false);
+                              if (e.key === "Escape")
+                                setIsCreatingPreset(false);
                             }}
                           />
                           <button
@@ -712,28 +728,27 @@ export function DeliveryFiltersModal({
                     </div>
                   </div>
                 </div>
-
                 {/* Lista de presets salvos */}
                 <div>
                   <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                     Meus filtros salvos
                   </h3>
 
-                {presets.length === 0 ? (
-                  <div className="text-center py-6 px-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Nenhum preset salvo ainda
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      Use o botão acima para salvar sua configuração
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {presets.map((preset) => (
-                      <div
-                        key={preset.id}
-                        className={`
+                  {presets.length === 0 ? (
+                    <div className="text-center py-6 px-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Nenhum preset salvo ainda
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        Use o botão acima para salvar sua configuração
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {presets.map((preset) => (
+                        <div
+                          key={preset.id}
+                          className={`
                           flex items-center gap-3 px-4 py-3 rounded-xl
                           transition-all duration-200
                           ${
@@ -742,52 +757,71 @@ export function DeliveryFiltersModal({
                               : "bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent"
                           }
                         `}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => onSelectPreset(preset)}
-                          className="flex-1 flex items-center gap-3 text-left"
                         >
-                          <Bookmark
-                            className={`w-4 h-4 ${selectedPresetId === preset.id ? "text-pink-500" : "text-gray-400"}`}
-                          />
-                          <span
-                            className={`text-sm font-medium ${selectedPresetId === preset.id ? "text-pink-700 dark:text-pink-300" : "text-gray-700 dark:text-gray-300"}`}
+                          <button
+                            type="button"
+                            onClick={() => onSelectPreset(preset)}
+                            className="flex-1 flex items-center gap-3 text-left"
                           >
-                            {preset.name}
-                          </span>
-                        </button>
-                        {selectedPresetId === preset.id && (
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onUpdatePreset();
-                              }}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/30 transition-colors"
-                              title="Atualizar preset"
+                            <Bookmark
+                              className={`w-4 h-4 ${selectedPresetId === preset.id ? "text-pink-500" : "text-gray-400"}`}
+                            />
+                            <span
+                              className={`text-sm font-medium ${selectedPresetId === preset.id ? "text-pink-700 dark:text-pink-300" : "text-gray-700 dark:text-gray-300"}`}
                             >
-                              <Save className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDeletePreset();
-                              }}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                              title="Excluir preset"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                </div> {/* Fecha Lista de presets salvos */}
+                              {preset.name}
+                            </span>
+                          </button>
+                          {selectedPresetId === preset.id && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={!hasUserPreset || isBuiltinSelected}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUpdatePreset();
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  !hasUserPreset || isBuiltinSelected
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-400 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/30"
+                                }`}
+                                title={
+                                  isBuiltinSelected
+                                    ? "Presets padrão não podem ser atualizados"
+                                    : "Atualizar preset"
+                                }
+                              >
+                                <Save className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={!hasUserPreset || isBuiltinSelected}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeletePreset();
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  !hasUserPreset || isBuiltinSelected
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                }`}
+                                title={
+                                  isBuiltinSelected
+                                    ? "Presets padrão não podem ser excluídos"
+                                    : "Excluir preset"
+                                }
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>{" "}
+                {/* Fecha Lista de presets salvos */}
               </div>
             </div>
           )}

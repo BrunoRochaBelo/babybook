@@ -1,34 +1,39 @@
 import { test, expect } from "@playwright/test";
 
-// Checks that the stacking sliver CSS variable is present and has a value
-// consistent with the expected offsets (8px mobile, 12px desktop)
+// Este teste cobre a landing (projeto `landingpage`), que é separada do app React.
+// Valida que os "book cards" do carrossel horizontal expõem variáveis CSS esperadas.
+
+const landingBaseUrl =
+  process.env.E2E_LANDING_BASE_URL ?? "http://127.0.0.1:4174";
 
 test.describe("stacking cards sliver size", () => {
-  test("desktop: sliver is at least 12px", async ({ page }) => {
+  test("desktop: tilt scale CSS var exists", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto("/");
-    const firstInnerSelector =
-      ".stacking-cards-container .card-stack-item .card-stack-inner";
-    await page.waitForSelector(firstInnerSelector);
-    const firstInner = await page.$(firstInnerSelector);
-    const cssValue = await firstInner!.evaluate((el: HTMLElement) =>
-      getComputedStyle(el).getPropertyValue("--card-stack-sliver"),
+    await page.goto(`${landingBaseUrl}/`);
+
+    const firstCardSelector = ".horizontal-track .book-card";
+    const firstCard = page.locator(firstCardSelector).first();
+    await firstCard.waitFor({ state: "attached" });
+    await firstCard.scrollIntoViewIfNeeded();
+    const cssValue = await firstCard.evaluate((el: HTMLElement) =>
+      getComputedStyle(el).getPropertyValue("--tilt-scale"),
     );
-    const px = parseInt(cssValue || "0", 10);
-    expect(px).toBeGreaterThanOrEqual(12);
+    const scale = Number.parseFloat(cssValue || "0");
+    expect(scale).toBeGreaterThanOrEqual(0.8);
   });
 
-  test("mobile: sliver is at least 8px", async ({ page }) => {
+  test("mobile: tilt scale CSS var exists", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
-    await page.goto("/");
-    const firstInnerSelector =
-      ".stacking-cards-container .card-stack-item .card-stack-inner";
-    await page.waitForSelector(firstInnerSelector);
-    const firstInner = await page.$(firstInnerSelector);
-    const cssValue = await firstInner!.evaluate((el: HTMLElement) =>
-      getComputedStyle(el).getPropertyValue("--card-stack-sliver"),
+    await page.goto(`${landingBaseUrl}/`);
+
+    const firstCardSelector = ".horizontal-track .book-card";
+    const firstCard = page.locator(firstCardSelector).first();
+    await firstCard.waitFor({ state: "attached" });
+    await firstCard.scrollIntoViewIfNeeded();
+    const cssValue = await firstCard.evaluate((el: HTMLElement) =>
+      getComputedStyle(el).getPropertyValue("--tilt-scale"),
     );
-    const px = parseInt(cssValue || "0", 10);
-    expect(px).toBeGreaterThanOrEqual(8);
+    const scale = Number.parseFloat(cssValue || "0");
+    expect(scale).toBeGreaterThanOrEqual(0.8);
   });
 });

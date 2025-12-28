@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select, func
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.db.models import Account, Child, Delivery, Partner, PartnerLedger, User
 from babybook_api.main import app
 from babybook_api.security import hash_password
@@ -27,7 +28,7 @@ def _login(client: TestClient, *, email: str, password: str) -> str:
         json={"email": email, "password": password, "csrf_token": csrf},
     )
     assert resp.status_code == 204
-    assert "__Host-session" in client.cookies
+    assert SESSION_COOKIE_NAME in client.cookies
     return csrf
 
 

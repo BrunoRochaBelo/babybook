@@ -16,32 +16,22 @@ import {
   Ticket,
   Plus,
   ChevronRight,
-  Loader2,
   AlertCircle,
   CheckCircle2,
   Clock,
   Gift,
-  Image,
   Lightbulb,
   Sparkles,
   TrendingUp,
   Info,
 } from "lucide-react";
-import { useTranslation, useLanguage } from "@babybook/i18n";
+import { useTranslation } from "@babybook/i18n";
 import {
   getPartnerProfile,
   getPartnerDashboardStats,
   listDeliveries,
 } from "./api";
-import {
-  getPartnerDeliveryStatusMeta,
-  normalizePartnerDeliveryStatus,
-} from "./deliveryStatus";
-import { CreditStatusBadge } from "./creditStatus";
-import {
-  PLACEHOLDER_NOT_GENERATED,
-  PLACEHOLDER_NOT_INFORMED,
-} from "./placeholders";
+import { normalizePartnerDeliveryStatus } from "./deliveryStatus";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
@@ -53,8 +43,6 @@ import { PartnerOnboarding } from "./PartnerOnboarding";
 import { PartnerDetailedStats } from "./PartnerDetailedStats";
 
 type TFn = (key: string, options?: Record<string, unknown>) => string;
-
-
 
 /**
  * Retorna saudação baseada no horário atual
@@ -135,12 +123,10 @@ function getContextualTip(
 // DeliveryStatusBadge removed - using shared StatusBadge from table/card components
 import { DeliveryCardMobile } from "./components/DeliveryCardMobile";
 import { DeliveryTableRow } from "./components/DeliveryTableRow";
-import { formatDate } from "./utils";
 
 export function PartnerDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { language } = useLanguage();
   // const t = (k: string) => k;
   // const language = "pt-BR";
 
@@ -723,7 +709,9 @@ export function PartnerDashboard() {
                       key={delivery.id}
                       delivery={delivery}
                       isSelected={false}
-                      onPreview={() => navigate(`/partner/deliveries/${delivery.id}`)}
+                      onPreview={() =>
+                        navigate(`/partner/deliveries/${delivery.id}`)
+                      }
                       onArchive={() => {}}
                       isArchiving={false}
                       variant="dashboard"

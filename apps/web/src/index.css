@@ -15,6 +15,39 @@
   }
 }
 
+/* =============================================================================
+   CUSTOM SCROLLBARS — Native-like appearance matching theme
+   ============================================================================= */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db; /* gray-300 */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af; /* gray-400 */
+}
+
+/* Dark mode overrides */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #374151; /* gray-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #4b5563; /* gray-600 */
+}
+
+
 :root {
   --bb-color-bg: #f7f3ef;
   --bb-color-surface: #ffffff;

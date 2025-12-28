@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Trace-Id", "X-BB-Session"],
     )
 
     app.add_exception_handler(AppError, app_error_handler)

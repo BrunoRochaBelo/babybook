@@ -167,11 +167,11 @@ async def oauth_authorize_post(provider: str, action: str = Form(...), state: st
     state_val = _sanitize_frontend_path(state, fallback="/")
     if action != "authorize":
         # Denied -> redirect back to frontend
-        return RedirectResponse(url=f"{settings.frontend_url}{state_val}")
+        return RedirectResponse(url=f"{settings.frontend_url}{state_val}", status_code=303)
 
     # Encode state to keep the callback URL well-formed
     state_q = quote(state_val, safe="")
-    return RedirectResponse(url=f"/auth/{provider}/callback?code=mock&state={state_q}")
+    return RedirectResponse(url=f"/auth/{provider}/callback?code=mock&state={state_q}", status_code=303)
 
 
 @router.get("/{provider}/callback", summary="OAuth callback (dev mock)")

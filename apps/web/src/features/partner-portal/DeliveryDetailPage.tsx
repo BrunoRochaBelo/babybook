@@ -39,8 +39,8 @@ import {
 import { PartnerPage } from "@/layouts/PartnerPage";
 import {
   PartnerErrorState,
-  PartnerLoadingState,
 } from "@/layouts/partnerStates";
+import { DeliveryDetailLoadingSkeleton } from "./components/DeliveryDetailLoadingSkeleton";
 import { getPartnerDeliveryStatusMeta } from "./deliveryStatus";
 
 import { useTranslation, useLanguage } from "@babybook/i18n";
@@ -66,13 +66,12 @@ function formatDateTime(dateString: string, locale: string): string {
 function safeHtml(html: string) {
   return {
     __html: html
-      .replace(/<bold>/g, '<strong class="font-medium text-gray-900 dark:text-white">')
+      .replace(
+        /<bold>/g,
+        '<strong class="font-medium text-gray-900 dark:text-white">',
+      )
       .replace(/<\/bold>/g, "</strong>"),
   };
-}
-
-function getStatusLabel(status: DeliveryStatus): string {
-  return getPartnerDeliveryStatusMeta(status).label;
 }
 
 function StatusBadge({ status }: { status: DeliveryStatus }) {
@@ -169,6 +168,57 @@ export function DeliveryDetailPage() {
     enabled: !!deliveryId,
   });
 
+  const hasVoucher = Boolean(delivery?.voucher_code);
+  const canGenerateVoucher = Boolean(
+    delivery && delivery.assets_count > 0 && !hasVoucher,
+  );
+
+  // Deep-link UX: permite abrir o modal de voucher ao navegar a partir da prévia.
+  // Precisa ficar antes dos early returns para respeitar as regras de hooks.
+  useEffect(() => {
+    if (autoOpenVoucherHandledRef.current) return;
+    if (isLoading || error || !delivery) return;
+
+    const params = new URLSearchParams(location.search);
+    const shouldOpen = params.get("openVoucher") === "1";
+    if (!shouldOpen) return;
+
+    // Evita reabrir em refresh/back: removemos o parâmetro sempre que ele existir.
+    params.delete("openVoucher");
+    const nextSearch = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
+      { replace: true },
+    );
+
+    autoOpenVoucherHandledRef.current = true;
+
+    // Se já existe voucher, abrimos direto o cartão.
+    // Se não existe mas dá para gerar, abrimos o fluxo de geração.
+    if (hasVoucher || canGenerateVoucher) {
+      setShowVoucherModal(true);
+      return;
+    }
+
+    // Edge-case: pedido para abrir voucher, mas não há arquivos nem voucher.
+    // Mantemos feedback discreto e orientamos o próximo passo.
+    setCopiedMessage(t("partner.voucher.clipboardWarning"));
+  }, [
+    autoOpenVoucherHandledRef,
+    canGenerateVoucher,
+    delivery,
+    error,
+    hasVoucher,
+    isLoading,
+    location.pathname,
+    location.search,
+    navigate,
+    t,
+  ]);
+
   usePartnerPageHeader(
     useMemo(() => {
       if (!deliveryId) return null;
@@ -245,7 +295,7 @@ export function DeliveryDetailPage() {
   });
 
   if (isLoading) {
-    return <PartnerLoadingState label={t("partner.upload.loading")} />;
+    return <DeliveryDetailLoadingSkeleton />;
   }
 
   if (error || !delivery) {
@@ -260,50 +310,7 @@ export function DeliveryDetailPage() {
     );
   }
 
-  const hasVoucher = !!delivery.voucher_code;
-
-  const canGenerateVoucher = delivery.assets_count > 0 && !hasVoucher;
   const canUploadAssets = !hasVoucher;
-
-  // Deep-link UX: permite abrir o modal de voucher ao navegar a partir da prévia.
-  useEffect(() => {
-    if (autoOpenVoucherHandledRef.current) return;
-
-    const params = new URLSearchParams(location.search);
-    const shouldOpen = params.get("openVoucher") === "1";
-    if (!shouldOpen) return;
-
-    // Evita reabrir em refresh/back: removemos o parâmetro sempre que ele existir.
-    params.delete("openVoucher");
-    const nextSearch = params.toString();
-    navigate(
-      {
-        pathname: location.pathname,
-        search: nextSearch ? `?${nextSearch}` : "",
-      },
-      { replace: true },
-    );
-
-    autoOpenVoucherHandledRef.current = true;
-
-    // Se já existe voucher, abrimos direto o cartão.
-    // Se não existe mas dá para gerar, abrimos o fluxo de geração.
-    if (hasVoucher || canGenerateVoucher) {
-      setShowVoucherModal(true);
-      return;
-    }
-
-    // Edge-case: pedido para abrir voucher, mas não há arquivos nem voucher.
-    // Mantemos feedback discreto e orientamos o próximo passo.
-    setCopiedMessage(t("partner.voucher.clipboardWarning"));
-  }, [
-    canGenerateVoucher,
-    hasVoucher,
-    location.pathname,
-    location.search,
-    navigate,
-    t,
-  ]);
 
   // Nota de UX: evitamos repetir informações/ações do voucher em múltiplos lugares.
   // Tudo relacionado a voucher fica concentrado na seção "Voucher".
@@ -331,7 +338,8 @@ export function DeliveryDetailPage() {
                 {" • "}
               </>
             ) : null}
-            {t("partner.details.created")} {formatDate(delivery.created_at, language)}
+            {t("partner.details.created")}{" "}
+            {formatDate(delivery.created_at, language)}
           </p>
         </div>
 
@@ -339,7 +347,9 @@ export function DeliveryDetailPage() {
         <div className="hidden md:block mb-6">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {delivery.title || delivery.client_name || t("partner.details.title")}
+              {delivery.title ||
+                delivery.client_name ||
+                t("partner.details.title")}
             </h1>
             <StatusBadge status={delivery.status} />
           </div>
@@ -372,7 +382,7 @@ export function DeliveryDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {t("partner.voucher.label")}
                 </p>
                 {hasVoucher ? (
@@ -393,7 +403,9 @@ export function DeliveryDetailPage() {
                   </p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     {delivery.redeemed_at
-                      ? t("partner.voucher.redeemedAt", { date: formatDateTime(delivery.redeemed_at, language) })
+                      ? t("partner.voucher.redeemedAt", {
+                          date: formatDateTime(delivery.redeemed_at, language),
+                        })
                       : t("partner.voucher.notRedeemed")}
                   </p>
                 </>
@@ -423,7 +435,9 @@ export function DeliveryDetailPage() {
                       if (!delivery.voucher_code) return;
                       const ok = await copyToClipboard(delivery.voucher_code);
                       setCopiedMessage(
-                        ok ? t("partner.voucher.copied") : t("partner.voucher.copyFailed"),
+                        ok
+                          ? t("partner.voucher.copied")
+                          : t("partner.voucher.copyFailed"),
                       );
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
@@ -480,7 +494,9 @@ export function DeliveryDetailPage() {
             )}
             {delivery.description && (
               <div className="text-gray-600 dark:text-gray-300">
-                <span className="text-gray-400">{t("partner.details.description")}:</span>{" "}
+                <span className="text-gray-400">
+                  {t("partner.details.description")}:
+                </span>{" "}
                 {delivery.description}
               </div>
             )}
@@ -731,7 +747,9 @@ function VoucherModal({
                     type="text"
                     value={beneficiaryName}
                     onChange={(e) => setBeneficiaryName(e.target.value)}
-                    placeholder={t("partner.voucher.modal.beneficiaryPlaceholder")}
+                    placeholder={t(
+                      "partner.voucher.modal.beneficiaryPlaceholder",
+                    )}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>

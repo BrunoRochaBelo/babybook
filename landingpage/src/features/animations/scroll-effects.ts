@@ -194,15 +194,6 @@ export const setupHorizontalScroll = () => {
     return targetMoveAmount;
   };
 
-  const jumpToIndex = (index: number) => {
-    if (!slides[index]) return;
-    const moveAmount = getTargetMoveAmount(index);
-    track.style.transition = "";
-    track.style.transform = `translateX(-${moveAmount}px)`;
-    isSnapping = false;
-    updateSlidesScale();
-  };
-
   function updateSlidesScale() {
     if (!slides.length) return;
     let closestIndex = 0;

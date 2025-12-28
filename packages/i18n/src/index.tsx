@@ -1,5 +1,15 @@
-import { PropsWithChildren, useEffect, useCallback, createContext, useContext, useState } from "react";
-import { I18nextProvider, useTranslation as useI18nextTranslation } from "react-i18next";
+import {
+  PropsWithChildren,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+  useState,
+} from "react";
+import {
+  I18nextProvider,
+  useTranslation as useI18nextTranslation,
+} from "react-i18next";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import ptBR from "./locales/pt-BR.json";
@@ -33,7 +43,10 @@ function detectBrowserLanguage(): SupportedLanguage {
   }
 
   // Detectar do navegador
-  const browserLang = navigator.language || (navigator as any).userLanguage;
+  // Alguns navegadores/ambientes legados expõem `userLanguage`.
+  // Tipamos de forma segura para evitar `any`.
+  const nav = navigator as Navigator & { userLanguage?: string };
+  const browserLang = navigator.language || nav.userLanguage;
 
   if (browserLang?.startsWith("pt")) {
     return "pt-BR";
@@ -56,26 +69,24 @@ function ensureInit() {
 
   const detectedLanguage = detectBrowserLanguage();
 
-  i18next
-    .use(initReactI18next)
-    .init({
-      lng: detectedLanguage,
-      fallbackLng: "pt-BR",
-      resources: {
-        "pt-BR": {
-          translation: ptBR,
-        },
-        "en-US": {
-          translation: enUS,
-        },
+  i18next.use(initReactI18next).init({
+    lng: detectedLanguage,
+    fallbackLng: "pt-BR",
+    resources: {
+      "pt-BR": {
+        translation: ptBR,
       },
-      interpolation: {
-        escapeValue: false, // React já escapa por padrão
+      "en-US": {
+        translation: enUS,
       },
-      react: {
-        useSuspense: false,
-      },
-    });
+    },
+    interpolation: {
+      escapeValue: false, // React já escapa por padrão
+    },
+    react: {
+      useSuspense: false,
+    },
+  });
 
   initialized = true;
 }
@@ -96,7 +107,9 @@ export function I18nProvider({ children }: PropsWithChildren) {
     ensureInit();
   }
 
-  const [language, setLanguageState] = useState<SupportedLanguage>(() => detectBrowserLanguage());
+  const [language, setLanguageState] = useState<SupportedLanguage>(() =>
+    detectBrowserLanguage(),
+  );
 
   // useEffect(() => {
   //   ensureInit();

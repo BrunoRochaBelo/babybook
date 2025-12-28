@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.db.models import Session, User
 from babybook_api.errors import AppError
 from babybook_api.security import (
@@ -15,8 +16,7 @@ from babybook_api.security import (
     verify_password,
 )
 from babybook_api.settings import settings
-
-SESSION_COOKIE_NAME = "__Host-session"
+from babybook_api.time import utcnow
 
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
@@ -41,9 +41,9 @@ async def create_session(
     token = new_session_token()
     # Se remember_me, sessão dura 30 dias; senão, usa o padrão
     if remember_me:
-        expires_at = datetime.utcnow() + timedelta(days=30)
+        expires_at = utcnow() + timedelta(days=30)
     else:
-        expires_at = datetime.utcnow() + timedelta(hours=settings.session_ttl_hours)
+        expires_at = utcnow() + timedelta(hours=settings.session_ttl_hours)
 
     session = Session(
         account_id=user.account_id,
@@ -60,13 +60,22 @@ async def create_session(
 
 
 async def revoke_session(db: AsyncSession, session: Session) -> None:
-    session.revoked_at = datetime.utcnow()
+    session.revoked_at = utcnow()
     await db.flush()
 
 
 def apply_session_cookie(response: Response, token: str, remember_me: bool = False) -> None:
     # Se remember_me, cookie dura 30 dias; senão, usa o padrão
     max_age = 30 * 24 * 3600 if remember_me else settings.session_ttl_hours * 3600
+
+    # Dev/E2E helper:
+    # Em alguns cenários (ex.: SPA e API em portas diferentes) navegadores podem
+    # bloquear o envio de cookies em fetch() mesmo com credentials.
+    # Para manter o fluxo funcionando em ambiente local, também expomos o token
+    # em um header que o frontend pode reutilizar via `X-BB-Session`.
+    if settings.app_env == "local":
+        response.headers["X-BB-Session"] = token
+
     response.set_cookie(
         SESSION_COOKIE_NAME,
         token,

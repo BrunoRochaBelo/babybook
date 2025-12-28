@@ -11,13 +11,12 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import {
   Plus,
   Search,
   Filter,
-  Image,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -26,8 +25,6 @@ import {
   CheckCircle2,
   Ticket,
   Gift,
-  Archive,
-  ArchiveRestore,
   Eye,
   Upload,
   X,
@@ -36,7 +33,6 @@ import { listDeliveries, archiveDelivery } from "./api";
 import type { Delivery, DeliveryAggregations, DeliveryStatus } from "./types";
 import {
   getPartnerDeliveryDisplayStatus,
-  getPartnerDeliveryStatusMeta,
   isPartnerDeliveryArchived,
 } from "./deliveryStatus";
 import { CreditStatusBadge } from "./creditStatus";

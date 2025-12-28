@@ -23,6 +23,17 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Alembic cria `alembic_version.version_num` como VARCHAR(32) por padrão.
+    # Como nossos revision IDs são descritivos e podem ultrapassar 32 chars
+    # (ex.: "0009_delivery_list_filter_indexes"), precisamos aumentar o tamanho.
+    op.alter_column(
+        "alembic_version",
+        "version_num",
+        existing_type=sa.String(length=32),
+        type_=sa.String(length=255),
+        existing_nullable=False,
+    )
+
     op.create_index(
         "ix_deliveries_partner_generated_voucher_code",
         "deliveries",

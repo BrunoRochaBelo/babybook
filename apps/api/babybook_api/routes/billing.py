@@ -130,20 +130,26 @@ async def mock_complete(payload: MockCompleteRequest, db: AsyncSession = Depends
     account_uuid = uuid.UUID(payload.account_id)
     account = await _get_account(db, account_uuid)
     _apply_entitlement(account, payload.package_key)
-    db.add(
-        BillingEvent(
-            account_id=account_uuid,
-            event_id=f"mock-{payload.package_key}",
-            package_key=payload.package_key,
-            amount=None,
-            amount_gross=None,
-            gateway_fee=None,
-            pce_reserved=None,
-            tax_effective=None,
-            currency=None,
-            payload={},
+
+    # Idempotency: E2E/dev may call this endpoint multiple times.
+    # Use a per-account event id and avoid inserting duplicates.
+    event_id = f"mock-{account_uuid}-{payload.package_key}"
+    stmt = select(BillingEvent).where(BillingEvent.event_id == event_id)
+    if (await db.execute(stmt)).scalar_one_or_none() is None:
+        db.add(
+            BillingEvent(
+                account_id=account_uuid,
+                event_id=event_id,
+                package_key=payload.package_key,
+                amount=None,
+                amount_gross=None,
+                gateway_fee=None,
+                pce_reserved=None,
+                tax_effective=None,
+                currency=None,
+                payload={},
+            )
         )
-    )
     await db.flush()
     await db.commit()
     return {"status": "ok"}

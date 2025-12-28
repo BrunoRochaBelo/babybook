@@ -1,4 +1,4 @@
-import { useLanguage, type SupportedLanguage, type LanguageOption } from "@babybook/i18n";
+import { useLanguage, type LanguageOption } from "@babybook/i18n";
 import { ChevronDown, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -7,17 +7,24 @@ interface LanguageSelectorProps {
   className?: string;
 }
 
-export function LanguageSelector({ variant = "full", className = "" }: LanguageSelectorProps) {
+export function LanguageSelector({
+  variant = "full",
+  className = "",
+}: LanguageSelectorProps) {
   const { language, setLanguage, languages } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentLanguage = languages.find((l) => l.code === language) ?? languages[0];
+  const currentLanguage =
+    languages.find((l) => l.code === language) ?? languages[0];
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -98,7 +105,9 @@ export function LanguageSelector({ variant = "full", className = "" }: LanguageS
         aria-haspopup="listbox"
       >
         <span className="text-base">{currentLanguage.flag}</span>
-        <span className="text-slate-700 dark:text-slate-300">{currentLanguage.name}</span>
+        <span className="text-slate-700 dark:text-slate-300">
+          {currentLanguage.name}
+        </span>
         <ChevronDown
           className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
@@ -133,7 +142,11 @@ export function LanguageSelector({ variant = "full", className = "" }: LanguageS
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               )}
             </button>

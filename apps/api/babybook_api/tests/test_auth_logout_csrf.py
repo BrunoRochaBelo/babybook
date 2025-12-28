@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.tests.conftest import DEFAULT_EMAIL, DEFAULT_PASSWORD
 
 
@@ -11,7 +12,7 @@ def test_logout_requires_csrf_header(client: TestClient) -> None:
         json={"email": DEFAULT_EMAIL, "password": DEFAULT_PASSWORD, "csrf_token": csrf},
     )
     assert resp.status_code == 204
-    assert "__Host-session" in client.cookies
+    assert SESSION_COOKIE_NAME in client.cookies
 
     # Sem header -> deve bloquear (proteção contra CSRF-based logout)
     resp = client.post("/auth/logout")

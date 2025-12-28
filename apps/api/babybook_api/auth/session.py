@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 
 from fastapi import Cookie, Depends, Header
 from sqlalchemy import select
@@ -9,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette import status
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.db.models import Session as SessionModel
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.time import is_expired
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,7 @@ class UserSession:
 
 
 async def _get_session_token(
-    cookie_token: str | None = Cookie(default=None, alias="__Host-session"),
+    cookie_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
     header_token: str | None = Header(default=None, alias="X-BB-Session"),
 ) -> str | None:
     return cookie_token or header_token
@@ -41,7 +42,7 @@ async def _fetch_session(db: AsyncSession, token: str | None) -> SessionModel:
     if (
         not session
         or session.revoked_at is not None
-        or session.expires_at < datetime.utcnow()
+        or is_expired(session.expires_at)
     ):
         raise AppError(status_code=401, code="auth.session.invalid", message="Sessao expirada.")
 

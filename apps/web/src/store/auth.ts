@@ -7,10 +7,12 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   csrfToken: string | null;
+  sessionToken: string | null;
   login: (user: UserProfile) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
   setCsrfToken: (token: string | null) => void;
+  setSessionToken: (token: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       csrfToken: null,
+      sessionToken: null,
 
       login: (user: UserProfile) =>
         set({
@@ -32,11 +35,14 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
           csrfToken: null,
+          sessionToken: null,
         }),
 
       setLoading: (loading: boolean) => set({ isLoading: loading }),
 
       setCsrfToken: (token: string | null) => set({ csrfToken: token }),
+
+      setSessionToken: (token: string | null) => set({ sessionToken: token }),
     }),
     {
       name: "babybook-auth",
@@ -44,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         csrfToken: state.csrfToken,
+        sessionToken: state.sessionToken,
       }),
     },
   ),

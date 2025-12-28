@@ -33,6 +33,24 @@ const buildBaseCandidates = () => {
 
 const API_BASES = buildBaseCandidates();
 
+const getPersistedSessionToken = (): string | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem("babybook-auth");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      state?: { sessionToken?: unknown };
+    };
+    const token = parsed?.state?.sessionToken;
+    return typeof token === "string" && token ? token : null;
+  } catch {
+    return null;
+  }
+};
+
 type SearchParams = Record<
   string,
   string | number | boolean | undefined | null
@@ -100,10 +118,38 @@ const parseErrorPayload = (payload: unknown): ApiErrorPayload | undefined => {
   return parsed.success ? parsed.data : undefined;
 };
 
-const handleErrorRedirects = (status: number, code?: string) => {
+const handleErrorRedirects = (
+  status: number,
+  code?: string,
+  requestPath?: string,
+) => {
   if (status === 401) {
     const currentPath = window.location.pathname;
-    if (!currentPath.includes("/login") && !currentPath.includes("/auth")) {
+
+    // O bootstrap do app (useUserProfile -> /me) roda em praticamente todas as telas.
+    // Quando não há sessão, 401 aqui é esperado e NÃO deve disparar redirect imperativo,
+    // senão criamos loops com `RequireAuth`/`LoginPage` (ex.: /checkout <-> /login).
+    if (requestPath?.startsWith("/me")) {
+      return;
+    }
+
+    // Rotas públicas onde 401 é esperado (ex.: bootstrap do perfil) e NÃO deve
+    // forçar redirecionamento para /login.
+    const isPublicAuthPage = [
+      "/login",
+      "/register",
+      "/forgot-password",
+      "/pro/login",
+      "/pro/register",
+    ].some(
+      (path) => currentPath === path || currentPath.startsWith(`${path}/`),
+    );
+
+    if (
+      !isPublicAuthPage &&
+      !currentPath.includes("/login") &&
+      !currentPath.includes("/auth")
+    ) {
       window.location.assign(
         `/login?redirectTo=${encodeURIComponent(currentPath)}`,
       );
@@ -124,6 +170,23 @@ async function doFetch<T>(
   const headers: Record<string, string> = {
     ...(options.headers ?? {}),
   };
+
+  // Fallback de autenticação (dev/E2E): alguns navegadores podem não enviar
+  // cookies em fetch cross-origin (mesmo host, porta diferente). O backend
+  // aceita `X-BB-Session` como alternativa ao cookie HttpOnly.
+  if (!headers["X-BB-Session"]) {
+    let sessionToken = useAuthStore.getState().sessionToken;
+    if (!sessionToken) {
+      sessionToken = getPersistedSessionToken();
+      if (sessionToken) {
+        // Deixa o store consistente para as próximas requisições.
+        useAuthStore.getState().setSessionToken(sessionToken);
+      }
+    }
+    if (sessionToken) {
+      headers["X-BB-Session"] = sessionToken;
+    }
+  }
 
   // Proteção CSRF para sessão baseada em cookie:
   // envia token fora do cookie em métodos mutáveis.
@@ -150,6 +213,13 @@ async function doFetch<T>(
     credentials: "include",
   });
 
+  // Dev/E2E helper: backend pode retornar o token de sessão em header para
+  // permitir persistência em localStorage quando cookies não são enviados.
+  const sessionHeader = response.headers.get("X-BB-Session") ?? undefined;
+  if (sessionHeader) {
+    useAuthStore.getState().setSessionToken(sessionHeader);
+  }
+
   const traceId = response.headers.get("X-Trace-Id") ?? undefined;
   const hasBody = response.status !== 204;
   let payload: unknown;
@@ -165,7 +235,7 @@ async function doFetch<T>(
   if (!response.ok) {
     const errorPayload = parseErrorPayload(payload);
     const code = errorPayload?.error.code;
-    handleErrorRedirects(response.status, code);
+    handleErrorRedirects(response.status, code, path);
     throw new ApiError({
       status: response.status,
       message: errorPayload?.error.message ?? "Request failed",

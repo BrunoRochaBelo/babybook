@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
+
 
 @pytest.mark.parametrize("provider", ["google", "microsoft", "apple"])
 def test_oauth_dev_authorize_creates_session_and_redirects(client: TestClient, provider: str) -> None:
@@ -26,7 +28,7 @@ def test_oauth_dev_authorize_creates_session_and_redirects(client: TestClient, p
     # Now call the callback result; for test client we'll call the callback directly
     callback_resp = client.get(location, follow_redirects=False)
     assert callback_resp.status_code in (302, 307)
-    assert "__Host-session" in client.cookies
+    assert SESSION_COOKIE_NAME in client.cookies
     me = client.get("/me/")
     assert me.status_code == 200
     assert provider in me.json()["email"]

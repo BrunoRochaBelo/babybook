@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.db.models import User, Account
 from babybook_api.tests.conftest import TestingSessionLocal
 
@@ -15,7 +16,7 @@ def test_register_creates_user_and_session(client: TestClient) -> None:
     resp = client.post("/auth/register", json={"email": "newuser@example.com", "password": "secret123", "csrf_token": csrf, "name": "New User"})
     assert resp.status_code == 201
     # Session cookie set
-    assert "__Host-session" in client.cookies
+    assert SESSION_COOKIE_NAME in client.cookies
 
     # user created in db
     async def _find_user():

@@ -1,5 +1,4 @@
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -13,13 +12,9 @@ engine = create_async_engine(settings.database_url, echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
-@asynccontextmanager
 async def get_db_session() -> AsyncIterator[AsyncSession]:
-    session = AsyncSessionLocal()
-    try:
+    async with AsyncSessionLocal() as session:
         yield session
-    finally:
-        await session.close()
 
 
 # Compat: alguns routers mais antigos importam `get_db`.
