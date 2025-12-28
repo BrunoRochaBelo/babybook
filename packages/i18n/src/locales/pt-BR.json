@@ -241,6 +241,8 @@
         "payWithPix": "Pagar via PIX",
         "payWithCard": "Pagar com Cartão",
         "totalToPay": "Total a pagar",
+        "orderSummary": "Resumo do Pedido",
+        "continue": "Continuar Compra",
         "secureCheckout": "🔒 Você será redirecionado para o checkout seguro (Stripe) para completar o pagamento.",
         "howItWorks": "ℹ️ Como funcionam os créditos?",
         "savingsVsCard": "Economia de {{value}} vs cartão",

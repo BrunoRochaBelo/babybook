@@ -242,6 +242,8 @@
         "payWithPix": "Pay with PIX",
         "payWithCard": "Pay with Card",
         "totalToPay": "Total to pay",
+        "orderSummary": "Order Summary",
+        "continue": "Continue to Payment",
         "secureCheckout": "🔒 You will be redirected to secure checkout (Stripe) to complete payment.",
         "howItWorks": "ℹ️ How credits work?",
         "savingsVsCard": "Save {{value}} vs card",

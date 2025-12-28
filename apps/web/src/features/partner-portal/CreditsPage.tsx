@@ -15,7 +15,10 @@ import {
   Star,
   AlertCircle,
   Info,
-  Lightbulb,
+  Wallet,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 import {
   getPartnerProfile,
@@ -26,9 +29,7 @@ import {
 import type { CreditPackage, CreditPaymentMethod } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import {
-  PartnerErrorState,
-} from "@/layouts/partnerStates";
+import { PartnerErrorState } from "@/layouts/partnerStates";
 import { CreditsSkeleton } from "./components/CreditsSkeleton";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { useTranslation, useLanguage } from "@babybook/i18n";
@@ -120,17 +121,6 @@ export function CreditsPage() {
     },
   });
 
-  // Tratamento de erro de carregamento
-  if (isError) {
-    return (
-      <PartnerErrorState
-        title="Não foi possível carregar os pacotes"
-        onRetry={refetch}
-        skeleton={<CreditsSkeleton />}
-      />
-    );
-  }
-
   const handlePurchase = () => {
     if (!selectedPackage) return;
     setError(null);
@@ -157,268 +147,392 @@ export function CreditsPage() {
       : totals.card
     : 0;
 
+  // Tratamento de erro de carregamento
+  if (isError) {
+    return (
+      <PartnerErrorState
+        title="Não foi possível carregar os pacotes"
+        onRetry={refetch}
+        skeleton={<CreditsSkeleton />}
+      />
+    );
+  }
+
   if (loadingPackages) {
     return <CreditsSkeleton />;
   }
 
   return (
     <PartnerPage>
-      {/* Desktop Header */}
-      <div className="hidden md:block mb-8">
-        <PartnerBackButton
-          to="/partner"
-          label={t("partner.deliveries.list.backToPortal")}
-        />
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          {t("partner.credits.purchase.buyCredits")}
-        </h1>
-        <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
-          {t("partner.credits.subtitle")}
-        </p>
-      </div>
-
-      {/* Mobile summary - botão voltar via header sticky */}
-      <div className="md:hidden mb-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {t("partner.credits.subtitle")}
-        </p>
-      </div>
-      {/* Current Balance - Destaque especial (consistente com Dashboard) */}
-      <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-4 sm:p-6 text-white shadow-lg hover:shadow-xl transition-shadow mb-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-pink-100 text-xs sm:text-sm font-medium uppercase tracking-wide">
-                Seus Créditos
-              </p>
-              {(stats?.voucher_balance ?? 0) <= 2 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 text-white border border-white/20">
-                  Saldo baixo
-                </span>
-              )}
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
-                <div className="flex items-center gap-1">
-                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    {t("partner.credits.available")}
-                  </p>
-                  <span
-                    className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                    title={t("partner.credits.availableTooltip")}
-                  >
-                    <Info className="w-3 h-3" />
-                  </span>
-                </div>
-                <p className="text-2xl font-bold leading-tight">
-                  {stats?.voucher_balance ?? profile?.voucher_balance ?? 0}
-                </p>
-                <p className="text-[11px] text-pink-100">
-                  {t("partner.credits.ready", {
-                    count: stats?.voucher_balance ?? 0,
-                  })}
-                </p>
-              </div>
-              <div className="rounded-xl bg-white/15 border border-white/20 px-3 py-2 group">
-                <div className="flex items-center gap-1">
-                  <p className="text-[11px] uppercase tracking-wide text-pink-100">
-                    {t("partner.credits.reserved")}
-                  </p>
-                  <span
-                    className="opacity-60 group-hover:opacity-100 transition-opacity cursor-help"
-                    title={t("partner.credits.reservedTooltip")}
-                  >
-                    <Info className="w-3 h-3" />
-                  </span>
-                </div>
-                <p className="text-2xl font-bold leading-tight">
-                  {stats?.reserved_credits ?? 0}
-                </p>
-                <p className="text-[11px] text-pink-100">
-                  {t("partner.credits.waitingRedemption")}
-                </p>
-              </div>
-            </div>
-            <p className="text-pink-100/80 text-xs mt-3 hidden sm:flex items-center gap-1.5">
-              <Lightbulb className="w-3.5 h-3.5" />
-              {t("partner.credits.info.consumed")}
-            </p>
-          </div>
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 hidden sm:flex">
-            <CreditCard className="w-8 h-8 text-white" />
-          </div>
-        </div>
-      </div>
-
-      {/* Package Selection */}
-      <div className="space-y-4 mb-8 animate-in fade-in-0 slide-in-from-bottom-3 duration-500 delay-100">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          {t("partner.credits.purchase.selectPackage")}
-        </h2>
-
-        <div className="grid gap-4">
-          {packages?.map((pkg) => (
-            <PackageCard
-              key={pkg.id}
-              package={pkg}
-              paymentMethod={paymentMethod}
-              onPaymentMethodChange={setPaymentMethod}
-              selected={selectedPackage === pkg.id}
-              onSelect={() => setSelectedPackage(pkg.id)}
+      <div className="pb-60 lg:pb-12">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="hidden md:block">
+            <PartnerBackButton
+              to="/partner"
+              label={t("partner.deliveries.list.backToPortal")}
             />
-          ))}
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {t("partner.credits.purchase.buyCredits")}
+          </h1>
+          <p className="text-base text-gray-500 dark:text-gray-400 mt-2 max-w-2xl">
+            {t("partner.credits.subtitle")}
+          </p>
         </div>
-      </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>{error}</p>
-        </div>
-      )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Left Column: Wallet & Packages */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* New Wallet Card Design */}
+            <WalletCard
+              available={stats?.voucher_balance ?? profile?.voucher_balance ?? 0}
+              reserved={stats?.reserved_credits ?? 0}
+            />
 
-      {/* Checkout Card - Visual destacado (bottom-24 para ficar acima da navbar) */}
-      <div className="sticky bottom-24 z-30 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-700 dark:to-gray-600 rounded-2xl p-5 sm:p-6 shadow-2xl border border-gray-700/50 dark:border-gray-500/50 ring-1 ring-white/10 dark:ring-white/20">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-pink-500/20 dark:bg-pink-500/30 flex items-center justify-center">
-                  {paymentMethod === "pix" ? (
-                    <QrCode className="w-4 h-4 text-pink-400 dark:text-pink-300" />
-                  ) : (
-                    <CreditCard className="w-4 h-4 text-pink-400 dark:text-pink-300" />
-                  )}
-                </div>
-                <p className="text-sm font-medium text-gray-400 dark:text-gray-200 uppercase tracking-wide">
-                  {t("partner.credits.purchase.totalToPay")}
-                </p>
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <p>{error}</p>
               </div>
-              <p className="text-3xl sm:text-4xl font-bold text-white">
-                {selectedPkg ? formatCurrency(selectedTotalCents) : "R$ --"}
-              </p>
-              {selectedPkg && totals && (
-                <div className="mt-2 space-y-1">
-                  {paymentMethod === "pix" ? (
-                    <p className="text-sm text-green-400 dark:text-green-300 flex items-center gap-1.5">
-                      <Check className="w-4 h-4" />
-                      {t("partner.credits.purchase.savingsVsCard", {
-                        value: formatCurrency(totals.card - totals.pix),
-                      })}
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-sm text-gray-300 dark:text-gray-100">
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: t(
-                              "partner.credits.purchase.installmentsInfo",
-                              {
-                                count: MAX_INSTALLMENTS_NO_INTEREST,
-                                value: formatCurrency(
-                                  approxInstallmentCents(
-                                    totals.card,
-                                    MAX_INSTALLMENTS_NO_INTEREST,
-                                  ),
-                                ),
-                              },
-                            )
-                              .replace(
-                                "<bold>",
-                                '<span class="font-semibold text-white">',
-                              )
-                              .replace("</bold>", "</span>"),
-                          }}
-                        />
-                      </p>
-                      <p className="text-sm text-green-400 dark:text-green-300">
-                        {t("partner.credits.purchase.pixInfo", {
-                          value: formatCurrency(totals.pix),
-                          savings: formatCurrency(totals.card - totals.pix),
-                        })}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-              {!selectedPkg && (
-                <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                  {t("partner.credits.purchase.selectToContinue")}
+            )}
+
+            {/* Package Selection */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-500" />
+                {t("partner.credits.purchase.selectPackage")}
+              </h2>
+
+              <div className="grid gap-4">
+                {packages?.map((pkg) => (
+                  <PackageCard
+                    key={pkg.id}
+                    package={pkg}
+                    paymentMethod={paymentMethod}
+                    onPaymentMethodChange={setPaymentMethod}
+                    selected={selectedPackage === pkg.id}
+                    onSelect={() => setSelectedPackage(pkg.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Info Section (Moved from bottom) */}
+            <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
+              <h3 className="flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-200 mb-4">
+                <Info className="w-5 h-5" />
+                {t("partner.credits.purchase.howItWorks")}
+              </h3>
+              <ul className="grid gap-3 text-sm text-blue-800 dark:text-blue-300">
+                <li className="flex gap-2">
+                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t("partner.credits.purchase.info.reserved").replace(
+                        "RESERVED",
+                        "<strong>RESERVED</strong>",
+                      ),
+                    }}
+                  />
+                </li>
+                <li className="flex gap-2">
+                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t("partner.credits.purchase.info.consumed")
+                        .replace("CONSUMED", "<strong>CONSUMED</strong>")
+                        .replace("REFUNDED", "<strong>REFUNDED</strong>"),
+                    }}
+                  />
+                </li>
+                <li className="flex gap-2">
+                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                  {t("partner.credits.purchase.info.unique")}
+                </li>
+                <li className="flex gap-2">
+                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                  {t("partner.credits.purchase.info.expiration")}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Right Column: Order Summary (Sticky) */}
+          <div className="hidden lg:block lg:col-span-1 sticky top-24">
+            <OrderSummaryCard
+              selectedPkg={selectedPkg}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              totalCents={selectedTotalCents}
+              totals={totals}
+              onPurchase={handlePurchase}
+              isProcessing={purchaseMutation.isPending}
+              formatCurrency={formatCurrency}
+            />
+          </div>
+        </div>
+
+        {/* Mobile Fixed Order Summary */}
+        <div className="lg:hidden fixed bottom-24 left-4 right-4 z-40 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Total
                 </p>
-              )}
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {selectedPkg ? formatCurrency(selectedTotalCents) : "R$ --"}
+                </p>
+                {selectedPkg && totals && paymentMethod === "pix" && (
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                    {t("partner.credits.purchase.savingsVsCard", {
+                      value: formatCurrency(totals.card - totals.pix),
+                    })}
+                  </p>
+                )}
+              </div>
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                <button
+                  onClick={() => setPaymentMethod("pix")}
+                  className={`p-2 rounded-md transition-all ${
+                    paymentMethod === "pix"
+                      ? "bg-white dark:bg-gray-700 shadow-sm text-pink-600 dark:text-pink-400"
+                      : "text-gray-400"
+                  }`}
+                >
+                  <QrCode className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setPaymentMethod("card")}
+                  className={`p-2 rounded-md transition-all ${
+                    paymentMethod === "card"
+                      ? "bg-white dark:bg-gray-700 shadow-sm text-pink-600 dark:text-pink-400"
+                      : "text-gray-400"
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <button
               onClick={handlePurchase}
               disabled={!selectedPackage || purchaseMutation.isPending}
-              title={
-                !selectedPackage
-                  ? t("partner.credits.purchase.selectPackage")
-                  : undefined
-              }
-              className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base transition-all shadow-lg ${
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-white shadow-lg transition-all active:scale-[0.98] ${
                 selectedPackage
-                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                  : "bg-gray-700 dark:bg-gray-500 text-gray-400 dark:text-gray-300 cursor-not-allowed"
+                  ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-pink-500/25"
+                  : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
               }`}
             >
               {purchaseMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {t("partner.credits.purchase.processing")}
-                </>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {paymentMethod === "pix" ? (
-                    <QrCode className="w-5 h-5" />
-                  ) : (
-                    <CreditCard className="w-5 h-5" />
-                  )}
-                  {paymentMethod === "pix"
-                    ? t("partner.credits.purchase.payWithPix")
-                    : t("partner.credits.purchase.payWithCard")}
+                  {t("partner.credits.purchase.buyCredits")}
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-300 mt-4 text-center sm:text-left">
-            {t("partner.credits.purchase.secureCheckout")}
-          </p>
         </div>
       </div>
-
-      {/* Info Section */}
-      <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
-        <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
-          {t("partner.credits.purchase.howItWorks")}
-        </h3>
-        <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-          <li>
-            •{" "}
-            <span
-              dangerouslySetInnerHTML={{
-                __html: t("partner.credits.purchase.info.reserved").replace(
-                  "RESERVED",
-                  "<strong>RESERVED</strong>",
-                ),
-              }}
-            />
-          </li>
-          <li>
-            •{" "}
-            <span
-              dangerouslySetInnerHTML={{
-                __html: t("partner.credits.purchase.info.consumed")
-                  .replace("CONSUMED", "<strong>CONSUMED</strong>")
-                  .replace("REFUNDED", "<strong>REFUNDED</strong>"),
-              }}
-            />
-          </li>
-          <li>• {t("partner.credits.purchase.info.unique")}</li>
-          <li>• {t("partner.credits.purchase.info.expiration")}</li>
-        </ul>
-      </div>
     </PartnerPage>
+  );
+}
+
+// =============================================================================
+// Wallet Card Component
+// =============================================================================
+function WalletCard({
+  available,
+  reserved,
+}: {
+  available: number;
+  reserved: number;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="relative overflow-hidden bg-gray-900 dark:bg-gray-950 rounded-2xl p-6 shadow-xl border border-gray-800">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-4 text-gray-400">
+            <Wallet className="w-5 h-5" />
+            <span className="text-sm font-medium uppercase tracking-wider">
+              {t("partner.credits.title")}
+            </span>
+          </div>
+
+          <div className="flex items-end gap-3">
+            <div>
+              <p className="text-4xl font-bold text-white tracking-tight">
+                {available}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {t("partner.credits.ready", { count: available })}
+              </p>
+            </div>
+            {available <= 2 && (
+              <div className="mb-2 px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full">
+                <p className="text-xs font-semibold text-pink-400">
+                  Saldo acabando
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Divider for mobile */}
+        <div className="h-px w-full bg-gray-800 md:hidden" />
+
+        <div className="flex gap-6">
+          <div className="md:border-l md:border-gray-800 md:pl-6">
+            <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+              <span className="text-xs font-medium uppercase">
+                {t("partner.credits.reserved")}
+              </span>
+              <Info className="w-3.5 h-3.5" />
+            </div>
+            <p className="text-2xl font-semibold text-white">{reserved}</p>
+            <p className="text-xs text-gray-500">
+              {t("partner.credits.waitingRedemption")}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Order Summary Card (Desktop Sticky)
+// =============================================================================
+function OrderSummaryCard({
+  selectedPkg,
+  paymentMethod,
+  setPaymentMethod,
+  totalCents,
+  totals,
+  onPurchase,
+  isProcessing,
+  formatCurrency,
+}: {
+  selectedPkg: CreditPackage | undefined;
+  paymentMethod: CreditPaymentMethod;
+  setPaymentMethod: (m: CreditPaymentMethod) => void;
+  totalCents: number;
+  totals: { pix: number; card: number } | null;
+  onPurchase: () => void;
+  isProcessing: boolean;
+  formatCurrency: (v: number) => string;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+        {t("partner.credits.purchase.orderSummary")}
+      </h3>
+
+      {/* Payment Method Selector */}
+      <div className="bg-gray-100 dark:bg-gray-900/50 p-1 rounded-xl mb-6 flex">
+        <button
+          onClick={() => setPaymentMethod("pix")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            paymentMethod === "pix"
+              ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          <QrCode className="w-4 h-4" />
+          PIX
+        </button>
+        <button
+          onClick={() => setPaymentMethod("card")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            paymentMethod === "card"
+              ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          <CreditCard className="w-4 h-4" />
+          Cartão
+        </button>
+      </div>
+
+      {/* Selected Item */}
+      <div className="mb-6 space-y-3">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Pacote</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {selectedPkg ? selectedPkg.name : "--"}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Qtd. Vouchers</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {selectedPkg ? selectedPkg.voucher_count : "--"}
+          </span>
+        </div>
+        <div className="h-px bg-gray-100 dark:bg-gray-700 my-3" />
+        <div className="flex justify-between items-baseline">
+          <span className="text-base font-semibold text-gray-900 dark:text-white">
+            Total
+          </span>
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">
+            {selectedPkg ? formatCurrency(totalCents) : "R$ --"}
+          </span>
+        </div>
+        
+        {/* Savings / Installments Info */}
+        {selectedPkg && totals && (
+          <div className="text-right">
+            {paymentMethod === "pix" ? (
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center justify-end gap-1">
+                <ShieldCheck className="w-3 h-3" />
+                Economia de {formatCurrency(totals.card - totals.pix)}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Até {MAX_INSTALLMENTS_NO_INTEREST}x de{" "}
+                {formatCurrency(
+                  approxInstallmentCents(totals.card, MAX_INSTALLMENTS_NO_INTEREST)
+                )}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={onPurchase}
+        disabled={!selectedPkg || isProcessing}
+        className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-white shadow-lg transition-all active:scale-[0.95] ${
+          selectedPkg
+            ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-pink-500/25"
+            : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+        }`}
+      >
+        {isProcessing ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <>
+            {t("partner.credits.purchase.continue")}
+            <ArrowRight className="w-5 h-5" />
+          </>
+        )}
+      </button>
+
+      <p className="text-xs text-center text-gray-400 mt-4 flex items-center justify-center gap-1">
+        <ShieldCheck className="w-3 h-3" />
+        {t("partner.credits.purchase.secureCheckout")}
+      </p>
+    </div>
   );
 }
 
@@ -436,7 +550,6 @@ interface PackageCardProps {
 function PackageCard({
   package: pkg,
   paymentMethod,
-  onPaymentMethodChange,
   selected,
   onSelect,
 }: PackageCardProps) {
@@ -449,21 +562,7 @@ function PackageCard({
   const pixTotal = getPixPriceCents(pkg);
   const cardTotal = pkg.price_cents;
   const activeTotal = paymentMethod === "pix" ? pixTotal : cardTotal;
-
-  const savingsCents = cardTotal - pixTotal;
-  const savingsPerVoucherCents = centsPerVoucher(
-    savingsCents,
-    pkg.voucher_count,
-  );
-
   const activeUnit = centsPerVoucher(activeTotal, pkg.voucher_count);
-  const pixUnit = centsPerVoucher(pixTotal, pkg.voucher_count);
-  const cardUnit = centsPerVoucher(cardTotal, pkg.voucher_count);
-
-  const otherMethod: CreditPaymentMethod =
-    paymentMethod === "pix" ? "card" : "pix";
-  const otherTotal = otherMethod === "pix" ? pixTotal : cardTotal;
-  const otherUnit = otherMethod === "pix" ? pixUnit : cardUnit;
 
   const selectCard = () => {
     onSelect();
@@ -482,214 +581,45 @@ function PackageCard({
       tabIndex={0}
       onClick={selectCard}
       onKeyDown={handleKeyDown}
-      className={`w-full rounded-xl border-2 text-left transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-pink-300 dark:focus-visible:ring-pink-700 ${
+      className={`relative w-full rounded-xl border-2 text-left transition-all duration-200 cursor-pointer outline-none group ${
         selected
-          ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20 ring-2 ring-pink-200 dark:ring-pink-700 scale-[1.02] shadow-lg"
-          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99]"
+          ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/10 ring-1 ring-pink-500 shadow-md z-10"
+          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-md"
       }`}
     >
-      <div
-        className={`flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ${
-          selected ? "p-6" : "p-5"
-        }`}
-      >
+      {pkg.is_popular && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+          <Star className="w-3 h-3 fill-current" />
+          {t("partner.credits.purchase.mostPopular")}
+        </div>
+      )}
+
+      <div className="p-5 flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-2 mb-1">
             <h3
-              className={`font-semibold text-gray-900 dark:text-white ${
+              className={`font-bold text-gray-900 dark:text-white ${
                 selected ? "text-lg" : "text-base"
               }`}
             >
               {pkg.name}
             </h3>
-            {pkg.is_popular && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-medium rounded-full">
-                <Star className="w-3 h-3" />
-                {t("partner.credits.purchase.mostPopular")}
-              </span>
-            )}
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              • {pkg.voucher_count} vouchers
+            </span>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {pkg.voucher_count} vouchers
-          </p>
-
-          <div className="mt-3">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {paymentMethod === "pix"
-                ? t("partner.credits.purchase.totalPix")
-                : t("partner.credits.purchase.totalCard", {
-                    installments: MAX_INSTALLMENTS_NO_INTEREST,
-                  })}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span
-                className={`font-bold text-gray-900 dark:text-white ${
-                  selected ? "text-2xl" : "text-xl"
-                }`}
-              >
-                {formatCurrency(activeTotal)}
-              </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                ({formatCurrency(activeUnit)}/voucher)
-              </span>
-            </div>
-
-            {/* Compact secondary line (shown for all cards) */}
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
-              {paymentMethod === "pix" ? (
-                <>
-                  <span>
-                    {t("partner.credits.purchase.compare.onCard")}:{" "}
-                    <span className="font-medium">
-                      {formatCurrency(cardTotal)}
-                    </span>
-                  </span>
-                  {savingsCents > 0 ? (
-                    <span className="text-green-700 dark:text-green-300">
-                      •{" "}
-                      {t("partner.credits.purchase.savings", {
-                        value: formatCurrency(savingsCents),
-                      })}
-                    </span>
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  <span className="text-gray-500 dark:text-gray-400">
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: t("partner.credits.purchase.installmentsInfo", {
-                          count: MAX_INSTALLMENTS_NO_INTEREST,
-                          value: "",
-                        }).replace("<bold></bold>", ""),
-                      }}
-                    />
-                  </span>
-                  <span>
-                    • {t("partner.credits.purchase.compare.onPix")}:{" "}
-                    <span className="font-medium">
-                      {formatCurrency(pixTotal)}
-                    </span>
-                  </span>
-                  {savingsCents > 0 ? (
-                    <span className="text-green-700 dark:text-green-300">
-                      (
-                      {t("partner.credits.purchase.savings", {
-                        value: formatCurrency(savingsCents),
-                      })}
-                      )
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </div>
-
-            {/* Expanded controls/details only for the selected card */}
-            {selected && (
-              <div className="mt-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {t("partner.credits.purchase.paymentMethod")}
-                  </p>
-                  <div className="flex w-full sm:w-auto rounded-xl border border-gray-200 dark:border-gray-700 p-1 bg-gray-50 dark:bg-gray-900/30">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPaymentMethodChange("pix");
-                        onSelect();
-                      }}
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        paymentMethod === "pix"
-                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                      } flex-1 justify-center sm:flex-none sm:justify-start`}
-                      aria-pressed={paymentMethod === "pix"}
-                    >
-                      <QrCode className="w-4 h-4" />
-                      PIX
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPaymentMethodChange("card");
-                        onSelect();
-                      }}
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        paymentMethod === "card"
-                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                      } flex-1 justify-center sm:flex-none sm:justify-start`}
-                      aria-pressed={paymentMethod === "card"}
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      {t("partner.credits.purchase.compare.card")}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/20 p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {t("partner.credits.purchase.compare.label")}:{" "}
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {otherMethod === "pix"
-                        ? t("partner.credits.purchase.compare.pix")
-                        : t("partner.credits.purchase.compare.card")}
-                    </span>
-                    {": "}
-                    <span className="font-medium">
-                      {formatCurrency(otherTotal)}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {" "}
-                      (
-                      {
-                        t("partner.credits.purchase.perVoucher", {
-                          value: formatCurrency(otherUnit),
-                        }).replace(
-                          "/voucher",
-                          formatCurrency(otherUnit) + "/voucher",
-                        ) /* Hack: Key is just /voucher but we need value */
-                      }
-                      )
-                    </span>
-                    {otherMethod === "pix" && savingsCents > 0 ? (
-                      <span className="text-green-700 dark:text-green-300">
-                        {" "}
-                        •{" "}
-                        {t("partner.credits.purchase.savings", {
-                          value: formatCurrency(savingsCents),
-                        })}{" "}
-                        ({formatCurrency(savingsPerVoucherCents)}/voucher)
-                      </span>
-                    ) : null}
-                  </p>
-
-                  {paymentMethod === "card" && (
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      {t(
-                        "partner.credits.purchase.compare.installmentsDetails",
-                        {
-                          count: MAX_INSTALLMENTS_NO_INTEREST,
-                          value: formatCurrency(
-                            approxInstallmentCents(
-                              cardTotal,
-                              MAX_INSTALLMENTS_NO_INTEREST,
-                            ),
-                          ),
-                        },
-                      )}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+          <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              {formatCurrency(activeTotal)}
+            </span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              {formatCurrency(activeUnit)} / voucher
+            </span>
           </div>
 
           {pkg.savings_percent > 0 && (
-            <p className="mt-3 text-xs text-green-700 dark:text-green-300 font-medium">
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-1">
               {t("partner.credits.purchase.volumeDiscount", {
                 value: pkg.savings_percent,
               })}
@@ -698,13 +628,13 @@ function PackageCard({
         </div>
 
         <div
-          className={`w-6 h-6 self-end sm:self-auto flex-shrink-0 rounded-full border-2 flex items-center justify-center ${
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
             selected
               ? "border-pink-500 bg-pink-500"
-              : "border-gray-300 dark:border-gray-500"
+              : "border-gray-300 dark:border-gray-600 group-hover:border-pink-400"
           }`}
         >
-          {selected && <Check className="w-4 h-4 text-white" />}
+          {selected && <Check className="w-3.5 h-3.5 text-white" />}
         </div>
       </div>
     </div>
