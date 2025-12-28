@@ -155,6 +155,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
       "5 créditos foram adicionados à sua conta após pagamento confirmado.",
     time: "Ontem às 14:30",
     unread: true,
+    link: "/partner/credits",
   },
   {
     id: "3",
@@ -163,7 +164,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     description:
       "A entrega 'Ensaio Newborn - João' está pronta para gerar voucher.",
     time: "Ontem às 10:15",
-    unread: false,
+    unread: true, // Changed to true for testing
     link: "/partner/deliveries",
   },
   {
@@ -173,6 +174,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     description: "Cliente Ana Paula resgatou o voucher #XYZ789.",
     time: "2 dias atrás",
     unread: false,
+    link: "/partner/deliveries",
   },
   {
     id: "5",
@@ -192,6 +194,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
       "10 créditos foram adicionados à sua conta (pacote inicial de boas-vindas).",
     time: "3 dias atrás",
     unread: false,
+    link: "/partner/credits",
   },
 ];
 

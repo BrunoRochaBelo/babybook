@@ -244,7 +244,7 @@
         "orderSummary": "Resumo do Pedido",
         "continue": "Continuar Compra",
         "secureCheckout": "🔒 Você será redirecionado para o checkout seguro (Stripe) para completar o pagamento.",
-        "howItWorks": "ℹ️ Como funcionam os créditos?",
+        "howItWorks": "Como funcionam os créditos?",
         "savingsVsCard": "Economia de {{value}} vs cartão",
         "installmentsInfo": "Até {{count}}x de <bold>{{value}}</bold> sem juros",
         "pixInfo": "💡 No PIX: {{value}} (economize {{savings}})",

@@ -13,13 +13,15 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
+  ChevronRight,
   Coins,
   CreditCard,
   Home,
+  Info,
   LogOut,
   Monitor,
   MoonStar,
@@ -36,6 +38,8 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   getPartnerProfile,
   getPartnerDashboardStats,
+  getNotifications,
+  type Notification,
 } from "@/features/partner-portal/api";
 import {
   PartnerPageHeaderContext,
@@ -62,27 +66,10 @@ const NAV_LINKS = [
 // Rotas onde a navbar flutuante não deve aparecer
 const HIDE_NAV_ROUTES = ["/partner/settings", "/partner/notifications"];
 
-// Placeholder notifications - TODO: integrate with real API
-const MOCK_NOTIFICATIONS = [
-  {
-    id: "1",
-    title: "Voucher resgatado",
-    description: "Cliente Maria resgatou o voucher #ABC123",
-    time: "Há 2 horas",
-    unread: true,
-  },
-  {
-    id: "2",
-    title: "Créditos adicionados",
-    description: "5 créditos foram adicionados à sua conta",
-    time: "Ontem",
-    unread: false,
-  },
-];
-
 export function PartnerLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
@@ -96,8 +83,36 @@ export function PartnerLayout() {
 
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
+  const [isCreditsOpen, setCreditsOpen] = useState(false);
 
+  // Notifications State (Synced via React Query)
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["partner", "notifications"],
+    queryFn: getNotifications,
+    staleTime: 60 * 1000,
+  });
 
+  const handleMarkAllAsRead = () => {
+    queryClient.setQueryData(
+      ["partner", "notifications"],
+      (old: Notification[] | undefined) =>
+        old?.map((n) => ({ ...n, unread: false })) ?? []
+    );
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    queryClient.setQueryData(
+      ["partner", "notifications"],
+      (old: Notification[] | undefined) =>
+        old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? []
+    );
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
+    setNotificationsOpen(false);
+    navigate(notification.link || "/partner/notifications");
+  };
 
   // Fetch partner profile
   const { data: profile } = useQuery({
@@ -109,14 +124,15 @@ export function PartnerLayout() {
   const { data: stats } = useQuery({
     queryKey: ["partner", "stats"],
     queryFn: getPartnerDashboardStats,
-    staleTime: 30_000, // Cache for 30s to avoid excessive refetches
+    // Reduce stale time to ensure updates are reflected quicker, 
+    // or rely on invalidateQueries if we implemented the purchase flow fully.
+    staleTime: 5000, 
+    refetchOnWindowFocus: true,
   });
 
   const availableCredits = stats?.voucher_balance ?? 0;
   const hasLowCredits = availableCredits <= 2;
   const hasNoCredits = availableCredits === 0;
-
-
 
   const handleLogout = async () => {
     try {
@@ -131,7 +147,7 @@ export function PartnerLayout() {
     }
   };
 
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length;
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   const badgeToneClass = (tone?: PartnerPageHeaderBadgeTone) => {
     switch (tone) {
@@ -171,21 +187,130 @@ export function PartnerLayout() {
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
               {/* Credit Balance Badge */}
-              <Link
-                to="/partner/credits"
-                title={`${availableCredits} créditos disponíveis. Clique para gerenciar.`}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95",
-                  hasNoCredits
-                    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-800"
-                    : hasLowCredits
-                      ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800"
-                      : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-800",
-                )}
-              >
-                <Coins className="w-4 h-4" />
-                <span>{availableCredits}</span>
-              </Link>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    setNotificationsOpen(false);
+                    setCreditsOpen(true);
+                  }}
+                  title={`${availableCredits} créditos disponíveis. Clique para gerenciar.`}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95",
+                    hasNoCredits
+                      ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-800"
+                      : hasLowCredits
+                        ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800"
+                        : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-800",
+                  )}
+                >
+                  <Coins className="w-4 h-4" />
+                  <span>{availableCredits}</span>
+                </button>
+
+                {/* Credits Drawer */}
+                <Drawer
+                  open={isCreditsOpen}
+                  onOpenChange={setCreditsOpen}
+                  direction="right"
+                >
+                  <DrawerContent className="h-full w-full sm:max-w-sm">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/20">
+                          <Coins className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <DrawerTitle className="text-base font-bold text-gray-900 dark:text-white">
+                            Saldo de Créditos
+                          </DrawerTitle>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Gerencie seus vauchers
+                          </p>
+                        </div>
+                      </div>
+                    </DrawerHeader>
+
+                    <DrawerBody className="p-6 space-y-8">
+                      {/* Balance Card "Mostrador" */}
+                      {/* Balance Card "Mostrador" */}
+                      <div className="rounded-3xl bg-white dark:bg-gray-950 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
+                        {/* Abstract shapes for "digital" feel */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 dark:bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 dark:bg-pink-500/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
+                        
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 relative z-10">
+                          Saldo Disponível
+                        </p>
+                        <div className="flex items-baseline gap-1 relative z-10">
+                          <span className="text-5xl font-bold tracking-tighter text-gray-900 dark:text-white">
+                            {availableCredits}
+                          </span>
+                          <span className="text-lg text-gray-500 dark:text-gray-400 font-medium">
+                            créditos
+                          </span>
+                        </div>
+
+                        {hasLowCredits && (
+                          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium relative z-10">
+                            <Info className="w-3.5 h-3.5" />
+                            Saldo baixo
+                          </div>
+                        )}
+
+                        {(stats?.reserved_credits || 0) > 0 && (
+                          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between relative z-10">
+                            <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">Reservados</span>
+                            <span className="text-gray-900 dark:text-white font-bold">{stats?.reserved_credits}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* How it works - Clean/Transparent */}
+                      <div className="px-1">
+                        <h4 className="flex items-center gap-2 font-semibold text-sm text-gray-900 dark:text-white mb-4">
+                          <div className="p-1.5 rounded-md bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400">
+                             <Info className="w-4 h-4" />
+                          </div>
+                          Como funciona
+                        </h4>
+                        <ul className="space-y-4">
+                          <li className="flex gap-4 items-start">
+                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                               Cada <strong>1 crédito</strong> equivale a um voucher para criar um BabyBook completo.
+                            </span>
+                          </li>
+                          <li className="flex gap-4 items-start">
+                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                               Os créditos <strong>não expiram</strong> enquanto sua conta estiver ativa.
+                            </span>
+                          </li>
+                          <li className="flex gap-4 items-start">
+                             <div className="w-1.5 h-1.5 mt-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+                             <span className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                               Compre pacotes maiores para obter <strong>descontos progressivos</strong>.
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </DrawerBody>
+
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6">
+                      <Link
+                        to="/partner/credits"
+                        onClick={() => setCreditsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white py-4 rounded-xl font-bold transition-all active:scale-[0.98] shadow-lg shadow-pink-500/20"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        Comprar mais créditos
+                      </Link>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+              </div>
 
               {/* Notifications */}
               <div className="relative">
@@ -219,59 +344,96 @@ export function PartnerLayout() {
                   direction="right"
                 >
                   <DrawerContent className="h-full w-full sm:max-w-sm">
-                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-6 py-4">
                       <div className="flex items-center justify-between">
-                        <DrawerTitle className="text-base font-semibold">
+                        <DrawerTitle className="text-lg font-bold text-gray-900 dark:text-white">
                           Notificações
                         </DrawerTitle>
-                        <button className="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
-                          Marcar como lidas
-                        </button>
+                        {unreadCount > 0 && (
+                          <div className="px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-xs font-bold">
+                            {unreadCount} nova(s)
+                          </div>
+                        )}
                       </div>
                     </DrawerHeader>
-                    <DrawerBody className="p-0">
-                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {MOCK_NOTIFICATIONS.map((notification) => (
+                    <DrawerBody className="p-0 bg-white dark:bg-gray-900">
+                      {/* Action Bar */}
+                      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                          Recentes
+                        </p>
+                        <button 
+                          onClick={handleMarkAllAsRead}
+                          className="text-xs font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={unreadCount === 0}
+                        >
+                          Marcar todas como lidas
+                        </button>
+                      </div>
+
+                      <div className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                        {notifications.map((notification) => (
                           <div
                             key={notification.id}
+                            onClick={() => handleNotificationClick(notification)}
                             className={cn(
-                              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors",
-                              notification.unread &&
-                                "bg-pink-50/50 dark:bg-pink-900/10",
+                              "relative px-6 py-5 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group",
+                              notification.unread ? "bg-white dark:bg-gray-900" : "bg-transparent opacity-80"
                             )}
                           >
-                            <div className="flex items-start gap-3">
-                              {notification.unread && (
-                                <span className="w-2 h-2 mt-1.5 bg-pink-500 rounded-full flex-shrink-0" />
-                              )}
-                              <div
-                                className={notification.unread ? "" : "ml-5"}
-                              >
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {notification.title}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            <div className="flex gap-4">
+                              <div className={cn(
+                                "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105",
+                                notification.unread 
+                                  ? "bg-pink-50 text-pink-600 dark:bg-pink-900/20 dark:text-pink-400 ring-2 ring-pink-100 dark:ring-pink-900/30" 
+                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                              )}>
+                                <Bell className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <p className={cn(
+                                    "text-sm font-semibold truncate pr-2",
+                                    notification.unread ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300"
+                                  )}>
+                                    {notification.title}
+                                  </p>
+                                  <span className="text-[10px] text-gray-400 whitespace-nowrap font-medium">
+                                    {notification.time}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
                                   {notification.description}
                                 </p>
-                                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
-                                  {notification.time}
-                                </p>
                               </div>
+                              {notification.unread && (
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                                  <span className="block w-2 h-2 bg-pink-500 rounded-full" />
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
-                        {MOCK_NOTIFICATIONS.length === 0 && (
-                          <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-                            Nenhuma notificação recente
+                        {notifications.length === 0 && (
+                          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                              <Bell className="w-6 h-6 text-gray-400" />
+                            </div>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                              Tudo limpo por aqui
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-[200px]">
+                              Você não tem novas notificações no momento.
+                            </p>
                           </div>
                         )}
                       </div>
                     </DrawerBody>
-                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-4">
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6">
                       <Link
                         to="/partner/notifications"
                         onClick={() => setNotificationsOpen(false)}
-                        className="w-full block text-center text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
                       >
                         Ver todas as notificações
                       </Link>
@@ -309,71 +471,92 @@ export function PartnerLayout() {
                   onOpenChange={setUserMenuOpen}
                   direction="right"
                 >
-                  <DrawerContent className="h-full w-full sm:max-w-xs">
-                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <DrawerContent className="h-full w-full sm:max-w-sm">
+                    <DrawerHeader className="border-b border-gray-100 dark:border-gray-800 px-6 py-6">
+                      <div className="flex flex-col items-center text-center gap-3">
+                        <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-pink-500/20 ring-4 ring-pink-50 dark:ring-pink-900/10">
                           {profile?.studio_name?.[0] ||
                             profile?.name?.[0] ||
                             "P"}
                         </div>
-                        <div className="flex-1 min-w-0 text-left">
-                          <DrawerTitle className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="min-w-0">
+                          <DrawerTitle className="text-lg font-bold text-gray-900 dark:text-white truncate">
                             {profile?.studio_name ||
                               profile?.name ||
                               "Parceiro"}
                           </DrawerTitle>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
                             {profile?.email}
                           </p>
                         </div>
                       </div>
                     </DrawerHeader>
 
-                    <DrawerBody className="p-4 space-y-6">
+                    <DrawerBody className="p-6 space-y-8">
                       {/* Theme Selector */}
                       <div>
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider pl-1">
                           Aparência
                         </p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-3">
                           <button
                             type="button"
                             onClick={() => setTheme("light")}
                             className={cn(
-                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
                               theme === "light"
-                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
+                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/10 dark:border-pink-800 dark:text-pink-300 shadow-sm"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-pink-200 dark:hover:border-gray-600 hover:shadow-sm",
                             )}
                           >
-                            <Sun className="w-5 h-5" />
+                            <div className={cn(
+                              "p-2 rounded-full transition-colors",
+                              theme === "light" 
+                                ? "bg-white dark:bg-pink-900/20" 
+                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-pink-50 dark:group-hover:bg-gray-600"
+                            )}>
+                              <Sun className="w-5 h-5" />
+                            </div>
                             <span className="text-xs font-medium">Claro</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setTheme("dark")}
                             className={cn(
-                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
                               theme === "dark"
-                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
+                                ? "bg-gray-800 border-gray-700 text-white dark:bg-gray-800 dark:border-gray-600 dark:text-white shadow-sm"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm",
                             )}
                           >
-                            <MoonStar className="w-5 h-5" />
+                             <div className={cn(
+                              "p-2 rounded-full transition-colors",
+                              theme === "dark" 
+                                ? "bg-gray-700" 
+                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600"
+                            )}>
+                              <MoonStar className="w-5 h-5" />
+                            </div>
                             <span className="text-xs font-medium">Escuro</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setTheme("system")}
                             className={cn(
-                              "flex flex-col items-center gap-2 p-2 rounded-xl border transition-all",
+                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
                               theme === "system"
-                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/20 dark:border-pink-800 dark:text-pink-300"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
+                                ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-300 shadow-sm"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-200 dark:hover:border-gray-600 hover:shadow-sm",
                             )}
                           >
-                            <Monitor className="w-5 h-5" />
+                             <div className={cn(
+                              "p-2 rounded-full transition-colors",
+                              theme === "system" 
+                                ? "bg-white dark:bg-blue-900/20" 
+                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-blue-50 dark:group-hover:bg-gray-600"
+                            )}>
+                              <Monitor className="w-5 h-5" />
+                            </div>
                             <span className="text-xs font-medium">Auto</span>
                           </button>
                         </div>
@@ -381,27 +564,39 @@ export function PartnerLayout() {
 
                       {/* Menu Links */}
                       <div>
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider pl-1">
                           Conta
                         </p>
-                        <Link
-                          to="/partner/settings"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 -mx-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors dark:text-gray-200 dark:hover:bg-gray-800"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                            <Settings className="w-4 h-4" />
-                          </div>
-                          Configurações
-                        </Link>
+                        <nav className="space-y-2">
+                          <Link
+                            to="/partner/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 group-hover:border-pink-100 dark:group-hover:border-pink-900/30 transition-colors">
+                              <Settings className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                                Configurações
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Gerencie seus dados
+                              </p>
+                            </div>
+                            <div className="text-gray-400 group-hover:translate-x-1 transition-transform">
+                              <ChevronRight className="w-5 h-5" />
+                            </div>
+                          </Link>
+                        </nav>
                       </div>
                     </DrawerBody>
 
-                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-4">
+                    <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6">
                       <button
                         onClick={handleLogout}
                         disabled={logoutMutation.isPending}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 dark:text-red-400 rounded-xl transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <LogOut className="w-4 h-4" />
                         {logoutMutation.isPending
