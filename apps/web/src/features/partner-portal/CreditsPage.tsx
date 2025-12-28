@@ -354,14 +354,14 @@ function WalletCard({
   const { t } = useTranslation();
 
   return (
-    <div className="relative overflow-hidden bg-gray-900 dark:bg-gray-950 rounded-2xl p-6 shadow-xl border border-gray-800">
+    <div className="relative overflow-hidden bg-white dark:bg-gray-950 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-800">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-4 text-gray-400">
+          <div className="flex items-center gap-2 mb-4 text-gray-500 dark:text-gray-400">
             <Wallet className="w-5 h-5" />
             <span className="text-sm font-medium uppercase tracking-wider">
               {t("partner.credits.title")}
@@ -370,16 +370,16 @@ function WalletCard({
 
           <div className="flex items-end gap-3">
             <div>
-              <p className="text-4xl font-bold text-white tracking-tight">
+              <p className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
                 {available}
               </p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {t("partner.credits.ready", { count: available })}
               </p>
             </div>
             {available <= 2 && (
-              <div className="mb-2 px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full">
-                <p className="text-xs font-semibold text-pink-400">
+              <div className="mb-2 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full">
+                <p className="text-xs font-semibold text-pink-600 dark:text-pink-400">
                   Saldo acabando
                 </p>
               </div>
@@ -388,18 +388,18 @@ function WalletCard({
         </div>
 
         {/* Divider for mobile */}
-        <div className="h-px w-full bg-gray-800 md:hidden" />
+        <div className="h-px w-full bg-gray-200 dark:bg-gray-800 md:hidden" />
 
         <div className="flex gap-6">
-          <div className="md:border-l md:border-gray-800 md:pl-6">
-            <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+          <div className="md:border-l md:border-gray-200 dark:md:border-gray-800 md:pl-6">
+            <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 mb-1">
               <span className="text-xs font-medium uppercase">
                 {t("partner.credits.reserved")}
               </span>
               <Info className="w-3.5 h-3.5" />
             </div>
-            <p className="text-2xl font-semibold text-white">{reserved}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-2xl font-semibold text-gray-900 dark:text-white">{reserved}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {t("partner.credits.waitingRedemption")}
             </p>
           </div>
