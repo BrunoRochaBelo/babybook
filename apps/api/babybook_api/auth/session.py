@@ -12,6 +12,7 @@ from babybook_api.auth.constants import SESSION_COOKIE_NAME
 from babybook_api.db.models import Session as SessionModel
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.settings import settings
 from babybook_api.time import is_expired
 
 
@@ -29,7 +30,14 @@ async def _get_session_token(
     cookie_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
     header_token: str | None = Header(default=None, alias="X-BB-Session"),
 ) -> str | None:
-    return cookie_token or header_token
+    if cookie_token:
+        return cookie_token
+
+    # Fallback de sessão via header: útil apenas em local/E2E.
+    if header_token and (settings.app_env == "local" or settings.allow_header_session_auth):
+        return header_token
+
+    return None
 
 
 async def _fetch_session(db: AsyncSession, token: str | None) -> SessionModel:

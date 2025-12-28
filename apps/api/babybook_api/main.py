@@ -56,7 +56,11 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        expose_headers=["X-Trace-Id", "X-BB-Session"],
+        expose_headers=(
+            ["X-Trace-Id", "X-BB-Session"]
+            if (settings.app_env == "local" or settings.allow_header_session_auth)
+            else ["X-Trace-Id"]
+        ),
     )
 
     app.add_exception_handler(AppError, app_error_handler)

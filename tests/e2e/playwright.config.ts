@@ -46,6 +46,8 @@ export default defineConfig({
         // mas o api-client passaria a forçar mocks e tentar `/api` -> quebra tudo.
         VITE_ENABLE_MSW: "false",
         VITE_API_BASE_URL: apiBase,
+        VITE_ALLOW_HEADER_SESSION_AUTH: "true",
+        VITE_ALLOW_HEADER_SESSION_AUTH_ACK: "true",
       },
     },
     {

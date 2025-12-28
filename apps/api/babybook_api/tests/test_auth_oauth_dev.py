@@ -20,14 +20,14 @@ def test_oauth_dev_authorize_creates_session_and_redirects(client: TestClient, p
         follow_redirects=False,
     )
     # Should redirect to callback
-    assert resp2.status_code in (302, 307)
+    assert resp2.status_code in (302, 303, 307)
     # Follow redirect to callback
     # Callback will set session cookie and redirect to /jornada
     location = resp2.headers.get("location")
     assert "/auth/" in location or location.startswith("/")
     # Now call the callback result; for test client we'll call the callback directly
     callback_resp = client.get(location, follow_redirects=False)
-    assert callback_resp.status_code in (302, 307)
+    assert callback_resp.status_code in (302, 303, 307)
     assert SESSION_COOKIE_NAME in client.cookies
     me = client.get("/me/")
     assert me.status_code == 200

@@ -11,6 +11,29 @@ const rawEnableMocks = (
 
 const SHOULD_FORCE_MOCKS = rawEnableMocks !== "false";
 
+const rawAllowHeaderSession = (
+  import.meta.env.VITE_ALLOW_HEADER_SESSION_AUTH ??
+  (import.meta.env.DEV || import.meta.env.MODE === "test" ? "true" : "false")
+)
+  .toString()
+  .toLowerCase();
+
+const rawAllowHeaderSessionAck = (
+  import.meta.env.VITE_ALLOW_HEADER_SESSION_AUTH_ACK ?? "false"
+)
+  .toString()
+  .toLowerCase();
+
+const ALLOW_HEADER_SESSION_AUTH_ACK = rawAllowHeaderSessionAck === "true";
+
+// Guardrail: em build PROD, só permitimos ligar o fallback via header com ACK explícito.
+// Em dev/test, continua permitido (útil para E2E/local quando cookies falham).
+const ALLOW_HEADER_SESSION_AUTH =
+  rawAllowHeaderSession === "true" &&
+  (import.meta.env.DEV ||
+    import.meta.env.MODE === "test" ||
+    ALLOW_HEADER_SESSION_AUTH_ACK);
+
 const RAW_API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
 const FALLBACK_BASE_PATH = "/api";
 
@@ -173,8 +196,9 @@ async function doFetch<T>(
 
   // Fallback de autenticação (dev/E2E): alguns navegadores podem não enviar
   // cookies em fetch cross-origin (mesmo host, porta diferente). O backend
-  // aceita `X-BB-Session` como alternativa ao cookie HttpOnly.
-  if (!headers["X-BB-Session"]) {
+  // pode aceitar `X-BB-Session` como alternativa ao cookie HttpOnly.
+  // Por segurança, isso fica DESLIGADO por padrão em produção.
+  if (ALLOW_HEADER_SESSION_AUTH && !headers["X-BB-Session"]) {
     let sessionToken = useAuthStore.getState().sessionToken;
     if (!sessionToken) {
       sessionToken = getPersistedSessionToken();
@@ -215,9 +239,11 @@ async function doFetch<T>(
 
   // Dev/E2E helper: backend pode retornar o token de sessão em header para
   // permitir persistência em localStorage quando cookies não são enviados.
-  const sessionHeader = response.headers.get("X-BB-Session") ?? undefined;
-  if (sessionHeader) {
-    useAuthStore.getState().setSessionToken(sessionHeader);
+  if (ALLOW_HEADER_SESSION_AUTH) {
+    const sessionHeader = response.headers.get("X-BB-Session") ?? undefined;
+    if (sessionHeader) {
+      useAuthStore.getState().setSessionToken(sessionHeader);
+    }
   }
 
   const traceId = response.headers.get("X-Trace-Id") ?? undefined;

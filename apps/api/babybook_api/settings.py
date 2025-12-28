@@ -39,6 +39,21 @@ class Settings(BaseSettings):
     dev_user_password: str = "password"
 
     # ======================================================================
+    # Auth (dev/E2E helpers)
+    # ======================================================================
+    # Permite autenticação via header `X-BB-Session` (fallback quando cookies
+    # não são enviados em alguns cenários cross-port).
+    # Recomendação: mantenha desligado em staging/prod.
+    allow_header_session_auth: bool = Field(default=False, alias="ALLOW_HEADER_SESSION_AUTH")
+
+    # Guardrail: em staging/prod, se for habilitar o fallback de sessão via header,
+    # exija um ACK explícito para evitar habilitar por acidente.
+    # Use em conjunto com ALLOW_HEADER_SESSION_AUTH=true.
+    allow_header_session_auth_ack: bool = Field(
+        default=False, alias="ALLOW_HEADER_SESSION_AUTH_ACK"
+    )
+
+    # ======================================================================
     # Deploy hardening (proxy/host)
     # ======================================================================
     # Starlette TrustedHostMiddleware allowlist.
@@ -117,6 +132,15 @@ def validate_settings_or_raise(s: "Settings") -> None:
 
     if s.app_env == "local":
         return
+
+    # Auth fallback via header nunca deve ser ligado por acidente.
+    # Se alguém configurar ALLOW_HEADER_SESSION_AUTH=true em staging/prod,
+    # exigimos um ACK explícito.
+    if s.allow_header_session_auth and not s.allow_header_session_auth_ack:
+        raise RuntimeError(
+            "[babybook] Config insegura: ALLOW_HEADER_SESSION_AUTH=true em staging/producao requer "
+            "ALLOW_HEADER_SESSION_AUTH_ACK=true."
+        )
 
     # ENV deve ser explicitamente informado em ambientes não-locais
     if os.getenv("ENV") is None:

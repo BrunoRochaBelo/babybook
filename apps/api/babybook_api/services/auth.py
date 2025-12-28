@@ -73,7 +73,7 @@ def apply_session_cookie(response: Response, token: str, remember_me: bool = Fal
     # bloquear o envio de cookies em fetch() mesmo com credentials.
     # Para manter o fluxo funcionando em ambiente local, também expomos o token
     # em um header que o frontend pode reutilizar via `X-BB-Session`.
-    if settings.app_env == "local":
+    if settings.app_env == "local" or settings.allow_header_session_auth:
         response.headers["X-BB-Session"] = token
 
     response.set_cookie(
