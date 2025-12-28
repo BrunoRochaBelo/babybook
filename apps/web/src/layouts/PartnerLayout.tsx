@@ -5,7 +5,7 @@
  * Inclui header com navegação, notificações e menu do usuário.
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import {
   Link,
   NavLink,
@@ -97,8 +97,7 @@ export function PartnerLayout() {
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
 
-  const notificationsRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
+
 
   // Fetch partner profile
   const { data: profile } = useQuery({
@@ -117,31 +116,7 @@ export function PartnerLayout() {
   const hasLowCredits = availableCredits <= 2;
   const hasNoCredits = availableCredits === 0;
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        notificationsRef.current &&
-        event.target instanceof Node &&
-        !notificationsRef.current.contains(event.target)
-      ) {
-        setNotificationsOpen(false);
-      }
-      if (
-        userMenuRef.current &&
-        event.target instanceof Node &&
-        !userMenuRef.current.contains(event.target)
-      ) {
-        setUserMenuOpen(false);
-      }
-    };
 
-    if (isNotificationsOpen || isUserMenuOpen) {
-      // Use 'click' instead of 'pointerdown' to avoid race condition with onClick handlers
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [isNotificationsOpen, isUserMenuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -213,7 +188,7 @@ export function PartnerLayout() {
               </Link>
 
               {/* Notifications */}
-              <div className="relative" ref={notificationsRef}>
+              <div className="relative">
                 <button
                   type="button"
                   onClick={() => {
@@ -306,7 +281,7 @@ export function PartnerLayout() {
               </div>
 
               {/* User Menu */}
-              <div className="relative" ref={userMenuRef} data-tour="user-menu">
+              <div className="relative" data-tour="user-menu">
                 <button
                   type="button"
                   onClick={() => {
