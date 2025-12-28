@@ -25,8 +25,8 @@ import { PartnerPage } from "@/layouts/PartnerPage";
 import {
   PartnerEmptyState,
   PartnerErrorState,
-  PartnerLoadingState,
 } from "@/layouts/partnerStates";
+import { UploadSkeleton } from "./components/UploadSkeleton";
 import { useTranslation } from "@babybook/i18n";
 
 export function DeliveryUploadPage() {
@@ -97,7 +97,7 @@ export function DeliveryUploadPage() {
   const openFilePicker = () => fileInputRef.current?.click();
 
   if (isLoading) {
-    return <PartnerLoadingState size="narrow" label={t("partner.upload.loading")} />;
+    return <UploadSkeleton />;
   }
 
   if (error || !delivery) {

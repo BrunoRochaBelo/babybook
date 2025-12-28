@@ -15,7 +15,6 @@ import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
 import {
-  PartnerLoadingState,
   PartnerErrorState,
 } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
@@ -23,6 +22,7 @@ import { useUnsavedChangesWarning } from "@/hooks/useOnlineStatus";
 import { SuccessButton } from "@/components/SuccessButton";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { SettingsSkeleton } from "./components/SettingsSkeleton";
 
 export function PartnerSettingsPage() {
   const { t } = useTranslation();
@@ -187,7 +187,7 @@ export function PartnerSettingsPage() {
   }
 
   if (isLoading) {
-    return <PartnerLoadingState label={t("common.loading")} />;
+    return <SettingsSkeleton />;
   }
 
   return (

@@ -30,6 +30,7 @@ import {
   PartnerLoadingState,
   PartnerErrorState,
 } from "@/layouts/partnerStates";
+import { CreditsSkeleton } from "./components/CreditsSkeleton";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { useTranslation, useLanguage } from "@babybook/i18n";
 
@@ -157,7 +158,7 @@ export function CreditsPage() {
     : 0;
 
   if (loadingPackages) {
-    return <PartnerLoadingState label="Carregando pacotes…" />;
+    return <CreditsSkeleton />;
   }
 
   return (
