@@ -19,6 +19,7 @@ import {
   type B2CNotification,
 } from "@/components/B2CNotificationsDrawer";
 import { B2CUserDrawer } from "@/components/B2CUserDrawer";
+import { BabyBookLogo } from "@/components/BabyBookLogo";
 
 const BOOKS_NAV = [
   {
@@ -132,18 +133,10 @@ export const MainLayout = () => {
             <div className="flex items-center gap-2">
               <Link
                 to="/jornada"
-                className="flex items-center gap-2 text-2xl font-serif"
-                style={{ color: "var(--bb-color-ink)" }}
+                className="flex items-center gap-2"
               >
-                <Sparkles className="h-5 w-5" style={{ color: "var(--bb-color-accent)" }} />
-                BabyBook
+                <BabyBookLogo variant="b2c" size="md" />
               </Link>
-              <p
-                className="hidden text-xs uppercase tracking-[0.4em] sm:inline"
-                style={{ color: "var(--bb-color-ink-muted)" }}
-              >
-                Memórias privadas
-              </p>
             </div>
             <div className="ml-auto flex items-center gap-2">
               {/* Notifications Button */}

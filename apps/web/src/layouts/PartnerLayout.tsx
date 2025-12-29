@@ -56,6 +56,7 @@ import {
   DrawerFooter,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { BabyBookLogo } from "@/components/BabyBookLogo";
 
 const NAV_LINKS = [
   { to: "/partner", label: "Dashboard", icon: Home, end: true },
@@ -175,12 +176,9 @@ export function PartnerLayout() {
             <div className="flex items-center">
               <Link
                 to="/partner"
-                className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
+                className="flex items-center gap-2"
               >
-                <Sparkles className="w-6 h-6 text-pink-500" />
-                <span>
-                  Baby Book <span className="text-pink-500">PRO</span>
-                </span>
+                <BabyBookLogo variant="b2b" size="md" />
               </Link>
             </div>
 
