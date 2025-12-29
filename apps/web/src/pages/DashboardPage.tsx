@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Play } from "lucide-react";
+import { Plus, Play, Camera } from "lucide-react";
 import { useMoments } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAppStore } from "@/store/app";
 import { MomentCard } from "@/components/MomentCard";
+import {
+  B2CLoadingState,
+  B2CErrorState,
+  B2CEmptyState,
+} from "@/layouts/b2cStates";
+import { DashboardSkeleton } from "@/components/skeletons";
 
 const templates = [
   {
@@ -29,7 +35,13 @@ export const DashboardPage = () => {
   const { children = [], selectedChild } = useSelectedChild();
   const setSelectedChildId = useAppStore((state) => state.setSelectedChildId);
   const [nextTemplate] = useState(templates[0]);
-  const { data: moments = [], isLoading } = useMoments(selectedChild?.id);
+  const {
+    data: moments = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useMoments(selectedChild?.id);
 
   const handleStartTemplate = () => {
     navigate(`/jornada/moment/draft/${nextTemplate.id}`);
@@ -43,18 +55,45 @@ export const DashboardPage = () => {
     setSelectedChildId(childId);
   };
 
+  // Estado de loading
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Estado de erro
+  if (isError) {
+    return (
+      <B2CErrorState
+        title="Não foi possível carregar seus momentos"
+        description="Verifique sua conexão e tente novamente."
+        errorDetails={error instanceof Error ? error.message : null}
+        onRetry={() => refetch()}
+        skeleton={<DashboardSkeleton />}
+      />
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-[#2A2A2A]">
+      <h1
+        className="mb-6 text-center text-3xl font-serif font-bold"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
         Jornada
       </h1>
+
       {/* Child Selector */}
       {children.length > 0 && (
         <div className="mb-6 flex justify-center">
           <select
             value={selectedChild?.id || ""}
             onChange={(e) => handleChildChange(e.target.value)}
-            className="w-full max-w-sm px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl bg-white text-[#2A2A2A]"
+            className="w-full max-w-sm px-4 py-2 border-2 rounded-2xl transition-colors focus:outline-none"
+            style={{
+              borderColor: "var(--bb-color-border)",
+              backgroundColor: "var(--bb-color-surface)",
+              color: "var(--bb-color-ink)",
+            }}
           >
             {children.map((child) => (
               <option key={child.id} value={child.id}>
@@ -67,25 +106,52 @@ export const DashboardPage = () => {
 
       {/* HUD (Head-Up Display) */}
       {selectedChild && (
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-[#C9D3C2]">
-          <h2 className="text-2xl font-serif font-bold text-[#2A2A2A] mb-2">
+        <div
+          className="rounded-2xl shadow-lg p-6 mb-6 border"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
+        >
+          <h2
+            className="text-2xl font-serif font-bold mb-2"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             Sua Jornada
           </h2>
-          <p className="text-[#C9D3C2] text-sm mb-4">Próxima sugestão</p>
-          <div className="bg-gradient-to-r from-[#F2995D] to-[#F2995D]/80 rounded-2xl p-6 text-white mb-4">
+          <p
+            className="text-sm mb-4"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
+            Próxima sugestão
+          </p>
+          <div
+            className="rounded-2xl p-6 text-white mb-4"
+            style={{
+              background:
+                "linear-gradient(to right, var(--bb-color-accent), color-mix(in srgb, var(--bb-color-accent) 80%, transparent))",
+            }}
+          >
             <h3 className="text-lg font-bold mb-2">{nextTemplate.title}</h3>
             <p className="text-sm opacity-90 mb-4">
               {nextTemplate.description}
             </p>
             <button
               onClick={handleStartTemplate}
-              className="flex items-center gap-2 bg-white text-[#F2995D] px-6 py-2 rounded-2xl font-semibold hover:bg-opacity-90 transition-all active:scale-95"
+              className="flex items-center gap-2 px-6 py-2 rounded-2xl font-semibold hover:opacity-90 transition-all active:scale-95"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                color: "var(--bb-color-accent)",
+              }}
             >
               <Play className="w-4 h-4" />
               Começar
             </button>
           </div>
-          <p className="text-xs text-[#C9D3C2]">
+          <p
+            className="text-xs"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
             Não obrigatório. Você pode criar um momento livre a qualquer
             momento.
           </p>
@@ -94,36 +160,31 @@ export const DashboardPage = () => {
 
       {/* Timeline */}
       <div className="mb-8">
-        <h3 className="text-lg font-bold text-[#2A2A2A] mb-4">Seus Momentos</h3>
+        <h3
+          className="text-lg font-bold mb-4"
+          style={{ color: "var(--bb-color-ink)" }}
+        >
+          Seus Momentos
+        </h3>
 
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl h-32 shadow-md animate-pulse"
-              />
-            ))}
-          </div>
-        ) : moments.length > 0 ? (
+        {moments.length > 0 ? (
           <div className="space-y-4">
             {moments.map((moment) => (
               <MomentCard key={moment.id} moment={moment} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-[#C9D3C2] mb-4">
-              Nenhum momento registrado ainda
-            </p>
-            <button
-              onClick={handleCreateAvulso}
-              className="inline-flex items-center gap-2 bg-[#F2995D] text-white px-6 py-3 rounded-2xl font-semibold hover:bg-[#F2995D]/90 transition-all active:scale-95"
-            >
-              <Plus className="w-5 h-5" />
-              Registrar Primeiro Momento
-            </button>
-          </div>
+          <B2CEmptyState
+            variant="section"
+            icon={Camera}
+            title="Nenhum momento registrado ainda"
+            description="Comece a documentar a jornada do seu bebê. Cada momento é único e especial."
+            primaryAction={{
+              label: "Registrar Primeiro Momento",
+              onClick: handleCreateAvulso,
+              icon: Plus,
+            }}
+          />
         )}
       </div>
 
@@ -131,7 +192,11 @@ export const DashboardPage = () => {
       {selectedChild && moments.length > 0 && (
         <button
           onClick={handleCreateAvulso}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-[#F2995D] text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all active:scale-95"
+          className="fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all active:scale-95"
+          style={{
+            backgroundColor: "var(--bb-color-accent)",
+            color: "var(--bb-color-surface)",
+          }}
         >
           <Plus className="w-6 h-6" />
         </button>

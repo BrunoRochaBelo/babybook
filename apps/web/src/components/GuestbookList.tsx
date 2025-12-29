@@ -13,8 +13,14 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
 
   if (filtered.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-2xl border border-[#C9D3C2]">
-        <p className="text-[#C9D3C2]">
+      <div
+        className="text-center py-12 rounded-2xl border"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
+        <p style={{ color: "var(--bb-color-ink-muted)" }}>
           {status === "approved"
             ? "Nenhuma mensagem aprovada ainda. Que tal convidar os avós para deixarem um recado?"
             : "Nenhuma mensagem pendente"}
@@ -28,30 +34,55 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
       {filtered.map((entry) => (
         <div
           key={entry.id}
-          className="bg-white rounded-2xl p-6 border border-[#C9D3C2]"
+          className="rounded-2xl p-6 border"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
         >
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h4 className="font-semibold text-[#2A2A2A]">
+              <h4
+                className="font-semibold"
+                style={{ color: "var(--bb-color-ink)" }}
+              >
                 {entry.authorName}
               </h4>
-              <p className="text-xs text-[#C9D3C2]">
+              <p
+                className="text-xs"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
                 {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
               </p>
             </div>
             {status === "pending" ? (
-              <div className="flex items-center gap-2 bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-semibold">
+              <div
+                className="flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold"
+                style={{
+                  backgroundColor: "var(--bb-color-accent-soft)",
+                  color: "var(--bb-color-accent)",
+                }}
+              >
                 <ShieldAlert className="w-4 h-4" />
-                Pendente de revis�o
+                Pendente de revisão
               </div>
             ) : (
-              <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold">
+              <div
+                className="flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold"
+                style={{
+                  backgroundColor: "var(--bb-color-success)",
+                  color: "var(--bb-color-surface)",
+                  opacity: 0.9,
+                }}
+              >
                 <CheckCircle className="w-4 h-4" />
                 Publicada
               </div>
             )}
           </div>
-          <p className="text-[#2A2A2A] mb-3">{entry.message}</p>
+          <p className="mb-3" style={{ color: "var(--bb-color-ink)" }}>
+            {entry.message}
+          </p>
         </div>
       ))}
     </div>

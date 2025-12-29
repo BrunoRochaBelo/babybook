@@ -18,7 +18,12 @@ export const ChildSelector = ({
       <select
         value={hasChildren ? selectedChildId || "" : ""}
         onChange={(e) => onChildChange(e.target.value)}
-        className="w-full px-4 py-2 border-2 border-gray-200 rounded-2xl bg-white text-gray-800 disabled:opacity-60"
+        className="w-full px-4 py-2 border-2 rounded-2xl disabled:opacity-60"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+          color: "var(--bb-color-ink)",
+        }}
         disabled={!hasChildren}
       >
         {hasChildren ? (

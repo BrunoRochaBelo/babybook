@@ -86,7 +86,8 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 flex items-center justify-center p-4 z-50"
+      style={{ backgroundColor: "rgba(42, 42, 42, 0.5)" }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -99,25 +100,37 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+        className="rounded-2xl p-6 w-full max-w-md shadow-2xl"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+        }}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 id={titleId} className="text-lg font-bold text-[#2A2A2A]">
+          <h3
+            id={titleId}
+            className="text-lg font-bold"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             Deixe uma Mensagem
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 hover:bg-[#F7F3EF] rounded-lg transition-colors"
+            className="p-1 rounded-lg transition-colors"
+            style={{ color: "var(--bb-color-ink)" }}
             aria-label="Fechar formulário de mensagem"
           >
-            <X className="w-5 h-5 text-[#2A2A2A]" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#2A2A2A] mb-2" htmlFor="guestbook-name">
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="guestbook-name"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
               Seu Nome
             </label>
             <input
@@ -125,7 +138,12 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               type="text"
               value={authorName}
               onChange={(event) => setAuthorName(event.target.value)}
-              className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
+              className="w-full px-3 py-2 border rounded-xl"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
               placeholder="Como você se chama?"
               ref={nameInputRef}
               required
@@ -133,7 +151,11 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#2A2A2A] mb-2" htmlFor="guestbook-email">
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="guestbook-email"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
               Seu E-mail (opcional)
             </label>
             <input
@@ -141,28 +163,49 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               type="email"
               value={authorEmail}
               onChange={(event) => setAuthorEmail(event.target.value)}
-              className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
+              className="w-full px-3 py-2 border rounded-xl"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
               placeholder="voce@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#2A2A2A] mb-2" htmlFor="guestbook-message">
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="guestbook-message"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
               Sua Mensagem
             </label>
             <textarea
               id="guestbook-message"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              className="w-full px-3 py-2 border border-[#C9D3C2] rounded-xl"
+              className="w-full px-3 py-2 border rounded-xl"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
               rows={5}
               placeholder="Escreva uma mensagem especial..."
               required
             />
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3" id={descriptionId}>
-            <p className="text-xs text-blue-700">
+          <div
+            className="border rounded-lg p-3"
+            id={descriptionId}
+            style={{
+              backgroundColor: "var(--bb-color-accent-soft)",
+              borderColor: "var(--bb-color-accent)",
+            }}
+          >
+            <p className="text-xs" style={{ color: "var(--bb-color-ink)" }}>
               Sua mensagem será revisada antes de ser publicada.
             </p>
           </div>
@@ -171,14 +214,22 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 bg-[#F2995D] text-white px-6 py-2 rounded-xl font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all"
+              className="flex-1 px-6 py-2 rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 transition-all"
+              style={{
+                backgroundColor: "var(--bb-color-accent)",
+                color: "var(--bb-color-surface)",
+              }}
             >
               {isPending ? "Enviando..." : "Enviar"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-[#C9D3C2] text-[#2A2A2A] px-6 py-2 rounded-xl font-semibold hover:bg-opacity-80 transition-all"
+              className="flex-1 px-6 py-2 rounded-xl font-semibold hover:opacity-80 transition-all"
+              style={{
+                backgroundColor: "var(--bb-color-muted)",
+                color: "var(--bb-color-ink)",
+              }}
             >
               Cancelar
             </button>

@@ -6,6 +6,7 @@ import {
   Syringe,
   FolderLock,
   Shield,
+  Baby,
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ import { HealthGrowthTab } from "@/components/HealthGrowthTab";
 import { HealthPediatrianTab } from "@/components/HealthPediatrianTab";
 import { HealthVaccinesTab } from "@/components/HealthVaccinesTab";
 import { useLogout } from "@/hooks/api";
+import { B2CLoadingState, B2CEmptyState, B2CPage } from "@/layouts/b2cStates";
 
 type HealthTab = "crescimento" | "pediatra" | "vacinas";
 
@@ -158,63 +160,58 @@ export const SaudePage = () => {
 
   if (isAuthLoading && !isMockMode) {
     return (
-      <section className="mx-auto w-full max-w-4xl px-6 py-12 text-center">
-        <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
-          <h1 className="font-serif text-3xl text-ink">Carregando perfil</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            Buscando o perfil e as permissões da conta para liberar a aba
-            Saúde...
-          </p>
-        </div>
-      </section>
+      <B2CLoadingState
+        variant="page"
+        label="Buscando o perfil e as permissões da conta..."
+      />
     );
   }
 
   if (!isOwner) {
     return (
-      <section className="mx-auto w-full max-w-4xl px-6 py-12">
-        <div className="rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
-            <FolderLock className="h-5 w-5" />
-          </div>
-          <h1 className="font-serif text-3xl text-ink">Aba privada</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            Ops! Esta área é um cofre privado, acessível apenas pelo dono do
-            álbum. Peça ao Owner para revisar os dados de saúde ou convide-o a
-            compartilhar as atualizações com você.
-          </p>
-        </div>
-      </section>
+      <B2CEmptyState
+        variant="page"
+        tone="danger"
+        icon={FolderLock}
+        title="Aba privada"
+        description="Esta área é um cofre privado, acessível apenas pelo dono do álbum. Peça ao Owner para revisar os dados de saúde ou convide-o a compartilhar as atualizações com você."
+      />
     );
   }
 
   if (!selectedChild) {
     return (
-      <section className="mx-auto w-full max-w-4xl px-6 py-12 text-center">
-        <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
-          <h1 className="font-serif text-3xl text-ink">Escolha uma criança</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            Para acompanhar curva, consultas e documentos, selecione ou cadastre
-            uma criança primeiro.
-          </p>
-          <Link
-            to="/jornada/perfil-crianca"
-            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            Ir para Perfil da Criança
-          </Link>
-        </div>
-      </section>
+      <B2CEmptyState
+        variant="page"
+        icon={Baby}
+        title="Escolha uma criança"
+        description="Para acompanhar curva, consultas e documentos, selecione ou cadastre uma criança primeiro."
+        primaryAction={{
+          label: "Ir para Perfil da Criança",
+          to: "/jornada/perfil-crianca",
+        }}
+      />
     );
   }
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
       <div className="text-center">
-        <h1 className="text-3xl font-serif text-ink">Livro da Saúde</h1>
+        <h1
+          className="text-3xl font-serif"
+          style={{ color: "var(--bb-color-ink)" }}
+        >
+          Livro da Saúde
+        </h1>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-border bg-surface p-2 shadow-sm">
+      <div
+        className="mt-6 rounded-2xl border p-2 shadow-sm"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
         <LayoutGroup id="health-tabs">
           <div className="flex flex-wrap gap-2">
             {HEALTH_TABS.map((tab) => {
@@ -225,17 +222,21 @@ export const SaudePage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "relative flex-1 min-w-[150px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300",
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-ink-muted hover:text-ink",
-                  )}
+                  className="relative flex-1 min-w-[150px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300"
+                  style={{
+                    color: isActive
+                      ? "var(--bb-color-surface)"
+                      : "var(--bb-color-ink-muted)",
+                  }}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="health-nav-pill"
-                      className="absolute inset-0 rounded-2xl bg-primary shadow-[0_12px_24px_rgba(242,153,93,0.28)]"
+                      className="absolute inset-0 rounded-2xl"
+                      style={{
+                        backgroundColor: "var(--bb-color-accent)",
+                        boxShadow: "0 12px 24px rgba(242,153,93,0.28)",
+                      }}
                       transition={{
                         type: "spring",
                         stiffness: 320,
@@ -245,10 +246,12 @@ export const SaudePage = () => {
                   )}
                   <span className="relative z-10 inline-flex items-center justify-center gap-2">
                     <Icon
-                      className={cn(
-                        "h-4 w-4 transition-colors duration-300",
-                        isActive ? "text-primary-foreground" : "text-ink-muted",
-                      )}
+                      className="h-4 w-4 transition-colors duration-300"
+                      style={{
+                        color: isActive
+                          ? "var(--bb-color-surface)"
+                          : "var(--bb-color-ink-muted)",
+                      }}
                     />
                     {tab.label}
                   </span>
@@ -274,18 +277,42 @@ export const SaudePage = () => {
       </div>
 
       {!isMockMode && reauthRequired && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 text-center shadow-2xl">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-danger/15 text-danger">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(42, 42, 42, 0.6)" }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border p-8 text-center shadow-2xl"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+            }}
+          >
+            <div
+              className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: "var(--bb-color-danger-soft)",
+                color: "var(--bb-color-danger)",
+              }}
+            >
               <Shield className="h-5 w-5" />
             </div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+            <p
+              className="text-xs uppercase tracking-[0.3em]"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
               Sessão protegida
             </p>
-            <h2 className="mt-2 font-serif text-2xl text-ink">
+            <h2
+              className="mt-2 font-serif text-2xl"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
               Vamos confirmar que é você
             </h2>
-            <p className="mt-2 text-sm text-ink-muted">
+            <p
+              className="mt-2 text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
               Por segurança, a aba Saúde bloqueia após alguns minutos de
               inatividade. Continue para destravar ou encerre a sessão se não
               estiver em um dispositivo seguro.
@@ -294,14 +321,22 @@ export const SaudePage = () => {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="inline-flex flex-1 items-center justify-center rounded-2xl border border-border px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink"
+                className="inline-flex flex-1 items-center justify-center rounded-2xl border px-4 py-2 text-sm font-semibold transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
               >
                 Encerrar sessão
               </button>
               <button
                 type="button"
                 onClick={handleReauthContinue}
-                className="inline-flex flex-1 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                className="inline-flex flex-1 items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition hover:opacity-90"
+                style={{
+                  backgroundColor: "var(--bb-color-accent)",
+                  color: "var(--bb-color-surface)",
+                }}
               >
                 Continuar
               </button>

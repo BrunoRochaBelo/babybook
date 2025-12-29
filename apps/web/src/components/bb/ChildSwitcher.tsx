@@ -63,24 +63,36 @@ export function BBChildSwitcher({
         type="button"
         onClick={() => hasChildren && setOpen((state) => !state)}
         className={cn(
-          "inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium transition hover:border-ink/40",
+          "inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition",
           !hasChildren && "cursor-not-allowed opacity-70",
         )}
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+          color: "var(--bb-color-ink)",
+        }}
       >
-        <span className="font-semibold text-ink">
+        <span className="font-semibold" style={{ color: "var(--bb-color-ink)" }}>
           {selectedChild ? selectedChild.name : "Cadastre uma criança"}
         </span>
         <ChevronDown
-          className={cn(
-            "h-4 w-4 text-ink-muted transition",
-            isOpen && "rotate-180",
-          )}
+          className={cn("h-4 w-4 transition", isOpen && "rotate-180")}
+          style={{ color: "var(--bb-color-ink-muted)" }}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-30 mt-3 w-80 rounded-[28px] border border-border bg-surface p-4 shadow-2xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+        <div
+          className="absolute right-0 z-30 mt-3 w-80 rounded-[28px] border p-4 shadow-2xl"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
+        >
+          <p
+            className="text-xs uppercase tracking-[0.3em]"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
             Escolher álbum
           </p>
           <div className="mt-3 space-y-2">
@@ -92,18 +104,30 @@ export function BBChildSwitcher({
                   setSelectedChildId(child.id);
                   setOpen(false);
                 }}
-                className={cn(
-                  "w-full rounded-2xl border px-3 py-2 text-left text-sm transition",
-                  selectedChild?.id === child.id
-                    ? "border-ink text-ink"
-                    : "border-border text-ink-muted hover:border-ink/40 hover:text-ink",
-                )}
+                className="w-full rounded-2xl border px-3 py-2 text-left text-sm transition"
+                style={{
+                  borderColor:
+                    selectedChild?.id === child.id
+                      ? "var(--bb-color-ink)"
+                      : "var(--bb-color-border)",
+                  color:
+                    selectedChild?.id === child.id
+                      ? "var(--bb-color-ink)"
+                      : "var(--bb-color-ink-muted)",
+                  backgroundColor: "transparent",
+                }}
               >
                 {child.name}
               </button>
             ))}
             {children.length === 0 && (
-              <p className="rounded-2xl border border-dashed border-border px-3 py-4 text-sm text-ink-muted">
+              <p
+                className="rounded-2xl border border-dashed px-3 py-4 text-sm"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink-muted)",
+                }}
+              >
                 Cadastre sua primeira criança para desbloquear a jornada guiada.
               </p>
             )}
@@ -111,7 +135,11 @@ export function BBChildSwitcher({
           <div className="mt-4 space-y-2">
             <Link
               to="/jornada/perfil-crianca"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-ink/30 px-3 py-2 text-sm font-medium text-ink transition hover:border-ink hover:text-accent"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition"
+              style={{
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
               onClick={() => setOpen(false)}
             >
               <UserRound className="h-4 w-4" />
@@ -119,7 +147,11 @@ export function BBChildSwitcher({
             </Link>
             <Link
               to="/perfil-usuario"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border px-3 py-2 text-sm font-medium text-ink transition hover:border-ink hover:text-accent"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition"
+              style={{
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
               onClick={() => setOpen(false)}
             >
               <UserRound className="h-4 w-4" />

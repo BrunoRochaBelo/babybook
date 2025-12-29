@@ -1,12 +1,7 @@
 /**
  * SettingsPage - User & Family Settings
  *
- * Comprehensive settings management:
- * - Family members (add guardians, manage access)
- * - Notification preferences
- * - Subscription & billing
- * - Privacy settings
- * - Data management
+ * Comprehensive settings management with dark mode support via CSS variables.
  */
 
 import { useState } from "react";
@@ -33,10 +28,11 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
 
 interface SettingSection {
   id: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   description: string;
   action?: () => void;
@@ -53,6 +49,7 @@ interface FamilyMember {
 
 export function SettingsPage() {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   // Settings state
@@ -62,8 +59,6 @@ export function SettingsPage() {
     momentReminders: true,
     familyActivity: false,
   });
-
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
 
   // Mock family members
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
@@ -146,15 +141,42 @@ export function SettingsPage() {
 
   const getRoleBadge = (role: FamilyMember["role"]) => {
     const config = {
-      owner: { label: "Dono", className: "bg-amber-100 text-amber-800" },
-      guardian: { label: "Guardião", className: "bg-blue-100 text-blue-800" },
-      viewer: { label: "Visualizador", className: "bg-gray-100 text-gray-600" },
+      owner: { label: "Dono", bg: "var(--bb-color-accent-soft)", color: "var(--bb-color-accent)" },
+      guardian: { label: "Guardião", bg: "var(--bb-color-success)", color: "var(--bb-color-surface)" },
+      viewer: { label: "Visualizador", bg: "var(--bb-color-muted)", color: "var(--bb-color-ink)" },
     };
     return config[role];
   };
 
+  // Toggle Switch Component
+  const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+    <button
+      onClick={onToggle}
+      className="w-12 h-7 rounded-full transition-colors"
+      style={{
+        backgroundColor: enabled ? "var(--bb-color-accent)" : "var(--bb-color-muted)",
+      }}
+    >
+      <motion.div
+        animate={{ x: enabled ? 20 : 2 }}
+        className="w-6 h-6 rounded-full shadow"
+        style={{ backgroundColor: "var(--bb-color-surface)" }}
+      />
+    </button>
+  );
+
   // Render section content
   const renderSectionContent = () => {
+    const backButton = (
+      <button
+        onClick={() => setActiveSection(null)}
+        className="p-2 rounded-full transition-colors"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+    );
+
     switch (activeSection) {
       case "family":
         return (
@@ -164,18 +186,21 @@ export function SettingsPage() {
             className="space-y-6"
           >
             <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-serif font-bold">Família</h2>
+              {backButton}
+              <h2 className="text-xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                Família
+              </h2>
             </div>
 
             {/* Invite Section */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">
+            <div
+              className="rounded-2xl border p-4"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              <h3 className="font-semibold mb-3" style={{ color: "var(--bb-color-ink)" }}>
                 Convidar Membro
               </h3>
               <div className="flex gap-2">
@@ -184,11 +209,20 @@ export function SettingsPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="email@exemplo.com"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="flex-1 px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none"
+                  style={{
+                    backgroundColor: "var(--bb-color-surface)",
+                    borderColor: "var(--bb-color-border)",
+                    color: "var(--bb-color-ink)",
+                  }}
                 />
                 <button
                   onClick={handleInviteMember}
-                  className="px-4 py-2 bg-primary text-white rounded-xl font-medium hover:bg-primary/90"
+                  className="px-4 py-2 rounded-xl font-medium"
+                  style={{
+                    backgroundColor: "var(--bb-color-accent)",
+                    color: "var(--bb-color-surface)",
+                  }}
                 >
                   <UserPlus className="w-5 h-5" />
                 </button>
@@ -196,11 +230,21 @@ export function SettingsPage() {
             </div>
 
             {/* Members List */}
-            <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+            <div
+              className="rounded-2xl border divide-y"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
               {familyMembers.map((member) => {
                 const badge = getRoleBadge(member.role);
                 return (
-                  <div key={member.id} className="p-4 flex items-center gap-4">
+                  <div
+                    key={member.id}
+                    className="p-4 flex items-center gap-4"
+                    style={{ borderColor: "var(--bb-color-border)" }}
+                  >
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-200 to-rose-300 flex items-center justify-center">
                       <span className="text-sm font-semibold text-white">
                         {member.name[0].toUpperCase()}
@@ -208,34 +252,39 @@ export function SettingsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-800 truncate">
+                        <p className="font-medium truncate" style={{ color: "var(--bb-color-ink)" }}>
                           {member.name}
                         </p>
                         {member.role === "owner" && (
-                          <Crown className="w-4 h-4 text-amber-500" />
+                          <Crown className="w-4 h-4" style={{ color: "var(--bb-color-accent)" }} />
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="text-sm truncate" style={{ color: "var(--bb-color-ink-muted)" }}>
                         {member.email}
                       </p>
                     </div>
                     <span
-                      className={cn(
-                        "px-2 py-1 rounded-full text-xs font-medium",
-                        badge.className,
-                      )}
+                      className="px-2 py-1 rounded-full text-xs font-medium"
+                      style={{ backgroundColor: badge.bg, color: badge.color }}
                     >
                       {badge.label}
                     </span>
                     {member.status === "pending" && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                      <span
+                        className="px-2 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          backgroundColor: "var(--bb-color-accent-soft)",
+                          color: "var(--bb-color-accent)",
+                        }}
+                      >
                         Pendente
                       </span>
                     )}
                     {member.role !== "owner" && (
                       <button
                         onClick={() => handleRemoveMember(member.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                        className="p-2 rounded-full transition-colors"
+                        style={{ color: "var(--bb-color-danger)" }}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -243,23 +292,6 @@ export function SettingsPage() {
                   </div>
                 );
               })}
-            </div>
-
-            {/* Role Explanation */}
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
-              <h4 className="font-medium text-gray-700">Sobre os papéis</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>
-                  <strong>Dono:</strong> Controle total sobre a conta e
-                  configurações
-                </p>
-                <p>
-                  <strong>Guardião:</strong> Pode ver e adicionar momentos
-                </p>
-                <p>
-                  <strong>Visualizador:</strong> Apenas visualização de momentos
-                </p>
-              </div>
             </div>
           </motion.div>
         );
@@ -272,145 +304,52 @@ export function SettingsPage() {
             className="space-y-6"
           >
             <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-serif font-bold">Notificações</h2>
+              {backButton}
+              <h2 className="text-xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                Notificações
+              </h2>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
-              {/* Push Notifications */}
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      Notificações Push
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Receba alertas no seu dispositivo
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      pushEnabled: !prev.pushEnabled,
-                    }))
-                  }
-                  className={cn(
-                    "w-12 h-7 rounded-full transition-colors",
-                    notifications.pushEnabled ? "bg-primary" : "bg-gray-300",
-                  )}
+            <div
+              className="rounded-2xl border divide-y"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              {[
+                { key: "pushEnabled", icon: Smartphone, title: "Notificações Push", desc: "Receba alertas no seu dispositivo" },
+                { key: "emailDigest", icon: Mail, title: "Resumo por Email", desc: "Receba um resumo semanal por email" },
+                { key: "momentReminders", icon: Bell, title: "Lembretes de Momentos", desc: "Sugestões para registrar novos momentos" },
+                { key: "familyActivity", icon: Users, title: "Atividade da Família", desc: "Quando outros membros adicionam momentos" },
+              ].map((item) => (
+                <div
+                  key={item.key}
+                  className="p-4 flex items-center justify-between"
+                  style={{ borderColor: "var(--bb-color-border)" }}
                 >
-                  <motion.div
-                    animate={{ x: notifications.pushEnabled ? 20 : 2 }}
-                    className="w-6 h-6 bg-white rounded-full shadow"
-                  />
-                </button>
-              </div>
-
-              {/* Email Digest */}
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      Resumo por Email
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Receba um resumo semanal por email
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="w-5 h-5" style={{ color: "var(--bb-color-ink-muted)" }} />
+                    <div>
+                      <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+                        {item.title}
+                      </p>
+                      <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      emailDigest: !prev.emailDigest,
-                    }))
-                  }
-                  className={cn(
-                    "w-12 h-7 rounded-full transition-colors",
-                    notifications.emailDigest ? "bg-primary" : "bg-gray-300",
-                  )}
-                >
-                  <motion.div
-                    animate={{ x: notifications.emailDigest ? 20 : 2 }}
-                    className="w-6 h-6 bg-white rounded-full shadow"
+                  <ToggleSwitch
+                    enabled={notifications[item.key as keyof typeof notifications]}
+                    onToggle={() =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        [item.key]: !prev[item.key as keyof typeof notifications],
+                      }))
+                    }
                   />
-                </button>
-              </div>
-
-              {/* Moment Reminders */}
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      Lembretes de Momentos
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Sugestões para registrar novos momentos
-                    </p>
-                  </div>
                 </div>
-                <button
-                  onClick={() =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      momentReminders: !prev.momentReminders,
-                    }))
-                  }
-                  className={cn(
-                    "w-12 h-7 rounded-full transition-colors",
-                    notifications.momentReminders
-                      ? "bg-primary"
-                      : "bg-gray-300",
-                  )}
-                >
-                  <motion.div
-                    animate={{ x: notifications.momentReminders ? 20 : 2 }}
-                    className="w-6 h-6 bg-white rounded-full shadow"
-                  />
-                </button>
-              </div>
-
-              {/* Family Activity */}
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      Atividade da Família
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Quando outros membros adicionam momentos
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      familyActivity: !prev.familyActivity,
-                    }))
-                  }
-                  className={cn(
-                    "w-12 h-7 rounded-full transition-colors",
-                    notifications.familyActivity ? "bg-primary" : "bg-gray-300",
-                  )}
-                >
-                  <motion.div
-                    animate={{ x: notifications.familyActivity ? 20 : 2 }}
-                    className="w-6 h-6 bg-white rounded-full shadow"
-                  />
-                </button>
-              </div>
+              ))}
             </div>
           </motion.div>
         );
@@ -423,42 +362,64 @@ export function SettingsPage() {
             className="space-y-6"
           >
             <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-serif font-bold">Assinatura</h2>
+              {backButton}
+              <h2 className="text-xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                Assinatura
+              </h2>
             </div>
 
             {/* Current Plan */}
-            <div className="bg-gradient-to-br from-primary/10 to-pink-100 rounded-2xl border border-primary/20 p-6">
+            <div
+              className="rounded-2xl border p-6"
+              style={{
+                backgroundColor: "var(--bb-color-accent-soft)",
+                borderColor: "var(--bb-color-accent)",
+              }}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+                <Crown className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+                <span
+                  className="text-sm font-semibold uppercase tracking-wide"
+                  style={{ color: "var(--bb-color-accent)" }}
+                >
                   Plano Atual
                 </span>
               </div>
-              <h3 className="text-2xl font-serif font-bold text-gray-800 mb-1">
+              <h3 className="text-2xl font-serif font-bold mb-1" style={{ color: "var(--bb-color-ink)" }}>
                 Plano Família
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="mb-4" style={{ color: "var(--bb-color-ink-muted)" }}>
                 R$ 29,90/mês • Renovação em 15 de Fevereiro
               </p>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-white text-gray-700 rounded-xl font-medium border border-gray-200 hover:bg-gray-50">
+                <button
+                  className="px-4 py-2 rounded-xl font-medium border"
+                  style={{
+                    backgroundColor: "var(--bb-color-surface)",
+                    borderColor: "var(--bb-color-border)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                >
                   Alterar Plano
                 </button>
-                <button className="px-4 py-2 text-gray-500 hover:text-red-600 font-medium">
+                <button
+                  className="px-4 py-2 font-medium"
+                  style={{ color: "var(--bb-color-danger)" }}
+                >
                   Cancelar
                 </button>
               </div>
             </div>
 
             {/* Features */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <h4 className="font-semibold text-gray-800 mb-4">
+            <div
+              className="rounded-2xl border p-4"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              <h4 className="font-semibold mb-4" style={{ color: "var(--bb-color-ink)" }}>
                 Incluído no seu plano
               </h4>
               <ul className="space-y-3">
@@ -470,39 +431,12 @@ export function SettingsPage() {
                   "Exportação em alta resolução",
                   "Suporte prioritário",
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-600">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <li key={i} className="flex items-center gap-3" style={{ color: "var(--bb-color-ink-muted)" }}>
+                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "var(--bb-color-success)" }} />
                     {feature}
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {/* Payment History */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <h4 className="font-semibold text-gray-800 mb-4">
-                Histórico de Pagamentos
-              </h4>
-              <div className="space-y-3">
-                {[
-                  { date: "15 Jan 2024", amount: "R$ 29,90", status: "Pago" },
-                  { date: "15 Dez 2023", amount: "R$ 29,90", status: "Pago" },
-                  { date: "15 Nov 2023", amount: "R$ 29,90", status: "Pago" },
-                ].map((payment, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-                  >
-                    <span className="text-gray-600">{payment.date}</span>
-                    <span className="font-medium text-gray-800">
-                      {payment.amount}
-                    </span>
-                    <span className="text-sm text-green-600 font-medium">
-                      {payment.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
           </motion.div>
         );
@@ -515,55 +449,56 @@ export function SettingsPage() {
             className="space-y-6"
           >
             <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-serif font-bold">Privacidade</h2>
+              {backButton}
+              <h2 className="text-xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                Privacidade
+              </h2>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
-              <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-gray-500" />
-                  <div className="text-left">
-                    <p className="font-medium text-gray-800">
-                      Visibilidade Padrão
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Novos momentos serão privados por padrão
-                    </p>
+            <div
+              className="rounded-2xl border divide-y"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              {[
+                { icon: Shield, title: "Visibilidade Padrão", desc: "Novos momentos serão privados por padrão" },
+                { icon: Download, title: "Exportar Dados", desc: "Baixe todos os seus dados e mídias" },
+              ].map((item, i) => (
+                <button
+                  key={i}
+                  className="w-full p-4 flex items-center justify-between"
+                  style={{ borderColor: "var(--bb-color-border)" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon className="w-5 h-5" style={{ color: "var(--bb-color-ink-muted)" }} />
+                    <div className="text-left">
+                      <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+                        {item.title}
+                      </p>
+                      <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-
-              <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5 text-gray-500" />
-                  <div className="text-left">
-                    <p className="font-medium text-gray-800">Exportar Dados</p>
-                    <p className="text-sm text-gray-500">
-                      Baixe todos os seus dados e mídias
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-
-              <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3 text-red-600">
+                  <ChevronRight className="w-5 h-5" style={{ color: "var(--bb-color-ink-muted)" }} />
+                </button>
+              ))}
+              <button
+                className="w-full p-4 flex items-center justify-between"
+                style={{ borderColor: "var(--bb-color-border)" }}
+              >
+                <div className="flex items-center gap-3" style={{ color: "var(--bb-color-danger)" }}>
                   <Trash2 className="w-5 h-5" />
                   <div className="text-left">
                     <p className="font-medium">Excluir Conta</p>
-                    <p className="text-sm text-red-500">
+                    <p className="text-sm" style={{ color: "var(--bb-color-danger)", opacity: 0.8 }}>
                       Remover permanentemente todos os dados
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-red-400" />
+                <ChevronRight className="w-5 h-5" style={{ color: "var(--bb-color-danger)" }} />
               </button>
             </div>
           </motion.div>
@@ -577,59 +512,89 @@ export function SettingsPage() {
             className="space-y-6"
           >
             <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-serif font-bold">Armazenamento</h2>
+              {backButton}
+              <h2 className="text-xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                Armazenamento
+              </h2>
             </div>
 
             {/* Storage Usage */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div
+              className="rounded-2xl border p-6"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-gray-800">Espaço Usado</h3>
-                <span className="text-sm text-gray-500">
+                <h3 className="font-semibold" style={{ color: "var(--bb-color-ink)" }}>
+                  Espaço Usado
+                </h3>
+                <span className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
                   2.3 GB de Ilimitado
                 </span>
               </div>
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-3 rounded-full overflow-hidden"
+                style={{ backgroundColor: "var(--bb-color-muted)" }}
+              >
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-pink-500 rounded-full"
-                  style={{ width: "23%" }}
+                  className="h-full rounded-full"
+                  style={{
+                    backgroundColor: "var(--bb-color-accent)",
+                    width: "23%",
+                  }}
                 />
               </div>
               <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-gray-800">156</p>
-                  <p className="text-xs text-gray-500">Fotos</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-800">12</p>
-                  <p className="text-xs text-gray-500">Vídeos</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-800">8</p>
-                  <p className="text-xs text-gray-500">Áudios</p>
-                </div>
+                {[
+                  { value: "156", label: "Fotos" },
+                  { value: "12", label: "Vídeos" },
+                  { value: "8", label: "Áudios" },
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <p className="text-2xl font-bold" style={{ color: "var(--bb-color-ink)" }}>
+                      {stat.value}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Backup Status */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div
+              className="rounded-2xl border p-4"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-600" />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--bb-color-success)", opacity: 0.2 }}
+                >
+                  <Check className="w-5 h-5" style={{ color: "var(--bb-color-success)" }} />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-800">Backup Ativo</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+                    Backup Ativo
+                  </p>
+                  <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
                     Último backup: há 2 horas
                   </p>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200">
+              <button
+                className="w-full py-3 rounded-xl font-medium"
+                style={{
+                  backgroundColor: "var(--bb-color-muted)",
+                  color: "var(--bb-color-ink)",
+                }}
+              >
                 Fazer Backup Agora
               </button>
             </div>
@@ -654,36 +619,61 @@ export function SettingsPage() {
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 hover:bg-gray-100 rounded-full"
+          className="p-2 rounded-full transition-colors"
+          style={{ color: "var(--bb-color-ink)" }}
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-2xl font-serif font-bold">Configurações</h1>
+        <h1 className="text-2xl font-serif font-bold" style={{ color: "var(--bb-color-ink)" }}>
+          Configurações
+        </h1>
       </div>
 
       {/* Settings Sections */}
-      <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+      <div
+        className="rounded-2xl border divide-y"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
         {sections.map((section) => (
           <button
             key={section.id}
             onClick={() => setActiveSection(section.id)}
-            className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors"
+            className="w-full p-4 flex items-center gap-4 transition-colors"
+            style={{ borderColor: "var(--bb-color-border)" }}
           >
-            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-              <section.icon className="w-5 h-5 text-gray-600" />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "var(--bb-color-muted)" }}
+            >
+              <section.icon className="w-5 h-5" style={{ color: "var(--bb-color-ink)" }} />
             </div>
             <div className="flex-1 text-left">
-              <p className="font-medium text-gray-800">{section.title}</p>
-              <p className="text-sm text-gray-500">{section.description}</p>
+              <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+                {section.title}
+              </p>
+              <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+                {section.description}
+              </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
+            <ChevronRight className="w-5 h-5" style={{ color: "var(--bb-color-ink-muted)" }} />
           </button>
         ))}
       </div>
 
       {/* Theme Toggle */}
-      <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-4">
-        <p className="font-medium text-gray-800 mb-3">Tema</p>
+      <div
+        className="mt-6 rounded-2xl border p-4"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
+        <p className="font-medium mb-3" style={{ color: "var(--bb-color-ink)" }}>
+          Tema
+        </p>
         <div className="flex gap-2">
           {[
             { value: "light" as const, icon: Sun, label: "Claro" },
@@ -693,12 +683,15 @@ export function SettingsPage() {
             <button
               key={option.value}
               onClick={() => setTheme(option.value)}
-              className={cn(
-                "flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors",
-                theme === option.value
-                  ? "bg-primary/10 text-primary border-2 border-primary"
-                  : "bg-gray-100 text-gray-600 border-2 border-transparent",
-              )}
+              className="flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors border-2"
+              style={{
+                backgroundColor:
+                  theme === option.value ? "var(--bb-color-accent-soft)" : "var(--bb-color-muted)",
+                borderColor:
+                  theme === option.value ? "var(--bb-color-accent)" : "transparent",
+                color:
+                  theme === option.value ? "var(--bb-color-accent)" : "var(--bb-color-ink)",
+              }}
             >
               <option.icon className="w-5 h-5" />
               <span className="text-xs font-medium">{option.label}</span>
@@ -708,13 +701,19 @@ export function SettingsPage() {
       </div>
 
       {/* Logout */}
-      <button className="mt-6 w-full py-4 flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 rounded-2xl transition-colors">
+      <button
+        className="mt-6 w-full py-4 flex items-center justify-center gap-2 rounded-2xl transition-colors"
+        style={{ color: "var(--bb-color-danger)" }}
+      >
         <LogOut className="w-5 h-5" />
         <span className="font-medium">Sair da Conta</span>
       </button>
 
       {/* Version */}
-      <p className="text-center text-xs text-gray-400 mt-8">
+      <p
+        className="text-center text-xs mt-8"
+        style={{ color: "var(--bb-color-ink-muted)" }}
+      >
         Babybook v1.0.0 • Feito com 💖
       </p>
     </div>

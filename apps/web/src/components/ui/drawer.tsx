@@ -86,9 +86,10 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
+      "fixed inset-0 z-50 backdrop-blur-sm",
       className
     )}
+    style={{ backgroundColor: "rgba(42, 42, 42, 0.5)" }}
     {...props}
   />
 ));
@@ -113,12 +114,7 @@ const DrawerContent = React.forwardRef<
       <DrawerPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-50 flex flex-col",
-          // Background & border
-          "bg-white dark:bg-gray-900",
-          "border-gray-200 dark:border-gray-700",
-          // Shadow
-          "shadow-2xl",
+          "fixed z-50 flex flex-col shadow-2xl",
           // Posição baseada na direção
           isHorizontal && [
             "top-0 h-full w-full max-w-md",
@@ -133,6 +129,9 @@ const DrawerContent = React.forwardRef<
             "top-0 left-0 right-0",
             "max-h-[96vh] rounded-b-2xl border-b",
           ],
+          // Cores padrão Tailwind (B2B usa isso, B2C sobrescreve via className)
+          "bg-white dark:bg-gray-900",
+          "border-gray-200 dark:border-gray-700",
           className
         )}
         {...props}
@@ -171,7 +170,7 @@ const DrawerHeader = ({
     >
       <div className="flex-1 min-w-0">{children}</div>
       <DrawerClose
-        className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+        className="shrink-0 rounded-lg p-2 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         aria-label="Fechar"
       >
         <X className="h-5 w-5" />
@@ -193,7 +192,7 @@ const DrawerFooter = ({
     className={cn(
       "mt-auto flex flex-col gap-2 p-4",
       "border-t border-gray-200 dark:border-gray-700",
-      "bg-gray-50/80 dark:bg-gray-800/50",
+      "bg-gray-50 dark:bg-gray-800",
       className
     )}
     {...props}
@@ -212,9 +211,10 @@ const DrawerTitle = React.forwardRef<
   <DrawerPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold text-gray-900 dark:text-white",
+      "text-lg font-semibold",
       className
     )}
+    style={{ color: "var(--bb-color-ink)" }}
     {...props}
   />
 ));
@@ -226,7 +226,8 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-gray-500 dark:text-gray-400", className)}
+    className={cn("text-sm", className)}
+    style={{ color: "var(--bb-color-ink-muted)" }}
     {...props}
   />
 ));

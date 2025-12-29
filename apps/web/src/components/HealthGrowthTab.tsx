@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { Plus } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
+import { useTheme } from "@/hooks/useTheme";
 
 interface HealthGrowthTabProps {
   childId: string;
@@ -19,6 +20,7 @@ interface HealthGrowthTabProps {
 export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   const { data: measurements = [] } = useHealthMeasurements(childId);
   const { mutate: createMeasurement, isPending } = useCreateHealthMeasurement();
+  const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [date, setDate] = useState("");
   const [weight, setWeight] = useState("");
@@ -187,13 +189,21 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
           <div className="mt-4 h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="4 4" stroke="#E3DBCF" />
-                <XAxis dataKey="date" stroke="#8C8C8C" />
-                <YAxis stroke="#8C8C8C" />
+                <CartesianGrid strokeDasharray="4 4" stroke={isDark ? "#3d352e" : "#E3DBCF"} />
+                <XAxis dataKey="date" stroke={isDark ? "#8a8075" : "#8C8C8C"} />
+                <YAxis stroke={isDark ? "#8a8075" : "#8C8C8C"} />
                 <Tooltip
                   contentStyle={{
                     borderRadius: 16,
-                    borderColor: "#E3DBCF",
+                    borderColor: "var(--bb-color-border)",
+                    backgroundColor: "var(--bb-color-surface)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                  labelStyle={{
+                    color: "var(--bb-color-ink-muted)",
+                  }}
+                  itemStyle={{
+                    color: "var(--bb-color-ink)",
                   }}
                 />
                 {chartData.some((item) => item.weight) && (

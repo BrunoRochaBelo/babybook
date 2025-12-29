@@ -67,8 +67,14 @@ export const VaultPage = () => {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
       <div className="text-center">
-        <ShieldCheck className="mx-auto h-10 w-10 text-primary" />
-        <h1 className="mt-2 text-3xl font-serif text-gray-800">
+        <ShieldCheck
+          className="mx-auto h-10 w-10"
+          style={{ color: "var(--bb-color-accent)" }}
+        />
+        <h1
+          className="mt-2 text-3xl font-serif"
+          style={{ color: "var(--bb-color-ink)" }}
+        >
           Cofre de Documentos
         </h1>
       </div>
@@ -83,7 +89,11 @@ export const VaultPage = () => {
             <button
               type="button"
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold transition hover:opacity-90"
+              style={{
+                backgroundColor: "var(--bb-color-accent)",
+                color: "var(--bb-color-surface)",
+              }}
             >
               <Upload className="h-4 w-4" />
               Novo documento
@@ -92,9 +102,22 @@ export const VaultPage = () => {
         />
       </div>
 
-      <div className="mt-4 rounded-[32px] border border-[#F2DCC8] bg-[#FBF3EC] px-5 py-4 text-sm text-[#8A624D] shadow-inner">
+      <div
+        className="mt-4 rounded-[32px] border px-5 py-4 text-sm shadow-inner"
+        style={{
+          backgroundColor: "var(--bb-color-accent-soft)",
+          borderColor: "var(--bb-color-accent)",
+          color: "var(--bb-color-ink)",
+        }}
+      >
         <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-white/60 p-2 text-[#F2995D]">
+          <div
+            className="rounded-xl p-2"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              color: "var(--bb-color-accent)",
+            }}
+          >
             <Lock className="h-4 w-4" />
           </div>
           <p>
@@ -104,16 +127,34 @@ export const VaultPage = () => {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
-        <h2 className="text-center text-lg font-semibold text-gray-800">
+      <div
+        className="mt-6 rounded-2xl border p-6"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
+        <h2
+          className="text-center text-lg font-semibold"
+          style={{ color: "var(--bb-color-ink)" }}
+        >
           Seus documentos privados
         </h2>
         <div className="mt-6 space-y-3">
           {isLoading ? (
             <>
-              <div className="h-12 animate-pulse rounded-xl bg-gray-100" />
-              <div className="h-12 animate-pulse rounded-xl bg-gray-100" />
-              <div className="h-12 animate-pulse rounded-xl bg-gray-100" />
+              <div
+                className="h-12 animate-pulse rounded-xl"
+                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
+              />
+              <div
+                className="h-12 animate-pulse rounded-xl"
+                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
+              />
+              <div
+                className="h-12 animate-pulse rounded-xl"
+                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
+              />
             </>
           ) : (
             <>
@@ -126,18 +167,34 @@ export const VaultPage = () => {
                 ) : (
                   <div
                     key={slot.id}
-                    className="flex items-center justify-between rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3"
+                    style={{
+                      backgroundColor: "var(--bb-color-bg)",
+                      borderColor: "var(--bb-color-border)",
+                    }}
                   >
                     <div>
-                      <p className="font-semibold text-gray-700">
+                      <p
+                        className="font-semibold"
+                        style={{ color: "var(--bb-color-ink)" }}
+                      >
                         {slot.label}
                       </p>
-                      <p className="text-xs text-gray-500">{slot.helper}</p>
+                      <p
+                        className="text-xs"
+                        style={{ color: "var(--bb-color-ink-muted)" }}
+                      >
+                        {slot.helper}
+                      </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsUploadModalOpen(true)}
-                      className="rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:border-gray-500"
+                      className="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                      style={{
+                        borderColor: "var(--bb-color-border)",
+                        color: "var(--bb-color-ink)",
+                      }}
                     >
                       Adicionar
                     </button>
@@ -151,12 +208,24 @@ export const VaultPage = () => {
 
               {slotDocuments.slots.length === 0 &&
                 slotDocuments.additional.length === 0 && (
-                  <div className="rounded-xl border-2 border-dashed border-gray-200 py-16 text-center">
-                    <FileText className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                    <h3 className="mb-2 text-lg font-semibold text-gray-500">
+                  <div
+                    className="rounded-xl border-2 border-dashed py-16 text-center"
+                    style={{ borderColor: "var(--bb-color-border)" }}
+                  >
+                    <FileText
+                      className="mx-auto mb-4 h-12 w-12"
+                      style={{ color: "var(--bb-color-muted)" }}
+                    />
+                    <h3
+                      className="mb-2 text-lg font-semibold"
+                      style={{ color: "var(--bb-color-ink-muted)" }}
+                    >
                       Nenhum documento no cofre
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p
+                      className="text-sm"
+                      style={{ color: "var(--bb-color-ink-muted)" }}
+                    >
                       Use o botão &ldquo;Novo documento&rdquo; para começar.
                     </p>
                   </div>

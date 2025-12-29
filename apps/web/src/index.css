@@ -38,33 +38,44 @@
   background-color: #9ca3af; /* gray-400 */
 }
 
-/* Dark mode overrides */
+/* Dark mode overrides - B2C warm tones */
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #374151; /* gray-700 */
+  background-color: #4a3f36;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background-color: #4b5563; /* gray-600 */
+  background-color: #5d4f44;
 }
 
 
 :root {
+  /* B2C Design Tokens - disponíveis globalmente mas aplicados apenas em .app-b2c */
   --bb-color-bg: #f7f3ef;
   --bb-color-surface: #ffffff;
+  --bb-color-surface-elevated: #ffffff;
   --bb-color-ink: #2a2a2a;
-  --bb-color-ink-muted: rgba(42, 42, 42, 0.7);
+  --bb-color-ink-muted: rgba(42, 42, 42, 0.65);
+  --bb-color-ink-subtle: rgba(42, 42, 42, 0.45);
   --bb-color-muted: #c9d3c2;
   --bb-color-accent: #f2995d;
-  --bb-color-accent-soft: #fad5b8;
+  --bb-color-accent-soft: rgba(242, 153, 93, 0.12);
+  --bb-color-accent-hover: #e88a4e;
   --bb-color-danger: #c76a6a;
-  --bb-color-danger-soft: #f2c8c8;
+  --bb-color-danger-soft: rgba(199, 106, 106, 0.12);
   --bb-color-success: #8c9b87;
-  --bb-color-border: #e3dbcf;
+  --bb-color-success-soft: rgba(140, 155, 135, 0.12);
+  --bb-color-border: rgba(42, 42, 42, 0.1);
+  --bb-color-border-strong: rgba(42, 42, 42, 0.18);
+  --bb-color-card-highlight-bg: linear-gradient(135deg, #ffecd9 0%, #ffd4a8 100%);
+  --bb-color-card-highlight-text: #2a2a2a;
+  --bb-color-card-highlight-muted: rgba(42, 42, 42, 0.7);
+  --bb-color-card-highlight-border: rgba(242, 153, 93, 0.3);
   --bb-radius-md: 12px;
   --bb-radius-lg: 16px;
+  --bb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --bb-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --bb-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
 
-  color: var(--bb-color-ink);
-  background-color: var(--bb-color-bg);
   font-family:
     "Inter",
     system-ui,
@@ -76,18 +87,43 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* B2C App - Aplicar cores B2C apenas neste contexto */
+.app-b2c {
+  color: var(--bb-color-ink);
+  background-color: var(--bb-color-bg);
+}
+
+/* B2C App Dark Mode */
+.dark .app-b2c,
+.app-b2c.dark {
+  color: var(--bb-color-ink);
+  background-color: var(--bb-color-bg);
+}
+
 .dark {
-  --bb-color-bg: #201a16;
-  --bb-color-surface: #2a2420;
-  --bb-color-ink: #f5f1ec;
-  --bb-color-ink-muted: rgba(245, 241, 236, 0.75);
-  --bb-color-muted: #4a423c;
-  --bb-color-accent: #f2995d;
-  --bb-color-accent-soft: #d89b7c;
-  --bb-color-danger: #e55c5c;
-  --bb-color-danger-soft: #7a2f2f;
-  --bb-color-success: #8c9b87;
-  --bb-color-border: rgba(245, 241, 236, 0.24);
+  --bb-color-bg: #1a1512;
+  --bb-color-surface: #252019;
+  --bb-color-surface-elevated: #2d261e;
+  --bb-color-ink: #f8f4ef;
+  --bb-color-ink-muted: rgba(248, 244, 239, 0.6);
+  --bb-color-ink-subtle: rgba(248, 244, 239, 0.4);
+  --bb-color-muted: #3d352e;
+  --bb-color-accent: #f4a46b;
+  --bb-color-accent-soft: rgba(244, 164, 107, 0.15);
+  --bb-color-accent-hover: #f7b584;
+  --bb-color-danger: #f07070;
+  --bb-color-danger-soft: rgba(240, 112, 112, 0.15);
+  --bb-color-success: #9eb596;
+  --bb-color-success-soft: rgba(158, 181, 150, 0.15);
+  --bb-color-border: rgba(248, 244, 239, 0.1);
+  --bb-color-border-strong: rgba(248, 244, 239, 0.18);
+  --bb-color-card-highlight-bg: linear-gradient(135deg, #3d2e24 0%, #2a1f18 100%);
+  --bb-color-card-highlight-text: #f8f4ef;
+  --bb-color-card-highlight-muted: rgba(248, 244, 239, 0.65);
+  --bb-color-card-highlight-border: rgba(244, 164, 107, 0.25);
+  --bb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --bb-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --bb-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
 /* =============================================================================

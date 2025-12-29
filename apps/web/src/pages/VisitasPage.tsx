@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, CheckCircle, MessageCircle, Mail, X } from "lucide-react";
+import { Users, CheckCircle, MessageCircle, Mail, X, Baby } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useGuestbookEntries } from "@/hooks/api";
@@ -7,6 +7,7 @@ import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
 import { cn } from "@/lib/utils";
+import { B2CEmptyState } from "@/layouts/b2cStates";
 
 const TOTAL_SLOTS: number = 20;
 
@@ -50,19 +51,35 @@ export const VisitasPage = () => {
 
   if (!selectedChild) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-6 text-center">
-        <p className="text-[#C9D3C2]">Selecione uma criança primeiro</p>
-      </div>
+      <B2CEmptyState
+        variant="page"
+        icon={Baby}
+        title="Selecione uma criança"
+        description="Para ver o livro de visitas, selecione uma criança primeiro."
+        primaryAction={{
+          label: "Ir para Perfil da Criança",
+          to: "/jornada/perfil-crianca",
+        }}
+      />
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="mb-6 text-center text-3xl font-serif font-bold text-ink">
+      <h1
+        className="mb-6 text-center text-3xl font-serif font-bold"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
         Livro de Visitas
       </h1>
 
-      <div className="mb-6 rounded-2xl border border-border bg-surface p-2 shadow-sm">
+      <div
+        className="mb-6 rounded-2xl border p-2 shadow-sm"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
         <LayoutGroup id="guestbook-tabs">
           <div className="flex flex-wrap gap-2">
             {[
@@ -76,17 +93,21 @@ export const VisitasPage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as "approved" | "pending")}
-                  className={cn(
-                    "relative flex-1 min-w-[120px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300",
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-ink-muted hover:text-ink",
-                  )}
+                  className="relative flex-1 min-w-[120px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300"
+                  style={{
+                    color: isActive
+                      ? "var(--bb-color-surface)"
+                      : "var(--bb-color-ink-muted)",
+                  }}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="guestbook-nav-pill"
-                      className="absolute inset-0 rounded-2xl bg-primary shadow-[0_10px_24px_rgba(242,153,93,0.28)]"
+                      className="absolute inset-0 rounded-2xl"
+                      style={{
+                        backgroundColor: "var(--bb-color-accent)",
+                        boxShadow: "0 10px 24px rgba(242,153,93,0.28)",
+                      }}
                       transition={{
                         type: "spring",
                         stiffness: 320,
@@ -96,14 +117,22 @@ export const VisitasPage = () => {
                   )}
                   <span className="relative z-10 inline-flex items-center justify-center gap-2">
                     <Icon
-                      className={cn(
-                        "h-4 w-4 transition-colors duration-300",
-                        isActive ? "text-primary-foreground" : "text-ink-muted",
-                      )}
+                      className="h-4 w-4 transition-colors duration-300"
+                      style={{
+                        color: isActive
+                          ? "var(--bb-color-surface)"
+                          : "var(--bb-color-ink-muted)",
+                      }}
                     />
                     {tab.label}
                     {tab.id === "pending" && pendingCount > 0 && (
-                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/30 px-2 text-[11px] font-semibold text-white">
+                      <span
+                        className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-2 text-[11px] font-semibold"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.3)",
+                          color: "var(--bb-color-surface)",
+                        }}
+                      >
                         {pendingCount}
                       </span>
                     )}
@@ -125,7 +154,11 @@ export const VisitasPage = () => {
             <>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-2xl border border-border px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:text-accent"
+                className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
               >
                 Ampliar para 50
               </button>
@@ -133,7 +166,11 @@ export const VisitasPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowForm((state) => !state)}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-2 font-semibold text-primary-foreground transition hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-2 font-semibold transition hover:opacity-90"
+                  style={{
+                    backgroundColor: "var(--bb-color-accent)",
+                    color: "var(--bb-color-surface)",
+                  }}
                 >
                   <Users className="h-4 w-4" />
                   {showForm ? "Fechar formulário" : "Deixar mensagem"}
@@ -142,7 +179,11 @@ export const VisitasPage = () => {
               <button
                 type="button"
                 onClick={() => setShowInviteModal(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-border px-6 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:text-accent"
+                className="inline-flex items-center gap-2 rounded-2xl border px-6 py-2 text-sm font-semibold transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
               >
                 <MessageCircle className="h-4 w-4" />
                 Convidar
@@ -165,39 +206,87 @@ export const VisitasPage = () => {
       </AnimatePresence>
 
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(42, 42, 42, 0.4)" }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border p-6 shadow-2xl"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+            }}
+          >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
+                <p
+                  className="text-xs uppercase tracking-[0.3em]"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
                   Convide para deixar uma mensagem
                 </p>
-                <h2 className="mt-1 font-serif text-xl text-ink">
+                <h2
+                  className="mt-1 font-serif text-xl"
+                  style={{ color: "var(--bb-color-ink)" }}
+                >
                   Envie o livro de visitas
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowInviteModal(false)}
-                className="rounded-full border border-border p-1 text-ink-muted transition hover:border-ink hover:text-ink"
+                className="rounded-full border p-1 transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink-muted)",
+                }}
                 aria-label="Fechar"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-6 rounded-[24px] border border-border bg-muted/10 p-6 text-center">
-              <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-2xl bg-surface shadow-inner">
-                <span className="text-sm font-semibold text-ink-muted">QR</span>
+            <div
+              className="mt-6 rounded-[24px] border p-6 text-center"
+              style={{
+                backgroundColor: "var(--bb-color-muted)",
+                borderColor: "var(--bb-color-border)",
+                opacity: 0.1,
+              }}
+            >
+              <div
+                className="mx-auto flex h-32 w-32 items-center justify-center rounded-2xl shadow-inner"
+                style={{ backgroundColor: "var(--bb-color-surface)" }}
+              >
+                <span
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
+                  QR
+                </span>
               </div>
-              <p className="mt-3 text-xs uppercase tracking-[0.3em] text-ink-muted">
+              <p
+                className="mt-3 text-xs uppercase tracking-[0.3em]"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
                 Escaneie o QR Code para acessar
               </p>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-2 rounded-[24px] border border-border bg-surface px-3 py-2 text-sm font-semibold text-ink">
+            <div
+              className="mt-6 flex flex-wrap items-center gap-2 rounded-[24px] border px-3 py-2 text-sm font-semibold"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
+            >
               <span className="flex-1 truncate">{inviteLink}</span>
               <button
                 type="button"
-                className="rounded-full border border-border px-3 py-1 text-xs text-ink transition hover:border-ink"
+                className="rounded-full border px-3 py-1 text-xs transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
                 onClick={() => inviteLink && navigator.clipboard?.writeText(inviteLink)}
               >
                 Copiar
@@ -206,7 +295,11 @@ export const VisitasPage = () => {
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-border px-3 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:text-accent"
+                className="inline-flex items-center justify-center gap-2 rounded-[20px] border px-3 py-2 text-sm font-semibold transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
                 onClick={() => {
                   if (!inviteLink) return;
                   const message = encodeURIComponent(
@@ -220,7 +313,11 @@ export const VisitasPage = () => {
               </button>
               <button
                 type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-border px-3 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:text-accent"
+                className="inline-flex items-center justify-center gap-2 rounded-[20px] border px-3 py-2 text-sm font-semibold transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
                 onClick={() => {
                   if (!inviteLink) return;
                   const subject = encodeURIComponent("Convite para deixar mensagem");

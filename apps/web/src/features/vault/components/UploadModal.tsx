@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"; // Assuming a UI library like shadcn/ui
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface UploadModalProps {
@@ -44,15 +44,28 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
           <div className="flex items-center justify-center w-full">
             <label
               htmlFor="dropzone-file"
-              className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+              className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
+              style={{
+                backgroundColor: "var(--bb-color-bg)",
+                borderColor: "var(--bb-color-border)",
+              }}
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <UploadCloud className="w-10 h-10 mb-4 text-gray-400" />
-                <p className="mb-2 text-sm text-gray-500">
+                <UploadCloud
+                  className="w-10 h-10 mb-4"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                />
+                <p
+                  className="mb-2 text-sm"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
                   <span className="font-semibold">Clique para carregar</span> ou
                   arraste e solte
                 </p>
-                <p className="text-xs text-gray-500">
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
                   PDF, PNG, JPG (MAX. 10MB)
                 </p>
               </div>
@@ -67,8 +80,16 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
           </div>
           {files.length > 0 && (
             <div className="mt-4">
-              <h4 className="font-semibold">Arquivos selecionados:</h4>
-              <ul className="list-disc list-inside">
+              <h4
+                className="font-semibold"
+                style={{ color: "var(--bb-color-ink)" }}
+              >
+                Arquivos selecionados:
+              </h4>
+              <ul
+                className="list-disc list-inside"
+                style={{ color: "var(--bb-color-ink)" }}
+              >
                 {files.map((file, i) => (
                   <li key={i}>{file.name}</li>
                 ))}

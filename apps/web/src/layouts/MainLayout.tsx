@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   BookHeart,
   Stethoscope,
@@ -7,11 +7,18 @@ import {
   Shield,
   Bell,
   Sparkles,
+  User,
 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { BBChildSwitcher } from "@/components/bb/ChildSwitcher";
 import { useAuthStore } from "@/store/auth";
+import { useLogout } from "@/hooks/api";
+import {
+  B2CNotificationsDrawer,
+  type B2CNotification,
+} from "@/components/B2CNotificationsDrawer";
+import { B2CUserDrawer } from "@/components/B2CUserDrawer";
 
 const BOOKS_NAV = [
   {
@@ -40,147 +47,193 @@ const BOOKS_NAV = [
   },
 ];
 
-const FEATURED_NOTIFICATIONS = [
+// Notificações de exemplo - em produção viriam de uma API
+const INITIAL_NOTIFICATIONS: B2CNotification[] = [
   {
     id: "notif-1",
     title: "Momento aprovado",
-    description: "“Primeiro sorriso” agora está visível para a família.",
+    description: "Primeiro sorriso agora está visível para a família.",
     time: "Há 2 horas",
+    unread: true,
   },
   {
     id: "notif-2",
     title: "Convite aceito",
     description: "Helena entrou como Madrinha no Livro de Visitas.",
     time: "Ontem",
+    unread: true,
+  },
+  {
+    id: "notif-3",
+    title: "Novo marco alcançado",
+    description: "Seu bebê completou 6 meses! Que tal registrar esse momento?",
+    time: "2 dias atrás",
+    unread: false,
   },
 ];
 
 export const MainLayout = () => {
+  const navigate = useNavigate();
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
+  const [isUserMenuOpen, setUserMenuOpen] = useState(false);
   const [isChildSwitcherOpen, setChildSwitcherOpen] = useState(false);
-  const notificationsRef = useRef<HTMLDivElement | null>(null);
-  const headerRef = useRef<HTMLDivElement | null>(null);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [notifications, setNotifications] =
+    useState<B2CNotification[]>(INITIAL_NOTIFICATIONS);
 
-  useEffect(() => {
-    if (!isNotificationsOpen) {
-      return;
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.logout);
+  const logoutMutation = useLogout();
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const handleMarkAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  };
+
+  const handleNotificationClick = (notification: B2CNotification) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notification.id ? { ...n, unread: false } : n))
+    );
+    if (notification.link) {
+      navigate(notification.link);
     }
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        notificationsRef.current &&
-        event.target instanceof Node &&
-        !notificationsRef.current.contains(event.target)
-      ) {
-        setNotificationsOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handleClickOutside);
-    return () =>
-      document.removeEventListener("pointerdown", handleClickOutside);
-  }, [isNotificationsOpen]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      clearAuth();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      clearAuth();
+      navigate("/login");
+    }
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-ink">
+    <div
+      className="app-b2c flex min-h-screen flex-col"
+      style={{
+        backgroundColor: "var(--bb-color-bg)",
+        color: "var(--bb-color-ink)",
+      }}
+    >
       <header
-        className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-xl"
-        ref={headerRef}
+        className="sticky top-0 z-40 backdrop-blur-xl"
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--bb-color-bg) 95%, transparent)",
+          borderBottom: "1px solid var(--bb-color-border)",
+        }}
       >
         <div className="mx-auto w-full max-w-5xl px-4 py-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <Link
                 to="/jornada"
-                className="flex items-center gap-2 text-2xl font-serif text-ink"
+                className="flex items-center gap-2 text-2xl font-serif"
+                style={{ color: "var(--bb-color-ink)" }}
               >
-                <Sparkles className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5" style={{ color: "var(--bb-color-accent)" }} />
                 BabyBook
               </Link>
-              <p className="hidden text-xs uppercase tracking-[0.4em] text-ink-muted sm:inline">
+              <p
+                className="hidden text-xs uppercase tracking-[0.4em] sm:inline"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
                 Memórias privadas
               </p>
             </div>
             <div className="ml-auto flex items-center gap-2">
+              {/* Notifications Button */}
               <button
                 type="button"
                 onClick={() => {
                   setChildSwitcherOpen(false);
-                  setNotificationsOpen((state) => !state);
+                  setUserMenuOpen(false);
+                  setNotificationsOpen(true);
                 }}
-                className={cn(
-                  "relative inline-flex items-center justify-center rounded-2xl border px-3 py-1.5 transition",
-                  isNotificationsOpen
-                    ? "border-ink bg-ink text-surface"
-                    : "border-border bg-surface hover:border-ink/60",
-                )}
+                className="relative inline-flex items-center justify-center rounded-2xl border px-3 py-1.5 transition"
+                style={{
+                  borderColor: "var(--bb-color-border)",
+                  backgroundColor: "var(--bb-color-surface)",
+                  color: "var(--bb-color-ink)",
+                }}
                 aria-label="Central de notificações"
-                aria-expanded={isNotificationsOpen}
-                aria-controls="notification-panel"
               >
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                  2
-                </span>
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: "var(--bb-color-accent)",
+                      color: "var(--bb-color-surface)",
+                    }}
+                  >
+                    {unreadCount}
+                  </span>
+                )}
               </button>
+
+              {/* Child Switcher */}
               <BBChildSwitcher
                 isOpen={isChildSwitcherOpen}
                 onOpenChange={(open) => {
                   setChildSwitcherOpen(open);
                   if (open) {
                     setNotificationsOpen(false);
+                    setUserMenuOpen(false);
                   }
                 }}
               />
-              {!isAuthenticated && (
-                <Link to="/login" className="ml-2 text-sm font-semibold">
+
+              {/* User Menu Button */}
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChildSwitcherOpen(false);
+                    setNotificationsOpen(false);
+                    setUserMenuOpen(true);
+                  }}
+                  className="inline-flex items-center justify-center rounded-2xl border px-3 py-1.5 transition"
+                  style={{
+                    borderColor: "var(--bb-color-border)",
+                    backgroundColor: "var(--bb-color-surface)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                  aria-label="Menu do usuário"
+                >
+                  <User className="h-4 w-4" />
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="ml-2 text-sm font-semibold"
+                  style={{ color: "var(--bb-color-ink)" }}
+                >
                   Entrar
                 </Link>
               )}
             </div>
           </div>
-          <div className="relative mt-3" ref={notificationsRef}>
-            {isNotificationsOpen && (
-              <div
-                id="notification-panel"
-                className="absolute right-0 z-30 w-full max-w-sm rounded-[28px] border border-border bg-surface shadow-2xl"
-              >
-                <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                    Notificações
-                  </p>
-                  <button
-                    type="button"
-                    className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-muted transition hover:text-ink"
-                  >
-                    Ver tudo
-                  </button>
-                </div>
-                <div className="divide-y divide-border/60">
-                  {FEATURED_NOTIFICATIONS.map((notification) => (
-                    <div key={notification.id} className="px-4 py-3 text-sm">
-                      <p className="font-semibold text-ink">
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-ink-muted">
-                        {notification.description}
-                      </p>
-                      <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-ink-muted">
-                        {notification.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </header>
+
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-32 pt-8">
         <Outlet />
       </main>
+
+      {/* Floating Bottom Navigation */}
       <nav
-        className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-3xl -translate-x-1/2 items-center rounded-full border border-border bg-surface/95 px-2 py-2 shadow-lg"
-        aria-label="Navega\u00e7\u00e3o dos livros"
+        className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-3xl -translate-x-1/2 items-center rounded-full px-2 py-2 shadow-lg"
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--bb-color-surface) 95%, transparent)",
+          borderColor: "var(--bb-color-border)",
+          border: "1px solid var(--bb-color-border)",
+        }}
+        aria-label="Navegação dos livros"
       >
         <LayoutGroup id="book-nav">
           {BOOKS_NAV.map((book) => {
@@ -192,18 +245,25 @@ export const MainLayout = () => {
                 className={({ isActive }) =>
                   cn(
                     "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-colors duration-300",
-                    isActive
-                      ? "px-6 py-3 text-surface"
-                      : "px-3 py-2 text-ink-muted hover:text-ink",
+                    isActive ? "px-6 py-3" : "px-3 py-2"
                   )
                 }
+                style={({ isActive }) => ({
+                  color: isActive
+                    ? "var(--bb-color-surface)"
+                    : "var(--bb-color-ink-muted)",
+                })}
               >
                 {({ isActive }) => (
                   <>
                     {isActive && (
                       <motion.span
                         layoutId="book-nav-pill"
-                        className="absolute inset-0 rounded-full bg-ink shadow-[0_12px_26px_rgba(42,42,42,0.35)]"
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          backgroundColor: "var(--bb-color-ink)",
+                          boxShadow: "0 12px 26px rgba(42,42,42,0.35)",
+                        }}
                         transition={{
                           type: "spring",
                           stiffness: 360,
@@ -213,17 +273,19 @@ export const MainLayout = () => {
                     )}
                     <span className="relative z-10 inline-flex items-center gap-2">
                       <Icon
-                        className={cn(
-                          "h-5 w-5 transition-colors duration-300",
-                          isActive ? "text-surface" : "text-ink-muted",
-                        )}
+                        className="h-5 w-5 transition-colors duration-300"
+                        style={{
+                          color: isActive
+                            ? "var(--bb-color-surface)"
+                            : "var(--bb-color-ink-muted)",
+                        }}
                       />
                       <span
                         className={cn(
                           "text-sm font-semibold tracking-tight transition-[opacity,transform] duration-300",
                           isActive
                             ? "translate-x-0 opacity-100"
-                            : "translate-x-2 opacity-0",
+                            : "translate-x-2 opacity-0"
                         )}
                       >
                         {book.label}
@@ -236,6 +298,25 @@ export const MainLayout = () => {
           })}
         </LayoutGroup>
       </nav>
+
+      {/* Notifications Drawer */}
+      <B2CNotificationsDrawer
+        open={isNotificationsOpen}
+        onOpenChange={setNotificationsOpen}
+        notifications={notifications}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllAsRead={handleMarkAllAsRead}
+      />
+
+      {/* User Menu Drawer */}
+      <B2CUserDrawer
+        open={isUserMenuOpen}
+        onOpenChange={setUserMenuOpen}
+        userName={user?.name}
+        userEmail={user?.email}
+        onLogout={handleLogout}
+        isLoggingOut={logoutMutation.isPending}
+      />
     </div>
   );
 };

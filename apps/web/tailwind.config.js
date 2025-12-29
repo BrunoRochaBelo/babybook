@@ -2,7 +2,7 @@ import sharedConfig from "../../packages/config/tailwind/tailwind.config.js";
 import designTokens from "@babybook/config/design-tokens";
 
 /** @type {import('tailwindcss').Config} */
-const { colors, fonts, radii } = designTokens;
+const { fonts, radii } = designTokens;
 
 const config = {
   darkMode: 'class',
@@ -11,28 +11,29 @@ const config = {
   theme: {
     extend: {
       colors: {
-        background: colors.background,
-        foreground: colors.ink,
-        surface: colors.surface,
-        "surface-muted": colors.surfaceMuted,
-        ink: colors.ink,
-        "ink-muted": colors.inkMuted,
-        muted: colors.muted,
-        accent: colors.accent,
-        "accent-soft": colors.accentSoft,
-        danger: colors.danger,
-        "danger-soft": colors.dangerSoft,
-        success: colors.success,
-        border: colors.borderSubtle,
-        input: colors.surface,
-        ring: colors.accent,
+        // Cores que respondem ao dark mode via variáveis CSS
+        background: "var(--bb-color-bg)",
+        foreground: "var(--bb-color-ink)",
+        surface: "var(--bb-color-surface)",
+        "surface-muted": "var(--bb-color-muted)",
+        ink: "var(--bb-color-ink)",
+        "ink-muted": "var(--bb-color-ink-muted)",
+        muted: "var(--bb-color-muted)",
+        accent: "var(--bb-color-accent)",
+        "accent-soft": "var(--bb-color-accent-soft)",
+        danger: "var(--bb-color-danger)",
+        "danger-soft": "var(--bb-color-danger-soft)",
+        success: "var(--bb-color-success)",
+        border: "var(--bb-color-border)",
+        input: "var(--bb-color-surface)",
+        ring: "var(--bb-color-accent)",
         primary: {
-          DEFAULT: colors.accent,
-          foreground: colors.surface,
+          DEFAULT: "var(--bb-color-accent)",
+          foreground: "var(--bb-color-surface)",
         },
         secondary: {
-          DEFAULT: colors.ink,
-          foreground: colors.background,
+          DEFAULT: "var(--bb-color-ink)",
+          foreground: "var(--bb-color-bg)",
         },
       },
       fontFamily: {

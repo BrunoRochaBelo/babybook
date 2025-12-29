@@ -29,12 +29,18 @@ const statusBadge = (status: ApiMoment["status"]) => {
     case "draft":
       return {
         label: "Rascunho",
-        className: "bg-surface-muted text-ink",
+        style: {
+          backgroundColor: "var(--bb-color-muted)",
+          color: "var(--bb-color-ink)",
+        },
       };
     case "archived":
       return {
         label: "Arquivado",
-        className: "bg-muted text-ink",
+        style: {
+          backgroundColor: "var(--bb-color-muted)",
+          color: "var(--bb-color-ink)",
+        },
       };
     default:
       return null;
@@ -58,13 +64,37 @@ export const MomentCard = ({ moment }: MomentCardProps) => {
     (typeof payload?.["relato"] === "string" ? (payload["relato"] as string) : "");
   const badge = statusBadge(moment.status);
 
+  const typeStyles = {
+    recurring: {
+      backgroundColor: "var(--bb-color-accent-soft)",
+      color: "var(--bb-color-ink)",
+    },
+    series: {
+      backgroundColor: "var(--bb-color-muted)",
+      color: "var(--bb-color-ink)",
+    },
+    unique: {
+      backgroundColor: "var(--bb-color-surface)",
+      color: "var(--bb-color-ink)",
+    },
+  };
+
   return (
     <button
       type="button"
       onClick={() => navigate(`/jornada/moment/${moment.id}`)}
-      className="flex w-full flex-col overflow-hidden rounded-[32px] border border-border bg-surface text-left shadow-sm transition hover:border-ink hover:shadow-lg"
+      className="flex w-full flex-col overflow-hidden rounded-[32px] text-left shadow-sm transition hover:shadow-lg"
+      style={{
+        backgroundColor: "var(--bb-color-surface)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "var(--bb-color-border)",
+      }}
     >
-      <div className="relative h-52 w-full overflow-hidden bg-muted">
+      <div
+        className="relative h-52 w-full overflow-hidden"
+        style={{ backgroundColor: "var(--bb-color-muted)" }}
+      >
         {coverImage ? (
           <img
             src={coverImage}
@@ -72,43 +102,51 @@ export const MomentCard = ({ moment }: MomentCardProps) => {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-ink-muted">
+          <div
+            className="flex h-full items-center justify-center text-sm"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
             Sem mídia
           </div>
         )}
         {badge && (
           <span
-            className={cn(
-              "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold",
-              badge.className,
-            )}
+            className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold"
+            style={badge.style}
           >
             {badge.label}
           </span>
         )}
       </div>
       <div className="flex flex-col gap-2 px-5 py-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em] text-ink-muted">
+        <div
+          className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em]"
+          style={{ color: "var(--bb-color-ink-muted)" }}
+        >
           {catalogInfo && <span>{catalogInfo.chapterTitle}</span>}
-          <span className="h-px flex-1 bg-border" />
+          <span
+            className="h-px flex-1"
+            style={{ backgroundColor: "var(--bb-color-border)" }}
+          />
           <span>{privacyLabel[moment.privacy]}</span>
         </div>
         <div className="space-y-1">
-          <h4 className="font-serif text-2xl text-ink">{moment.title}</h4>
+          <h4
+            className="font-serif text-2xl"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
+            {moment.title}
+          </h4>
           {displayDate && (
-            <p className="text-sm text-ink-muted">
+            <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
               {new Date(displayDate).toLocaleDateString("pt-BR")}
             </p>
           )}
         </div>
         {catalogInfo?.type && (
           <span
-            className={cn(
-              "w-fit rounded-full px-3 py-1 text-xs font-semibold",
-              catalogInfo.type === "recurring" && "bg-accent-soft text-ink",
-              catalogInfo.type === "series" && "bg-muted text-ink",
-              catalogInfo.type === "unique" && "bg-surface-muted text-ink",
-            )}
+            className="w-fit rounded-full px-3 py-1 text-xs font-semibold"
+            style={typeStyles[catalogInfo.type]}
           >
             {catalogInfo.type === "recurring"
               ? "Recorrente"
@@ -118,7 +156,12 @@ export const MomentCard = ({ moment }: MomentCardProps) => {
           </span>
         )}
         {summary && (
-          <p className="line-clamp-2 text-sm text-ink-muted">{summary}</p>
+          <p
+            className="line-clamp-2 text-sm"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
+            {summary}
+          </p>
         )}
       </div>
     </button>
