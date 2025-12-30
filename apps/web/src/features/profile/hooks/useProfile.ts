@@ -11,7 +11,7 @@ export interface Profile {
 
 const mockProfile: Profile = {
   name: "Bruno",
-  email: "bruno@example.com",
+  email: "dev@babybook.dev",
   children: [
     { id: "1", name: "Alice" },
     { id: "2", name: "Bob" },

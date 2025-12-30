@@ -13,12 +13,10 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { useLogout } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
-import {
-  B2CNotificationsDrawer,
-  type B2CNotification,
-} from "@/components/B2CNotificationsDrawer";
+import { B2CNotificationsDrawer } from "@/components/B2CNotificationsDrawer";
 import { B2CMainDrawer } from "@/components/B2CMainDrawer";
 import { BabyBookLogo } from "@/components/BabyBookLogo";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 const BOOKS_NAV = [
   {
@@ -47,37 +45,18 @@ const BOOKS_NAV = [
   },
 ];
 
-// Notificações de exemplo - em produção viriam de uma API
-const INITIAL_NOTIFICATIONS: B2CNotification[] = [
-  {
-    id: "notif-1",
-    title: "Momento aprovado",
-    description: "Primeiro sorriso agora está visível para a família.",
-    time: "Há 2 horas",
-    unread: true,
-  },
-  {
-    id: "notif-2",
-    title: "Convite aceito",
-    description: "Helena entrou como Madrinha no Livro de Visitas.",
-    time: "Ontem",
-    unread: true,
-  },
-  {
-    id: "notif-3",
-    title: "Novo marco alcançado",
-    description: "Seu bebê completou 6 meses! Que tal registrar esse momento?",
-    time: "2 dias atrás",
-    unread: false,
-  },
-];
-
 export const MainLayout = () => {
   const navigate = useNavigate();
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [isMainDrawerOpen, setMainDrawerOpen] = useState(false);
-  const [notifications, setNotifications] =
-    useState<B2CNotification[]>(INITIAL_NOTIFICATIONS);
+
+  // Contexto compartilhado de notificações
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const { children: childrenList, selectedChild, setSelectedChildId } = useSelectedChild();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -85,16 +64,8 @@ export const MainLayout = () => {
   const clearAuth = useAuthStore((state) => state.logout);
   const logoutMutation = useLogout();
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
-
-  const handleNotificationClick = (notification: B2CNotification) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, unread: false } : n))
-    );
+  const handleNotificationClick = (notification: { id: string; link?: string }) => {
+    markAsRead(notification.id);
     if (notification.link) {
       navigate(notification.link);
     }
@@ -286,7 +257,8 @@ export const MainLayout = () => {
         onOpenChange={setNotificationsOpen}
         notifications={notifications}
         onNotificationClick={handleNotificationClick}
-        onMarkAllAsRead={handleMarkAllAsRead}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
       />
 
       {/* Main Drawer */}

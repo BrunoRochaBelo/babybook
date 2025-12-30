@@ -243,10 +243,10 @@ type MockClientAccessInfo = {
   children: MockClientChildAccess[];
 };
 
-const BRUNO_CLIENT_EMAIL = "bruno@example.com";
+const DEV_CLIENT_EMAIL = "dev@babybook.dev";
 const BRUNO_CLIENT_ACCESS: MockClientAccessInfo = {
   hasAccount: true,
-  email: BRUNO_CLIENT_EMAIL,
+  email: DEV_CLIENT_EMAIL,
   clientName: "Bruno",
   children: [
     {
@@ -260,7 +260,7 @@ const BRUNO_CLIENT_ACCESS: MockClientAccessInfo = {
 const resolveClientAccess = (rawEmail: string): MockClientAccessInfo => {
   const email = normalizeEmail(rawEmail ?? "");
 
-  if (email === BRUNO_CLIENT_EMAIL) return BRUNO_CLIENT_ACCESS;
+  if (email === DEV_CLIENT_EMAIL) return BRUNO_CLIENT_ACCESS;
 
   // Heurística para DEV: e-mails contendo "ana" ou "paid" simulam conta existente
   // com ao menos 1 Livro (Child) com acesso pago.

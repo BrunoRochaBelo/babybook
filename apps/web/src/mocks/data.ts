@@ -577,7 +577,7 @@ export const mockHealthVaccines: HealthVaccine[] = [
 
 export const mockUser: UserProfile = {
   id: "c2e9a7c8-7d0a-4d38-8ba1-5f5a0f28c9ef",
-  email: "bruno@example.com",
+  email: "dev@babybook.dev",
   name: "Bruno",
   locale: "pt-BR",
   role: "owner",
@@ -648,7 +648,7 @@ export const mockDeliveries: MockDelivery[] = [
     partnerId: "partner-demo-001",
     title: "Ensaio - Bruno (Importação Direta)",
     clientName: "Bruno",
-    targetEmail: "bruno@example.com",
+    targetEmail: "dev@babybook.dev",
     directImport: true,
     description: "Entrega de fotos via importação direta (sem voucher).",
     eventDate: "2024-12-15",

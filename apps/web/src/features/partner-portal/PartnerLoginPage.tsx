@@ -7,13 +7,14 @@
 
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Camera, Eye, EyeOff, Loader2, AlertCircle, Heart } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useLogin } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { userProfileSchema } from "@babybook/contracts";
 import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
+import { BabyBookLogo } from "@/components/BabyBookLogo";
 
 export function PartnerLoginPage() {
   const navigate = useNavigate();
@@ -90,35 +91,22 @@ export function PartnerLoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col">
       {/* Header */}
       <header className="p-4">
-        <a
-          href={proUrl}
-          className="inline-flex items-center gap-2"
-          rel="noreferrer"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
-            <Heart className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">
-            Baby Book{" "}
-            <span className="text-pink-600 dark:text-pink-400">Pro</span>
-          </span>
+        <a href={proUrl} rel="noreferrer">
+          <BabyBookLogo variant="b2b" size="md" />
         </a>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <div className="w-full max-w-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 dark:bg-pink-900/50 rounded-full mb-4">
-                <Camera className="w-8 h-8 text-pink-600 dark:text-pink-400" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="text-center mb-6">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Portal do Parceiro
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">
-                Entre na sua conta para gerenciar suas entregas
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                Entre para gerenciar suas entregas
               </p>
             </div>
 

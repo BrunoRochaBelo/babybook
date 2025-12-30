@@ -123,6 +123,7 @@ async def patch_me(
     response: Response,
     if_match: str | None = Header(default=None, alias="If-Match"),
     current_user: UserSession = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
 ) -> MeResponse:
     current_etag = _compute_etag(current_user)
     if if_match is None:
@@ -138,10 +139,30 @@ async def patch_me(
             message="Versao desatualizada. Recarregue os dados.",
         )
 
+    # Busca o usuário no banco para persistir alterações
+    from babybook_api.db.models import User
+    
+    user_id = uuid.UUID(current_user.id)
+    stmt = select(User).where(User.id == user_id)
+    user = (await db.execute(stmt)).scalar_one_or_none()
+    
+    if user is None:
+        raise AppError(status_code=404, code="user.not_found", message="Usuario nao encontrado.")
+    
+    # Aplica alterações
+    if payload.name:
+        user.name = payload.name
+    if payload.locale:
+        user.locale = payload.locale
+    
+    await db.commit()
+    await db.refresh(user)
+    
+    # Atualiza sessão para refletir mudanças
     updated_user = replace(
         current_user,
-        name=payload.name or current_user.name,
-        locale=payload.locale or current_user.locale,
+        name=user.name,
+        locale=user.locale,
     )
     new_etag = _compute_etag(updated_user)
     response.headers["ETag"] = new_etag

@@ -1,28 +1,49 @@
+/**
+ * Login Page - B2C
+ *
+ * Página de login para usuários finais.
+ * Design alinhado com o app B2C (cores laranjas) e padrões de segurança do B2B.
+ */
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useLogin } from "@/hooks/api";
-import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { userProfileSchema } from "@babybook/contracts";
+import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
+import { sanitizeRedirectTo } from "@/lib/redirect";
+import { BabyBookLogo } from "@/components/BabyBookLogo";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import MicrosoftIcon from "@/components/icons/MicrosoftIcon";
 import AppleIcon from "@/components/icons/AppleIcon";
-import { cn } from "@/lib/utils";
-import { sanitizeRedirectTo } from "@/lib/redirect";
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const loginMutation = useLogin();
+  const queryClient = useQueryClient();
+  const login = useAuthStore((s) => s.login);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const login = useLogin();
-  const navigate = useNavigate();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const params = new URLSearchParams(window.location.search);
-  const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/jornada");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const isDev = import.meta.env.DEV;
-  const devEmail = import.meta.env.VITE_DEV_USER_EMAIL ?? "bruno@example.com";
+  const devEmail = import.meta.env.VITE_DEV_USER_EMAIL ?? "dev@babybook.dev";
   const devPassword = import.meta.env.VITE_DEV_USER_PASSWORD ?? "password";
   const apiBaseUrl = (
     import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
   ).replace(/\/+$/, "");
+  const homeUrl =
+    (import.meta.env.VITE_LANDINGPAGE_URL as string | undefined) ?? "/";
+
+  const params = new URLSearchParams(window.location.search);
+  const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/jornada");
 
   React.useEffect(() => {
     if (isAuthenticated) {
@@ -30,224 +51,311 @@ export function LoginPage() {
     }
   }, [isAuthenticated, navigate, redirectTo]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (!email.trim()) {
+      setError("Informe seu e-mail");
+      return;
+    }
+    if (!password) {
+      setError("Informe sua senha");
+      return;
+    }
+
     try {
-      await login.mutateAsync({ email, password });
-      const params = new URLSearchParams(window.location.search);
-      const redirectTo = sanitizeRedirectTo(
-        params.get("redirectTo"),
-        "/jornada",
-      );
+      await loginMutation.mutateAsync({
+        email: email.trim(),
+        password,
+        rememberMe,
+      });
+
+      queryClient.removeQueries({ queryKey: ["user-profile"] });
+      const profileData = await apiClient.get("/me", {
+        schema: userProfileSchema,
+      });
+      login(profileData);
       navigate(redirectTo);
     } catch (err) {
-      // TODO: show error
-      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message || "Email ou senha inválidos");
+      } else {
+        setError("Email ou senha inválidos");
+      }
     }
-  }
+  };
 
-  const inputClassName =
-    "w-full rounded-2xl border border-border/60 bg-white/90 px-5 py-3.5 text-base text-ink placeholder:text-ink-muted shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30";
-
-  const socialProviders: Array<{
-    label: string;
-    provider: "google" | "microsoft" | "apple";
-    icon: React.ReactNode;
-    badgeClassName: string;
-  }> = [
-    {
-      label: "Continuar com Google",
-      provider: "google",
-      icon: <GoogleIcon className="h-4 w-4" />,
-      badgeClassName: "bg-[#E8F0FE] text-[#1A73E8]",
-    },
-    {
-      label: "Continuar com Microsoft",
-      provider: "microsoft",
-      icon: <MicrosoftIcon className="h-4 w-4" />,
-      badgeClassName: "bg-[#E7F1FD] text-[#0F6CBD]",
-    },
-    {
-      label: "Continuar com Apple",
-      provider: "apple",
-      icon: <AppleIcon className="h-4 w-4" />,
-      badgeClassName: "bg-[#F4F4F4] text-[#111111]",
-    },
+  const socialProviders = [
+    { provider: "google" as const, icon: <GoogleIcon className="h-5 w-5" />, label: "Google" },
+    { provider: "microsoft" as const, icon: <MicrosoftIcon className="h-5 w-5" />, label: "Microsoft" },
+    { provider: "apple" as const, icon: <AppleIcon className="h-5 w-5" />, label: "Apple" },
   ];
 
-  const SocialButton = ({
-    label,
-    icon,
-    provider,
-    badgeClassName,
-  }: {
-    label: string;
-    icon: React.ReactNode;
-    provider: "google" | "microsoft" | "apple";
-    badgeClassName?: string;
-  }) => (
-    <Button
-      type="button"
-      variant="outline"
-      className="w-full justify-start gap-3 rounded-2xl border-border/70 bg-white/80 py-3 text-base font-medium hover:bg-white"
-      onClick={() =>
-        (window.location.href = `${apiBaseUrl}/auth/${provider}/authorize?state=${encodeURIComponent(redirectTo)}`)
-      }
-    >
-      <span
-        className={cn(
-          "inline-flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground",
-          badgeClassName,
-        )}
-      >
-        {icon}
-      </span>
-      {label}
-    </Button>
-  );
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#FDF9F3]">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.9),_transparent_60%),_linear-gradient(180deg,_rgba(242,153,93,0.12),_rgba(199,211,194,0.15))]" />
-      <div className="absolute -top-1/3 right-0 h-[480px] w-[480px] rounded-full bg-primary/5 blur-3xl" />
-      <div className="absolute bottom-0 left-0 h-[320px] w-[320px] rounded-full bg-[#C9D3C2]/30 blur-[120px]" />
+    <div
+      className="app-b2c min-h-screen flex flex-col"
+      style={{ backgroundColor: "var(--bb-color-bg)" }}
+    >
+      {/* Header */}
+      <header className="p-4">
+        <a href={homeUrl} rel="noreferrer">
+          <BabyBookLogo variant="b2c" size="md" />
+        </a>
+      </header>
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-center">
-        <section className="flex flex-1 flex-col justify-center rounded-3xl border border-white/70 bg-white/60 p-8 shadow-[0_25px_60px_rgba(242,153,93,0.15)] backdrop-blur">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-            <span className="h-2 w-2 rounded-full bg-primary" />
-            Baby Book
-          </div>
-          <h1 className="mt-6 font-serif text-4xl text-ink">
-            Um álbum vivo, privado e cheio de calma
-          </h1>
-          <p className="mt-4 text-lg text-ink-muted">
-            Entre para continuar a jornada dos momentos mais especiais.
-            Conecte-se em segundos com sua conta social favorita ou use seu
-            e-mail para manter tudo protegido.
-          </p>
-          <dl className="mt-8 grid gap-6 sm:grid-cols-2">
-            {[
-              "Memórias guiadas",
-              "Compartilhamento seguro",
-              "Upload ilimitado",
-              "Modo convidado",
-            ].map((item) => (
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div
+            className="rounded-2xl p-6 shadow-lg"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              border: "1px solid var(--bb-color-border)",
+            }}
+          >
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h1
+                className="text-xl font-bold"
+                style={{ color: "var(--bb-color-ink)" }}
+              >
+                Bem-vindo de volta
+              </h1>
+              <p
+                className="text-sm mt-1"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                Entre para continuar sua jornada
+              </p>
+            </div>
+
+            {/* Error Alert */}
+            {error && (
               <div
-                key={item}
-                className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/70 px-4 py-3 shadow-sm"
+                className="mb-4 p-3 rounded-xl flex items-center gap-2 text-sm"
+                style={{
+                  backgroundColor: "var(--bb-color-danger-soft)",
+                  color: "var(--bb-color-danger)",
+                  border: "1px solid var(--bb-color-danger)",
+                }}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  ✓
-                </span>
-                <dt className="text-sm font-semibold text-ink">{item}</dt>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        <section
-          className="w-full max-w-xl rounded-3xl border border-white/80 bg-white/95 p-8 shadow-[0_30px_80px_rgba(42,42,42,0.12)]"
-          aria-label="Formulário de login"
-        >
-          <div className="mb-6 space-y-2 text-center">
-            <h2 className="text-3xl font-serif text-ink">Entrar</h2>
-            <p className="text-sm text-ink-muted">
-              Bem-vindo de volta! Escolha uma opção de login para retomar seu
-              Baby Book.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {socialProviders.map((provider) => (
-              <SocialButton key={provider.provider} {...provider} />
-            ))}
-          </div>
-
-          <div className="my-6 flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex-1 border-t border-border/50" />
-            <span>ou entre com e-mail</span>
-            <div className="flex-1 border-t border-border/50" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-ink" htmlFor="email">
-                Email
-              </label>
-              <input
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu melhor email"
-                className={inputClassName}
-                autoComplete="email"
-              />
-            </div>
-            <div className="space-y-2">
-              <label
-                className="text-sm font-semibold text-ink"
-                htmlFor="password"
-              >
-                Senha
-              </label>
-              <input
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                type="password"
-                className={inputClassName}
-                autoComplete="current-password"
-              />
-            </div>
-
-            {isDev && (
-              <div className="rounded-2xl border border-dashed border-border/80 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-ink">Modo dev</span>
-                  <code className="rounded-full bg-background px-3 py-1 text-xs font-semibold">
-                    {devEmail} / {devPassword}
-                  </code>
-                  <button
-                    type="button"
-                    className="text-primary underline"
-                    onClick={() => {
-                      setEmail(devEmail);
-                      setPassword(devPassword);
-                    }}
-                  >
-                    Preencher automaticamente
-                  </button>
-                </div>
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <p>{error}</p>
               </div>
             )}
 
-            <Button
-              type="submit"
-              disabled={login.status === "pending"}
-              className="w-full rounded-2xl py-4 text-base font-semibold shadow-lg shadow-primary/30"
-            >
-              {login.status === "pending" ? "Conectando..." : "Entrar"}
-            </Button>
-          </form>
+            {/* Social Login - Compact */}
+            <div className="flex justify-center gap-3 mb-4">
+              {socialProviders.map(({ provider, icon, label }) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={() =>
+                    (window.location.href = `${apiBaseUrl}/auth/${provider}/authorize?state=${encodeURIComponent(redirectTo)}`)
+                  }
+                  className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+                  style={{
+                    backgroundColor: "var(--bb-color-surface)",
+                    border: "1px solid var(--bb-color-border-strong)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                  aria-label={`Entrar com ${label}`}
+                  title={`Entrar com ${label}`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
 
-          <div className="mt-6 flex flex-col gap-2 text-center text-sm">
-            <a className="text-primary hover:underline" href="/forgot-password">
-              Esqueceu a senha?
-            </a>
-            <p className="text-ink-muted">
-              Ainda não tem conta?{" "}
-              <a
-                className="font-semibold text-primary hover:underline"
-                href="/register"
+            {/* Divider */}
+            <div className="flex items-center gap-3 text-xs mb-4">
+              <div
+                className="flex-1 h-px"
+                style={{ backgroundColor: "var(--bb-color-border)" }}
+              />
+              <span style={{ color: "var(--bb-color-ink-subtle)" }}>
+                ou com e-mail
+              </span>
+              <div
+                className="flex-1 h-px"
+                style={{ backgroundColor: "var(--bb-color-border)" }}
+              />
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <ValidatedInput
+                label="E-mail"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="email"
+                rules={[validationRules.email]}
+                validateDelay={300}
+              />
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: "var(--bb-color-ink)" }}
+                >
+                  Senha
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 pr-10"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      border: "1px solid var(--bb-color-border-strong)",
+                      color: "var(--bb-color-ink)",
+                    }}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
+                    style={{ color: "var(--bb-color-ink)" }}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me + Forgot */}
+              <div className="flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => setRememberMe(!rememberMe)}
+                  aria-pressed={rememberMe}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    backgroundColor: rememberMe
+                      ? "var(--bb-color-accent-soft)"
+                      : "var(--bb-color-muted)",
+                    color: rememberMe
+                      ? "var(--bb-color-accent)"
+                      : "var(--bb-color-ink-muted)",
+                  }}
+                >
+                  <span>Lembrar</span>
+                  <div
+                    className="relative w-6 h-3 rounded-full transition-colors"
+                    style={{
+                      backgroundColor: rememberMe
+                        ? "var(--bb-color-accent)"
+                        : "var(--bb-color-border-strong)",
+                    }}
+                  >
+                    <div
+                      className="absolute top-0.5 w-2 h-2 bg-white rounded-full shadow transition-transform"
+                      style={{
+                        transform: rememberMe ? "translateX(12px)" : "translateX(2px)",
+                      }}
+                    />
+                  </div>
+                </button>
+                <Link
+                  to="/forgot-password"
+                  className="hover:underline"
+                  style={{ color: "var(--bb-color-accent)" }}
+                >
+                  Esqueci a senha
+                </Link>
+              </div>
+
+              {/* Dev Mode */}
+              {isDev && (
+                <div
+                  className="rounded-lg px-3 py-2 text-xs"
+                  style={{
+                    backgroundColor: "var(--bb-color-muted)",
+                    border: "1px dashed var(--bb-color-border-strong)",
+                    color: "var(--bb-color-ink-muted)",
+                  }}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span style={{ color: "var(--bb-color-ink)" }}>Dev:</span>
+                    <code className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: "var(--bb-color-surface)" }}>
+                      {devEmail}
+                    </code>
+                    <button
+                      type="button"
+                      className="underline"
+                      style={{ color: "var(--bb-color-accent)" }}
+                      onClick={() => {
+                        setEmail(devEmail);
+                        setPassword(devPassword);
+                      }}
+                    >
+                      Preencher
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loginMutation.isPending}
+                className="w-full py-2.5 px-4 text-white font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: "var(--bb-color-accent)",
+                }}
+              >
+                {loginMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Entrando...
+                  </>
+                ) : (
+                  "Entrar"
+                )}
+              </button>
+            </form>
+
+            {/* Register */}
+            <div
+              className="mt-4 text-center text-xs"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              Não tem conta?{" "}
+              <Link
+                to="/register"
+                className="font-medium"
+                style={{ color: "var(--bb-color-accent)" }}
               >
                 Criar agora
-              </a>
-            </p>
+              </Link>
+            </div>
           </div>
-        </section>
-      </div>
+
+          {/* Back */}
+          <div className="text-center mt-4">
+            <a
+              href={homeUrl}
+              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+              rel="noreferrer"
+            >
+              ← Voltar
+            </a>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

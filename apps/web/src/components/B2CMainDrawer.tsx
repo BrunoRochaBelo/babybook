@@ -16,7 +16,6 @@ import {
   Baby,
   Check,
   UserPlus,
-  Bell,
   Shield,
   HelpCircle,
   FileText,
@@ -285,28 +284,6 @@ export function B2CMainDrawer({
                   </p>
                   <p className="text-xs text-[var(--bb-color-ink-muted)]">
                     Perfil e preferências
-                  </p>
-                </div>
-                <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">
-                  <ChevronRight className="w-5 h-5" />
-                </div>
-              </Link>
-
-              {/* Notificações */}
-              <Link
-                to="/jornada/notificacoes"
-                onClick={() => onOpenChange(false)}
-                className="flex items-center gap-4 p-3 rounded-xl bg-[var(--bb-color-bg)] hover:bg-[var(--bb-color-surface)] border border-transparent hover:border-[var(--bb-color-border)] hover:shadow-sm transition-all group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-[var(--bb-color-surface)] shadow-sm border border-[var(--bb-color-border)] flex items-center justify-center text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-accent)] group-hover:border-[var(--bb-color-accent)]/30 transition-colors">
-                  <Bell className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[var(--bb-color-ink)] group-hover:text-[var(--bb-color-accent)] transition-colors">
-                    Notificações
-                  </p>
-                  <p className="text-xs text-[var(--bb-color-ink-muted)]">
-                    Alertas e lembretes
                   </p>
                 </div>
                 <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">

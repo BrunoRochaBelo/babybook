@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     cloudflare_api_token: str | None = None
     cloudflare_api_base_url: str = "https://api.cloudflare.com/client/v4"
     inline_worker_enabled: bool = Field(default=True, alias="INLINE_WORKER_ENABLED")
-    dev_user_email: str = "bruno@example.com"
+    dev_user_email: str = "dev@babybook.dev"
     dev_user_password: str = "password"
 
     # ======================================================================

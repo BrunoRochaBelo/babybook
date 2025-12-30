@@ -84,6 +84,20 @@ media_processing_status_enum = Enum(
     name="media_processing_status_enum",
 )
 
+# Notification types for B2C and B2B
+notification_type_enum = Enum(
+    "milestone",      # Marcos do bebê
+    "health",         # Saúde/Consultas
+    "guestbook",      # Livro de visitas
+    "memory",         # Memórias/Momentos
+    "photo",          # Fotos
+    "gift",           # Presentes/Vouchers
+    "system",         # Sistema
+    "redemption",     # Resgate de voucher (B2B)
+    "credits",        # Créditos (B2B)
+    name="notification_type_enum",
+)
+
 
 class Base(DeclarativeBase):
     pass
@@ -764,3 +778,84 @@ class DeliveryAsset(TimestampMixin, Base):
     delivery: Mapped[Delivery] = relationship(back_populates="assets")
     asset: Mapped[Asset] = relationship(foreign_keys=[asset_id])
     target_asset: Mapped[Asset | None] = relationship(foreign_keys=[target_asset_id])
+
+
+# =============================================================================
+# User Notifications and Preferences
+# =============================================================================
+
+
+class UserNotification(TimestampMixin, Base):
+    """
+    Notificações para usuários B2C e parceiros B2B.
+    
+    Tipos de notificação:
+    - B2C: milestone, health, guestbook, memory, photo, gift, system
+    - B2B: redemption, credits, system
+    
+    Notificações são mantidas por 30 dias e expiram automaticamente.
+    """
+    __tablename__ = "user_notifications"
+    __table_args__ = (
+        Index("ix_user_notifications_user_read", "user_id", "read_at"),
+        Index("ix_user_notifications_user_created", "user_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+    )
+    type: Mapped[str] = mapped_column(notification_type_enum)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
+    # Metadados opcionais (ex: delivery_id, child_id, etc.)
+    notification_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata",
+        MutableDict.as_mutable(JSON),
+        nullable=True,
+        default=dict,
+    )
+
+    user: Mapped[User] = relationship()
+
+
+class UserPreferences(TimestampMixin, Base):
+    """
+    Preferências de notificação do usuário.
+    
+    Cada tipo de notificação pode ser habilitado/desabilitado.
+    Por padrão, todas ativadas exceto updates.
+    """
+    __tablename__ = "user_preferences"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    
+    # Preferências de notificação B2C
+    notify_milestones: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_health: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_guestbook: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_memories: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_photos: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_gifts: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_updates: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    # Preferências de notificação B2B
+    notify_redemptions: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_credits: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    # Canais de notificação
+    push_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    user: Mapped[User] = relationship()
+

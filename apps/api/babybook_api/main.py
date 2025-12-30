@@ -25,6 +25,7 @@ from .routes import (
     me,
     media_processing,
     moments,
+    notifications,
     partner_portal,
     partners,
     people,
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
     app.include_router(health.router, prefix="/health", tags=["health"])
     app.include_router(me.router, prefix="/me", tags=["me"])
+    app.include_router(notifications.router, prefix="/me/notifications", tags=["notifications"])
     app.include_router(children.router, prefix="/children", tags=["children"])
     app.include_router(people.router, prefix="/people", tags=["people"])
     app.include_router(moments.router, prefix="/moments", tags=["moments"])

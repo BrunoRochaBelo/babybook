@@ -14,6 +14,7 @@ import {
   mockHealthVaccines,
   mockMoments,
 } from "./mocks/data";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { Toaster } from "sonner";
 import "./index.css";
 
@@ -198,9 +199,11 @@ async function startApp() {
       <ErrorBoundary>
         <I18nProvider>
           <QueryClientProvider client={queryClient}>
-            <AuthBootstrapper>
-              <AppRouter />
-            </AuthBootstrapper>
+            <NotificationsProvider>
+              <AuthBootstrapper>
+                <AppRouter />
+              </AuthBootstrapper>
+            </NotificationsProvider>
           </QueryClientProvider>
         </I18nProvider>
       </ErrorBoundary>
