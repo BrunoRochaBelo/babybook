@@ -7,8 +7,10 @@ interface HealthPediatrianTabProps {
   childId: string;
 }
 
+import { B2CErrorState } from "@/layouts/b2cStates";
+
 export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
-  const { data: visits = [], isLoading } = useHealthVisits(childId);
+  const { data: visits = [], isLoading, isError, error, refetch } = useHealthVisits(childId);
   const { mutate: createVisit, isPending } = useCreateHealthVisit();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [date, setDate] = useState("");
@@ -55,6 +57,34 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
       },
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-28 rounded-[28px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+        <div className="h-28 rounded-[28px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    const skeleton = (
+       <div className="space-y-4">
+         <div className="h-28 rounded-[28px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+         <div className="h-28 rounded-[28px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+       </div>
+    );
+    return (
+      <B2CErrorState
+        variant="section"
+        title="Erro nas consultas"
+        description="Não foi possível carregar o histórico de visitas."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={skeleton}
+      />
+    );
+  }
 
   return (
     <section className="space-y-6">
@@ -132,8 +162,9 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
       )}
 
       {isLoading ? (
-        <div className="rounded-[32px] border border-border bg-surface p-6 text-sm text-ink-muted shadow-sm">
-          Carregando consultas...
+        <div className="space-y-4">
+          <div className="h-28 rounded-[28px] bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          <div className="h-28 rounded-[28px] bg-gray-100 dark:bg-gray-800 animate-pulse" />
         </div>
       ) : sortedVisits.length > 0 ? (
         <div className="space-y-4">

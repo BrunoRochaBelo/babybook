@@ -4,6 +4,8 @@ import { useVault } from "../hooks/useVault";
 import { DocumentRow } from "../components/DocumentRow";
 import { UploadModal } from "../components/UploadModal";
 import { HudCard } from "@/components/HudCard";
+import { VaultSkeleton } from "@/components/skeletons/VaultSkeleton";
+import { B2CErrorState } from "@/layouts/b2cStates";
 
 const DOCUMENT_SLOTS = [
   {
@@ -39,8 +41,9 @@ const DOCUMENT_SLOTS = [
 ];
 
 export const VaultPage = () => {
-  const { data: documents = [], isLoading } = useVault();
+  const { data: documents = [], isLoading, isError, error, refetch } = useVault();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
   const slotDocuments = useMemo(() => {
     const used = new Set<string>();
     const slots = DOCUMENT_SLOTS.map((slot) => {
@@ -63,6 +66,22 @@ export const VaultPage = () => {
     100,
     Math.round((storedEssentials / DOCUMENT_SLOTS.length) * 100),
   );
+
+  if (isLoading) {
+    return <VaultSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <B2CErrorState
+        title="Erro ao carregar cofre"
+        description="Não foi possível acessar seus documentos protegidos."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={<VaultSkeleton />}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
@@ -141,97 +160,78 @@ export const VaultPage = () => {
           Seus documentos privados
         </h2>
         <div className="mt-6 space-y-3">
-          {isLoading ? (
-            <>
-              <div
-                className="h-12 animate-pulse rounded-xl"
-                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
+          {slotDocuments.slots.map((slot) =>
+            slot.document ? (
+              <DocumentRow
+                key={slot.document.id}
+                document={slot.document}
               />
+            ) : (
               <div
-                className="h-12 animate-pulse rounded-xl"
-                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
-              />
-              <div
-                className="h-12 animate-pulse rounded-xl"
-                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.3 }}
-              />
-            </>
-          ) : (
-            <>
-              {slotDocuments.slots.map((slot) =>
-                slot.document ? (
-                  <DocumentRow
-                    key={slot.document.id}
-                    document={slot.document}
-                  />
-                ) : (
-                  <div
-                    key={slot.id}
-                    className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3"
-                    style={{
-                      backgroundColor: "var(--bb-color-bg)",
-                      borderColor: "var(--bb-color-border)",
-                    }}
+                key={slot.id}
+                className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3"
+                style={{
+                  backgroundColor: "var(--bb-color-bg)",
+                  borderColor: "var(--bb-color-border)",
+                }}
+              >
+                <div>
+                  <p
+                    className="font-semibold"
+                    style={{ color: "var(--bb-color-ink)" }}
                   >
-                    <div>
-                      <p
-                        className="font-semibold"
-                        style={{ color: "var(--bb-color-ink)" }}
-                      >
-                        {slot.label}
-                      </p>
-                      <p
-                        className="text-xs"
-                        style={{ color: "var(--bb-color-ink-muted)" }}
-                      >
-                        {slot.helper}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsUploadModalOpen(true)}
-                      className="rounded-full border px-3 py-1 text-xs font-semibold transition"
-                      style={{
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    >
-                      Adicionar
-                    </button>
-                  </div>
-                ),
-              )}
-
-              {slotDocuments.additional.map((doc) => (
-                <DocumentRow key={doc.id} document={doc} />
-              ))}
-
-              {slotDocuments.slots.length === 0 &&
-                slotDocuments.additional.length === 0 && (
-                  <div
-                    className="rounded-xl border-2 border-dashed py-16 text-center"
-                    style={{ borderColor: "var(--bb-color-border)" }}
+                    {slot.label}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
                   >
-                    <FileText
-                      className="mx-auto mb-4 h-12 w-12"
-                      style={{ color: "var(--bb-color-muted)" }}
-                    />
-                    <h3
-                      className="mb-2 text-lg font-semibold"
-                      style={{ color: "var(--bb-color-ink-muted)" }}
-                    >
-                      Nenhum documento no cofre
-                    </h3>
-                    <p
-                      className="text-sm"
-                      style={{ color: "var(--bb-color-ink-muted)" }}
-                    >
-                      Use o botão &ldquo;Novo documento&rdquo; para começar.
-                    </p>
-                  </div>
-                )}
-            </>
+                    {slot.helper}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  style={{
+                    borderColor: "var(--bb-color-border)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                >
+                  Adicionar
+                </button>
+              </div>
+            ),
           )}
+
+          {slotDocuments.additional.map((doc) => (
+            <DocumentRow key={doc.id} document={doc} />
+          ))}
+
+          {slotDocuments.slots.length === 0 &&
+            slotDocuments.additional.length === 0 && (
+              <div
+                className="rounded-xl border-2 border-dashed py-16 text-center"
+                style={{ borderColor: "var(--bb-color-border)" }}
+              >
+                <FileText
+                  className="mx-auto mb-4 h-12 w-12"
+                  style={{ color: "var(--bb-color-muted)" }}
+                />
+                <h3
+                  className="mb-2 text-lg font-semibold"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
+                  Nenhum documento no cofre
+                </h3>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
+                  Use o botão &ldquo;Novo documento&rdquo; para começar.
+                </p>
+              </div>
+            )}
         </div>
       </div>
 

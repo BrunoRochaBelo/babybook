@@ -4,11 +4,29 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import { MomentsTimeline } from "../components/MomentsTimeline";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { B2CErrorState } from "@/layouts/b2cStates";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { selectedChild } = useSelectedChild();
-  const { data, isLoading } = useDashboardData(selectedChild?.id);
+  const { data, isLoading, isError, error, refetch } = useDashboardData(selectedChild?.id);
+  
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <B2CErrorState
+        title="Não foi possível carregar a jornada"
+        description="Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={<DashboardSkeleton />}
+      />
+    );
+  }
 
   const handleCreateAvulso = () => {
     navigate("/jornada/moment/avulso");

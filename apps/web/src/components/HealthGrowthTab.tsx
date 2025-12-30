@@ -12,13 +12,14 @@ import {
 import { Plus } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useTheme } from "@/hooks/useTheme";
+import { B2CErrorState } from "@/layouts/b2cStates";
 
 interface HealthGrowthTabProps {
   childId: string;
 }
 
 export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
-  const { data: measurements = [] } = useHealthMeasurements(childId);
+  const { data: measurements = [], isLoading, isError, error, refetch } = useHealthMeasurements(childId);
   const { mutate: createMeasurement, isPending } = useCreateHealthMeasurement();
   const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
@@ -79,6 +80,33 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
     setHeight("");
     setShowForm(false);
   };
+
+  if (isLoading) {
+     return (
+       <div className="space-y-6">
+         <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+         <div className="h-64 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+       </div>
+     );
+  }
+
+  if (isError) {
+    return (
+      <B2CErrorState
+        variant="section"
+        title="Erro no gráfico de crescimento"
+        description="Não foi possível carregar o histórico de medidas."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={
+          <div className="space-y-6">
+            <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+            <div className="h-64 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+          </div>
+        }
+      />
+    );
+  }
 
   return (
     <section className="space-y-6">

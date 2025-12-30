@@ -78,8 +78,10 @@ const VACCINE_CALENDAR = [
   },
 ];
 
+import { B2CErrorState } from "@/layouts/b2cStates";
+
 export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
-  const { data = [], isLoading } = useHealthVaccines(childId);
+  const { data = [], isLoading, isError, error, refetch } = useHealthVaccines(childId);
 
   const schedule = VACCINE_CALENDAR.map((section) => ({
     ...section,
@@ -106,6 +108,35 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
       ? 0
       : Math.min(100, Math.round((applied / totalVaccines) * 100));
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+        <div className="h-64 rounded-[32px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+        <div className="h-64 rounded-[32px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    const skeleton = (
+       <div className="space-y-6">
+         <div className="h-64 rounded-[32px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+         <div className="h-64 rounded-[32px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+       </div>
+    );
+    return (
+      <B2CErrorState
+        variant="section"
+        title="Erro nas vacinas"
+        description="Não foi possível carregar o cartão de vacinas."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={skeleton}
+      />
+    );
+  }
+
   return (
     <section className="space-y-6">
       <HudCard
@@ -115,12 +146,7 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
         progressPercent={percentage}
       />
 
-      {isLoading ? (
-        <div className="rounded-[32px] border border-border bg-surface p-6 text-sm text-ink-muted shadow-sm">
-          Carregando calendário...
-        </div>
-      ) : (
-        schedule.map((section) => (
+      {schedule.map((section) => (
           <div
             key={section.period}
             className="rounded-[32px] border border-border bg-surface p-6 shadow-sm"
@@ -164,8 +190,7 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
               })}
             </div>
           </div>
-        ))
-      )}
+        ))}
     </section>
   );
 };

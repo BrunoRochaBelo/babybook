@@ -7,15 +7,16 @@ import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
 import { cn } from "@/lib/utils";
-import { B2CEmptyState } from "@/layouts/b2cStates";
+import { B2CEmptyState, B2CErrorState } from "@/layouts/b2cStates";
+import { GuestbookSkeleton } from "@/components/skeletons/GuestbookSkeleton";
 
 const TOTAL_SLOTS: number = 20;
 
 export const VisitasPage = () => {
   const { selectedChild } = useSelectedChild();
+  const { data: entries = [], isLoading, isError, error, refetch } = useGuestbookEntries(selectedChild?.id);
   const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
   const [showForm, setShowForm] = useState(false);
-  const { data: entries = [] } = useGuestbookEntries(selectedChild?.id);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const pendingCount = entries.filter((entry) => entry.status === "pending").length;
@@ -28,6 +29,22 @@ export const VisitasPage = () => {
   const inviteLink = selectedChild
     ? `https://cofrememoria.app/guestbook/${selectedChild.id}`
     : "";
+
+  if (isLoading) {
+    return <GuestbookSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <B2CErrorState
+        title="Erro ao carregar visitas"
+        description="Não foi possível buscar as mensagens do livro de visitas."
+        errorDetails={error?.message}
+        onRetry={() => refetch()}
+        skeleton={<GuestbookSkeleton />}
+      />
+    );
+  }
 
   const renderTabContent = () => {
     if (!selectedChild) {
