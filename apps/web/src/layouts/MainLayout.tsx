@@ -6,19 +6,18 @@ import {
   UsersRound,
   Shield,
   Bell,
-  Sparkles,
-  User,
+  ChevronDown,
 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { BBChildSwitcher } from "@/components/bb/ChildSwitcher";
 import { useAuthStore } from "@/store/auth";
 import { useLogout } from "@/hooks/api";
+import { useSelectedChild } from "@/hooks/useSelectedChild";
 import {
   B2CNotificationsDrawer,
   type B2CNotification,
 } from "@/components/B2CNotificationsDrawer";
-import { B2CUserDrawer } from "@/components/B2CUserDrawer";
+import { B2CMainDrawer } from "@/components/B2CMainDrawer";
 import { BabyBookLogo } from "@/components/BabyBookLogo";
 
 const BOOKS_NAV = [
@@ -76,11 +75,11 @@ const INITIAL_NOTIFICATIONS: B2CNotification[] = [
 export const MainLayout = () => {
   const navigate = useNavigate();
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
-  const [isUserMenuOpen, setUserMenuOpen] = useState(false);
-  const [isChildSwitcherOpen, setChildSwitcherOpen] = useState(false);
+  const [isMainDrawerOpen, setMainDrawerOpen] = useState(false);
   const [notifications, setNotifications] =
     useState<B2CNotification[]>(INITIAL_NOTIFICATIONS);
 
+  const { children: childrenList, selectedChild, setSelectedChildId } = useSelectedChild();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.logout);
@@ -143,8 +142,7 @@ export const MainLayout = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setChildSwitcherOpen(false);
-                  setUserMenuOpen(false);
+                  setMainDrawerOpen(false);
                   setNotificationsOpen(true);
                 }}
                 className="relative inline-flex items-center justify-center rounded-2xl border px-3 py-1.5 transition"
@@ -169,36 +167,26 @@ export const MainLayout = () => {
                 )}
               </button>
 
-              {/* Child Switcher */}
-              <BBChildSwitcher
-                isOpen={isChildSwitcherOpen}
-                onOpenChange={(open) => {
-                  setChildSwitcherOpen(open);
-                  if (open) {
-                    setNotificationsOpen(false);
-                    setUserMenuOpen(false);
-                  }
-                }}
-              />
-
-              {/* User Menu Button */}
+              {/* Main Drawer Button */}
               {isAuthenticated ? (
                 <button
                   type="button"
                   onClick={() => {
-                    setChildSwitcherOpen(false);
                     setNotificationsOpen(false);
-                    setUserMenuOpen(true);
+                    setMainDrawerOpen(true);
                   }}
-                  className="inline-flex items-center justify-center rounded-2xl border px-3 py-1.5 transition"
+                  className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition hover:shadow-sm"
                   style={{
                     borderColor: "var(--bb-color-border)",
                     backgroundColor: "var(--bb-color-surface)",
                     color: "var(--bb-color-ink)",
                   }}
-                  aria-label="Menu do usuário"
+                  aria-label="Abrir menu principal"
                 >
-                  <User className="h-4 w-4" />
+                  <span className="font-semibold">
+                    {selectedChild?.name || "Cadastre uma criança"}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-[var(--bb-color-ink-muted)]" />
                 </button>
               ) : (
                 <Link
@@ -301,12 +289,15 @@ export const MainLayout = () => {
         onMarkAllAsRead={handleMarkAllAsRead}
       />
 
-      {/* User Menu Drawer */}
-      <B2CUserDrawer
-        open={isUserMenuOpen}
-        onOpenChange={setUserMenuOpen}
+      {/* Main Drawer */}
+      <B2CMainDrawer
+        open={isMainDrawerOpen}
+        onOpenChange={setMainDrawerOpen}
         userName={user?.name}
         userEmail={user?.email}
+        children={childrenList}
+        selectedChild={selectedChild}
+        onSelectChild={setSelectedChildId}
         onLogout={handleLogout}
         isLoggingOut={logoutMutation.isPending}
       />

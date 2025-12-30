@@ -50,6 +50,14 @@ import { SharedMomentPage } from "@/pages/SharedMomentPage";
 // Settings Page
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ImportDeliveryPage } from "@/pages/ImportDeliveryPage";
+// B2C Settings Pages
+import {
+  MinhaContaPage,
+  NotificacoesPage,
+  PrivacidadePage,
+  AjudaPage,
+  TermosPage,
+} from "@/features/settings";
 
 export function AppRouter() {
   return (
@@ -99,6 +107,12 @@ export function AppRouter() {
             path="/jornada/importar-entrega/:deliveryId"
             element={<ImportDeliveryPage />}
           />
+          {/* B2C Settings Pages */}
+          <Route path="/jornada/minha-conta" element={<MinhaContaPage />} />
+          <Route path="/jornada/notificacoes" element={<NotificacoesPage />} />
+          <Route path="/jornada/privacidade" element={<PrivacidadePage />} />
+          <Route path="/jornada/ajuda" element={<AjudaPage />} />
+          <Route path="/jornada/termos" element={<TermosPage />} />
         </Route>
 
         {/* Redirect root to dashboard */}
