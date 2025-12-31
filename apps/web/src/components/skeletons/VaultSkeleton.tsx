@@ -24,18 +24,18 @@ export function VaultSkeleton() {
       <B2CSkeleton className="h-16 w-full rounded-[32px]" />
 
       {/* Documents Section */}
-      <div 
-        className="rounded-2xl p-6 space-y-4"
+       <div 
+        className="rounded-2xl p-6"
         style={{ backgroundColor: "var(--bb-color-surface)", borderColor: "var(--bb-color-border)", borderWidth: 1 }}
       >
-        <B2CSkeleton className="h-5 w-48 rounded-lg mx-auto" />
+        <B2CSkeleton className="h-5 w-48 rounded-lg mx-auto mb-6" />
         
-        {/* Document Rows */}
-        <div className="space-y-3">
-          <B2CSkeleton className="h-16 w-full rounded-xl" />
-          <B2CSkeleton className="h-16 w-full rounded-xl" />
-          <B2CSkeleton className="h-16 w-full rounded-xl" />
-          <B2CSkeleton className="h-16 w-full rounded-xl" />
+        {/* Document Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+           <B2CSkeleton className="aspect-[1.586] w-full rounded-xl" />
+           <B2CSkeleton className="aspect-[1.586] w-full rounded-xl" />
+           <B2CSkeleton className="aspect-[1.586] w-full rounded-xl" />
+           <B2CSkeleton className="aspect-[1.586] w-full rounded-xl" />
         </div>
       </div>
     </div>

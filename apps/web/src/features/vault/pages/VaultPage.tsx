@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Upload, FileText, Lock } from "lucide-react";
 import { useVault } from "../hooks/useVault";
-import { DocumentRow } from "../components/DocumentRow";
+import { VaultCard } from "../components/VaultCard";
+import { VaultEmptyCard } from "../components/VaultEmptyCard";
 import { UploadModal } from "../components/UploadModal";
 import { HudCard } from "@/components/HudCard";
 import { VaultSkeleton } from "@/components/skeletons/VaultSkeleton";
@@ -102,20 +103,6 @@ export const VaultPage = () => {
           value={`${storedEssentials} de ${DOCUMENT_SLOTS.length} documentos essenciais`}
           description="Tudo criptografado e visível apenas para você, o dono do álbum."
           progressPercent={essentialsPercent}
-          actions={
-            <button
-              type="button"
-              onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold transition-all duration-300 hover:shadow-md hover:opacity-90 active:scale-[0.98]"
-              style={{
-                backgroundColor: "var(--bb-color-accent)",
-                color: "var(--bb-color-surface)",
-              }}
-            >
-              <Upload className="h-4 w-4" />
-              Novo documento
-            </button>
-          }
         />
       </div>
 
@@ -157,61 +144,38 @@ export const VaultPage = () => {
         >
           Seus documentos privados
         </h2>
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
           {slotDocuments.slots.map((slot) =>
             slot.document ? (
-              <DocumentRow
+              <VaultCard
                 key={slot.id}
+                label={slot.label}
                 document={slot.document}
                 onClick={() => handleSlotClick(slot.id)}
-                className="transition-all duration-200 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md"
               />
             ) : (
-              <div
+              <VaultEmptyCard
                 key={slot.id}
-                className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3 transition-colors duration-200 hover:border-pink-300 dark:hover:border-pink-600 hover:bg-[var(--bb-color-surface)]"
-                style={{
-                  backgroundColor: "var(--bb-color-bg)",
-                  borderColor: "var(--bb-color-border)",
-                }}
-              >
-                <div>
-                  <p
-                    className="font-semibold"
-                    style={{ color: "var(--bb-color-ink)" }}
-                  >
-                    {slot.label}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "var(--bb-color-ink-muted)" }}
-                  >
-                    {slot.helper}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-200 hover:bg-[var(--bb-color-accent)] hover:text-white hover:border-[var(--bb-color-accent)] active:scale-95"
-                  style={{
-                    borderColor: "var(--bb-color-border)",
-                    color: "var(--bb-color-ink)",
-                  }}
-                >
-                  Adicionar
-                </button>
-              </div>
+                label={slot.label}
+                helper={slot.helper}
+                onClick={() => setIsUploadModalOpen(true)}
+              />
             ),
           )}
 
           {slotDocuments.additional.map((doc) => (
-            <DocumentRow key={doc.id} document={doc} />
+             <VaultCard
+                key={doc.id}
+                label={doc.name} // Additional docs use their name as label
+                document={doc}
+                onClick={() => handleSlotClick(doc.id)}
+              />
           ))}
 
           {slotDocuments.slots.length === 0 &&
             slotDocuments.additional.length === 0 && (
               <div
-                className="rounded-xl border-2 border-dashed py-16 text-center"
+                className="col-span-full rounded-xl border-2 border-dashed py-16 text-center"
                 style={{ borderColor: "var(--bb-color-border)" }}
               >
                 <FileText
@@ -228,7 +192,7 @@ export const VaultPage = () => {
                   className="text-sm"
                   style={{ color: "var(--bb-color-ink-muted)" }}
                 >
-                  Use o botão &ldquo;Novo documento&rdquo; para começar.
+                  Use os cartões acima para enviar seus documentos.
                 </p>
               </div>
             )}
