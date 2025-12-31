@@ -128,7 +128,7 @@ export const MomentsTimeline = ({
     if (!hasMoments) {
       return (
         <div
-          className="mt-6 rounded-3xl border border-dashed p-8 text-center shadow-sm"
+          className="mt-6 rounded-3xl border border-dashed p-6 md:p-8 text-center shadow-sm"
           style={{
             backgroundColor: "var(--bb-color-surface)",
             borderColor: "var(--bb-color-border)",
@@ -140,7 +140,7 @@ export const MomentsTimeline = ({
           </p>
           <button
             onClick={handleCreateAvulso}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold transition hover:opacity-90"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold transition-all duration-300 hover:shadow-md hover:bg-opacity-90 active:scale-[0.98]"
             style={{
               backgroundColor: "var(--bb-color-accent)",
               color: "var(--bb-color-surface)",
@@ -169,7 +169,7 @@ export const MomentsTimeline = ({
           {chapterProgress.map((chapter) => (
             <div
               key={chapter.id}
-              className="rounded-3xl border p-5 shadow-sm"
+              className="rounded-3xl border p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600"
               style={{
                 backgroundColor: "var(--bb-color-surface)",
                 borderColor: "var(--bb-color-border)",
@@ -226,7 +226,7 @@ export const MomentsTimeline = ({
           return (
             <div
               key={chapter.id}
-              className="rounded-3xl border p-5 shadow-sm"
+              className="rounded-3xl border p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600"
               style={{
                 backgroundColor: "var(--bb-color-surface)",
                 borderColor: "var(--bb-color-border)",
@@ -334,7 +334,7 @@ export const MomentsTimeline = ({
                             template.templateKey,
                           )
                         }
-                        className="w-full rounded-2xl border px-4 py-3 text-left transition"
+                        className="w-full rounded-2xl border px-4 py-3 text-left transition-all duration-200 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600 active:scale-[0.99]"
                         style={{
                           backgroundColor: "var(--bb-color-surface)",
                           borderColor: "var(--bb-color-border)",
@@ -411,9 +411,9 @@ export const MomentsTimeline = ({
             : "Capítulos & registros"}
         </h3>
       </div>
-      <div className="mt-5 flex justify-center">
+      <div className="mb-6">
         <div
-          className="w-full max-w-3xl rounded-[32px] border p-2 shadow-sm"
+          className="w-full rounded-2xl border p-2 shadow-sm"
           style={{
             backgroundColor: "var(--bb-color-surface)",
             borderColor: "var(--bb-color-border)",
@@ -429,7 +429,7 @@ export const MomentsTimeline = ({
                     type="button"
                     onClick={() => setViewMode(mode)}
                     className={cn(
-                      "relative flex-1 min-w-[140px] overflow-hidden rounded-[28px] px-4 py-2 text-sm font-semibold transition-colors duration-300",
+                      "relative flex-1 min-w-[140px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300",
                     )}
                     style={{
                       color: isActive
@@ -440,7 +440,7 @@ export const MomentsTimeline = ({
                     {isActive && (
                       <motion.span
                         layoutId="journey-view-pill"
-                        className="absolute inset-0 rounded-[28px]"
+                        className="absolute inset-0 rounded-2xl"
                         style={{
                           backgroundColor: "var(--bb-color-accent)",
                           boxShadow: "0 10px 24px rgba(242,153,93,0.28)",

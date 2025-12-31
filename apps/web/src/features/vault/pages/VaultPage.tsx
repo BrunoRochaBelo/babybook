@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ShieldCheck, Upload, FileText, Lock } from "lucide-react";
+import { Upload, FileText, Lock } from "lucide-react";
 import { useVault } from "../hooks/useVault";
 import { DocumentRow } from "../components/DocumentRow";
 import { UploadModal } from "../components/UploadModal";
@@ -43,6 +43,10 @@ const DOCUMENT_SLOTS = [
 export const VaultPage = () => {
   const { data: documents = [], isLoading, isError, error, refetch } = useVault();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const handleSlotClick = (id: string) => {
+    console.log("Clicked slot", id);
+    // TODO: Implement view Details
+  };
 
   const slotDocuments = useMemo(() => {
     const used = new Set<string>();
@@ -84,21 +88,15 @@ export const VaultPage = () => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6">
-      <div className="text-center">
-        <ShieldCheck
-          className="mx-auto h-10 w-10"
-          style={{ color: "var(--bb-color-accent)" }}
-        />
-        <h1
-          className="mt-2 text-3xl font-serif"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
-          Cofre de Documentos
-        </h1>
-      </div>
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <h1
+        className="mb-6 text-center text-3xl font-serif font-bold"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
+        Cofre de Documentos
+      </h1>
 
-      <div className="mt-6">
+      <div className="mb-6">
         <HudCard
           title={"HUD \u2022 cofre familiar"}
           value={`${storedEssentials} de ${DOCUMENT_SLOTS.length} documentos essenciais`}
@@ -108,7 +106,7 @@ export const VaultPage = () => {
             <button
               type="button"
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold transition-all duration-300 hover:shadow-md hover:opacity-90 active:scale-[0.98]"
               style={{
                 backgroundColor: "var(--bb-color-accent)",
                 color: "var(--bb-color-surface)",
@@ -159,17 +157,19 @@ export const VaultPage = () => {
         >
           Seus documentos privados
         </h2>
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {slotDocuments.slots.map((slot) =>
             slot.document ? (
               <DocumentRow
-                key={slot.document.id}
+                key={slot.id}
                 document={slot.document}
+                onClick={() => handleSlotClick(slot.id)}
+                className="transition-all duration-200 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md"
               />
             ) : (
               <div
                 key={slot.id}
-                className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3"
+                className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3 transition-colors duration-200 hover:border-pink-300 dark:hover:border-pink-600 hover:bg-[var(--bb-color-surface)]"
                 style={{
                   backgroundColor: "var(--bb-color-bg)",
                   borderColor: "var(--bb-color-border)",
@@ -192,7 +192,7 @@ export const VaultPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  className="rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-200 hover:bg-[var(--bb-color-accent)] hover:text-white hover:border-[var(--bb-color-accent)] active:scale-95"
                   style={{
                     borderColor: "var(--bb-color-border)",
                     color: "var(--bb-color-ink)",

@@ -94,7 +94,7 @@ export const MainLayout = () => {
       <header
         className="sticky top-0 z-40 backdrop-blur-xl"
         style={{
-          backgroundColor: "color-mix(in srgb, var(--bb-color-bg) 95%, transparent)",
+          backgroundColor: "var(--bb-color-bg)",
           borderBottom: "1px solid var(--bb-color-border)",
         }}
       >
@@ -181,9 +181,9 @@ export const MainLayout = () => {
       <nav
         className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-3xl -translate-x-1/2 items-center rounded-full px-2 py-2 shadow-lg"
         style={{
-          backgroundColor: "color-mix(in srgb, var(--bb-color-surface) 95%, transparent)",
+          backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
-          border: "1px solid var(--bb-color-border)",
+          border: "2px solid var(--bb-color-border)",
         }}
         aria-label="Navegação dos livros"
       >
@@ -196,7 +196,7 @@ export const MainLayout = () => {
                 to={book.to}
                 className={({ isActive }) =>
                   cn(
-                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-colors duration-300",
+                    "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 ease-out",
                     isActive ? "px-6 py-3" : "px-3 py-2"
                   )
                 }
@@ -211,6 +211,7 @@ export const MainLayout = () => {
                     {isActive && (
                       <motion.span
                         layoutId="book-nav-pill"
+                        initial={false}
                         className="absolute inset-0 rounded-full"
                         style={{
                           backgroundColor: "var(--bb-color-ink)",
@@ -218,8 +219,8 @@ export const MainLayout = () => {
                         }}
                         transition={{
                           type: "spring",
-                          stiffness: 360,
-                          damping: 28,
+                          stiffness: 400,
+                          damping: 30,
                         }}
                       />
                     )}
@@ -232,16 +233,11 @@ export const MainLayout = () => {
                             : "var(--bb-color-ink-muted)",
                         }}
                       />
-                      <span
-                        className={cn(
-                          "text-sm font-semibold tracking-tight transition-[opacity,transform] duration-300",
-                          isActive
-                            ? "translate-x-0 opacity-100"
-                            : "translate-x-2 opacity-0"
-                        )}
-                      >
-                        {book.label}
-                      </span>
+                      {isActive && (
+                        <span className="text-sm font-semibold tracking-tight">
+                          {book.label}
+                        </span>
+                      )}
                     </span>
                   </>
                 )}

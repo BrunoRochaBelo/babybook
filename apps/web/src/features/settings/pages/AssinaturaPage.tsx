@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getSubscription, settingsApiKeys } from "../api";
 import { useTranslation } from "@babybook/i18n";
+import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
 
 export const AssinaturaPage = () => {
   const { t } = useTranslation();
@@ -27,6 +28,10 @@ export const AssinaturaPage = () => {
     retry: 1,
     staleTime: 30000,
   });
+
+  if (isLoading) {
+    return <B2CSkeleton />;
+  }
 
   // Valores default para fallback
   const planName = data?.plan_display_name ?? "Plano Família";
@@ -41,9 +46,9 @@ export const AssinaturaPage = () => {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6">
         <Link
           to="/jornada"
           className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"

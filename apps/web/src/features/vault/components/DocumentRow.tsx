@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 import { FileText, Image, File, MoreVertical, Download, Trash2 } from "lucide-react";
 import type { Document } from "../hooks/useVault";
 import {
@@ -10,6 +11,8 @@ import {
 
 interface DocumentRowProps {
   document: Document;
+  className?: string;
+  onClick?: () => void;
 }
 
 const FileIcon = ({ type }: { type: Document["type"] }) => {
@@ -23,10 +26,14 @@ const FileIcon = ({ type }: { type: Document["type"] }) => {
   }
 };
 
-export const DocumentRow = ({ document }: DocumentRowProps) => {
+export const DocumentRow = ({ document, className, onClick }: DocumentRowProps) => {
   return (
     <div
-      className="flex items-center p-3 rounded-lg transition-colors"
+      onClick={onClick}
+      className={cn(
+        "flex items-center p-3 rounded-lg transition-colors cursor-pointer",
+        className
+      )}
       style={{ backgroundColor: "var(--bb-color-bg)" }}
     >
       <div className="flex-shrink-0 mr-4">

@@ -195,25 +195,23 @@ export const SaudePage = () => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-10">
-      <div className="text-center">
-        <h1
-          className="text-3xl font-serif"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
-          Livro da Saúde
-        </h1>
-      </div>
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <h1
+        className="mb-6 text-center text-3xl font-serif font-bold"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
+        Livro da Saúde
+      </h1>
 
       <div
-        className="mt-6 rounded-2xl border p-2 shadow-sm"
+        className="mb-6 rounded-2xl border p-2 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
         }}
       >
         <LayoutGroup id="health-tabs">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full overflow-x-auto pb-2 gap-2 no-scrollbar snap-x">
             {HEALTH_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -222,7 +220,7 @@ export const SaudePage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex-1 min-w-[150px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300"
+                  className="relative flex-none min-w-[140px] snap-start overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
                   style={{
                     color: isActive
                       ? "var(--bb-color-surface)"
@@ -262,7 +260,7 @@ export const SaudePage = () => {
         </LayoutGroup>
       </div>
 
-      <div className="mt-8">
+      <div className="mb-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

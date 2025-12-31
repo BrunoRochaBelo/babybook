@@ -52,18 +52,21 @@ export const CapsulaPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif font-bold text-[#2A2A2A] mb-2">
-          🔮 Cápsula do Tempo
-        </h1>
-        <p className="text-[#C9D3C2]">Uma mensagem do coração para o futuro</p>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <h1
+        className="mb-6 text-center text-3xl font-serif font-bold"
+        style={{ color: "var(--bb-color-ink)" }}
+      >
+        Cápsula do Tempo
+      </h1>
 
       {!isSealed ? (
-        // Modo edição - rascunho
+        // Modo edição - não selada
         <div className="bg-white rounded-2xl p-6 border border-[#C9D3C2]">
-          <h2 className="text-lg font-semibold text-[#2A2A2A] mb-4">
+          <h2
+            className="text-lg font-semibold mb-4"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             Escreva a Sua Carta
           </h2>
 
@@ -78,7 +81,10 @@ export const CapsulaPage = () => {
                 onChange={(e) => setOpenDate(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl"
               />
-              <p className="text-xs text-[#C9D3C2] mt-1">
+              <p
+                className="mt-1 text-xs"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
                 Mínimo de 10 anos a partir de hoje
               </p>
             </div>
@@ -108,7 +114,11 @@ export const CapsulaPage = () => {
             </button>
             <button
               onClick={() => navigate(`/jornada/perfil-crianca`)}
-              className="flex-1 bg-[#C9D3C2] text-[#2A2A2A] px-6 py-3 rounded-2xl font-semibold hover:bg-opacity-80 transition-all"
+              className="flex-1 px-6 py-3 rounded-2xl font-semibold hover:opacity-80 transition-all text-sm"
+              style={{
+                backgroundColor: "var(--bb-color-muted)",
+                color: "var(--bb-color-ink)",
+              }}
             >
               Cancelar
             </button>

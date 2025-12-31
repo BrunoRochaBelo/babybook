@@ -34,14 +34,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-export type NotificationType =
-  | "milestone"
-  | "health"
-  | "guestbook"
-  | "memory"
-  | "photo"
-  | "gift"
-  | "system";
+import { NotificationType } from "@/features/notifications/api";
 
 export interface B2CNotification {
   id: string;
@@ -70,6 +63,8 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof Bell> = {
   photo: Camera,
   gift: Gift,
   system: Bell,
+  redemption: Gift,
+  credits: Settings,
 };
 
 export function B2CNotificationsDrawer({
