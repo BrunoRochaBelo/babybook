@@ -1,18 +1,28 @@
 import { useState } from "react";
-import { useHealthMeasurements, useCreateHealthMeasurement } from "@/hooks/api";
+import { useHealthMeasurements } from "@/hooks/api";
 import {
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  ComposedChart,
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
-import { Plus } from "lucide-react";
+import { Plus, Maximize2, X } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useTheme } from "@/hooks/useTheme";
 import { B2CErrorState } from "@/layouts/b2cStates";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { HealthGrowthForm } from "@/components/HealthGrowthForm";
 
 interface HealthGrowthTabProps {
   childId: string;
@@ -20,12 +30,10 @@ interface HealthGrowthTabProps {
 
 export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   const { data: measurements = [], isLoading, isError, error, refetch } = useHealthMeasurements(childId);
-  const { mutate: createMeasurement, isPending } = useCreateHealthMeasurement();
+  // useCreateHealthMeasurement moved to form component
   const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
-  const [date, setDate] = useState("");
-  const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
+  const [isChartOpen, setIsChartOpen] = useState(false);
 
   const sortedMeasurements = [...measurements].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
@@ -62,24 +70,10 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
     }),
     weight: measurement.weight,
     height: measurement.height,
+    // Mock healthy range (just an example calculation around the point)
+    expectedMinWeight: measurement.weight ? measurement.weight * 0.9 : undefined,
+    expectedMaxWeight: measurement.weight ? measurement.weight * 1.1 : undefined,
   }));
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!date || (!weight && !height)) {
-      return;
-    }
-    createMeasurement({
-      childId,
-      date,
-      weight: weight ? parseFloat(weight) : undefined,
-      height: height ? parseFloat(height) : undefined,
-    });
-    setDate("");
-    setWeight("");
-    setHeight("");
-    setShowForm(false);
-  };
 
   if (isLoading) {
      return (
@@ -100,8 +94,22 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
         onRetry={() => refetch()}
         skeleton={
           <div className="space-y-6">
-            <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
-            <div className="h-64 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+            {/* HUD Skeleton */}
+            <div className="rounded-[32px] border p-6" style={{ borderColor: "var(--bb-color-border)", backgroundColor: "var(--bb-color-surface)" }}>
+                 <div className="flex gap-4 mb-6">
+                    <div className="flex-1 space-y-2">
+                       <div className="h-3 w-20 rounded bg-gray-200 animate-pulse" />
+                       <div className="h-6 w-32 rounded bg-gray-200 animate-pulse" />
+                    </div>
+                 </div>
+                 <div className="h-[120px] w-full rounded-2xl bg-gray-100 animate-pulse" />
+            </div>
+            {/* List Skeleton */}
+            <div className="space-y-3">
+               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+            </div>
           </div>
         }
       />
@@ -114,7 +122,31 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
         title={"HUD \u2022 curva de crescimento"}
         value={hudValue}
         description={hudDescription}
-        progressPercent={measurementsPercent}
+        customVisual={
+          chartData.length > 0 ? (
+            <div
+              className="h-[120px] w-full cursor-pointer transition-opacity hover:opacity-80"
+              onClick={() => setIsChartOpen(true)}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <Line
+                    type="monotone"
+                    dataKey="weight"
+                    stroke="#F2995D"
+                    strokeWidth={3}
+                    dot={false}
+                    isAnimationActive={true}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+              <div className="mt-2 flex items-center justify-center gap-2 text-xs font-semibold text-ink-muted">
+                <Maximize2 className="h-3 w-3" />
+                Toque para expandir
+              </div>
+            </div>
+          ) : undefined
+        }
         actions={
           <button
             type="button"
@@ -127,157 +159,41 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
         }
       />
 
-      {lastMeasurement && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-              Última medição
-            </p>
-            <p className="mt-2 text-ink">{lastMeasurementDate}</p>
-          </div>
-          <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-              Peso / Altura
-            </p>
-            <p className="mt-2 font-serif text-2xl text-ink">{hudValue}</p>
-          </div>
-        </div>
-      )}
-
-      {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-[32px] border border-border bg-surface p-6 shadow-sm"
-        >
-          <div className="grid gap-4 md:grid-cols-3">
-            <label className="flex flex-col text-sm font-medium text-ink">
-              Data
-              <input
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
-                required
-              />
-            </label>
-            <label className="flex flex-col text-sm font-medium text-ink">
-              Peso (kg)
-              <input
-                type="number"
-                step="0.01"
-                value={weight}
-                onChange={(event) => setWeight(event.target.value)}
-                placeholder="3,50"
-                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col text-sm font-medium text-ink">
-              Altura (cm)
-              <input
-                type="number"
-                step="0.1"
-                value={height}
-                onChange={(event) => setHeight(event.target.value)}
-                placeholder="50"
-                className="mt-2 rounded-2xl border border-border bg-transparent px-3 py-2 text-sm focus:border-ink focus:outline-none"
-              />
-            </label>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-2 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
-            >
-              {isPending ? "Salvando..." : "Salvar medição"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="inline-flex items-center justify-center rounded-2xl border border-border px-6 py-2 text-sm font-semibold text-ink transition hover:border-ink"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
+      <HealthGrowthForm 
+        childId={childId}
+        open={showForm}
+        onOpenChange={setShowForm}
+      />
 
       {chartData.length > 0 ? (
-        <div className="rounded-[32px] border border-border bg-surface p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                Ver gráfico
-              </p>
-              <h3 className="font-serif text-xl text-ink">
-                Peso x altura ao longo do tempo
-              </h3>
-            </div>
-          </div>
-          <div className="mt-4 h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="4 4" stroke={isDark ? "#3d352e" : "#E3DBCF"} />
-                <XAxis dataKey="date" stroke={isDark ? "#8a8075" : "#8C8C8C"} />
-                <YAxis stroke={isDark ? "#8a8075" : "#8C8C8C"} />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 16,
-                    borderColor: "var(--bb-color-border)",
-                    backgroundColor: "var(--bb-color-surface)",
-                    color: "var(--bb-color-ink)",
-                  }}
-                  labelStyle={{
-                    color: "var(--bb-color-ink-muted)",
-                  }}
-                  itemStyle={{
-                    color: "var(--bb-color-ink)",
-                  }}
-                />
-                {chartData.some((item) => item.weight) && (
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    stroke="#F2995D"
-                    strokeWidth={2}
-                    name="Peso (kg)"
-                    dot={false}
-                  />
-                )}
-                {chartData.some((item) => item.height) && (
-                  <Line
-                    type="monotone"
-                    dataKey="height"
-                    stroke="#C76A6A"
-                    strokeWidth={2}
-                    name="Altura (cm)"
-                    dot={false}
-                  />
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
-            {sortedMeasurements.map((measurement) => (
+        <div className="space-y-4">
+          <h3 className="px-2 text-lg font-semibold text-ink">
+            Histórico de Medições
+          </h3>
+          <div className="grid gap-3 grid-cols-1">
+            {[...sortedMeasurements].reverse().map((measurement) => (
               <div
                 key={measurement.id}
-                className="rounded-2xl border border-border px-4 py-3"
+                className="flex items-center justify-between rounded-2xl border border-border bg-surface px-5 py-4 transition-colors hover:border-ink-muted"
               >
-                <p className="text-xs uppercase tracking-[0.3em] text-ink-muted">
-                  {new Date(measurement.date).toLocaleDateString("pt-BR")}
-                </p>
-                <div className="mt-1 text-sm text-ink">
-                  {typeof measurement.weight === "number" && (
-                    <p>
-                      Peso: <strong>{measurement.weight} kg</strong>
-                    </p>
-                  )}
-                  {typeof measurement.height === "number" && (
-                    <p>
-                      Altura: <strong>{measurement.height} cm</strong>
-                    </p>
-                  )}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-muted">
+                    {new Date(measurement.date).toLocaleDateString("pt-BR")}
+                  </p>
+                  <p className="mt-1 font-serif text-lg text-ink">
+                    {typeof measurement.weight === "number"
+                      ? `${measurement.weight} kg`
+                      : "--"}
+                  </p>
                 </div>
+                {typeof measurement.height === "number" && (
+                  <div className="text-right">
+                    <p className="text-xs text-ink-muted">Altura</p>
+                    <p className="font-semibold text-ink">
+                      {measurement.height} cm
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -285,7 +201,8 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
       ) : (
         <div className="rounded-[32px] border border-dashed border-border bg-surface p-10 text-center shadow-sm">
           <p className="text-sm text-ink-muted">
-            Nenhuma medição registrada ainda. Use o botão acima para começar o histórico oficial de crescimento.
+            Nenhuma medição registrada ainda. Use o botão acima para começar o
+            histórico oficial de crescimento.
           </p>
           <button
             type="button"
@@ -297,6 +214,97 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
           </button>
         </div>
       )}
+
+      <Dialog open={isChartOpen} onOpenChange={setIsChartOpen}>
+        <DialogContent
+          className="max-w-4xl w-[90vw] h-[80vh] flex flex-col"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
+        >
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle style={{ color: "var(--bb-color-ink)" }}>
+              Curva Detalhada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 w-full min-h-0 mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="healthyRange" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="4 4"
+                  stroke={isDark ? "#3d352e" : "#E3DBCF"}
+                />
+                <XAxis 
+                   dataKey="date" 
+                   stroke={isDark ? "#8a8075" : "#8C8C8C"} 
+                   tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                   yAxisId="weight"
+                   stroke="#F2995D" 
+                   tick={{ fontSize: 12 }}
+                   label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft', fill: '#F2995D', fontSize: 12 }}
+                />
+                <YAxis 
+                   yAxisId="height" 
+                   orientation="right" 
+                   stroke="#C76A6A" 
+                   tick={{ fontSize: 12 }}
+                   label={{ value: 'Altura (cm)', angle: 90, position: 'insideRight', fill: '#C76A6A', fontSize: 12 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 16,
+                    borderColor: "var(--bb-color-border)",
+                    backgroundColor: "var(--bb-color-surface)",
+                    color: "var(--bb-color-ink)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
+                  }}
+                  itemStyle={{ padding: 0 }}
+                />
+                <Legend verticalAlign="top" height={36} />
+                <Area 
+                  yAxisId="weight"
+                  type="monotone" 
+                  dataKey="expectedMaxWeight" 
+                  baseValue="dataMin" // or use expectedMinWeight if you restructure data for [min, max]
+                  stroke="none" 
+                  fill="url(#healthyRange)" 
+                  name="Faixa Saudável (OMS)" 
+                />
+                <Line
+                  yAxisId="weight"
+                  type="monotone"
+                  dataKey="weight"
+                  stroke="#F2995D"
+                  strokeWidth={3}
+                  name="Peso (kg)"
+                  activeDot={{ r: 6, strokeWidth: 0, fill: "#F2995D" }}
+                />
+                <Line
+                  yAxisId="height"
+                  type="monotone"
+                  dataKey="height"
+                  stroke="#C76A6A"
+                  strokeWidth={3}
+                  name="Altura (cm)"
+                  activeDot={{ r: 6, strokeWidth: 0, fill: "#C76A6A" }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

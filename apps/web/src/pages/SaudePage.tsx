@@ -211,7 +211,7 @@ export const SaudePage = () => {
         }}
       >
         <LayoutGroup id="health-tabs">
-          <div className="flex w-full overflow-x-auto pb-2 gap-2 no-scrollbar snap-x">
+          <div className="flex w-full items-center justify-center gap-1 overflow-x-auto p-1 sm:gap-2 no-scrollbar">
             {HEALTH_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -220,7 +220,7 @@ export const SaudePage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex-none min-w-[140px] snap-start overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
+                  className="relative flex-1 min-w-0 snap-start overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
                   style={{
                     color: isActive
                       ? "var(--bb-color-surface)"

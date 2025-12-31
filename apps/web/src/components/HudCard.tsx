@@ -6,6 +6,8 @@ interface HudCardProps {
   value: string;
   description?: string;
   progressPercent?: number;
+  progressText?: string;
+  customVisual?: ReactNode;
   actions?: ReactNode;
   className?: string;
 }
@@ -15,6 +17,8 @@ export const HudCard = ({
   value,
   description,
   progressPercent,
+  progressText,
+  customVisual,
   actions,
   className,
 }: HudCardProps) => (
@@ -27,7 +31,7 @@ export const HudCard = ({
     }}
   >
     <div className="flex items-start justify-between gap-4">
-      <div>
+      <div className="flex-1">
         <p
           className="text-xs uppercase tracking-[0.3em]"
           style={{ color: "var(--bb-color-ink-muted)" }}
@@ -49,15 +53,16 @@ export const HudCard = ({
           </p>
         )}
       </div>
-      {typeof progressPercent === "number" && (
+      {(progressText || typeof progressPercent === "number") && (
         <p
           className="text-xl font-semibold"
           style={{ color: "var(--bb-color-accent)" }}
         >
-          {progressPercent}%
+          {progressText || `${progressPercent}%`}
         </p>
       )}
     </div>
+    {customVisual && <div className="mt-6">{customVisual}</div>}
     {typeof progressPercent === "number" && (
       <div
         className="mt-4 h-2 rounded-full"
