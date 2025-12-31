@@ -302,7 +302,10 @@
         "currentPassword": "Senha Atual",
         "newPassword": "Nova Senha",
         "confirmNewPassword": "Confirmar Nova Senha",
-        "twoFactor": "Autenticação de dois fatores"
+        "twoFactor": "Autenticação de dois fatores",
+        "logoutAll": "Sair de todos os dispositivos",
+        "logoutAllDesc": "Encerra todas as sessões ativas (ex.: celular, outros computadores).",
+        "logoutAllConfirm": "Deseja encerrar todas as sessões ativas? Você precisará logar novamente."
       }
     },
     "onboarding": {
@@ -454,5 +457,182 @@
     "storage": "Armazenamento",
     "moments": "Momentos",
     "recurrent": "Repetições"
+  },
+  "b2c": {
+    "dashboard": {
+      "title": "Jornada",
+      "errorTitle": "Não foi possível carregar a jornada",
+      "errorDescription": "Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
+    },
+    "myAccount": {
+      "title": "Minha Conta",
+      "user": "Usuário",
+      "personalData": "Dados Pessoais",
+      "edit": "Editar",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "fullName": "Nome completo",
+      "email": "E-mail",
+      "security": "Segurança",
+      "changePassword": "Alterar Senha",
+      "changePasswordDesc": "Redefina sua senha de acesso",
+      "signOutAll": "Sair de todos os dispositivos",
+      "signOutAllDesc": "Encerra todas as sessões ativas (ex.: outros computadores ou celulares).",
+      "signOutAllBtn": "Encerrar sessões",
+      "signOutAllConfirm": "Deseja encerrar todas as sessões ativas? Você precisará logar novamente.",
+      "signOutAllError": "Erro ao encerrar sessões. Tente novamente.",
+      "preferences": "Preferências",
+      "theme": "Tema",
+      "themeLight": "Claro",
+      "themeDark": "Escuro",
+      "themeSystem": "Sistema",
+      "language": "Idioma",
+      "signOut": "Sair da Conta"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "unread": "{{count}} não lida",
+      "unread_plural": "{{count}} não lidas",
+      "allClear": "Tudo em dia por aqui.",
+      "history": "Histórico",
+      "preferences": "Preferências",
+      "markAllAsRead": "Marcar todas como lidas",
+      "emptyTitle": "Tudo em dia! 🎉",
+      "emptyDescription": "Você não tem notificações no momento. Quando houver novidades, elas aparecerão aqui.",
+      "markAsRead": "Marcar como lida",
+      "tipTitle": "Dica:",
+      "tipDescription": "As notificações são mantidas por 30 dias. Notificações mais antigas são removidas automaticamente.",
+      "preferencesDescription": "Configure quais notificações você deseja receber.",
+      "pushTip": "💡 Para receber notificações push, certifique-se de que as notificações estão habilitadas nas configurações do seu dispositivo.",
+      "labels": {
+        "milestones": "Marcos do Bebê",
+        "milestonesDesc": "Lembretes sobre marcos de desenvolvimento",
+        "appointments": "Consultas e Vacinas",
+        "appointmentsDesc": "Alertas de consultas médicas agendadas",
+        "guestbook": "Livro de Visitas",
+        "guestbookDesc": "Novas mensagens no livro de visitas",
+        "memories": "Memórias",
+        "memoriesDesc": "Quando momentos são aprovados ou compartilhados",
+        "updates": "Atualizações do App",
+        "updatesDesc": "Novidades e melhorias do Baby Book"
+      }
+    },
+    "family": {
+      "title": "Família",
+      "description": "Gerencie quem pode ver e contribuir com o álbum do bebê. Convide familiares e amigos para compartilhar momentos especiais.",
+      "inviteTitle": "Convidar Membro",
+      "invitePlaceholder": "email@exemplo.com",
+      "inviteSend": "Enviar",
+      "pending": "Pendente",
+      "removeMember": "Remover membro",
+      "aboutPermissions": "Sobre as permissões:",
+      "roles": {
+        "owner": "Dono",
+        "ownerDesc": "tem controle total do álbum",
+        "guardian": "Guardião",
+        "guardianDesc": "pode adicionar e editar momentos",
+        "viewer": "Visualizador",
+        "viewerDesc": "apenas visualiza o conteúdo"
+      }
+    },
+    "subscription": {
+      "title": "Assinatura",
+      "currentPlan": "Plano Atual",
+      "pricePerMonth": "R$ {{price}}/mês",
+      "renewalOn": "Renovação em {{date}}",
+      "changePlan": "Alterar Plano",
+      "cancel": "Cancelar",
+      "included": "Incluído no seu plano",
+      "paymentMethod": "Método de Pagamento",
+      "cardEnding": "Visa • Expira em {{expiry}}",
+      "updatePayment": "Atualizar método de pagamento",
+      "features": {
+        "storage": "Armazenamento ilimitado de fotos e vídeos",
+        "family": "Até 5 membros da família",
+        "backup": "Backup automático em nuvem",
+        "capsule": "Cápsula do tempo programada",
+        "export": "Exportação em alta resolução",
+        "support": "Suporte prioritário"
+      }
+    },
+    "storage": {
+      "title": "Armazenamento",
+      "usedSpace": "Espaço Usado",
+      "usedOfTotal": "de {{total}}",
+      "unlimited": "Ilimitado",
+      "statsByType": "Estatísticas por Tipo",
+      "photos": "Fotos",
+      "videos": "Vídeos",
+      "audios": "Áudios",
+      "backupActive": "Backup Ativo",
+      "lastBackup": "Último backup: {{time}}",
+      "backupNow": "Fazer Backup Agora",
+      "tip": "💡 <strong>Dica:</strong> Seus dados são automaticamente sincronizados com a nuvem. Todos os arquivos originais são mantidos em alta resolução."
+    },
+    "privacy": {
+      "title": "Privacidade",
+      "description": "Configure quem pode ver e interagir com o álbum do seu bebê. Suas memórias estão sempre protegidas.",
+      "albumVisibility": "Visibilidade do Álbum",
+      "albumVisibilityDesc": "Quem pode ver o álbum do bebê",
+      "guestbook": "Livro de Visitas",
+      "guestbookDesc": "Quem pode deixar mensagens",
+      "shareDefault": "Compartilhamento Padrão",
+      "shareDefaultDesc": "Privacidade padrão para novos momentos",
+      "options": {
+        "onlyMe": "Somente eu",
+        "guardians": "Guardiões convidados",
+        "anyoneLink": "Qualquer um com o link",
+        "disabled": "Desativado",
+        "withApproval": "Com aprovação",
+        "openToGuests": "Aberto para convidados",
+        "private": "Privado",
+        "guardiansSimple": "Guardiões"
+      },
+      "securityInfo": "Todas as suas fotos e dados são criptografados e armazenados com segurança. Você tem controle total sobre quem pode acessar as memórias do seu bebê.",
+      "exportData": "Exportar Dados",
+      "exportDataDesc": "Baixe todos os seus dados e mídias",
+      "deleteAccount": "Excluir Conta",
+      "deleteAccountDesc": "Remover permanentemente todos os dados"
+    },
+    "help": {
+      "title": "Central de Ajuda",
+      "email": "E-mail",
+      "chat": "Chat",
+      "faq": "Perguntas Frequentes",
+      "footer": "Feito com amor para registrar os momentos mais preciosos da vida.",
+      "questions": {
+        "addChild": "Como adiciono uma nova criança?",
+        "addChildAnswer": "No menu lateral, clique no botão 'Cadastrar criança' ou acesse 'Perfil da criança' > 'Adicionar'. Você pode cadastrar múltiplas crianças e alternar entre elas facilmente.",
+        "shareFamily": "Como compartilho momentos com a família?",
+        "shareFamilyAnswer": "Em cada momento, clique no ícone de compartilhar. Você pode gerar um link único para compartilhar ou convidar guardiões diretamente pelo e-mail.",
+        "security": "Os dados do meu bebê estão seguros?",
+        "securityAnswer": "Sim! Utilizamos criptografia de ponta a ponta e armazenamento seguro na nuvem. Apenas você e as pessoas que você autorizar podem ver as memórias.",
+        "guestbook": "Como funciona o Livro de Visitas?",
+        "guestbookAnswer": "O Livro de Visitas permite que familiares e amigos deixem mensagens carinhosas. Você controla se as mensagens precisam de aprovação antes de aparecer.",
+        "export": "Posso exportar minhas fotos?",
+        "exportAnswer": "Sim! No Cofre, você pode baixar todas as suas fotos e documentos a qualquer momento. Seus dados pertencem a você."
+      }
+    },
+    "terms": {
+      "title": "Termos e Políticas",
+      "termsOfUse": "Termos de Uso",
+      "termsOfUseDesc": "Condições para uso do Baby Book",
+      "updatedAt": "Atualizado em {{date}}",
+      "privacyPolicy": "Política de Privacidade",
+      "privacyPolicyDesc": "Como tratamos seus dados",
+      "version": "Versão",
+      "rightsReserved": "Todos os direitos reservados.",
+      "questions": "Dúvidas sobre nossos termos?",
+      "contact": "Entre em contato"
+    },
+    "states": {
+      "loading": "Carregando...",
+      "errorTitle": "Ops! Algo deu errado",
+      "errorDescription": "Ocorreu um erro inesperado. Tente novamente ou recarregue a página.",
+      "seeErrorDetails": "Ver detalhes do erro",
+      "tryAgain": "Tentar novamente",
+      "reloadPage": "Recarregar página",
+      "updating": "Atualizando..."
+    }
   }
 }

@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useNotifications, type NotificationType } from "@/contexts/NotificationsContext";
 import { B2CNotificationsSkeleton } from "@/components/skeletons/B2CNotificationsSkeleton";
+import { useTranslation } from "@babybook/i18n";
 
 interface NotificationPreference {
   id: string;
@@ -51,6 +52,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof Bell> = {
 };
 
 export const NotificacoesPage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"all" | "settings">("all");
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
@@ -60,36 +62,36 @@ export const NotificacoesPage = () => {
   const [preferences, setPreferences] = useState<NotificationPreference[]>([
     {
       id: "milestones",
-      title: "Marcos do Bebê",
-      description: "Lembretes sobre marcos de desenvolvimento",
+      title: t("b2c.notifications.labels.milestones"),
+      description: t("b2c.notifications.labels.milestonesDesc"),
       icon: Sparkles,
       enabled: true,
     },
     {
       id: "appointments",
-      title: "Consultas e Vacinas",
-      description: "Alertas de consultas médicas agendadas",
+      title: t("b2c.notifications.labels.appointments"),
+      description: t("b2c.notifications.labels.appointmentsDesc"),
       icon: Calendar,
       enabled: true,
     },
     {
       id: "guestbook",
-      title: "Livro de Visitas",
-      description: "Novas mensagens no livro de visitas",
+      title: t("b2c.notifications.labels.guestbook"),
+      description: t("b2c.notifications.labels.guestbookDesc"),
       icon: Users,
       enabled: true,
     },
     {
       id: "memories",
-      title: "Memórias",
-      description: "Quando momentos são aprovados ou compartilhados",
+      title: t("b2c.notifications.labels.memories"),
+      description: t("b2c.notifications.labels.memoriesDesc"),
       icon: Heart,
       enabled: true,
     },
     {
       id: "updates",
-      title: "Atualizações do App",
-      description: "Novidades e melhorias do Baby Book",
+      title: t("b2c.notifications.labels.updates"),
+      description: t("b2c.notifications.labels.updatesDesc"),
       icon: Bell,
       enabled: false,
     },
@@ -129,15 +131,15 @@ export const NotificacoesPage = () => {
             className="text-2xl font-serif font-bold"
             style={{ color: "var(--bb-color-ink)" }}
           >
-            Notificações
+            {t("b2c.notifications.title")}
           </h1>
           <p
             className="text-sm"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
             {unreadCount > 0
-              ? `${unreadCount} não lida${unreadCount > 1 ? "s" : ""}`
-              : "Tudo em dia por aqui."}
+              ? t("b2c.notifications.unread", { count: unreadCount })
+              : t("b2c.notifications.allClear")}
           </p>
         </div>
       </div>
@@ -167,7 +169,7 @@ export const NotificacoesPage = () => {
           }}
         >
           <Bell className="w-4 h-4" />
-          Histórico
+          {t("b2c.notifications.history")}
           {unreadCount > 0 && (
             <span
               className="px-1.5 py-0.5 rounded-full text-xs font-bold text-white"
@@ -194,7 +196,7 @@ export const NotificacoesPage = () => {
           }}
         >
           <Settings className="w-4 h-4" />
-          Preferências
+          {t("b2c.notifications.preferences")}
         </button>
       </div>
 
@@ -214,7 +216,7 @@ export const NotificacoesPage = () => {
                 ) : (
                   <CheckCheck className="w-4 h-4" />
                 )}
-                Marcar todas como lidas
+                {t("b2c.notifications.markAllAsRead")}
               </button>
             </div>
           )}
@@ -263,14 +265,13 @@ export const NotificacoesPage = () => {
                   className="text-base font-semibold mb-2"
                   style={{ color: "var(--bb-color-ink)" }}
                 >
-                  Tudo em dia! 🎉
+                  {t("b2c.notifications.emptyTitle")}
                 </h3>
                 <p
                   className="text-sm max-w-xs mx-auto"
                   style={{ color: "var(--bb-color-ink-muted)" }}
                 >
-                  Você não tem notificações no momento. Quando houver novidades,
-                  elas aparecerão aqui.
+                  {t("b2c.notifications.emptyDescription")}
                 </p>
               </div>
             ) : (
@@ -353,7 +354,7 @@ export const NotificacoesPage = () => {
                           }}
                           className="p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[var(--bb-color-bg)]"
                           style={{ color: "var(--bb-color-ink-muted)" }}
-                          title="Marcar como lida"
+                          title={t("b2c.notifications.markAsRead")}
                         >
                           <Check className="w-4 h-4" />
                         </button>
@@ -377,8 +378,8 @@ export const NotificacoesPage = () => {
               className="text-sm"
               style={{ color: "var(--bb-color-ink-muted)" }}
             >
-              <strong>Dica:</strong> As notificações são mantidas por 30 dias.
-              Notificações mais antigas são removidas automaticamente.
+              <strong>{t("b2c.notifications.tipTitle")}</strong>{" "}
+              {t("b2c.notifications.tipDescription")}
             </p>
           </div>
         </>
@@ -389,7 +390,7 @@ export const NotificacoesPage = () => {
             className="mb-4 text-sm"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
-            Configure quais notificações você deseja receber.
+            {t("b2c.notifications.preferencesDescription")}
           </p>
 
           <div
@@ -471,9 +472,7 @@ export const NotificacoesPage = () => {
               className="text-sm"
               style={{ color: "var(--bb-color-ink-muted)" }}
             >
-              💡 Para receber notificações push, certifique-se de que as
-              notificações estão habilitadas nas configurações do seu
-              dispositivo.
+              {t("b2c.notifications.pushTip")}
             </p>
           </div>
         </>
@@ -481,3 +480,4 @@ export const NotificacoesPage = () => {
     </div>
   );
 };
+

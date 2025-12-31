@@ -7,7 +7,7 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Save, Upload, X, Globe } from "lucide-react";
+import { Camera, Save, Upload, X, Globe, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@babybook/i18n";
 import { getPartnerProfile, updatePartnerProfile } from "./api";
@@ -390,6 +390,34 @@ export function PartnerSettingsPage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Security Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {t("partner.settings.security.title")}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {t("partner.settings.security.logoutAllDesc")}
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              if (window.confirm(t("partner.settings.security.logoutAllConfirm"))) {
+                try {
+                  const { apiClient } = await import("@/lib/api-client");
+                  await apiClient.post("/auth/logout/all");
+                  window.location.href = "/pro/login";
+                } catch (err) {
+                  toast.error(t("errors.generic"));
+                }
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-sm font-medium"
+          >
+            <LogOut className="w-4 h-4" />
+            {t("partner.settings.security.logoutAll")}
+          </button>
         </div>
 
         {/* Submit Button */}

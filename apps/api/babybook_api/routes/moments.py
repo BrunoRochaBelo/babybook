@@ -4,14 +4,16 @@ import math
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Header, Query, Response, status
+from fastapi import APIRouter, Depends, Header, Query, Response, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
 from babybook_api.db.models import Child, Moment
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.schemas.moments import (
     MomentCreate,
     MomentResponse,
@@ -19,6 +21,7 @@ from babybook_api.schemas.moments import (
     PaginatedMoments,
     PublishResponse,
 )
+from babybook_api.utils.security import sanitize_html
 
 router = APIRouter()
 
@@ -111,15 +114,18 @@ async def create_moment(
     response: Response,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    request: Request = None,
+    _: None = Depends(require_csrf_token),
 ) -> MomentResponse:
+    await enforce_rate_limit(bucket="moments:create:user", limit="20/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
     await _ensure_child_access(db, account_id, payload.child_id)
     moment = Moment(
         account_id=account_id,
         child_id=payload.child_id,
         template_key=payload.template_key,
-        title=payload.title,
-        summary=payload.summary,
+        title=sanitize_html(payload.title) or "Sem titulo",
+        summary=sanitize_html(payload.summary),
         occurred_at=payload.occurred_at,
         privacy=payload.privacy,
         payload=payload.payload or {},
@@ -160,7 +166,9 @@ async def patch_moment(
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
     if_match: str | None = Header(default=None, alias="If-Match"),
+    _: None = Depends(require_csrf_token),
 ) -> MomentResponse:
+    await enforce_rate_limit(bucket="moments:patch:user", limit="30/minute", identity=current_user.id)
     if if_match is None:
         raise AppError(
             status_code=412,
@@ -175,9 +183,9 @@ async def patch_moment(
             message="Versao desatualizada. Recarregue os dados.",
         )
     if payload.title is not None:
-        moment.title = payload.title
+        moment.title = sanitize_html(payload.title) or "Sem titulo"
     if payload.summary is not None:
-        moment.summary = payload.summary
+        moment.summary = sanitize_html(payload.summary)
     if payload.occurred_at is not None:
         moment.occurred_at = payload.occurred_at
     if payload.privacy is not None:
@@ -202,7 +210,9 @@ async def delete_moment(
     moment_id: uuid.UUID,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> Response:
+    await enforce_rate_limit(bucket="moments:delete:user", limit="30/minute", identity=current_user.id)
     moment = await _get_moment_or_404(db, uuid.UUID(current_user.account_id), moment_id)
     moment.deleted_at = datetime.utcnow()
     moment.status = "archived"
@@ -220,7 +230,9 @@ async def publish_moment(
     moment_id: uuid.UUID,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> PublishResponse:
+    await enforce_rate_limit(bucket="moments:publish:user", limit="30/minute", identity=current_user.id)
     moment = await _get_moment_or_404(db, uuid.UUID(current_user.account_id), moment_id)
     moment.status = "published"
     moment.published_at = datetime.utcnow()
@@ -239,7 +251,9 @@ async def unpublish_moment(
     moment_id: uuid.UUID,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> PublishResponse:
+    await enforce_rate_limit(bucket="moments:unpublish:user", limit="30/minute", identity=current_user.id)
     moment = await _get_moment_or_404(db, uuid.UUID(current_user.account_id), moment_id)
     moment.status = "draft"
     moment.published_at = None

@@ -69,6 +69,7 @@ from babybook_api.schemas.partner_portal import (
     VoucherCardResponse,
 )
 from babybook_api.settings import settings
+from babybook_api.utils.security import sanitize_html
 from babybook_api.storage import (
     PartnerStorageService,
     get_partner_storage,
@@ -324,9 +325,9 @@ async def update_partner_profile(
     
     # Atualiza campos se fornecidos
     if request.name is not None:
-        partner.name = request.name
+        partner.name = sanitize_html(request.name)
     if request.studio_name is not None:
-        partner.company_name = request.studio_name
+        partner.company_name = sanitize_html(request.studio_name)
     if request.phone is not None:
         partner.phone = request.phone
     if request.logo_url is not None:

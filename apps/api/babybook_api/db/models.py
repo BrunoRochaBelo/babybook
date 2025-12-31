@@ -170,6 +170,13 @@ class User(TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(120))
     locale: Mapped[str] = mapped_column(String(10), default="pt-BR")
     role: Mapped[str] = mapped_column(String(32), default="owner")
+    
+    # Security & Audit
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     account: Mapped[Account] = relationship(back_populates="users")
     sessions: Mapped[list["Session"]] = relationship(back_populates="user", cascade="all,delete")

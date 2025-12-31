@@ -14,11 +14,20 @@ import {
   ChevronLeft,
   Save,
   Loader2,
+  Sun,
+  Moon,
+  Smartphone,
+  LogOut,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useTheme } from "@/hooks/useTheme";
+import { useLanguage, useTranslation } from "@babybook/i18n";
 
 export const MinhaContaPage = () => {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
+  const { theme, setTheme } = useTheme();
+  const { language, setLanguage, languages } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,7 +58,7 @@ export const MinhaContaPage = () => {
           className="text-2xl font-serif font-bold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Minha Conta
+          {t("b2c.myAccount.title")}
         </h1>
       </div>
 
@@ -89,7 +98,7 @@ export const MinhaContaPage = () => {
               className="font-semibold text-lg"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              {user?.name || "Usuário"}
+              {user?.name || t("b2c.myAccount.user")}
             </p>
             <p
               className="text-sm"
@@ -114,7 +123,7 @@ export const MinhaContaPage = () => {
             className="text-sm font-semibold uppercase tracking-wider"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
-            Dados Pessoais
+            {t("b2c.myAccount.personalData")}
           </h2>
           {!isEditing ? (
             <button
@@ -126,7 +135,7 @@ export const MinhaContaPage = () => {
                 backgroundColor: "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
               }}
             >
-              Editar
+              {t("b2c.myAccount.edit")}
             </button>
           ) : (
             <button
@@ -143,7 +152,7 @@ export const MinhaContaPage = () => {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Salvar
+              {isSaving ? t("b2c.myAccount.saving") : t("b2c.myAccount.save")}
             </button>
           )}
         </div>
@@ -171,7 +180,7 @@ export const MinhaContaPage = () => {
                 className="text-xs mb-1"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                Nome completo
+                {t("b2c.myAccount.fullName")}
               </p>
               {isEditing ? (
                 <input
@@ -216,7 +225,7 @@ export const MinhaContaPage = () => {
                 className="text-xs mb-1"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                E-mail
+                {t("b2c.myAccount.email")}
               </p>
               <p
                 className="font-medium"
@@ -241,7 +250,7 @@ export const MinhaContaPage = () => {
           className="text-sm font-semibold uppercase tracking-wider mb-4"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          Segurança
+          {t("b2c.myAccount.security")}
         </h2>
 
         <button
@@ -263,14 +272,141 @@ export const MinhaContaPage = () => {
           </div>
           <div className="flex-1 text-left">
             <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
-              Alterar Senha
+              {t("b2c.myAccount.changePassword")}
             </p>
             <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
-              Redefina sua senha de acesso
+              {t("b2c.myAccount.changePasswordDesc")}
             </p>
           </div>
         </button>
+
+        <div className="mt-4 p-4 rounded-xl border border-dashed" style={{ borderColor: "var(--bb-color-border)" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "var(--bb-color-ink)" }}>
+            {t("b2c.myAccount.signOutAll")}
+          </p>
+          <p className="text-xs mb-3" style={{ color: "var(--bb-color-ink-muted)" }}>
+            {t("b2c.myAccount.signOutAllDesc")}
+          </p>
+          <button
+            type="button"
+            className="w-full py-2.5 rounded-xl font-medium transition-colors border"
+            style={{ 
+              borderColor: "var(--bb-color-danger)",
+              color: "var(--bb-color-danger)",
+            }}
+            onClick={async () => {
+               if (window.confirm(t("b2c.myAccount.signOutAllConfirm"))) {
+                  try {
+                    const { apiClient } = await import("@/lib/api-client");
+                    await apiClient.post("/auth/logout/all");
+                    window.location.href = "/login";
+                  } catch (err) {
+                    alert(t("b2c.myAccount.signOutAllError"));
+                  }
+                }
+            }}
+          >
+            {t("b2c.myAccount.signOutAllBtn")}
+          </button>
+        </div>
       </div>
+
+      {/* Preferências */}
+      <div
+        className="rounded-2xl p-6 mt-6"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          border: "1px solid var(--bb-color-border)",
+        }}
+      >
+        <h2
+          className="text-sm font-semibold uppercase tracking-wider mb-4"
+          style={{ color: "var(--bb-color-ink-muted)" }}
+        >
+          {t("b2c.myAccount.preferences")}
+        </h2>
+
+        <p
+          className="text-sm mb-3"
+          style={{ color: "var(--bb-color-ink-muted)" }}
+        >
+          {t("b2c.myAccount.theme")}
+        </p>
+        <div className="flex gap-2">
+          {[
+            { value: "light" as const, icon: Sun, label: t("b2c.myAccount.themeLight") },
+            { value: "dark" as const, icon: Moon, label: t("b2c.myAccount.themeDark") },
+            { value: "system" as const, icon: Smartphone, label: t("b2c.myAccount.themeSystem") },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+              className="flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors border-2"
+              style={{
+                backgroundColor:
+                  theme === option.value
+                    ? "var(--bb-color-accent-light, rgba(0,0,0,0.05))"
+                    : "var(--bb-color-bg)",
+                borderColor:
+                  theme === option.value
+                    ? "var(--bb-color-accent)"
+                    : "var(--bb-color-border)",
+                color:
+                  theme === option.value
+                    ? "var(--bb-color-accent)"
+                    : "var(--bb-color-ink-muted)",
+              }}
+            >
+              <option.icon className="w-5 h-5" />
+              <span className="text-xs font-medium">{option.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Idioma */}
+        <p
+          className="text-sm mb-3 mt-6"
+          style={{ color: "var(--bb-color-ink-muted)" }}
+        >
+          {t("b2c.myAccount.language")}
+        </p>
+        <div className="flex gap-2">
+          {languages.map((option) => (
+            <button
+              key={option.code}
+              onClick={() => setLanguage(option.code)}
+              className="flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors border-2"
+              style={{
+                backgroundColor:
+                  language === option.code
+                    ? "var(--bb-color-accent-light, rgba(0,0,0,0.05))"
+                    : "var(--bb-color-bg)",
+                borderColor:
+                  language === option.code
+                    ? "var(--bb-color-accent)"
+                    : "var(--bb-color-border)",
+                color:
+                  language === option.code
+                    ? "var(--bb-color-accent)"
+                    : "var(--bb-color-ink-muted)",
+              }}
+            >
+              <span className="text-xl">{option.flag}</span>
+              <span className="text-xs font-medium">{option.name.split(" ")[0]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Logout */}
+      <button
+        className="mt-6 w-full py-4 flex items-center justify-center gap-2 rounded-2xl font-medium transition-opacity hover:opacity-80"
+        style={{ color: "var(--bb-color-danger, #ef4444)" }}
+      >
+        <LogOut className="w-5 h-5" />
+        {t("b2c.myAccount.signOut")}
+      </button>
     </div>
   );
 };
+

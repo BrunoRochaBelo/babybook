@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { userProfileSchema } from "@babybook/contracts";
 import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
+import { sanitizeRedirectTo } from "@/lib/redirect";
 import { BabyBookLogo } from "@/components/BabyBookLogo";
 
 export function PartnerLoginPage() {
@@ -30,14 +31,6 @@ export function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const sanitizeRedirectTo = (value: string | null): string => {
-    if (!value) return "/partner";
-    // Permitimos apenas paths internos. Bloqueia http(s)://, // e esquemas.
-    if (!value.startsWith("/")) return "/partner";
-    if (value.startsWith("//")) return "/partner";
-    return value;
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -70,7 +63,7 @@ export function PartnerLoginPage() {
 
       // Navigate to redirect URL if available, otherwise go to partner portal
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = sanitizeRedirectTo(params.get("redirectTo"));
+      const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/partner");
       navigate(redirectTo);
     } catch (err) {
       if (err instanceof Error) {

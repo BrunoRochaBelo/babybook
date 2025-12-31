@@ -19,6 +19,9 @@ import {
   Shield,
   HelpCircle,
   FileText,
+  Users,
+  CreditCard,
+  HardDrive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme, type Theme } from "@/hooks/useTheme";
@@ -291,6 +294,88 @@ export function B2CMainDrawer({
                 </div>
               </Link>
 
+              {/* Família */}
+              <Link
+                to="/jornada/familia"
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-4 p-3 rounded-xl bg-[var(--bb-color-bg)] hover:bg-[var(--bb-color-surface)] border border-transparent hover:border-[var(--bb-color-border)] hover:shadow-sm transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[var(--bb-color-surface)] shadow-sm border border-[var(--bb-color-border)] flex items-center justify-center text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-accent)] group-hover:border-[var(--bb-color-accent)]/30 transition-colors">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[var(--bb-color-ink)] group-hover:text-[var(--bb-color-accent)] transition-colors">
+                    Família
+                  </p>
+                  <p className="text-xs text-[var(--bb-color-ink-muted)]">
+                    Gerenciar membros
+                  </p>
+                </div>
+                <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+              </Link>
+            </nav>
+          </div>
+
+          {/* Plan & Storage Section */}
+          <div>
+            <p className="text-xs font-semibold text-[var(--bb-color-ink-muted)] mb-3 uppercase tracking-wider pl-1">
+              Plano
+            </p>
+            <nav className="space-y-2">
+              {/* Assinatura */}
+              <Link
+                to="/jornada/assinatura"
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-4 p-3 rounded-xl bg-[var(--bb-color-bg)] hover:bg-[var(--bb-color-surface)] border border-transparent hover:border-[var(--bb-color-border)] hover:shadow-sm transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[var(--bb-color-surface)] shadow-sm border border-[var(--bb-color-border)] flex items-center justify-center text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-accent)] group-hover:border-[var(--bb-color-accent)]/30 transition-colors">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[var(--bb-color-ink)] group-hover:text-[var(--bb-color-accent)] transition-colors">
+                    Assinatura
+                  </p>
+                  <p className="text-xs text-[var(--bb-color-ink-muted)]">
+                    Plano e pagamento
+                  </p>
+                </div>
+                <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+              </Link>
+
+              {/* Armazenamento */}
+              <Link
+                to="/jornada/armazenamento"
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-4 p-3 rounded-xl bg-[var(--bb-color-bg)] hover:bg-[var(--bb-color-surface)] border border-transparent hover:border-[var(--bb-color-border)] hover:shadow-sm transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[var(--bb-color-surface)] shadow-sm border border-[var(--bb-color-border)] flex items-center justify-center text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-accent)] group-hover:border-[var(--bb-color-accent)]/30 transition-colors">
+                  <HardDrive className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[var(--bb-color-ink)] group-hover:text-[var(--bb-color-accent)] transition-colors">
+                    Armazenamento
+                  </p>
+                  <p className="text-xs text-[var(--bb-color-ink-muted)]">
+                    Espaço e backup
+                  </p>
+                </div>
+                <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+              </Link>
+            </nav>
+          </div>
+
+          {/* Privacy Section */}
+          <div>
+            <p className="text-xs font-semibold text-[var(--bb-color-ink-muted)] mb-3 uppercase tracking-wider pl-1">
+              Segurança
+            </p>
+            <nav className="space-y-2">
               {/* Privacidade e Compartilhamento */}
               <Link
                 to="/jornada/privacidade"
@@ -305,7 +390,7 @@ export function B2CMainDrawer({
                     Privacidade
                   </p>
                   <p className="text-xs text-[var(--bb-color-ink-muted)]">
-                    Compartilhamento e permissões
+                    Controle de dados
                   </p>
                 </div>
                 <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">

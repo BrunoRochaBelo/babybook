@@ -1,6 +1,5 @@
-from __future__ import annotations
-
-from datetime import timedelta
+import re
+from datetime import datetime, timedelta
 
 from fastapi import Response
 from sqlalchemy import select
@@ -22,8 +21,40 @@ from babybook_api.time import utcnow
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
     result = await db.execute(select(User).where(User.email == email.lower()))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(password, user.password_hash):
+
+    if not user:
+        # Prevent timing attacks by hashing a dummy password if user not found
+        verify_password(password, "dummy_hash")
         raise AppError(status_code=401, code="auth.credentials.invalid", message="Credenciais invalidas.")
+
+    # Check if account is locked
+    if user.locked_until and user.locked_until > utcnow():
+        lock_remaining = (user.locked_until - utcnow()).seconds // 60
+        raise AppError(
+            status_code=403,
+            code="auth.account.locked",
+            message=f"Conta bloqueada temporariamente devido a multiplas tentativas falhas. Tente novamente em {lock_remaining + 1} minutos.",
+        )
+
+    if not verify_password(password, user.password_hash):
+        user.failed_login_attempts += 1
+        if user.failed_login_attempts >= 5:
+            user.locked_until = utcnow() + timedelta(minutes=15)
+            user.failed_login_attempts = 0  # Reset counter after locking
+        
+        await db.commit()
+        raise AppError(status_code=401, code="auth.credentials.invalid", message="Credenciais invalidas.")
+
+    # Success: reset failures and update last login
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    user.last_login_at = utcnow()
+    
+    # Audit log (foundation for the plan's audit trail)
+    print(f"[audit] login_success user_id={user.id} email={user.email} timestamp={utcnow()}")
+    
+    await db.commit()
+    
     return user
 
 
@@ -64,9 +95,37 @@ async def revoke_session(db: AsyncSession, session: Session) -> None:
     await db.flush()
 
 
+async def revoke_all_user_sessions(
+    db: AsyncSession, user_id: uuid.UUID, current_session_id: uuid.UUID | None = None
+) -> None:
+    """
+    Revoga todas as sessões ativas de um usuário.
+    Se current_session_id for informado, pode ser usado para manter a sessão atual viva
+    (embora o requisito padrão seja sair de TUDO).
+    """
+    from sqlalchemy import update
+
+    stmt = (
+        update(Session)
+        .where(Session.user_id == user_id)
+        .where(Session.revoked_at.is_(None))
+        .values(revoked_at=utcnow())
+    )
+    if current_session_id:
+        stmt = stmt.where(Session.id != current_session_id)
+
+    await db.execute(stmt)
+    await db.flush()
+
+
 def apply_session_cookie(response: Response, token: str, remember_me: bool = False) -> None:
-    # Se remember_me, cookie dura 30 dias; senão, usa o padrão
-    max_age = 30 * 24 * 3600 if remember_me else settings.session_ttl_hours * 3600
+    # Se remember_me, cookie dura 30 dias; senão, usa o padrão (24h ou settings.session_ttl_hours)
+    # Reduzimos o TTL padrão quando não houver explicitamente "Lembrar de mim"
+    if remember_me:
+        max_age = 30 * 24 * 3600
+    else:
+        # Default to 24 hours if not remembered, unless settings.session_ttl_hours is shorter
+        max_age = min(24, settings.session_ttl_hours) * 3600
 
     # Dev/E2E helper:
     # Em alguns cenários (ex.: SPA e API em portas diferentes) navegadores podem
@@ -121,9 +180,15 @@ async def create_user(db: AsyncSession, email: str, password: str, name: str) ->
     """
     result = await db.execute(select(User).where(User.email == email.lower()))
     existing = result.scalar_one_or_none()
-    if existing:
-        from babybook_api.errors import AppError
+    from babybook_api.errors import AppError
 
+    if len(password) < 8:
+        raise AppError(status_code=400, code="auth.password.weak", message="A senha deve ter pelo menos 8 caracteres.")
+    
+    if not re.search(r"[A-Za-z]", password) or not re.search(r"[0-9]", password):
+        raise AppError(status_code=400, code="auth.password.weak", message="A senha deve conter pelo menos uma letra e um numero.")
+
+    if existing:
         raise AppError(status_code=409, code="auth.user.exists", message="Usuario ja cadastrado.")
 
     from babybook_api.db.models import Account

@@ -9,6 +9,7 @@ import React, { type ComponentType, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@babybook/i18n";
 
 // =============================================================================
 // TYPES
@@ -260,12 +261,15 @@ export function B2CPage({
 export function B2CLoadingState({
   variant = "page",
   size = "default",
-  label = "Carregando…",
+  label,
 }: {
   variant?: B2CStateVariant;
   size?: B2CPageSize;
   label?: string;
 }) {
+  const { t } = useTranslation();
+  const finalLabel = label || t("b2c.states.loading");
+
   const body = (
     <div
       role="status"
@@ -277,7 +281,7 @@ export function B2CLoadingState({
     >
       <div className="inline-flex items-center gap-3 text-sm text-[var(--bb-color-ink-muted)]">
         <Loader2 className="w-5 h-5 animate-spin text-[var(--bb-color-accent)]" />
-        <span>{label}</span>
+        <span>{finalLabel}</span>
       </div>
     </div>
   );
@@ -296,7 +300,7 @@ export function B2CLoadingState({
 export function B2CErrorState({
   variant = "page",
   size = "default",
-  title = "Ops! Algo deu errado",
+  title,
   description,
   errorDetails,
   onRetry,
@@ -316,9 +320,13 @@ export function B2CErrorState({
   skeleton?: ReactNode;
   autoReloadInDev?: boolean;
 }) {
+  const { t } = useTranslation();
   const isDev = import.meta.env.DEV;
   const RELOAD_KEY = "babybook_b2c_reload_attempts";
   const MAX_RETRIES = 3;
+
+  const finalTitle = title || t("b2c.states.errorTitle");
+  const finalDescription = description || t("b2c.states.errorDescription");
 
   const shouldAutoReload = isDev && autoReloadInDev;
 
@@ -374,7 +382,7 @@ export function B2CErrorState({
         <div className="flex items-center justify-center py-24">
           <div className="inline-flex items-center gap-3 text-sm text-[var(--bb-color-ink-muted)]">
             <Loader2 className="w-5 h-5 animate-spin text-[var(--bb-color-accent)]" />
-            <span>Atualizando...</span>
+            <span>{t("b2c.states.updating")}</span>
           </div>
         </div>
       );
@@ -403,9 +411,6 @@ export function B2CErrorState({
 
     window.location.reload();
   };
-
-  const defaultDescription =
-    "Ocorreu um erro inesperado. Tente novamente ou recarregue a página.";
 
   const body = (
     <div
@@ -438,17 +443,17 @@ export function B2CErrorState({
 
         {/* Título */}
         <h2 className="text-xl font-bold text-[var(--bb-color-ink)] mb-2 font-serif">
-          {title}
+          {finalTitle}
         </h2>
 
         {/* Descrição */}
-        <p className="text-[var(--bb-color-ink-muted)] mb-4">{description ?? defaultDescription}</p>
+        <p className="text-[var(--bb-color-ink-muted)] mb-4">{finalDescription}</p>
 
         {/* Detalhes do erro (apenas em dev) */}
         {isDev && errorDetails && (
           <details className="mb-4 text-left">
             <summary className="cursor-pointer text-sm text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)]">
-              Ver detalhes do erro
+              {t("b2c.states.seeErrorDetails")}
             </summary>
             <pre className="mt-2 p-3 bg-[var(--bb-color-bg)] rounded-lg text-xs text-[var(--bb-color-danger)] overflow-auto max-h-40">
               {errorDetails}
@@ -465,7 +470,7 @@ export function B2CErrorState({
               onClick={onRetry ?? handleReload}
               className="px-4 py-2 rounded-2xl border-2 border-[var(--bb-color-muted)] text-[var(--bb-color-ink)] hover:border-[var(--bb-color-accent)] hover:text-[var(--bb-color-accent)] transition-colors"
             >
-              Tentar novamente
+              {t("b2c.states.tryAgain")}
             </button>
           )}
 
@@ -476,7 +481,7 @@ export function B2CErrorState({
               onClick={handleReload}
               className="px-4 py-2 rounded-2xl bg-[var(--bb-color-accent)] text-white hover:bg-[var(--bb-color-accent)]/90 transition-colors"
             >
-              Recarregar página
+              {t("b2c.states.reloadPage")}
             </button>
           )}
         </div>

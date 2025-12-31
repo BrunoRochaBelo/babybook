@@ -4,8 +4,10 @@
  * Página com termos de uso e política de privacidade.
  */
 
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, FileText, Shield, ExternalLink } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 
 interface LegalDoc {
   id: string;
@@ -16,26 +18,28 @@ interface LegalDoc {
   url: string;
 }
 
-const LEGAL_DOCS: LegalDoc[] = [
-  {
-    id: "terms",
-    title: "Termos de Uso",
-    description: "Condições para uso do Baby Book",
-    icon: FileText,
-    lastUpdated: "Atualizado em 01/12/2024",
-    url: "/termos-de-uso",
-  },
-  {
-    id: "privacy",
-    title: "Política de Privacidade",
-    description: "Como tratamos seus dados",
-    icon: Shield,
-    lastUpdated: "Atualizado em 01/12/2024",
-    url: "/politica-de-privacidade",
-  },
-];
-
 export const TermosPage = () => {
+  const { t } = useTranslation();
+
+  const LEGAL_DOCS = useMemo<LegalDoc[]>(() => [
+    {
+      id: "terms",
+      title: t("b2c.terms.termsOfUse"),
+      description: t("b2c.terms.termsOfUseDesc"),
+      icon: FileText,
+      lastUpdated: t("b2c.terms.updatedAt", { date: "01/12/2024" }),
+      url: "/termos-de-uso",
+    },
+    {
+      id: "privacy",
+      title: t("b2c.terms.privacyPolicy"),
+      description: t("b2c.terms.privacyPolicyDesc"),
+      icon: Shield,
+      lastUpdated: t("b2c.terms.updatedAt", { date: "01/12/2024" }),
+      url: "/politica-de-privacidade",
+    },
+  ], [t]);
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
@@ -51,7 +55,7 @@ export const TermosPage = () => {
           className="text-2xl font-serif font-bold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Termos e Políticas
+          {t("b2c.terms.title")}
         </h1>
       </div>
 
@@ -127,13 +131,13 @@ export const TermosPage = () => {
           className="text-xs mt-1"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          Versão 1.0.0
+          {t("b2c.terms.version")} 1.0.0
         </p>
         <p
           className="text-xs mt-2"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          © 2024 Baby Book. Todos os direitos reservados.
+          © 2024 Baby Book. {t("b2c.terms.rightsReserved")}
         </p>
       </div>
 
@@ -149,13 +153,13 @@ export const TermosPage = () => {
           className="text-sm text-center"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          Dúvidas sobre nossos termos?{" "}
+          {t("b2c.terms.questions")}{" "}
           <a
             href="mailto:legal@babybook.app"
             className="font-medium underline"
             style={{ color: "var(--bb-color-accent)" }}
           >
-            Entre em contato
+            {t("b2c.terms.contact")}
           </a>
         </p>
       </div>

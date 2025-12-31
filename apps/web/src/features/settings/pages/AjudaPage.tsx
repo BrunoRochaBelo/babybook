@@ -4,7 +4,7 @@
  * Página com FAQs e informações de suporte.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft,
@@ -14,6 +14,7 @@ import {
   Book,
   Heart,
 } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 
 interface FAQ {
   id: string;
@@ -21,41 +22,37 @@ interface FAQ {
   answer: string;
 }
 
-const FAQS: FAQ[] = [
-  {
-    id: "1",
-    question: "Como adiciono uma nova criança?",
-    answer:
-      "No menu lateral, clique no botão 'Cadastrar criança' ou acesse 'Perfil da criança' > 'Adicionar'. Você pode cadastrar múltiplas crianças e alternar entre elas facilmente.",
-  },
-  {
-    id: "2",
-    question: "Como compartilho momentos com a família?",
-    answer:
-      "Em cada momento, clique no ícone de compartilhar. Você pode gerar um link único para compartilhar ou convidar guardiões diretamente pelo e-mail.",
-  },
-  {
-    id: "3",
-    question: "Os dados do meu bebê estão seguros?",
-    answer:
-      "Sim! Utilizamos criptografia de ponta a ponta e armazenamento seguro na nuvem. Apenas você e as pessoas que você autorizar podem ver as memórias.",
-  },
-  {
-    id: "4",
-    question: "Como funciona o Livro de Visitas?",
-    answer:
-      "O Livro de Visitas permite que familiares e amigos deixem mensagens carinhosas. Você controla se as mensagens precisam de aprovação antes de aparecer.",
-  },
-  {
-    id: "5",
-    question: "Posso exportar minhas fotos?",
-    answer:
-      "Sim! No Cofre, você pode baixar todas as suas fotos e documentos a qualquer momento. Seus dados pertencem a você.",
-  },
-];
-
 export const AjudaPage = () => {
+  const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const FAQS = useMemo<FAQ[]>(() => [
+    {
+      id: "1",
+      question: t("b2c.help.questions.addChild"),
+      answer: t("b2c.help.questions.addChildAnswer"),
+    },
+    {
+      id: "2",
+      question: t("b2c.help.questions.shareFamily"),
+      answer: t("b2c.help.questions.shareFamilyAnswer"),
+    },
+    {
+      id: "3",
+      question: t("b2c.help.questions.security"),
+      answer: t("b2c.help.questions.securityAnswer"),
+    },
+    {
+      id: "4",
+      question: t("b2c.help.questions.guestbook"),
+      answer: t("b2c.help.questions.guestbookAnswer"),
+    },
+    {
+      id: "5",
+      question: t("b2c.help.questions.export"),
+      answer: t("b2c.help.questions.exportAnswer"),
+    },
+  ], [t]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -72,7 +69,7 @@ export const AjudaPage = () => {
           className="text-2xl font-serif font-bold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Central de Ajuda
+          {t("b2c.help.title")}
         </h1>
       </div>
 
@@ -91,7 +88,7 @@ export const AjudaPage = () => {
             className="text-sm font-medium"
             style={{ color: "var(--bb-color-ink)" }}
           >
-            E-mail
+            {t("b2c.help.email")}
           </span>
         </a>
         <button
@@ -110,7 +107,7 @@ export const AjudaPage = () => {
             className="text-sm font-medium"
             style={{ color: "var(--bb-color-ink)" }}
           >
-            Chat
+            {t("b2c.help.chat")}
           </span>
         </button>
       </div>
@@ -123,7 +120,7 @@ export const AjudaPage = () => {
             className="text-sm font-semibold uppercase tracking-wider"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
-            Perguntas Frequentes
+            {t("b2c.help.faq")}
           </h2>
         </div>
 
@@ -192,7 +189,7 @@ export const AjudaPage = () => {
           style={{ color: "var(--bb-color-accent)" }}
         />
         <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
-          Feito com amor para registrar os momentos mais preciosos da vida.
+          {t("b2c.help.footer")}
         </p>
       </div>
     </div>

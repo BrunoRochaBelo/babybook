@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -31,6 +31,7 @@ from .routes import (
     people,
     resumable_uploads,
     series,
+    settings as settings_routes,
     shares,
     uploads,
     vault,
@@ -48,6 +49,30 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(TraceIdMiddleware)
+
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
+        if settings.app_env != "local" or settings.session_cookie_secure:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            
+        # Para uma API purista, default-src 'none' seria o ideal.
+        # Como servimos Swagger e OAuth Mocks em dev, usamos 'self' para scripts/styles.
+        csp = (
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "frame-ancestors 'none'; "
+            "base-uri 'none'; "
+            "form-action 'self';"
+        )
+        response.headers["Content-Security-Policy"] = csp
+        return response
     # Protege contra Host header attacks / cache poisoning via Host.
     # Em staging/prod, ALLOWED_HOSTS é obrigatório e não permite wildcard.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
@@ -72,6 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
     app.include_router(health.router, prefix="/health", tags=["health"])
     app.include_router(me.router, prefix="/me", tags=["me"])
+    app.include_router(settings_routes.router, prefix="/me/settings", tags=["settings"])
     app.include_router(notifications.router, prefix="/me/notifications", tags=["notifications"])
     app.include_router(children.router, prefix="/children", tags=["children"])
     app.include_router(people.router, prefix="/people", tags=["people"])

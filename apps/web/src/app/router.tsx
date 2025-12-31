@@ -47,8 +47,6 @@ import { OnboardingPage } from "@/features/onboarding";
 import { AddMomentPage } from "@/pages/AddMomentPage";
 // Share Page
 import { SharedMomentPage } from "@/pages/SharedMomentPage";
-// Settings Page
-import { SettingsPage } from "@/pages/SettingsPage";
 import { ImportDeliveryPage } from "@/pages/ImportDeliveryPage";
 // B2C Settings Pages
 import {
@@ -57,6 +55,9 @@ import {
   PrivacidadePage,
   AjudaPage,
   TermosPage,
+  FamiliaPage,
+  AssinaturaPage,
+  ArmazenamentoPage,
 } from "@/features/settings";
 
 export function AppRouter() {
@@ -102,7 +103,6 @@ export function AppRouter() {
             path="/jornada/perfil-crianca"
             element={<PerfilCriancaPage />}
           />
-          <Route path="/configuracoes" element={<SettingsPage />} />
           <Route
             path="/jornada/importar-entrega/:deliveryId"
             element={<ImportDeliveryPage />}
@@ -111,6 +111,9 @@ export function AppRouter() {
           <Route path="/jornada/minha-conta" element={<MinhaContaPage />} />
           <Route path="/jornada/notificacoes" element={<NotificacoesPage />} />
           <Route path="/jornada/privacidade" element={<PrivacidadePage />} />
+          <Route path="/jornada/familia" element={<FamiliaPage />} />
+          <Route path="/jornada/assinatura" element={<AssinaturaPage />} />
+          <Route path="/jornada/armazenamento" element={<ArmazenamentoPage />} />
           <Route path="/jornada/ajuda" element={<AjudaPage />} />
           <Route path="/jornada/termos" element={<TermosPage />} />
         </Route>

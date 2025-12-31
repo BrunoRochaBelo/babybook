@@ -303,7 +303,10 @@
         "currentPassword": "Current Password",
         "newPassword": "New Password",
         "confirmNewPassword": "Confirm New Password",
-        "twoFactor": "Two-factor authentication"
+        "twoFactor": "Two-factor authentication",
+        "logoutAll": "Sign out from all devices",
+        "logoutAllDesc": "Sign out from all active sessions (e.g., mobile, other computers).",
+        "logoutAllConfirm": "Do you want to sign out from all active devices? You will need to log in again."
       }
     },
     "onboarding": {
@@ -454,5 +457,182 @@
     "storage": "Storage",
     "moments": "Moments",
     "recurrent": "Recurrences"
+  },
+  "b2c": {
+    "dashboard": {
+      "title": "Journey",
+      "errorTitle": "Could not load the journey",
+      "errorDescription": "There was a problem fetching dashboard data. Try reloading."
+    },
+    "myAccount": {
+      "title": "My Account",
+      "user": "User",
+      "personalData": "Personal Data",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving...",
+      "fullName": "Full name",
+      "email": "Email",
+      "security": "Security",
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Reset your access password",
+      "signOutAll": "Sign out from all devices",
+      "signOutAllDesc": "Ends all active sessions (e.g., other computers or phones).",
+      "signOutAllBtn": "End sessions",
+      "signOutAllConfirm": "Do you want to end all active sessions? You will need to log in again.",
+      "signOutAllError": "Error ending sessions. Try again.",
+      "preferences": "Preferences",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "language": "Language",
+      "signOut": "Sign Out"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "unread": "{{count}} unread",
+      "unread_plural": "{{count}} unread",
+      "allClear": "Everything is up to date.",
+      "history": "History",
+      "preferences": "Preferences",
+      "markAllAsRead": "Mark all as read",
+      "emptyTitle": "All clear! 🎉",
+      "emptyDescription": "You have no notifications at the moment. When there's news, it will appear here.",
+      "markAsRead": "Mark as read",
+      "tipTitle": "Tip:",
+      "tipDescription": "Notifications are kept for 30 days. Older notifications are automatically removed.",
+      "preferencesDescription": "Configure which notifications you want to receive.",
+      "pushTip": "💡 To receive push notifications, make sure notifications are enabled in your device settings.",
+      "labels": {
+        "milestones": "Baby Milestones",
+        "milestonesDesc": "Reminders about development milestones",
+        "appointments": "Appointments and Vaccines",
+        "appointmentsDesc": "Alerts for scheduled medical appointments",
+        "guestbook": "Guestbook",
+        "guestbookDesc": "New messages in the guestbook",
+        "memories": "Memories",
+        "memoriesDesc": "When moments are approved or shared",
+        "updates": "App Updates",
+        "updatesDesc": "News and improvements from Baby Book"
+      }
+    },
+    "family": {
+      "title": "Family",
+      "description": "Manage who can see and contribute to the baby's album. Invite family and friends to share special moments.",
+      "inviteTitle": "Invite Member",
+      "invitePlaceholder": "email@example.com",
+      "inviteSend": "Send",
+      "pending": "Pending",
+      "removeMember": "Remove member",
+      "aboutPermissions": "About permissions:",
+      "roles": {
+        "owner": "Owner",
+        "ownerDesc": "has full control of the album",
+        "guardian": "Guardian",
+        "guardianDesc": "can add and edit moments",
+        "viewer": "Viewer",
+        "viewerDesc": "only views the content"
+      }
+    },
+    "subscription": {
+      "title": "Subscription",
+      "currentPlan": "Current Plan",
+      "pricePerMonth": "${{price}}/month",
+      "renewalOn": "Renewal on {{date}}",
+      "changePlan": "Change Plan",
+      "cancel": "Cancel",
+      "included": "Included in your plan",
+      "paymentMethod": "Payment Method",
+      "cardEnding": "Visa • Expires on {{expiry}}",
+      "updatePayment": "Update payment method",
+      "features": {
+        "storage": "Unlimited photo and video storage",
+        "family": "Up to 5 family members",
+        "backup": "Automatic cloud backup",
+        "capsule": "Scheduled time capsule",
+        "export": "High-resolution export",
+        "support": "Priority support"
+      }
+    },
+    "storage": {
+      "title": "Storage",
+      "usedSpace": "Used Space",
+      "usedOfTotal": "of {{total}}",
+      "unlimited": "Unlimited",
+      "statsByType": "Stats by Type",
+      "photos": "Photos",
+      "videos": "Videos",
+      "audios": "Audios",
+      "backupActive": "Backup Active",
+      "lastBackup": "Last backup: {{time}} ago",
+      "backupNow": "Back Up Now",
+      "tip": "💡 <strong>Tip:</strong> Your data is automatically synced with the cloud. All original files are kept in high resolution."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Configure who can see and interact with your baby's album. Your memories are always protected.",
+      "albumVisibility": "Album Visibility",
+      "albumVisibilityDesc": "Who can see the baby's album",
+      "guestbook": "Guestbook",
+      "guestbookDesc": "Who can leave messages",
+      "shareDefault": "Default Sharing",
+      "shareDefaultDesc": "Default privacy for new moments",
+      "options": {
+        "onlyMe": "Only me",
+        "guardians": "Invited guardians",
+        "anyoneLink": "Anyone with the link",
+        "disabled": "Disabled",
+        "withApproval": "With approval",
+        "openToGuests": "Open to guests",
+        "private": "Private",
+        "guardiansSimple": "Guardians"
+      },
+      "securityInfo": "All your photos and data are encrypted and stored securely. You have full control over who can access your baby's memories.",
+      "exportData": "Export Data",
+      "exportDataDesc": "Download all your data and media",
+      "deleteAccount": "Delete Account",
+      "deleteAccountDesc": "Permanently remove all data"
+    },
+    "help": {
+      "title": "Help Center",
+      "email": "Email",
+      "chat": "Chat",
+      "faq": "Frequently Asked Questions",
+      "footer": "Made with love to register life's most precious moments.",
+      "questions": {
+        "addChild": "How do I add a new child?",
+        "addChildAnswer": "In the side menu, click the 'Register child' button or go to 'Child Profile' > 'Add'. You can register multiple children and easily switch between them.",
+        "shareFamily": "How do I share moments with family?",
+        "shareFamilyAnswer": "In each moment, click the share icon. You can generate a unique link to share or invite guardians directly by email.",
+        "security": "Is my baby's data safe?",
+        "securityAnswer": "Yes! We use end-to-end encryption and secure cloud storage. Only you and the people you authorize can see the memories.",
+        "guestbook": "How does the Guestbook work?",
+        "guestbookAnswer": "The Guestbook allows family and friends to leave loving messages. You control if messages need approval before appearing.",
+        "export": "Can I export my photos?",
+        "exportAnswer": "Yes! In the Vault, you can download all your photos and documents at any time. Your data belongs to you."
+      }
+    },
+    "terms": {
+      "title": "Terms and Policies",
+      "termsOfUse": "Terms of Use",
+      "termsOfUseDesc": "Conditions for using Baby Book",
+      "updatedAt": "Updated on {{date}}",
+      "privacyPolicy": "Privacy Policy",
+      "privacyPolicyDesc": "How we handle your data",
+      "version": "Version",
+      "rightsReserved": "All rights reserved.",
+      "questions": "Questions about our terms?",
+      "contact": "Contact us"
+    },
+    "states": {
+      "loading": "Loading...",
+      "errorTitle": "Oops! Something went wrong",
+      "errorDescription": "An unexpected error occurred. Please try again or reload the page.",
+      "seeErrorDetails": "See error details",
+      "tryAgain": "Try again",
+      "reloadPage": "Reload page",
+      "updating": "Updating..."
+    }
   }
 }

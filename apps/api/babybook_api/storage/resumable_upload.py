@@ -22,6 +22,7 @@ from typing import Any
 
 from babybook_api.storage.base import StorageType, UploadPartInfo
 from babybook_api.storage.hybrid_service import HybridStorageService
+from babybook_api.uploads.file_validation import validate_magic_bytes
 
 
 class UploadStatus(str, Enum):
@@ -406,6 +407,21 @@ class ResumableUploadService:
                 upload_id=session.storage_upload_id,
                 parts=parts,
             )
+            
+            # Validação de magic bytes (opcional/best-effort para resumable)
+            # Como o arquivo agora está completo no storage, podemos ler o cabeçalho.
+            try:
+                header = await self.storage.get_object_range(session.storage_key, start=0, end=511)
+                validate_magic_bytes(
+                    declared_content_type=session.mime_type,
+                    header=header,
+                )
+            except Exception as ve:
+                # Se falhar a assinatura, abortamos e deletamos (segurança)
+                await self.storage.delete_object(session.storage_key)
+                session.status = UploadStatus.FAILED
+                session.metadata["error"] = f"Assinatura do arquivo invalida: {str(ve)}"
+                raise ValueError(f"Arquivo invalido ou corrompido: {str(ve)}")
             
             session.status = UploadStatus.COMPLETED
             session.completed_at = datetime.now(timezone.utc)

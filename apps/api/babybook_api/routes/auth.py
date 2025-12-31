@@ -22,6 +22,7 @@ from babybook_api.services.auth import (
     create_session,
     create_user,
     get_or_create_user_by_email,
+    revoke_all_user_sessions,
     revoke_session,
 )
 from babybook_api.settings import settings
@@ -213,6 +214,24 @@ async def logout(
     db: AsyncSession = Depends(get_db_session),
 ) -> Response:
     await revoke_session(db, session)
+    await db.commit()
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
+
+
+@router.post(
+    "/logout/all",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoga TODAS as sessões do usuário",
+)
+async def logout_all(
+    response: Response,
+    _: None = Depends(require_csrf_token),
+    session: SessionModel = Depends(get_current_session),
+    db: AsyncSession = Depends(get_db_session),
+) -> Response:
+    await revoke_all_user_sessions(db, session.user_id)
     await db.commit()
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
     response.status_code = status.HTTP_204_NO_CONTENT

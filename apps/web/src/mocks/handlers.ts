@@ -1302,6 +1302,131 @@ export const handlers = [
       { status: 201 },
     );
   }),
+
+  // ==========================================================================
+  // Settings Handlers (B2C)
+  // ==========================================================================
+
+  // Get family members
+  http.get(withBase("/me/settings/family"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    return HttpResponse.json({
+      members: [
+        {
+          id: activeUser.id,
+          name: activeUser.name ?? "Dev User",
+          email: activeUser.email,
+          role: "owner",
+          status: "active",
+        },
+        {
+          id: "member-2",
+          name: "João Silva",
+          email: "joao@example.com",
+          role: "guardian",
+          status: "active",
+        },
+        {
+          id: "member-3",
+          name: "Avó Rosa",
+          email: "rosa@example.com",
+          role: "viewer",
+          status: "pending",
+        },
+      ],
+      total: 3,
+    });
+  }),
+
+  // Invite family member
+  http.post(withBase("/me/settings/family/invite"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    const body = (await request.json()) as { email: string; role: string };
+    return HttpResponse.json(
+      {
+        id: `member-${nanoid(8)}`,
+        name: body.email.split("@")[0],
+        email: body.email,
+        role: body.role || "viewer",
+        status: "pending",
+      },
+      { status: 201 },
+    );
+  }),
+
+  // Remove family member
+  http.delete(withBase("/me/settings/family/:memberId"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    return HttpResponse.json({ success: true, message: "Membro removido com sucesso." });
+  }),
+
+  // Get subscription
+  http.get(withBase("/me/settings/subscription"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    return HttpResponse.json({
+      plan_name: "plano_familia",
+      plan_display_name: "Plano Família",
+      price_cents: 2990,
+      currency: "BRL",
+      renewal_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      features: [
+        "Armazenamento ilimitado de fotos e vídeos",
+        "Até 5 membros da família",
+        "Backup automático em nuvem",
+        "Cápsula do tempo programada",
+        "Exportação em alta resolução",
+        "Suporte prioritário",
+      ],
+      storage_bytes_used: 2411724800,
+      storage_bytes_limit: 0,
+      is_unlimited: true,
+    });
+  }),
+
+  // Get storage stats
+  http.get(withBase("/me/settings/storage"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    return HttpResponse.json({
+      bytes_used: 2411724800,
+      bytes_quota: 0,
+      is_unlimited: true,
+      photos_count: 156,
+      videos_count: 12,
+      audios_count: 8,
+      last_backup_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    });
+  }),
+
+  // Request data export
+  http.post(withBase("/me/settings/data/export"), () => {
+    if (!sessionActive) return sessionRequiredResponse();
+    return HttpResponse.json({
+      request_id: nanoid(),
+      status: "queued",
+      message: "Sua solicitação foi recebida. Você receberá um email quando estiver pronta.",
+    });
+  }),
+
+  // Request account deletion
+  http.post(withBase("/me/settings/data/delete"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    const body = (await request.json()) as { confirmation: string; password: string };
+    if (body.confirmation !== "EXCLUIR MINHA CONTA") {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "delete.confirmation_invalid",
+            message: "Confirmação inválida. Digite exatamente 'EXCLUIR MINHA CONTA'.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+    return HttpResponse.json({
+      success: true,
+      message: "Sua conta será excluída em 30 dias. Você pode cancelar a qualquer momento.",
+    });
+  }),
 ];
 
 type CreateHealthMeasurementInput = {

@@ -13,10 +13,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
 from babybook_api.db.models import Asset, Delivery, DeliveryAsset, Partner, Voucher
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.schemas.deliveries import (
     DeliveryAddAssets,
     DeliveryAssetResponse,
@@ -145,7 +147,9 @@ async def create_delivery(
     body: DeliveryCreate,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> DeliveryDetailResponse:
+    await enforce_rate_limit(bucket="deliveries:create:admin", limit="20/minute", identity=current_user.id)
     _require_admin(current_user)
 
     partner_uuid = uuid.UUID(partner_id)
@@ -286,7 +290,9 @@ async def update_delivery(
     body: DeliveryUpdate,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> DeliveryResponse:
+    await enforce_rate_limit(bucket="deliveries:update:admin", limit="60/minute", identity=current_user.id)
     _require_admin(current_user)
 
     delivery = await _get_delivery_or_404(db, uuid.UUID(delivery_id))
@@ -315,7 +321,9 @@ async def add_assets_to_delivery(
     body: DeliveryAddAssets,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> DeliveryDetailResponse:
+    await enforce_rate_limit(bucket="deliveries:assets:add:admin", limit="100/minute", identity=current_user.id)
     _require_admin(current_user)
 
     delivery = await _get_delivery_or_404(db, uuid.UUID(delivery_id))
@@ -379,7 +387,9 @@ async def delete_delivery(
     delivery_id: str,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> None:
+    await enforce_rate_limit(bucket="deliveries:delete:admin", limit="30/minute", identity=current_user.id)
     _require_admin(current_user)
 
     delivery = await _get_delivery_or_404(db, uuid.UUID(delivery_id))

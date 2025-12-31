@@ -10,10 +10,12 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
 from babybook_api.db.models import Account, Asset, Child, Delivery, Moment, Partner, PartnerLedger
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.schemas.me import (
     DeliveryImportRequest,
     DeliveryImportResponse,
@@ -124,7 +126,12 @@ async def patch_me(
     if_match: str | None = Header(default=None, alias="If-Match"),
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    request: Request = None,  # For rate limit
+    _: None = Depends(require_csrf_token),
 ) -> MeResponse:
+    from fastapi import Request
+    await enforce_rate_limit(bucket="me:patch:user", limit="10/minute", identity=current_user.id)
+    
     current_etag = _compute_etag(current_user)
     if if_match is None:
         raise AppError(
@@ -149,9 +156,11 @@ async def patch_me(
     if user is None:
         raise AppError(status_code=404, code="user.not_found", message="Usuario nao encontrado.")
     
+    from babybook_api.utils.security import sanitize_html
+    
     # Aplica alterações
     if payload.name:
-        user.name = payload.name
+        user.name = sanitize_html(payload.name)
     if payload.locale:
         user.locale = payload.locale
     
@@ -326,7 +335,9 @@ async def import_delivery(
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
     storage: PartnerStorageService = Depends(get_partner_storage),
+    _: None = Depends(require_csrf_token),
 ) -> DeliveryImportResponse:
+    await enforce_rate_limit(bucket="me:import:user", limit="5/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
     now = datetime.utcnow()
 

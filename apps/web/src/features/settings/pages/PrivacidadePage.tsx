@@ -4,9 +4,10 @@
  * Página para configurações de privacidade e compartilhamento.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Globe, Users, Lock, Eye } from "lucide-react";
+import { ChevronLeft, Globe, Users, Lock, Eye, Download, Trash2 } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 
 interface PrivacySetting {
   id: string;
@@ -18,48 +19,54 @@ interface PrivacySetting {
 }
 
 export const PrivacidadePage = () => {
-  const [settings, setSettings] = useState<PrivacySetting[]>([
+  const { t } = useTranslation();
+  
+  const [values, setValues] = useState<Record<string, string>>({
+    album_visibility: "guardians",
+    guestbook: "moderated",
+    share_default: "guardians",
+  });
+
+  const settings = useMemo<PrivacySetting[]>(() => [
     {
       id: "album_visibility",
-      title: "Visibilidade do Álbum",
-      description: "Quem pode ver o álbum do bebê",
+      title: t("b2c.privacy.albumVisibility"),
+      description: t("b2c.privacy.albumVisibilityDesc"),
       icon: Eye,
-      value: "guardians",
+      value: values.album_visibility,
       options: [
-        { value: "private", label: "Somente eu" },
-        { value: "guardians", label: "Guardiões convidados" },
-        { value: "link", label: "Qualquer um com o link" },
+        { value: "private", label: t("b2c.privacy.options.onlyMe") },
+        { value: "guardians", label: t("b2c.privacy.options.guardians") },
+        { value: "link", label: t("b2c.privacy.options.anyoneLink") },
       ],
     },
     {
       id: "guestbook",
-      title: "Livro de Visitas",
-      description: "Quem pode deixar mensagens",
+      title: t("b2c.privacy.guestbook"),
+      description: t("b2c.privacy.guestbookDesc"),
       icon: Users,
-      value: "moderated",
+      value: values.guestbook,
       options: [
-        { value: "closed", label: "Desativado" },
-        { value: "moderated", label: "Com aprovação" },
-        { value: "open", label: "Aberto para convidados" },
+        { value: "closed", label: t("b2c.privacy.options.disabled") },
+        { value: "moderated", label: t("b2c.privacy.options.withApproval") },
+        { value: "open", label: t("b2c.privacy.options.openToGuests") },
       ],
     },
     {
       id: "share_default",
-      title: "Compartilhamento Padrão",
-      description: "Privacidade padrão para novos momentos",
+      title: t("b2c.privacy.shareDefault"),
+      description: t("b2c.privacy.shareDefaultDesc"),
       icon: Globe,
-      value: "guardians",
+      value: values.share_default,
       options: [
-        { value: "private", label: "Privado" },
-        { value: "guardians", label: "Guardiões" },
+        { value: "private", label: t("b2c.privacy.options.private") },
+        { value: "guardians", label: t("b2c.privacy.options.guardiansSimple") },
       ],
     },
-  ]);
+  ], [t, values]);
 
   const updateSetting = (id: string, value: string) => {
-    setSettings((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, value } : s))
-    );
+    setValues((prev) => ({ ...prev, [id]: value }));
   };
 
   return (
@@ -77,7 +84,7 @@ export const PrivacidadePage = () => {
           className="text-2xl font-serif font-bold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Privacidade
+          {t("b2c.privacy.title")}
         </h1>
       </div>
 
@@ -86,8 +93,7 @@ export const PrivacidadePage = () => {
         className="mb-6 text-sm"
         style={{ color: "var(--bb-color-ink-muted)" }}
       >
-        Configure quem pode ver e interagir com o álbum do seu bebê. Suas
-        memórias estão sempre protegidas.
+        {t("b2c.privacy.description")}
       </p>
 
       {/* Settings List */}
@@ -173,10 +179,70 @@ export const PrivacidadePage = () => {
           style={{ color: "var(--bb-color-accent)" }}
         />
         <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
-          Todas as suas fotos e dados são criptografados e armazenados com
-          segurança. Você tem controle total sobre quem pode acessar as
-          memórias do seu bebê.
+          {t("b2c.privacy.securityInfo")}
         </p>
+      </div>
+
+      {/* Data Management */}
+      <div
+        className="mt-6 rounded-2xl overflow-hidden"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          border: "1px solid var(--bb-color-border)",
+        }}
+      >
+        <button
+          type="button"
+          className="w-full p-4 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
+          style={{ borderBottom: "1px solid var(--bb-color-border)" }}
+        >
+          <div
+            className="p-2.5 rounded-xl"
+            style={{
+              backgroundColor: "var(--bb-color-bg)",
+              color: "var(--bb-color-accent)",
+            }}
+          >
+            <Download className="w-5 h-5" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+              {t("b2c.privacy.exportData")}
+            </p>
+            <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+              {t("b2c.privacy.exportDataDesc")}
+            </p>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className="w-full p-4 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
+        >
+          <div
+            className="p-2.5 rounded-xl"
+            style={{
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              color: "var(--bb-color-danger, #ef4444)",
+            }}
+          >
+            <Trash2 className="w-5 h-5" />
+          </div>
+          <div className="flex-1 text-left">
+            <p
+              className="font-medium"
+              style={{ color: "var(--bb-color-danger, #ef4444)" }}
+            >
+              {t("b2c.privacy.deleteAccount")}
+            </p>
+            <p
+              className="text-sm"
+              style={{ color: "var(--bb-color-danger, #ef4444)", opacity: 0.8 }}
+            >
+              {t("b2c.privacy.deleteAccountDesc")}
+            </p>
+          </div>
+        </button>
       </div>
     </div>
   );

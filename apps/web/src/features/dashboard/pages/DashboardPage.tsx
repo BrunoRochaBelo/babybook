@@ -6,8 +6,10 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { B2CErrorState } from "@/layouts/b2cStates";
+import { useTranslation } from "@babybook/i18n";
 
 export const DashboardPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedChild } = useSelectedChild();
   const { data, isLoading, isError, error, refetch } = useDashboardData(selectedChild?.id);
@@ -19,8 +21,8 @@ export const DashboardPage = () => {
   if (isError) {
     return (
       <B2CErrorState
-        title="Não foi possível carregar a jornada"
-        description="Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
+        title={t("b2c.dashboard.errorTitle")}
+        description={t("b2c.dashboard.errorDescription")}
         errorDetails={error?.message}
         onRetry={() => refetch()}
         skeleton={<DashboardSkeleton />}
@@ -43,7 +45,7 @@ export const DashboardPage = () => {
         className="mb-6 text-center text-3xl font-serif font-bold"
         style={{ color: "var(--bb-color-ink)" }}
       >
-        Jornada
+        {t("b2c.dashboard.title")}
       </h1>
 
       <MomentsTimeline

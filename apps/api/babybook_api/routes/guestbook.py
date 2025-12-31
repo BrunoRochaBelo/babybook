@@ -6,15 +6,18 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from babybook_api.auth.session import UserSession, get_current_user
+from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
 from babybook_api.db.models import Child, GuestbookEntry
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
+from babybook_api.rate_limit import enforce_rate_limit
+from babybook_api.request_ip import get_client_ip
 from babybook_api.schemas.guestbook import (
     GuestbookCreate,
     GuestbookEntryResponse,
     PaginatedGuestbook,
 )
+from babybook_api.utils.security import sanitize_html
 
 router = APIRouter()
 
@@ -75,15 +78,17 @@ async def create_guestbook_entry(
     payload: GuestbookCreate,
     current_user: UserSession = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_csrf_token),
 ) -> GuestbookEntryResponse:
+    await enforce_rate_limit(bucket="guestbook:create:user", limit="10/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
     await _ensure_child(db, account_id, payload.child_id)
     entry = GuestbookEntry(
         account_id=account_id,
         child_id=payload.child_id,
-        author_name=payload.author_name,
+        author_name=sanitize_html(payload.author_name) or "Anonimo",
         author_email=payload.author_email,
-        message=payload.message,
+        message=sanitize_html(payload.message) or "Sem mensagem",
         status="approved",
     )
     db.add(entry)
