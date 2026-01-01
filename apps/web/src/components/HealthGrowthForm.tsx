@@ -74,16 +74,29 @@ export const HealthGrowthForm = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="sm:max-w-md">
+      <DrawerContent
+        className="sm:max-w-md"
+        style={{ backgroundColor: "var(--bb-color-surface)" }}
+      >
         <form onSubmit={handleSubmit} className="flex h-full flex-col">
-          <DrawerHeader>
-            <DrawerTitle>Nova Medição</DrawerTitle>
-            <DrawerDescription>
+          <DrawerHeader
+            style={{
+              borderBottom: "1px solid var(--bb-color-border)",
+              backgroundColor: "var(--bb-color-surface)",
+            }}
+          >
+            <DrawerTitle style={{ color: "var(--bb-color-ink)" }}>
+              Nova Medição
+            </DrawerTitle>
+            <DrawerDescription style={{ color: "var(--bb-color-ink-muted)" }}>
               Registre o crescimento para acompanhar a curva.
             </DrawerDescription>
           </DrawerHeader>
 
-          <DrawerBody className="space-y-6">
+          <DrawerBody
+            className="space-y-6"
+            style={{ backgroundColor: "var(--bb-color-surface)" }}
+          >
             {/* Campo Data */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-ink flex items-center gap-2">
@@ -174,7 +187,12 @@ export const HealthGrowthForm = ({
             </div>
           </DrawerBody>
 
-          <DrawerFooter>
+          <DrawerFooter
+            style={{
+              borderTop: "1px solid var(--bb-color-border)",
+              backgroundColor: "var(--bb-color-bg)",
+            }}
+          >
             <button
               type="submit"
               disabled={isPending}
