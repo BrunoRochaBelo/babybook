@@ -22,10 +22,9 @@ import { ProfilePage } from "@/features/profile/pages/ProfilePage";
 import { SaudePage } from "@/pages/SaudePage";
 import { VisitasPage } from "@/pages/VisitasPage";
 import { PerfilCriancaPage } from "@/pages/PerfilCriancaPage";
-import { MomentDraftPage } from "@/pages/MomentDraftPage";
+import { MomentDraftPage } from "@/features/moments/pages/MomentDraftPage";
 import { MomentAvulsoPage } from "@/pages/MomentAvulsoPage";
 import { ChapterMomentsPage } from "@/features/moments/pages/ChapterMomentsPage";
-import { ChaptersPage } from "@/features/moments/pages/ChaptersPage";
 // Partner Portal
 import {
   PartnerDashboard,
@@ -96,7 +95,6 @@ export function AppRouter() {
             path="/jornada/capitulos/:chapterId"
             element={<ChapterMomentsPage />}
           />
-          <Route path="/jornada/capitulos" element={<ChaptersPage />} />
           <Route path="/saude" element={<SaudePage />} />
           <Route path="/visitas" element={<VisitasPage />} />
           <Route
@@ -113,7 +111,10 @@ export function AppRouter() {
           <Route path="/jornada/privacidade" element={<PrivacidadePage />} />
           <Route path="/jornada/familia" element={<FamiliaPage />} />
           <Route path="/jornada/assinatura" element={<AssinaturaPage />} />
-          <Route path="/jornada/armazenamento" element={<ArmazenamentoPage />} />
+          <Route
+            path="/jornada/armazenamento"
+            element={<ArmazenamentoPage />}
+          />
           <Route path="/jornada/ajuda" element={<AjudaPage />} />
           <Route path="/jornada/termos" element={<TermosPage />} />
         </Route>

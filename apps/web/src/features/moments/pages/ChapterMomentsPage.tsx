@@ -7,7 +7,8 @@ import type { Moment } from "@babybook/contracts";
 
 const getStatusLabel = (moments: Moment[], templateKey: string) => {
   const published = moments.find(
-    (moment) => moment.templateKey === templateKey && moment.status === "published",
+    (moment) =>
+      moment.templateKey === templateKey && moment.status === "published",
   );
   if (published) {
     return {
@@ -41,6 +42,12 @@ export const ChapterMomentsPage = () => {
   const { selectedChild } = useSelectedChild();
   const { data: moments = [], isLoading } = useMoments(selectedChild?.id);
 
+  const getTypeLabel = (type: "unique" | "recurring" | "series") => {
+    if (type === "recurring") return "Recorrente";
+    if (type === "series") return "Série";
+    return "Único";
+  };
+
   const chapter = useMemo(
     () => MOMENT_CATALOG.find((item) => item.id === chapterId),
     [chapterId],
@@ -53,7 +60,8 @@ export const ChapterMomentsPage = () => {
           className="text-lg font-semibold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Capítulo não encontrado. Volte para a Jornada e selecione um capítulo válido.
+          Capítulo não encontrado. Volte para a Jornada e selecione um capítulo
+          válido.
         </p>
         <button
           className="mt-6 rounded-2xl border px-4 py-2 text-sm font-medium transition"
@@ -74,7 +82,9 @@ export const ChapterMomentsPage = () => {
       .filter((moment) => moment.templateKey === templateKey)
       .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
 
-    const published = filledMoment.find((moment) => moment.status === "published");
+    const published = filledMoment.find(
+      (moment) => moment.status === "published",
+    );
 
     if (published) {
       navigate(`/jornada/moment/${published.id}`);
@@ -94,11 +104,11 @@ export const ChapterMomentsPage = () => {
     <div className="mx-auto max-w-4xl px-6 py-8">
       <div className="flex flex-wrap items-center gap-3">
         <button
-          onClick={() => navigate("/jornada/capitulos")}
+          onClick={() => navigate("/jornada")}
           className="text-sm font-semibold transition"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          ← Voltar para catálogo
+          ← Voltar para Jornada
         </button>
       </div>
 
@@ -131,9 +141,9 @@ export const ChapterMomentsPage = () => {
           className="mt-3 text-sm"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
-          Esta visão mostra todos os placeholders deste capítulo para que você saiba
-          exatamente o que pode preencher. Clique em um momento para iniciar ou
-          continuar o registro.
+          Esta visão mostra todos os placeholders deste capítulo para que você
+          saiba exatamente o que pode preencher. Clique em um momento para
+          iniciar ou continuar o registro.
         </p>
       </div>
       <div className="mt-8 space-y-4">
@@ -142,7 +152,9 @@ export const ChapterMomentsPage = () => {
           const relatedMoments = moments.filter(
             (moment) => moment.templateKey === momentTemplate.templateKey,
           );
-          const count = relatedMoments.filter((moment) => moment.status === "published").length;
+          const count = relatedMoments.filter(
+            (moment) => moment.status === "published",
+          ).length;
 
           return (
             <button
@@ -164,7 +176,7 @@ export const ChapterMomentsPage = () => {
                     className="text-xs uppercase tracking-[0.3em]"
                     style={{ color: "var(--bb-color-ink-muted)" }}
                   >
-                    {momentTemplate.type === "recurring" ? "Recorrente" : "Único"}
+                    {getTypeLabel(momentTemplate.type)}
                   </p>
                   <h3
                     className="font-serif text-xl"

@@ -129,7 +129,7 @@ A estrutura de rotas é pensada para separar claramente as "memórias" (core loo
 - `/momentos` e `/momentos/:id`: Inventário completo e detalhe de momentos publicados (lista com `MomentCard` e página de leitura).
 - `/jornada/moment/draft/:template_id`: Fluxo de rascunho guiado (usa `MomentForm` pré-preenchido com copy do template).
 - `/jornada/moment/avulso`: Fluxo livre disparado pelo FAB.
-- `/jornada/capitulos` e `/jornada/capitulos/:chapterId`: Catálogo fixo e visão detalhada de capítulos (placeholders interativos).
+- `/jornada/capitulos/:chapterId`: Visão detalhada de um capítulo (placeholders interativos). A lista de capítulos vive dentro de `/jornada` (modo "Capítulos").
 - `/jornada/perfil-crianca`: Hub de contexto da criança (perfil, cápsula, compartilhamento).
 - `/capsula`: Tela da cápsula do tempo (não recebe mais o `:id`; depende do `ChildSwitcher`/estado global).
 - `/saude`: Livro da Saúde com tabs internas para Crescimento, Pediatra e Vacinas (rota única, o tab é controlado por estado).
@@ -164,7 +164,7 @@ Complementos:
 - **Aba Jornada (Memorial guiado)**: combina HUD + seletor de modo.
   - `MomentsTimeline` alterna entre _Timeline_ (feed com `MomentCard`, placeholders clicáveis e estados vazios animados) e _Capítulos_ (list/grid com progresso por capítulo e call-to-action para `/jornada/capitulos/:chapterId`).
   - HUD varia conforme estado: ausência de criança selecionada, ausência de aniversário, jornada completa ou sugerindo o próximo template (`NextMomentSuggestion`).
-  - FAB cria momentos avulsos e há atalhos visíveis para `/momentos`, `/jornada/moment/draft/*`, `/jornada/moment/avulso` e `/jornada/capitulos`.
+  - FAB cria momentos avulsos e há atalhos visíveis para `/momentos`, `/jornada/moment/draft/*` e `/jornada/moment/avulso`.
   - O `ChapterMomentsPage` garante rastreabilidade do catálogo oficial (`apps/web/src/data/momentCatalog.ts`) e respeita estados draft/published.
 
 - **Aba Saúde (Painel privado)**:

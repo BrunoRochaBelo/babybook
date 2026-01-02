@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
+import { useAuthStore } from "@/store/auth";
+import { useMyVouchers } from "@/features/vouchers";
 import { useMomentTemplate } from "../hooks/useMomentTemplate";
 import { MomentForm } from "../components/MomentForm";
 import { ChevronLeft } from "lucide-react";
@@ -8,7 +10,18 @@ export const MomentDraftPage = () => {
   const navigate = useNavigate();
   const { template_id } = useParams<{ template_id: string }>();
   const { selectedChild } = useSelectedChild();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { data: template, isLoading } = useMomentTemplate(template_id || "");
+  const vouchersQuery = useMyVouchers({ enabled: isAuthenticated });
+
+  const hasRedeemedVoucher = (vouchersQuery.data ?? []).some((v) =>
+    Boolean(v.voucher?.redeemed_at),
+  );
+
+  const audience =
+    template?.mediaB2B && hasRedeemedVoucher
+      ? ("b2b" as const)
+      : ("b2c" as const);
 
   if (!selectedChild) {
     return (
@@ -38,10 +51,10 @@ export const MomentDraftPage = () => {
       <div className="mx-auto max-w-2xl py-10 text-center">
         <h1 className="text-2xl font-serif text-ink">Estamos quase lá!</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Ainda não temos o formulário configurado para este momento
-          ({template_id}). Compartilhe este identificador com o time de produto para
-          que possamos liberar os campos específicos e, enquanto isso, continue
-          registrando com o formulário genérico de momentos avulsos.
+          Ainda não temos o formulário configurado para este momento (
+          {template_id}). Compartilhe este identificador com o time de produto
+          para que possamos liberar os campos específicos e, enquanto isso,
+          continue registrando com o formulário genérico de momentos avulsos.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
@@ -81,7 +94,11 @@ export const MomentDraftPage = () => {
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6">
-        <MomentForm childId={selectedChild.id} template={template} />
+        <MomentForm
+          childId={selectedChild.id}
+          template={template}
+          audience={audience}
+        />
       </div>
     </div>
   );

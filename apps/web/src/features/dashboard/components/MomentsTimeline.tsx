@@ -158,13 +158,13 @@ export const MomentsTimeline = ({
         {moments
           .slice() // Create a copy before sorting
           .sort((a, b) => {
-             const dateA = new Date(a.occurredAt || a.createdAt).getTime();
-             const dateB = new Date(b.occurredAt || b.createdAt).getTime();
-             return dateB - dateA;
+            const dateA = new Date(a.occurredAt || a.createdAt).getTime();
+            const dateB = new Date(b.occurredAt || b.createdAt).getTime();
+            return dateB - dateA;
           })
           .map((moment) => (
-          <EnhancedMomentCard key={moment.id} moment={moment} />
-        ))}
+            <EnhancedMomentCard key={moment.id} moment={moment} />
+          ))}
       </div>
     );
   };
@@ -194,12 +194,18 @@ export const MomentsTimeline = ({
               >
                 {chapter.subtitle}
               </h4>
-              <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+              <p
+                className="text-sm"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
                 {chapter.range}
               </p>
               <div
                 className="mt-4 h-1.5 rounded-full"
-                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.4 }}
+                style={{
+                  backgroundColor: "var(--bb-color-muted)",
+                  opacity: 0.4,
+                }}
               >
                 <div
                   className="h-full rounded-full"
@@ -253,14 +259,22 @@ export const MomentsTimeline = ({
                   >
                     {chapter.subtitle}
                   </h4>
-                  <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
+                  >
                     {chapter.range}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-serif text-3xl" style={{ color: "var(--bb-color-ink)" }}>
+                  <p
+                    className="font-serif text-3xl"
+                    style={{ color: "var(--bb-color-ink)" }}
+                  >
                     {chapter.completed}
-                    <span style={{ color: "var(--bb-color-ink-muted)" }}>/{chapter.total}</span>
+                    <span style={{ color: "var(--bb-color-ink-muted)" }}>
+                      /{chapter.total}
+                    </span>
                   </p>
                   <p
                     className="text-xs uppercase tracking-[0.3em]"
@@ -273,7 +287,10 @@ export const MomentsTimeline = ({
 
               <div
                 className="mt-4 h-1.5 rounded-full"
-                style={{ backgroundColor: "var(--bb-color-muted)", opacity: 0.4 }}
+                style={{
+                  backgroundColor: "var(--bb-color-muted)",
+                  opacity: 0.4,
+                }}
               >
                 <div
                   className="h-full rounded-full"
@@ -356,7 +373,9 @@ export const MomentsTimeline = ({
                             >
                               {template.type === "recurring"
                                 ? "Recorrente"
-                                : "Único"}
+                                : template.type === "series"
+                                  ? "Série"
+                                  : "Único"}
                             </p>
                             <p
                               className="font-semibold"

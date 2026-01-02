@@ -281,7 +281,7 @@ Objetivo: substituir simulação/"confirm" manual por um fluxo real e auditável
 
 ### Timeline / Capítulos
 
-- Rotas: `/jornada`, `/jornada/capitulos`.
+- Rotas: `/jornada` (inclui o modo "Capítulos" embutido) e `/jornada/capitulos/:chapterId` (detalhe do capítulo).
 - Funções: listar momentos por ordem temporal ou por capítulo, filtros/segmentação, placeholders de vazio.
 - Critérios: suporta estados draft/processing/ready/published, respeita privacy, paginação por cursor.
 
