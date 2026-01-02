@@ -91,14 +91,14 @@ export const VisitasPage = () => {
       </h1>
 
       <div
-        className="mb-6 rounded-2xl border p-2 shadow-sm"
+        className="mb-6 rounded-2xl border p-1.5 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
         }}
       >
         <LayoutGroup id="guestbook-tabs">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {[
               { id: "approved", icon: CheckCircle, label: "Aprovadas" },
               { id: "pending", icon: Users, label: "Pendentes" },
@@ -110,7 +110,7 @@ export const VisitasPage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as "approved" | "pending")}
-                  className="relative flex-1 min-w-[120px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300"
+                  className="relative flex-1 min-w-[140px] overflow-hidden rounded-2xl px-4 py-1.5 text-sm font-semibold transition-colors duration-300"
                   style={{
                     color: isActive
                       ? "var(--bb-color-surface)"
@@ -123,7 +123,7 @@ export const VisitasPage = () => {
                       className="absolute inset-0 rounded-2xl"
                       style={{
                         backgroundColor: "var(--bb-color-accent)",
-                        boxShadow: "0 10px 24px rgba(242,153,93,0.28)",
+                        boxShadow: "0 8px 20px rgba(242,153,93,0.2)",
                       }}
                       transition={{
                         type: "spring",
@@ -171,11 +171,7 @@ export const VisitasPage = () => {
             <>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition"
-                style={{
-                  borderColor: "var(--bb-color-border)",
-                  color: "var(--bb-color-ink)",
-                }}
+                className="inline-flex items-center gap-2 rounded-2xl border border-orange-100 bg-white dark:bg-stone-800/50 px-4 py-2 text-sm font-semibold text-[var(--bb-color-ink)] transition hover:bg-orange-50 dark:hover:bg-stone-700"
               >
                 Ampliar para 50
               </button>
@@ -183,28 +179,31 @@ export const VisitasPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowForm((state) => !state)}
-                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-2 font-semibold transition hover:opacity-90"
-                  style={{
-                    backgroundColor: "var(--bb-color-accent)",
-                    color: "var(--bb-color-surface)",
-                  }}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] px-6 py-2 font-bold shadow-sm transition hover:opacity-90 active:scale-95"
                 >
                   <Users className="h-4 w-4" />
                   {showForm ? "Fechar formulário" : "Deixar mensagem"}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setShowInviteModal(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border px-6 py-2 text-sm font-semibold transition"
-                style={{
-                  borderColor: "var(--bb-color-border)",
-                  color: "var(--bb-color-ink)",
-                }}
-              >
-                <MessageCircle className="h-4 w-4" />
-                Convidar
-              </button>
+              {activeTab === "pending" ? (
+                <button
+                  type="button"
+                  onClick={() => setShowInviteModal(true)}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] px-6 py-2 font-bold shadow-sm transition hover:opacity-90 active:scale-95"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Convidar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowInviteModal(true)}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-orange-100 bg-white dark:bg-stone-800/50 px-6 py-2 text-sm font-semibold text-[var(--bb-color-ink)] transition hover:bg-orange-50 dark:hover:bg-stone-700"
+                >
+                  <MessageCircle className="h-4 w-4 text-orange-400" />
+                  Convidar
+                </button>
+              )}
             </>
           }
         />

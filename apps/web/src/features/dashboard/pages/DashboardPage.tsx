@@ -57,18 +57,7 @@ export const DashboardPage = () => {
         completedCount={completedMoments}
       />
 
-      {selectedChild && data?.moments && data.moments.length > 0 && (
-        <button
-          onClick={handleCreateAvulso}
-          className="fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all active:scale-95"
-          style={{
-            backgroundColor: "var(--bb-color-accent)",
-            color: "var(--bb-color-surface)",
-          }}
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
+
     </div>
   );
 };

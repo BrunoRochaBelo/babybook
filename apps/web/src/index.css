@@ -52,6 +52,7 @@
   /* B2C Design Tokens - disponíveis globalmente mas aplicados apenas em .app-b2c */
   --bb-color-bg: #f7f3ef;
   --bb-color-surface: #ffffff;
+  --bb-color-nav-bg: #ffffff;
   --bb-color-surface-elevated: #ffffff;
   --bb-color-ink: #2a2a2a;
   --bb-color-ink-muted: rgba(42, 42, 42, 0.65);
@@ -103,6 +104,7 @@
 .dark {
   --bb-color-bg: #1a1512;
   --bb-color-surface: #252019;
+  --bb-color-nav-bg: #161210;
   --bb-color-surface-elevated: #2d261e;
   --bb-color-ink: #f8f4ef;
   --bb-color-ink-muted: rgba(248, 244, 239, 0.6);

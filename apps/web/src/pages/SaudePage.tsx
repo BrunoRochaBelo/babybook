@@ -204,14 +204,14 @@ export const SaudePage = () => {
       </h1>
 
       <div
-        className="mb-6 rounded-2xl border p-2 shadow-sm"
+        className="mb-6 rounded-2xl border p-1.5 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
         }}
       >
         <LayoutGroup id="health-tabs">
-          <div className="flex w-full items-center justify-center gap-1 overflow-x-auto p-1 sm:gap-2 no-scrollbar">
+          <div className="flex flex-wrap gap-1.5">
             {HEALTH_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -220,7 +220,7 @@ export const SaudePage = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex-1 min-w-0 snap-start overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
+                  className="relative flex-1 min-w-[140px] overflow-hidden rounded-2xl px-4 py-1.5 text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
                   style={{
                     color: isActive
                       ? "var(--bb-color-surface)"
@@ -233,7 +233,7 @@ export const SaudePage = () => {
                       className="absolute inset-0 rounded-2xl"
                       style={{
                         backgroundColor: "var(--bb-color-accent)",
-                        boxShadow: "0 12px 24px rgba(242,153,93,0.28)",
+                        boxShadow: "0 8px 20px rgba(242,153,93,0.2)",
                       }}
                       transition={{
                         type: "spring",

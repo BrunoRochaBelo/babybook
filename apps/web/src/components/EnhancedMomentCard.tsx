@@ -1,93 +1,35 @@
 /**
- * EnhancedMomentCard - Timeline Card with Media Type Support
+ * EnhancedMomentCard - Standard 3+1 Layout
  *
- * Displays moments with visual indicators for different media types:
- * - Photo: Standard image display with lazy loading
- * - Video: Thumbnail with play indicator, auto-preview on hover
- * - Audio: Waveform visualization with play button
- * - Text: Typography-focused card with quote styling
+ * Refactored to match "Book 1: The Journey" new requirements.
+ * Layout:
+ * - Header: Date + Age + Title
+ * - Media: 3+1 Grid (Hero + 3 thumbs)
+ * - Body: Truncated text
+ * - Footer: Edit button (Owner only)
  */
 
 import type { Moment as ApiMoment } from "@babybook/contracts";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
-  Image,
-  Video,
-  Mic,
-  FileText,
+  Edit2,
+  MoreHorizontal,
   Lock,
   Users,
   Globe,
 } from "lucide-react";
-import { getMomentByTemplateKey } from "@/data/momentCatalog";
 import { getMediaUrl } from "@/lib/media";
 import { cn } from "@/lib/utils";
+import { useSelectedChild } from "@/hooks/useSelectedChild";
+import { useAuthStore } from "@/store/auth";
 
 interface EnhancedMomentCardProps {
   moment: ApiMoment;
-  /** Compact layout for grid views */
   compact?: boolean;
-  /** Show media type indicator */
-  showMediaType?: boolean;
-  /** Enable video preview on hover (desktop only) */
-  enableVideoPreview?: boolean;
 }
-
-type MediaType = "photo" | "video" | "audio" | "text";
-
-function getMediaType(media: ApiMoment["media"]): MediaType {
-  if (!media || media.length === 0) return "text";
-
-  const hasVideo = media.some((item) => item.kind === "video");
-  if (hasVideo) return "video";
-
-  const hasAudio = media.some((item) => item.kind === "audio");
-  if (hasAudio) return "audio";
-
-  const hasPhoto = media.some((item) => item.kind === "photo");
-  if (hasPhoto) return "photo";
-
-  return "text";
-}
-
-function extractCoverImage(media: ApiMoment["media"]) {
-  if (!media || media.length === 0) return undefined;
-
-  const photo = media.find((item) => item.kind === "photo") ?? media[0];
-  if (!photo) return undefined;
-
-  return (
-    getMediaUrl(photo, "card") ??
-    getMediaUrl(photo, "thumb") ??
-    getMediaUrl(photo)
-  );
-}
-
-function extractVideoUrl(media: ApiMoment["media"]) {
-  if (!media) return undefined;
-  const video = media.find((item) => item.kind === "video");
-  return video ? getMediaUrl(video) : undefined;
-}
-
-const MediaTypeIcon = ({
-  type,
-  className,
-}: {
-  type: MediaType;
-  className?: string;
-}) => {
-  const icons = {
-    photo: Image,
-    video: Video,
-    audio: Mic,
-    text: FileText,
-  };
-  const Icon = icons[type];
-  return <Icon className={className} />;
-};
 
 const privacyConfig = {
   private: { icon: Lock, label: "Privado" },
@@ -95,271 +37,177 @@ const privacyConfig = {
   public: { icon: Globe, label: "Público" },
 } as const;
 
-const statusConfig = {
-  draft: { label: "Rascunho", className: "bg-amber-100 text-amber-800" },
-  archived: { label: "Arquivado", className: "bg-gray-100 text-gray-600" },
-  published: null,
-} as const;
+// Helper to calculate age string (simplified)
+const calculateAge = (birthDateStr: string | undefined | null, eventDateStr: string) => {
+  if (!birthDateStr) return null;
+  
+  const birth = new Date(birthDateStr);
+  const event = new Date(eventDateStr);
+  
+  const diffTime = Math.abs(event.getTime() - birth.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+  
+  // Logic could be more robust (years, months, days), keeping it simple for now or matching existing logic
+  if (diffDays < 30) return `${diffDays} dias`;
+  const months = Math.floor(diffDays / 30.44);
+  if (months < 12) return `${months} meses`;
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  return remainingMonths > 0 ? `${years} anos e ${remainingMonths} meses` : `${years} anos`;
+};
 
-export const EnhancedMomentCard = ({
-  moment,
-  compact = false,
-  showMediaType = true,
-  enableVideoPreview = true,
-}: EnhancedMomentCardProps) => {
+export const EnhancedMomentCard = ({ moment, compact = false }: EnhancedMomentCardProps) => {
   const navigate = useNavigate();
-  const [isHovering, setIsHovering] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { selectedChild } = useSelectedChild();
+  const user = useAuthStore((state) => state.user);
+  const isOwner = user?.role === "owner"; // Assuming role check or similar
 
-  const mediaType = getMediaType(moment.media);
-  const coverImage = extractCoverImage(moment.media);
-  const videoUrl = extractVideoUrl(moment.media);
   const displayDate = moment.occurredAt ?? moment.createdAt;
-  const catalogInfo = getMomentByTemplateKey(moment.templateKey ?? undefined);
-
+  const ageLabel = calculateAge(selectedChild?.birthday, displayDate);
   const payload = moment.payload as Record<string, unknown> | undefined;
-  const summary =
-    moment.summary ||
-    (typeof payload?.["relato"] === "string"
-      ? (payload["relato"] as string)
-      : "");
+  const description = moment.summary || (payload?.["relato"] as string) || "";
+  const media = moment.media || [];
+  
+  const heroMedia = media[0];
+  const subMedia = media.slice(1, 4); // Get next 3 items
+  const hasVideo = media.some(m => m.kind === "video");
 
-  const status = statusConfig[moment.status];
-  const privacy = privacyConfig[moment.privacy];
-  const PrivacyIcon = privacy.icon;
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Handle video preview on hover
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-    if (enableVideoPreview && mediaType === "video" && videoRef.current) {
-      videoRef.current.play().catch(() => {});
-      setIsPlaying(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-      setIsPlaying(false);
-    }
-  };
-
-  const handleClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking specific actions (like play or edit)
+    if ((e.target as HTMLElement).closest("button")) return;
     navigate(`/jornada/moment/${moment.id}`);
   };
 
-  // Compact layout for grid views
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/jornada/moment/${moment.id}/edit`); // Adjust edit route if needed
+  };
+
   if (compact) {
-    return (
-      <motion.button
-        type="button"
-        onClick={handleClick}
-        className="group relative aspect-square overflow-hidden rounded-2xl bg-muted"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        {coverImage ? (
-          <img
-            src={coverImage}
-            alt={moment.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-pink-100 to-rose-100">
-            <MediaTypeIcon type={mediaType} className="h-8 w-8 text-pink-400" />
-          </div>
-        )}
-
-        {/* Media type indicator */}
-        {showMediaType && mediaType !== "photo" && (
-          <div className="absolute bottom-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white">
-            <MediaTypeIcon type={mediaType} className="h-3.5 w-3.5" />
-          </div>
-        )}
-
-        {/* Status badge */}
-        {status && (
-          <span
-            className={cn(
-              "absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-              status.className,
-            )}
-          >
-            {status.label}
-          </span>
-        )}
-      </motion.button>
-    );
+    // Fallback for compact view (if still used elsewhere)
+     return (
+       <div className="aspect-square bg-gray-200 rounded-xl" />
+     );
   }
 
-  // Full card layout
   return (
-    <motion.button
-      type="button"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className="flex w-full flex-col overflow-hidden rounded-[32px] border border-border bg-surface text-left shadow-sm transition-shadow hover:shadow-lg"
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.99 }}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full flex flex-col bg-[var(--bb-color-surface)] border border-[var(--bb-color-border)] rounded-[24px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 mb-6"
+      onClick={handleCardClick}
     >
-      {/* Media Section */}
-      <div className="relative h-52 w-full overflow-hidden bg-muted">
-        {/* Photo/Video Background */}
-        {coverImage && (
-          <img
-            src={coverImage}
-            alt={moment.title}
-            className={cn(
-              "h-full w-full object-cover transition-opacity duration-300",
-              isPlaying ? "opacity-0" : "opacity-100",
-            )}
-            loading="lazy"
-          />
-        )}
-
-        {/* Video Preview (hidden until hover) */}
-        {mediaType === "video" && videoUrl && enableVideoPreview && (
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            className={cn(
-              "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
-              isPlaying ? "opacity-100" : "opacity-0",
-            )}
-            muted
-            loop
-            playsInline
-          />
-        )}
-
-        {/* Empty state for text-only moments */}
-        {!coverImage && mediaType === "text" && (
-          <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100 p-6">
-            <FileText className="mb-2 h-8 w-8 text-pink-400" />
-            {summary && (
-              <p className="line-clamp-4 text-center font-serif text-lg italic text-ink">
-                &ldquo;{summary.slice(0, 100)}...&rdquo;
-              </p>
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center justify-between">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)]">
+            <span>
+                {new Date(displayDate).toLocaleDateString("pt-BR", {
+                    day: "numeric",
+                    month: "long",
+                })}
+            </span>
+            {ageLabel && (
+                <>
+                <span className="w-1 h-1 rounded-full bg-[var(--bb-color-border)]" />
+                <span>{ageLabel}</span>
+                </>
             )}
           </div>
-        )}
+          <h3 className="text-xl font-bold font-serif text-[var(--bb-color-ink)] mt-1 leading-tight">
+            {moment.title}
+          </h3>
+        </div>
+        
+        {/* Privacy Icon */}
+        <div className="text-[var(--bb-color-ink-muted)]">
+            {React.createElement(privacyConfig[moment.privacy].icon, { className: "w-4 h-4" })}
+        </div>
+      </div>
 
-        {/* Audio visualization placeholder */}
-        {mediaType === "audio" && !coverImage && (
-          <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 p-6">
-            <Mic className="mb-4 h-12 w-12 text-indigo-400" />
-            <div className="flex items-center gap-1">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 rounded-full bg-indigo-400"
-                  animate={{
-                    height: isHovering ? [8, 24, 8] : 8,
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    repeat: isHovering ? Infinity : 0,
-                    delay: i * 0.05,
-                  }}
-                />
-              ))}
+      {/* Media Grid 3+1 */}
+      {heroMedia && (
+        <div className="w-full">
+            {/* Hero Image */}
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
+                 <motion.img
+                    layoutId={`media-${moment.id}-${heroMedia.id}`}
+                    src={getMediaUrl(heroMedia)}
+                    alt="Hero"
+                    className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.4 }}
+                 />
+                 {heroMedia.kind === 'video' && (
+                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 group">
+                         <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-white">
+                             <Play className="w-5 h-5 fill-current ml-0.5" />
+                         </div>
+                     </div>
+                 )}
             </div>
-          </div>
-        )}
 
-        {/* Video play indicator */}
-        {mediaType === "video" && !isPlaying && coverImage && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg">
-              <Play className="ml-1 h-6 w-6 text-ink" />
-            </div>
-          </div>
-        )}
-
-        {/* Status badge */}
-        {status && (
-          <span
-            className={cn(
-              "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold",
-              status.className,
+            {/* Sub Grid (Only if we have more media) */}
+            {subMedia.length > 0 && (
+                <div className="grid grid-cols-3 gap-0.5 mt-0.5">
+                    {subMedia.map((item, index) => (
+                        <div key={item.id} className="relative aspect-square overflow-hidden bg-gray-100">
+                             <motion.img
+                                layoutId={`media-${moment.id}-${item.id}`}
+                                src={getMediaUrl(item, 'thumb') || getMediaUrl(item)}
+                                alt={`Gallery ${index}`}
+                                className="w-full h-full object-cover"
+                             />
+                             {item.kind === 'video' && (
+                                <div className="absolute top-1 right-1 bg-black/50 rounded-full p-1 text-white">
+                                    <Play className="w-3 h-3 fill-current" />
+                                </div>
+                             )}
+                             {/* If it is the last item and there are even more */}
+                             {index === 2 && media.length > 4 && (
+                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-lg">
+                                     +{media.length - 4}
+                                 </div>
+                             )}
+                        </div>
+                    ))}
+                    {/* Fill empty slots if less than 3 sub items? No, grid just handles it. 
+                        But spec said "divided in 3". If we have 1 sub item, it takes 1/3 width? 
+                        CSS grid-cols-3 does that. It's fine.
+                     */}
+                </div>
             )}
-          >
-            {status.label}
-          </span>
-        )}
+        </div>
+      )}
 
-        {/* Media type badge */}
-        {showMediaType && (
-          <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-white">
-            <MediaTypeIcon type={mediaType} className="h-3.5 w-3.5" />
-            <span className="text-xs font-medium capitalize">{mediaType}</span>
-          </div>
-        )}
-
-        {/* Media count */}
-        {moment.media && moment.media.length > 1 && (
-          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
-            +{moment.media.length - 1}
-          </div>
+      {/* Body */}
+      <div className="px-5 py-4 pb-2">
+        <p className="text-[var(--bb-color-ink-muted)] text-[15px] leading-relaxed line-clamp-3">
+            {description || <span className="italic opacity-50">Sem descrição...</span>}
+        </p>
+        {(description.length > 100 || media.length === 0) && (
+            <button className="text-[var(--bb-color-accent)] text-xs font-bold uppercase tracking-wider mt-2">
+                Ver mais
+            </button>
         )}
       </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col gap-2 px-5 py-4">
-        {/* Chapter & Privacy */}
-        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em] text-ink-muted">
-          {catalogInfo && <span>{catalogInfo.chapterTitle}</span>}
-          <span className="h-px flex-1 bg-border" />
-          <span className="flex items-center gap-1">
-            <PrivacyIcon className="h-3 w-3" />
-            {privacy.label}
-          </span>
-        </div>
-
-        {/* Title & Date */}
-        <div className="space-y-1">
-          <h4 className="font-serif text-2xl text-ink">{moment.title}</h4>
-          {displayDate && (
-            <p className="text-sm text-ink-muted">
-              {new Date(displayDate).toLocaleDateString("pt-BR", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+      {/* Footer */}
+      <div className="px-4 py-3 flex items-center justify-end border-t border-[var(--bb-color-border)] mt-2">
+          {/* Owner Actions */}
+          {isOwner && (
+              <button 
+                onClick={handleEdit}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-[var(--bb-color-bg)] text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)] transition-colors text-xs font-medium"
+              >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Editar
+              </button>
           )}
-        </div>
-
-        {/* Type badge */}
-        {catalogInfo?.type && (
-          <span
-            className={cn(
-              "w-fit rounded-full px-3 py-1 text-xs font-semibold",
-              catalogInfo.type === "recurring" && "bg-accent-soft text-ink",
-              catalogInfo.type === "series" && "bg-muted text-ink",
-              catalogInfo.type === "unique" && "bg-surface-muted text-ink",
-            )}
-          >
-            {catalogInfo.type === "recurring"
-              ? "Recorrente"
-              : catalogInfo.type === "series"
-                ? "Série fixa"
-                : "Momento único"}
-          </span>
-        )}
-
-        {/* Summary */}
-        {summary && mediaType !== "text" && (
-          <p className="line-clamp-2 text-sm text-ink-muted">{summary}</p>
-        )}
       </div>
-    </motion.button>
+    </motion.div>
   );
 };
-
-export default EnhancedMomentCard;

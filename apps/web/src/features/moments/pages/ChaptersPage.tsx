@@ -11,25 +11,25 @@ export const ChaptersPage = () => {
       <button
         type="button"
         onClick={() => navigate("/jornada")}
-        className="mb-6 text-sm font-semibold transition"
-        style={{ color: "var(--bb-color-ink-muted)" }}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold transition text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)]"
       >
-        ← Voltar para Jornada
+        <span className="text-lg">←</span> Voltar para Jornada
       </button>
 
-      <h1
-        className="mb-2 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
-      >
-        Capítulos & registros
-      </h1>
-      
-      <p
-        className="mb-6 text-center text-base"
-        style={{ color: "var(--bb-color-ink-muted)" }}
-      >
-        Catálogo oficial • Linha do tempo guiada
-      </p>
+      {/* Standardized HUD Header */}
+      <div className="mb-8 relative overflow-hidden rounded-2xl shadow-sm border border-orange-200/50 dark:border-stone-800 bg-gradient-to-br from-amber-100 via-orange-50 to-orange-200 dark:from-[#1c1917] dark:via-[#2c2018] dark:to-[#1c1917] p-6 text-center">
+         <div className="relative z-10">
+            <h1 className="font-serif text-3xl font-bold text-[var(--bb-color-ink)] dark:text-orange-50">
+                Capítulos
+            </h1>
+            <p className="mt-2 text-sm text-[var(--bb-color-ink-muted)] dark:text-stone-400">
+                Explore sua jornada guiada passo a passo.
+            </p>
+         </div>
+         {/* Decorative background elements */}
+         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-orange-300/30 dark:bg-orange-500/10 blur-3xl opacity-50" />
+         <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-amber-300/30 dark:bg-amber-500/10 blur-3xl opacity-50" />
+      </div>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {MOMENT_CATALOG.map((chapter) => (

@@ -114,7 +114,7 @@ const DrawerContent = React.forwardRef<
       <DrawerPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-50 flex flex-col shadow-2xl",
+          "fixed z-50 flex flex-col shadow-2xl overflow-hidden",
           // Posição baseada na direção
           isHorizontal && [
             "top-0 h-full w-full max-w-md",

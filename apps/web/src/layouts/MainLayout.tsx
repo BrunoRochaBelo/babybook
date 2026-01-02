@@ -181,7 +181,7 @@ export const MainLayout = () => {
       <nav
         className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-3xl -translate-x-1/2 items-center rounded-full px-2 py-2 shadow-lg"
         style={{
-          backgroundColor: "var(--bb-color-surface)",
+          backgroundColor: "var(--bb-color-nav-bg)",
           borderColor: "var(--bb-color-border)",
           border: "2px solid var(--bb-color-border)",
         }}

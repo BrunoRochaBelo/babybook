@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { LayoutGroup, motion } from "motion/react";
 import type { Moment } from "@babybook/contracts";
-import { List, Grid2X2, Plus } from "lucide-react";
+import { List, Grid2X2, Plus, History, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MOMENT_CATALOG, type CatalogSequenceItem } from "@/data/momentCatalog";
 import { EnhancedMomentCard } from "@/components/EnhancedMomentCard";
@@ -155,7 +155,14 @@ export const MomentsTimeline = ({
 
     return (
       <div className="mt-6 space-y-4">
-        {moments.map((moment) => (
+        {moments
+          .slice() // Create a copy before sorting
+          .sort((a, b) => {
+             const dateA = new Date(a.occurredAt || a.createdAt).getTime();
+             const dateB = new Date(b.occurredAt || b.createdAt).getTime();
+             return dateB - dateA;
+          })
+          .map((moment) => (
           <EnhancedMomentCard key={moment.id} moment={moment} />
         ))}
       </div>
@@ -401,35 +408,29 @@ export const MomentsTimeline = ({
 
   return (
     <section className="mb-12">
-      <div className="text-center">
-        <h3
-          className="font-serif text-2xl"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
-          {viewMode === "timeline"
-            ? "Momentos publicados"
-            : "Capítulos & registros"}
-        </h3>
-      </div>
       <div className="mb-6">
         <div
-          className="w-full rounded-2xl border p-2 shadow-sm"
+          className="w-full rounded-2xl border p-1.5 shadow-sm"
           style={{
             backgroundColor: "var(--bb-color-surface)",
             borderColor: "var(--bb-color-border)",
           }}
         >
           <LayoutGroup id="journey-view-tabs">
-            <div className="flex flex-wrap gap-2">
-              {(["timeline", "chapters"] as ViewMode[]).map((mode) => {
-                const isActive = viewMode === mode;
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { id: "timeline", label: "Timeline", icon: History },
+                { id: "chapters", label: "Capítulos", icon: BookOpen },
+              ].map((tab) => {
+                const isActive = viewMode === tab.id;
+                const Icon = tab.icon;
                 return (
                   <button
-                    key={mode}
+                    key={tab.id}
                     type="button"
-                    onClick={() => setViewMode(mode)}
+                    onClick={() => setViewMode(tab.id as ViewMode)}
                     className={cn(
-                      "relative flex-1 min-w-[140px] overflow-hidden rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-300",
+                      "relative flex-1 min-w-[140px] overflow-hidden rounded-2xl px-4 py-1.5 text-sm font-semibold transition-colors duration-300",
                     )}
                     style={{
                       color: isActive
@@ -443,7 +444,7 @@ export const MomentsTimeline = ({
                         className="absolute inset-0 rounded-2xl"
                         style={{
                           backgroundColor: "var(--bb-color-accent)",
-                          boxShadow: "0 10px 24px rgba(242,153,93,0.28)",
+                          boxShadow: "0 8px 20px rgba(242,153,93,0.2)",
                         }}
                         transition={{
                           type: "spring",
@@ -452,8 +453,16 @@ export const MomentsTimeline = ({
                         }}
                       />
                     )}
-                    <span className="relative z-10">
-                      {mode === "timeline" ? "Timeline" : "Capítulos"}
+                    <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                      <Icon
+                        className="h-4 w-4 transition-colors duration-300"
+                        style={{
+                          color: isActive
+                            ? "var(--bb-color-surface)"
+                            : "var(--bb-color-ink-muted)",
+                        }}
+                      />
+                      {tab.label}
                     </span>
                   </button>
                 );
