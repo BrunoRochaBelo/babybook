@@ -36,7 +36,8 @@
     "retry": "Try again",
     "reload": "Reload page",
     "noResults": "No results found",
-    "required": "Required"
+    "required": "Required",
+    "select": "Select..."
   },
   "auth": {
     "login": "Sign in",
@@ -463,6 +464,177 @@
       "title": "Journey",
       "errorTitle": "Could not load the journey",
       "errorDescription": "There was a problem fetching dashboard data. Try reloading."
+    },
+    "moments": {
+      "common": {
+        "newMoment": "New Moment"
+      },
+      "free": {
+        "description": "Create a free moment, no template required"
+      },
+      "draft": {
+        "selectChildFirst": "Select a child first.",
+        "goToProfile": "Go to Profile",
+        "missingTemplateTitle": "Almost there!",
+        "missingTemplateDescription": "We don't have the form configured for this moment ({{templateId}}). Share this identifier with the product team so we can enable the specific fields. In the meantime, keep registering using the generic free moment form.",
+        "backToJourney": "Back to journey",
+        "useFreeMoment": "Use free moment"
+      },
+      "wizard": {
+        "types": {
+          "photo": {
+            "label": "Photo",
+            "description": "Capture a special moment"
+          },
+          "video": {
+            "label": "Video",
+            "description": "Record a moving moment"
+          },
+          "audio": {
+            "label": "Audio",
+            "description": "Record a voice message"
+          },
+          "text": {
+            "label": "Text",
+            "description": "Write a memory"
+          }
+        },
+        "errors": {
+          "microphonePermission": "Couldn't access the microphone. Please check your permissions.",
+          "createFailed": "Error creating the moment. Please try again."
+        },
+        "stepType": {
+          "subtitle": "How do you want to record this moment?"
+        },
+        "stepMedia": {
+          "title": {
+            "photo": "Add your photos",
+            "video": "Add your video",
+            "audio": "Record or upload audio",
+            "text": "Skip this step"
+          },
+          "upload": {
+            "tapToAddPhotos": "Tap to add photos",
+            "tapToAddVideo": "Tap to add a video",
+            "dragDrop": "or drag and drop here"
+          },
+          "audio": {
+            "start": "Start recording",
+            "stop": "Stop recording",
+            "success": "Audio recorded successfully!",
+            "recordAgain": "Record again"
+          },
+          "textSkip": "You can add photos later if you want.\nContinue to write your memory."
+        },
+        "stepDetails": {
+          "title": "Tell this story",
+          "fields": {
+            "titleLabel": "Moment title *",
+            "titlePlaceholder": "e.g. First smile",
+            "dateLabel": "When did it happen?",
+            "descriptionLabel": "Tell us more about this moment (optional)",
+            "descriptionPlaceholder": "What made this moment special..."
+          }
+        },
+        "stepPreview": {
+          "title": "All set?",
+          "untitled": "Untitled"
+        },
+        "stepSuccess": {
+          "title": "Moment saved!",
+          "subtitle": "This memory is saved forever",
+          "cta": "View in Journey"
+        },
+        "saving": "Saving...",
+        "saveMoment": "Save Moment",
+        "continue": "Continue"
+      },
+      "form": {
+        "fields": {
+          "titleLabel": "Moment title *",
+          "titlePlaceholder": "e.g. First smile",
+          "dateLabel": "Moment date *",
+          "summaryLabel": "Description (optional)",
+          "summaryPlaceholder": "Tell the story of this special moment...",
+          "tagsPlaceholder": "Separate with commas"
+        },
+        "sections": {
+          "details": "Moment details"
+        },
+        "errors": {
+          "requiredField": "Required field."
+        },
+        "media": {
+          "helper": {
+            "generic": "Up to 10 media items per moment. You added {{count}}.",
+            "photos": "Photos: {{current}}/{{max}} (goal: {{range}})",
+            "videoOrAudio": "Video or audio: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
+            "video": "Video: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
+            "audio": "Audio: {{current}}/{{max}}{{requiredSuffix}}",
+            "requiredSuffix": " (required)",
+            "secondsSuffix": " ({{seconds}}s)"
+          },
+          "errors": {
+            "maxItemsGeneric": "Limit of 10 media items per moment.",
+            "photosNotAllowed": "This moment does not allow photos.",
+            "videosNotAllowed": "This moment does not allow videos.",
+            "audiosNotAllowed": "This moment does not allow audios.",
+            "maxDurationExceeded": "Max duration: {{maxSeconds}}s. File \"{{fileName}}\" is ~{{duration}}s.",
+            "maxPhotosExceeded": "Photo limit exceeded: max {{max}}.",
+            "minPhotosRequired": "Add at least {{min}} photo(s).",
+            "maxVideoOrAudioExceeded": "Limit exceeded: at most {{max}} video OR audio.",
+            "chooseOnlyOneVideoOrAudio": "Choose only one: video OR audio.",
+            "videoOrAudioRequired": "Include 1 video OR audio for this moment.",
+            "maxVideosExceeded": "Video limit exceeded: max {{max}}.",
+            "videoRequired": "Include 1 video for this moment.",
+            "maxAudiosExceeded": "Audio limit exceeded: max {{max}}.",
+            "audioRequired": "Include 1 audio for this moment.",
+            "maxPhotos": "Photo limit: max {{max}}.",
+            "maxVideoOrAudio": "Limit: at most {{max}} video OR audio.",
+            "maxVideos": "Video limit: max {{max}}.",
+            "maxAudios": "Audio limit: max {{max}}."
+          }
+        },
+        "stamps": {
+          "emptyHint": "Generate the hand and foot stamps above.",
+          "readyTitle": "Ready assets:",
+          "handLabel": "Hand stamp",
+          "footLabel": "Foot stamp"
+        },
+        "saving": "Saving...",
+        "save": "Save moment"
+      }
+    },
+    "importDelivery": {
+      "title": "Import delivery",
+      "subtitle": "Choose which Book you want to import these photos into.",
+      "invalidLink": "Invalid link.",
+      "notFound": "I couldn't find this delivery in your account. If you just received the link, try reloading the page.",
+      "notFoundTip": "Tip: make sure you're signed in with the same email address the photographer used to send the delivery.",
+      "deliveryLabel": "Delivery",
+      "fromPartner": "From {{name}}",
+      "assetsCount": "{{count}} file(s)",
+      "sentTo": "Sent to {{email}}",
+      "noChildrenHint": "You don't have any Books yet. Select “new Book”.",
+      "newChildPlaceholder": "Baby name (optional)",
+      "importing": "Importing…",
+      "cta": "Import now",
+      "options": {
+        "existing": {
+          "title": "Import into an existing Book",
+          "description": "Free for this Book."
+        },
+        "new": {
+          "title": "Create a new Book",
+          "description": "May consume 1 photographer credit."
+        }
+      },
+      "errors": {
+        "selectChildRequired": "Select a baby (Book) to import into.",
+        "emailMismatch": "This delivery was sent to a different email address. Sign in with the correct email to redeem.",
+        "emailMismatchMasked": "This delivery was sent to a different email address. Sign in with {{email}} to redeem.",
+        "generic": "Failed to import delivery. Please try again."
+      }
     },
     "myAccount": {
       "title": "My Account",

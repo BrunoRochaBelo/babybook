@@ -1007,6 +1007,11 @@ const TEMPLATE_KEY_ALIASES: Record<string, string> = {
   capitulo_5_primeiro_dia_das_maes_pais: "capitulo_5_datas_especiais",
 };
 
+export const normalizeTemplateKey = (templateKey?: string | null) => {
+  if (!templateKey) return null;
+  return TEMPLATE_KEY_ALIASES[templateKey] ?? templateKey;
+};
+
 let sequenceOrder = 0;
 export const GUIDED_MOMENT_SEQUENCE: CatalogSequenceItem[] =
   MOMENT_CATALOG.flatMap((chapter) =>
@@ -1025,7 +1030,8 @@ export const getMomentByTemplateKey = (templateKey?: string | null) => {
   if (!templateKey) {
     return undefined;
   }
-  const normalized = TEMPLATE_KEY_ALIASES[templateKey] ?? templateKey;
+  const normalized = normalizeTemplateKey(templateKey);
+  if (!normalized) return undefined;
   return GUIDED_MOMENT_SEQUENCE.find((item) => item.templateKey === normalized);
 };
 

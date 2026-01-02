@@ -64,7 +64,8 @@ export interface DataExportResponse {
  * Lista membros da família (usuários da conta)
  */
 export async function listFamilyMembers(): Promise<FamilyListResponse> {
-  return apiClient.get<FamilyListResponse>("/me/settings/family");
+  const response = await apiClient.get<FamilyListResponse>("/me/settings/family");
+  return response || { members: [], total: 0 };
 }
 
 /**
@@ -89,14 +90,34 @@ export async function removeFamilyMember(
  * Obtém detalhes da assinatura atual
  */
 export async function getSubscription(): Promise<SubscriptionResponse> {
-  return apiClient.get<SubscriptionResponse>("/me/settings/subscription");
+  const response = await apiClient.get<SubscriptionResponse>("/me/settings/subscription");
+  return response || {
+    plan_name: "",
+    plan_display_name: "",
+    price_cents: 0,
+    currency: "BRL",
+    renewal_date: null,
+    features: [],
+    storage_bytes_used: 0,
+    storage_bytes_limit: 0,
+    is_unlimited: false
+  };
 }
 
 /**
  * Obtém estatísticas de armazenamento
  */
 export async function getStorageStats(): Promise<StorageStatsResponse> {
-  return apiClient.get<StorageStatsResponse>("/me/settings/storage");
+  const response = await apiClient.get<StorageStatsResponse>("/me/settings/storage");
+  return response || {
+    bytes_used: 0,
+    bytes_quota: 0,
+    is_unlimited: false,
+    photos_count: 0,
+    videos_count: 0,
+    audios_count: 0,
+    last_backup_at: null
+  };
 }
 
 /**

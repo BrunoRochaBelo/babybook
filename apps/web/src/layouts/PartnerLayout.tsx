@@ -29,6 +29,8 @@ import {
   Settings,
   Sparkles,
   Sun,
+  HelpCircle,
+  FileText,
 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -498,66 +500,45 @@ export function PartnerLayout() {
                         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider pl-1">
                           Aparência
                         </p>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="flex gap-2 p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800">
                           <button
                             type="button"
                             onClick={() => setTheme("light")}
                             className={cn(
-                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
+                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "light"
-                                ? "bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-900/10 dark:border-pink-800 dark:text-pink-300 shadow-sm"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-pink-200 dark:hover:border-gray-600 hover:shadow-sm",
+                                ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
                             )}
                           >
-                            <div className={cn(
-                              "p-2 rounded-full transition-colors",
-                              theme === "light" 
-                                ? "bg-white dark:bg-pink-900/20" 
-                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-pink-50 dark:group-hover:bg-gray-600"
-                            )}>
-                              <Sun className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-medium">Claro</span>
+                            <Sun className="w-4 h-4" />
+                            <span className="hidden sm:inline">Claro</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setTheme("dark")}
                             className={cn(
-                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
+                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "dark"
-                                ? "bg-gray-800 border-gray-700 text-white dark:bg-gray-800 dark:border-gray-600 dark:text-white shadow-sm"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm",
+                                ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
                             )}
                           >
-                             <div className={cn(
-                              "p-2 rounded-full transition-colors",
-                              theme === "dark" 
-                                ? "bg-gray-700" 
-                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600"
-                            )}>
-                              <MoonStar className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-medium">Escuro</span>
+                            <MoonStar className="w-4 h-4" />
+                            <span className="hidden sm:inline">Escuro</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setTheme("system")}
                             className={cn(
-                              "group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-pink-500/20",
+                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "system"
-                                ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-300 shadow-sm"
-                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-200 dark:hover:border-gray-600 hover:shadow-sm",
+                                ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
                             )}
                           >
-                             <div className={cn(
-                              "p-2 rounded-full transition-colors",
-                              theme === "system" 
-                                ? "bg-white dark:bg-blue-900/20" 
-                                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-blue-50 dark:group-hover:bg-gray-600"
-                            )}>
-                              <Monitor className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-medium">Auto</span>
+                            <Monitor className="w-4 h-4" />
+                            <span className="hidden sm:inline">Auto</span>
                           </button>
                         </div>
                       </div>
@@ -582,6 +563,56 @@ export function PartnerLayout() {
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
                                 Gerencie seus dados
+                              </p>
+                            </div>
+                            <div className="text-gray-400 group-hover:translate-x-1 transition-transform">
+                              <ChevronRight className="w-5 h-5" />
+                            </div>
+                          </Link>
+                        </nav>
+                      </div>
+
+                      {/* Support Links */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider pl-1">
+                          Suporte
+                        </p>
+                        <nav className="space-y-2">
+                          <Link
+                            to="/partner/help"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 group-hover:border-pink-100 dark:group-hover:border-pink-900/30 transition-colors">
+                              <HelpCircle className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                                Central de Ajuda
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Tire suas dúvidas
+                              </p>
+                            </div>
+                            <div className="text-gray-400 group-hover:translate-x-1 transition-transform">
+                              <ChevronRight className="w-5 h-5" />
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/partner/terms"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 group-hover:border-pink-100 dark:group-hover:border-pink-900/30 transition-colors">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                                Termos e Políticas
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Informações legais
                               </p>
                             </div>
                             <div className="text-gray-400 group-hover:translate-x-1 transition-transform">

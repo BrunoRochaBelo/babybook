@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, Loader2, PackageOpen } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, PackageOpen } from "lucide-react";
 
 import {
   useChildren,
@@ -8,11 +8,21 @@ import {
   usePendingDirectDeliveries,
 } from "@/hooks/api";
 import { ApiError } from "@/lib/api-client";
+import { useTranslation } from "@babybook/i18n";
 
 export function ImportDeliveryPage() {
   const { deliveryId } = useParams<{ deliveryId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/jornada");
+  };
 
   const childIdHint = useMemo(() => {
     const v = searchParams.get("childId");
@@ -71,7 +81,7 @@ export function ImportDeliveryPage() {
     try {
       if (mode === "existing") {
         if (!selectedChildId) {
-          setError("Selecione um bebê (Livro) para importar.");
+          setError(t("b2c.importDelivery.errors.selectChildRequired"));
           return;
         }
 
@@ -79,7 +89,7 @@ export function ImportDeliveryPage() {
           deliveryId,
           action: { type: "EXISTING_CHILD", childId: selectedChildId },
         });
-        navigate(`/momentos/${result.momentId}`);
+        navigate(`/jornada/moment/${result.momentId}`);
         return;
       }
 
@@ -90,7 +100,7 @@ export function ImportDeliveryPage() {
           childName: newChildName.trim() ? newChildName.trim() : undefined,
         },
       });
-      navigate(`/momentos/${result.momentId}`);
+      navigate(`/jornada/moment/${result.momentId}`);
     } catch (e) {
       if (e instanceof ApiError && e.code === "delivery.email_mismatch") {
         const masked =
@@ -99,81 +109,178 @@ export function ImportDeliveryPage() {
             : null;
         setError(
           masked
-            ? `Esta entrega foi enviada para outro e-mail. Faça login com ${masked} para resgatar.`
-            : e.message,
+            ? t("b2c.importDelivery.errors.emailMismatchMasked", {
+                email: masked,
+              })
+            : t("b2c.importDelivery.errors.emailMismatch"),
         );
         return;
       }
       setError(
-        e instanceof Error
-          ? e.message
-          : "Falha ao importar entrega. Tente novamente.",
+        e instanceof Error ? e.message : t("b2c.importDelivery.errors.generic"),
       );
     }
   };
 
   if (!deliveryId) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Importar entrega</h1>
-        <p className="text-gray-600 mt-2">Link inválido.</p>
+      <div className="mx-auto w-full max-w-2xl px-4 py-6">
+        <div className="mb-6 flex items-center gap-4">
+          <button
+            onClick={handleBack}
+            className="rounded-full p-2 transition"
+            style={{ color: "var(--bb-color-ink)" }}
+            aria-label={t("common.back")}
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden />
+          </button>
+          <h1
+            className="text-lg font-semibold"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
+            {t("b2c.importDelivery.title")}
+          </h1>
+        </div>
+
+        <div
+          className="rounded-2xl border p-6"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
+        >
+          <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+            {t("b2c.importDelivery.invalidLink")}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div className="mx-auto max-w-2xl px-4 py-6">
+      <div className="mb-6 flex items-center gap-4">
+        <button
+          onClick={handleBack}
+          className="rounded-full p-2 transition"
+          style={{ color: "var(--bb-color-ink)" }}
+          aria-label={t("common.back")}
+        >
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
+
+      <div
+        className="rounded-2xl border p-6 shadow-sm"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
-            <PackageOpen className="w-6 h-6 text-rose-600" />
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-xl"
+            style={{
+              backgroundColor: "var(--bb-color-bg)",
+              border: "1px solid var(--bb-color-border)",
+            }}
+          >
+            <PackageOpen
+              className="h-6 w-6"
+              style={{ color: "var(--bb-color-accent)" }}
+            />
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">Importar entrega</h1>
-            <p className="text-gray-600 mt-1">
-              Selecione em qual Livro você quer importar essas fotos.
+            <h1
+              className="text-xl font-semibold"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
+              {t("b2c.importDelivery.title")}
+            </h1>
+            <p
+              className="mt-1 text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              {t("b2c.importDelivery.subtitle")}
             </p>
           </div>
         </div>
 
         {isBusy && (
-          <div className="mt-6 flex items-center gap-2 text-gray-600">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Carregando…
+          <div
+            className="mt-6 flex items-center gap-2 text-sm"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t("common.loading")}
           </div>
         )}
 
         {!isBusy && !delivery && (
-          <div className="mt-6 text-gray-700">
-            <p>
-              Não encontrei essa entrega na sua conta. Se você acabou de receber
-              o link, tente atualizar a página.
+          <div className="mt-6">
+            <p className="text-sm" style={{ color: "var(--bb-color-ink)" }}>
+              {t("b2c.importDelivery.notFound")}
             </p>
-            <p className="mt-2 text-sm text-gray-600">
-              Dica: confirme se você está logado(a) com o mesmo e-mail para o
-              qual o fotógrafo enviou a entrega.
+            <p
+              className="mt-2 text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              {t("b2c.importDelivery.notFoundTip")}
             </p>
           </div>
         )}
 
         {!isBusy && delivery && (
           <div className="mt-6 space-y-4">
-            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-              <div className="text-sm text-gray-600">Entrega</div>
-              <div className="font-medium text-gray-900">{delivery.title}</div>
-              <div className="text-sm text-gray-600 mt-1">
-                {delivery.partnerName ? `De ${delivery.partnerName} • ` : ""}
-                {delivery.assetsCount} arquivo(s)
+            <div
+              className="rounded-xl border p-4"
+              style={{
+                backgroundColor: "var(--bb-color-bg)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              <div
+                className="text-sm"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                {t("b2c.importDelivery.deliveryLabel")}
+              </div>
+              <div
+                className="font-medium"
+                style={{ color: "var(--bb-color-ink)" }}
+              >
+                {delivery.title}
+              </div>
+              <div
+                className="mt-1 text-sm"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                {delivery.partnerName
+                  ? `${t("b2c.importDelivery.fromPartner", {
+                      name: delivery.partnerName,
+                    })} • `
+                  : ""}
+                {t("b2c.importDelivery.assetsCount", {
+                  count: delivery.assetsCount,
+                })}
               </div>
               {delivery.targetEmailMasked && (
-                <div className="text-sm text-gray-600 mt-1">
-                  Enviado para {delivery.targetEmailMasked}
+                <div
+                  className="mt-1 text-sm"
+                  style={{ color: "var(--bb-color-ink-muted)" }}
+                >
+                  {t("b2c.importDelivery.sentTo", {
+                    email: delivery.targetEmailMasked,
+                  })}
                 </div>
               )}
             </div>
 
             <div className="space-y-3">
-              <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer">
+              <label
+                className="flex cursor-pointer items-start gap-3 rounded-xl border p-3"
+                style={{ borderColor: "var(--bb-color-border)" }}
+              >
                 <input
                   type="radio"
                   className="mt-1"
@@ -182,11 +289,17 @@ export function ImportDeliveryPage() {
                   disabled={!children.length}
                 />
                 <div>
-                  <div className="font-medium">
-                    Importar em um Livro existente
+                  <div
+                    className="font-medium"
+                    style={{ color: "var(--bb-color-ink)" }}
+                  >
+                    {t("b2c.importDelivery.options.existing.title")}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Grátis para este Livro.
+                  <div
+                    className="text-sm"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
+                  >
+                    {t("b2c.importDelivery.options.existing.description")}
                   </div>
                 </div>
               </label>
@@ -194,7 +307,12 @@ export function ImportDeliveryPage() {
               {mode === "existing" && (
                 <div>
                   <select
-                    className="w-full mt-2 rounded-xl border border-gray-200 p-3"
+                    className="mt-2 w-full rounded-xl border p-3"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      borderColor: "var(--bb-color-border)",
+                      color: "var(--bb-color-ink)",
+                    }}
                     value={selectedChildId}
                     onChange={(e) => setSelectedChildId(e.target.value)}
                     disabled={!children.length}
@@ -206,14 +324,20 @@ export function ImportDeliveryPage() {
                     ))}
                   </select>
                   {!children.length && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Você ainda não tem nenhum Livro. Selecione “novo Livro”.
+                    <p
+                      className="mt-2 text-sm"
+                      style={{ color: "var(--bb-color-ink-muted)" }}
+                    >
+                      {t("b2c.importDelivery.noChildrenHint")}
                     </p>
                   )}
                 </div>
               )}
 
-              <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer">
+              <label
+                className="flex cursor-pointer items-start gap-3 rounded-xl border p-3"
+                style={{ borderColor: "var(--bb-color-border)" }}
+              >
                 <input
                   type="radio"
                   className="mt-1"
@@ -221,9 +345,17 @@ export function ImportDeliveryPage() {
                   onChange={() => setMode("new")}
                 />
                 <div>
-                  <div className="font-medium">Criar um novo Livro</div>
-                  <div className="text-sm text-gray-600">
-                    Pode consumir 1 crédito do fotógrafo.
+                  <div
+                    className="font-medium"
+                    style={{ color: "var(--bb-color-ink)" }}
+                  >
+                    {t("b2c.importDelivery.options.new.title")}
+                  </div>
+                  <div
+                    className="text-sm"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
+                  >
+                    {t("b2c.importDelivery.options.new.description")}
                   </div>
                 </div>
               </label>
@@ -231,8 +363,13 @@ export function ImportDeliveryPage() {
               {mode === "new" && (
                 <div>
                   <input
-                    className="w-full mt-2 rounded-xl border border-gray-200 p-3"
-                    placeholder="Nome do bebê (opcional)"
+                    className="mt-2 w-full rounded-xl border p-3"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      borderColor: "var(--bb-color-border)",
+                      color: "var(--bb-color-ink)",
+                    }}
+                    placeholder={t("b2c.importDelivery.newChildPlaceholder")}
                     value={newChildName}
                     onChange={(e) => setNewChildName(e.target.value)}
                   />
@@ -241,25 +378,37 @@ export function ImportDeliveryPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
+              <div
+                className="rounded-xl border p-3 text-sm"
+                style={{
+                  borderColor: "var(--bb-color-danger)",
+                  backgroundColor: "var(--bb-color-danger-soft)",
+                  color: "var(--bb-color-danger)",
+                }}
+              >
                 {error}
               </div>
             )}
 
             <button
               type="button"
-              className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 disabled:opacity-60"
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60"
+              style={{
+                backgroundColor: "var(--bb-color-accent)",
+                color: "var(--bb-color-surface)",
+              }}
               disabled={importMutation.isPending || !delivery}
               onClick={() => void onSubmit()}
             >
               {importMutation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Importando…
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("b2c.importDelivery.importing")}
                 </>
               ) : (
                 <>
-                  Importar agora <ArrowRight className="w-4 h-4" />
+                  {t("b2c.importDelivery.cta")}{" "}
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>

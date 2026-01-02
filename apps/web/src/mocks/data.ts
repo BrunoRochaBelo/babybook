@@ -46,6 +46,11 @@ type MomentSeed = {
 
 const at = (date: string, time = "10:00:00") => `${date}T${time}Z`;
 
+// IDs fixos (UUID) para manter consistência com os schemas do contracts.
+const CHILD_ALICE_ID = "0b1f0d9a-6c4a-4b83-9a77-3f3c0e2e3c11";
+const CHILD_THEO_ID = "3a1d0c72-0c2d-4f9b-9ad9-4f2b77b3a0e1";
+const PARTNER_DEMO_ID = "6f7d9c2a-2c4c-4f6f-9d4d-3e6b9a4a2f10";
+
 const makeMoment = ({
   id,
   childId,
@@ -94,7 +99,7 @@ const makeMoment = ({
 });
 
 export const mockChild: Child = {
-  id: "child-1",
+  id: CHILD_ALICE_ID,
   name: "Alice",
   birthday: "2024-03-15",
   avatarUrl:
@@ -106,7 +111,7 @@ export const mockChild: Child = {
 export const mockChildren: Child[] = [
   mockChild,
   {
-    id: "child-2",
+    id: CHILD_THEO_ID,
     name: "Theo",
     birthday: "2023-06-20",
     avatarUrl:
@@ -118,10 +123,10 @@ export const mockChildren: Child[] = [
 
 export const mockMoments: Moment[] = [
   makeMoment({
-    id: "bb-alice-00",
-    childId: "child-1",
-    title: "A Descoberta",
-    summary: "Chegada da Alice e o primeiro colo ainda na sala de parto.",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a04",
+    childId: CHILD_ALICE_ID,
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a00",
+    childId: CHILD_ALICE_ID,
     occurredAt: "2024-03-15",
     templateKey: "capitulo_1_descoberta",
     status: "published",
@@ -152,10 +157,10 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-16", "07:55:00"),
   }),
   makeMoment({
-    id: "bb-alice-01",
-    childId: "child-1",
-    title: "Primeira Noite em Casa",
-    summary: "Montamos nosso ninho e registramos o quartinho novo.",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a05",
+    childId: CHILD_ALICE_ID,
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a01",
+    childId: CHILD_ALICE_ID,
     occurredAt: "2024-03-18",
     templateKey: "capitulo_2_primeira_noite",
     status: "published",
@@ -175,10 +180,10 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-19", "09:12:00"),
   }),
   makeMoment({
-    id: "bb-alice-02",
-    childId: "child-1",
-    title: "Primeiro Banho em Casa",
-    summary: "Suporte da vovó para deixar o banho mais leve.",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a06",
+    childId: CHILD_ALICE_ID,
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a02",
+    childId: CHILD_ALICE_ID,
     occurredAt: "2024-03-20",
     templateKey: "capitulo_2_primeiro_banho",
     status: "published",
@@ -198,10 +203,10 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-21", "10:15:00"),
   }),
   makeMoment({
-    id: "bb-alice-03",
-    childId: "child-1",
-    title: "Primeiro Sorriso Social",
-    summary: 'Alice respondeu ao nosso "gugu-dadá" com a maior expressão.',
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a07",
+    childId: CHILD_ALICE_ID,
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a03",
+    childId: CHILD_ALICE_ID,
     occurredAt: "2024-04-25",
     templateKey: "capitulo_3_primeiro_sorriso",
     status: "draft",
@@ -219,8 +224,8 @@ export const mockMoments: Moment[] = [
     createdAt: at("2024-04-26", "08:00:00"),
   }),
   makeMoment({
-    id: "bb-alice-04",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a08",
+    childId: CHILD_ALICE_ID,
     title: "Primeiro Rolamento",
     summary: "Registramos o treino na manta Montessori.",
     occurredAt: "2024-05-30",
@@ -241,8 +246,8 @@ export const mockMoments: Moment[] = [
     createdAt: at("2024-05-30", "19:00:00"),
   }),
   makeMoment({
-    id: "bb-alice-05",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a09",
+    childId: CHILD_ALICE_ID,
     title: "Primeiro Dente",
     summary: "Dois incisivos inferiores apareceram de um dia para o outro.",
     occurredAt: "2024-08-25",
@@ -265,8 +270,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-08-26", "09:00:00"),
   }),
   makeMoment({
-    id: "bb-alice-06",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a06",
+    childId: CHILD_ALICE_ID,
     title: "Visita Especial - Avós",
     summary: "Segunda visita da vovó e vô para reforçar o vínculo.",
     occurredAt: "2024-09-05",
@@ -288,8 +293,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-09-06", "07:45:00"),
   }),
   makeMoment({
-    id: "bb-alice-07",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a07",
+    childId: CHILD_ALICE_ID,
     title: "Galeria de Arte - Semana 20",
     summary: "Primeiras pinturas com tinta comestível.",
     occurredAt: "2024-10-10",
@@ -315,8 +320,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-10-11", "11:00:00"),
   }),
   makeMoment({
-    id: "bb-alice-08",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a0a",
+    childId: CHILD_ALICE_ID,
     title: "Primeiros Passos",
     summary: "Alice deu três passinhos independentes em direção ao pai.",
     occurredAt: null,
@@ -328,8 +333,8 @@ export const mockMoments: Moment[] = [
     },
   }),
   makeMoment({
-    id: "bb-alice-09",
-    childId: "child-1",
+    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a0b",
+    childId: CHILD_ALICE_ID,
     title: "Primeiro Aniversário",
     summary: "Rascunho com ideias de decoração e carta para o PoD.",
     occurredAt: null,
@@ -342,8 +347,8 @@ export const mockMoments: Moment[] = [
   }),
   // Theo (segundo filho) - dados para comparar capítulos
   makeMoment({
-    id: "bb-theo-00",
-    childId: "child-2",
+    id: "c3a1b2f0-1a2b-4c3d-9e0f-1a2b3c4d5e00",
+    childId: CHILD_THEO_ID,
     title: "A Descoberta",
     summary: "Parto em casa, luz baixa e playlist Lo-Fi.",
     occurredAt: "2023-06-20",
@@ -364,8 +369,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2023-06-21", "08:30:00"),
   }),
   makeMoment({
-    id: "bb-theo-01",
-    childId: "child-2",
+    id: "c3a1b2f0-1a2b-4c3d-9e0f-1a2b3c4d5e01",
+    childId: CHILD_THEO_ID,
     title: "Primeiro Banho do Theo",
     summary: "Theo dormiu o banho inteiro dentro do balde ofurô.",
     occurredAt: "2023-06-23",
@@ -386,8 +391,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2023-06-24", "08:00:00"),
   }),
   makeMoment({
-    id: "bb-theo-02",
-    childId: "child-2",
+    id: "c3a1b2f0-1a2b-4c3d-9e0f-1a2b3c4d5e02",
+    childId: CHILD_THEO_ID,
     title: "Primeiro Dia na Creche",
     summary: "Registro da adaptação gradual no capítulo 5.5.",
     occurredAt: "2024-02-05",
@@ -409,8 +414,8 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-02-05", "21:00:00"),
   }),
   makeMoment({
-    id: "bb-theo-03",
-    childId: "child-2",
+    id: "c3a1b2f0-1a2b-4c3d-9e0f-1a2b3c4d5e03",
+    childId: CHILD_THEO_ID,
     title: "Consulta de Crescimento - 12 Meses",
     summary: "Gráfico de peso/altura anexado ao capítulo de saúde.",
     occurredAt: "2024-06-25",
@@ -425,8 +430,8 @@ export const mockMoments: Moment[] = [
 
 export const mockGuestbookEntries: GuestbookEntry[] = [
   {
-    id: "guestbook-1",
-    childId: "child-1",
+    id: "d5e0b4a1-3a1b-4c5d-9e0f-4b3a2c1d0e01",
+    childId: CHILD_ALICE_ID,
     authorName: "Vovó Maria",
     authorEmail: "maria@example.com",
     message:
@@ -435,8 +440,8 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     createdAt: "2024-03-20T08:00:00Z",
   },
   {
-    id: "guestbook-2",
-    childId: "child-1",
+    id: "d5e0b4a1-3a1b-4c5d-9e0f-4b3a2c1d0e02",
+    childId: CHILD_ALICE_ID,
     authorName: "Tio João",
     authorEmail: null,
     message:
@@ -445,8 +450,8 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     createdAt: "2024-03-22T15:30:00Z",
   },
   {
-    id: "guestbook-3",
-    childId: "child-1",
+    id: "d5e0b4a1-3a1b-4c5d-9e0f-4b3a2c1d0e03",
+    childId: CHILD_ALICE_ID,
     authorName: "Prima Ana",
     authorEmail: null,
     message:
@@ -455,8 +460,8 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     createdAt: "2024-11-10T10:15:00Z",
   },
   {
-    id: "guestbook-4",
-    childId: "child-2",
+    id: "d5e0b4a1-3a1b-4c5d-9e0f-4b3a2c1d0e04",
+    childId: CHILD_THEO_ID,
     authorName: "Dinda Carol",
     authorEmail: "carol@example.com",
     message:
@@ -468,50 +473,50 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
 
 export const mockHealthMeasurements: HealthMeasurement[] = [
   {
-    id: "alice-health-1",
-    childId: "child-1",
+    id: "e1b2c3d4-1111-4aaa-9bbb-000000000001",
+    childId: CHILD_ALICE_ID,
     date: "2024-03-15",
     weight: 3.2,
     height: 48,
   },
   {
-    id: "alice-health-2",
-    childId: "child-1",
+    id: "e1b2c3d4-1111-4aaa-9bbb-000000000002",
+    childId: CHILD_ALICE_ID,
     date: "2024-04-15",
     weight: 4.1,
     height: 51,
   },
   {
-    id: "alice-health-3",
-    childId: "child-1",
+    id: "e1b2c3d4-1111-4aaa-9bbb-000000000003",
+    childId: CHILD_ALICE_ID,
     date: "2024-06-15",
     weight: 5.8,
     height: 56,
   },
   {
-    id: "alice-health-4",
-    childId: "child-1",
+    id: "e1b2c3d4-1111-4aaa-9bbb-000000000004",
+    childId: CHILD_ALICE_ID,
     date: "2024-08-15",
     weight: 7.2,
     height: 61,
   },
   {
-    id: "theo-health-1",
-    childId: "child-2",
+    id: "e1b2c3d4-2222-4bbb-9ccc-000000000005",
+    childId: CHILD_THEO_ID,
     date: "2023-06-20",
     weight: 3.5,
     height: 49,
   },
   {
-    id: "theo-health-2",
-    childId: "child-2",
+    id: "e1b2c3d4-2222-4bbb-9ccc-000000000006",
+    childId: CHILD_THEO_ID,
     date: "2023-12-20",
     weight: 7.9,
     height: 68,
   },
   {
-    id: "theo-health-3",
-    childId: "child-2",
+    id: "e1b2c3d4-2222-4bbb-9ccc-000000000007",
+    childId: CHILD_THEO_ID,
     date: "2024-06-20",
     weight: 10.8,
     height: 78,
@@ -520,17 +525,17 @@ export const mockHealthMeasurements: HealthMeasurement[] = [
 
 export const mockHealthVaccines: HealthVaccine[] = [
   {
-    id: "vax-1",
-    childId: "child-1",
+    id: "f0000000-0000-4aaa-9bbb-000000000001",
+    childId: CHILD_ALICE_ID,
     name: "BCG",
     dueDate: "2024-03-20",
     appliedAt: "2024-03-20",
     status: "completed",
-    notes: "Aplicada na maternidade",
+    notes: null,
   },
   {
-    id: "vax-2",
-    childId: "child-1",
+    id: "f0000000-0000-4aaa-9bbb-000000000002",
+    childId: CHILD_ALICE_ID,
     name: "Hepatite B (2ª dose)",
     dueDate: "2024-04-15",
     appliedAt: "2024-04-18",
@@ -538,8 +543,8 @@ export const mockHealthVaccines: HealthVaccine[] = [
     notes: null,
   },
   {
-    id: "vax-3",
-    childId: "child-1",
+    id: "f0000000-0000-4aaa-9bbb-000000000003",
+    childId: CHILD_ALICE_ID,
     name: "Penta (DTP/Hib/HB)",
     dueDate: "2024-06-15",
     appliedAt: null,
@@ -547,8 +552,8 @@ export const mockHealthVaccines: HealthVaccine[] = [
     notes: null,
   },
   {
-    id: "vax-4",
-    childId: "child-1",
+    id: "f0000000-0000-4aaa-9bbb-000000000004",
+    childId: CHILD_ALICE_ID,
     name: "Rotavírus",
     dueDate: "2024-06-15",
     appliedAt: null,
@@ -556,22 +561,22 @@ export const mockHealthVaccines: HealthVaccine[] = [
     notes: null,
   },
   {
-    id: "vax-5",
-    childId: "child-2",
+    id: "f0000000-0000-4aaa-9bbb-000000000005",
+    childId: CHILD_THEO_ID,
     name: "Tríplice Viral",
     dueDate: "2024-07-20",
     appliedAt: "2024-07-22",
     status: "completed",
-    notes: "Sem reações.",
+    notes: null,
   },
   {
-    id: "vax-6",
-    childId: "child-2",
+    id: "f0000000-0000-4aaa-9bbb-000000000006",
+    childId: CHILD_THEO_ID,
     name: "Meningocócica ACWY",
     dueDate: "2024-08-01",
     appliedAt: null,
     status: "overdue",
-    notes: "Reagendar consulta.",
+    notes: null,
   },
 ];
 
@@ -590,7 +595,7 @@ export const mockUser: UserProfile = {
 // =============================================================================
 
 export const mockPartnerUser: UserProfile = {
-  id: "p1e9a7c8-7d0a-4d38-8ba1-5f5a0f28c9ef",
+  id: "a1e9a7c8-7d0a-4d38-8ba1-5f5a0f28c9ef",
   email: "pro@babybook.dev",
   name: "Maria Fotógrafa",
   locale: "pt-BR",
@@ -631,7 +636,7 @@ export interface MockDelivery {
 }
 
 export const mockPartner: MockPartner = {
-  id: "partner-demo-001",
+  id: PARTNER_DEMO_ID,
   name: "Maria Fotógrafa",
   email: "pro@babybook.dev",
   studioName: "Estúdio Demo",
@@ -644,8 +649,8 @@ export const mockPartner: MockPartner = {
 
 export const mockDeliveries: MockDelivery[] = [
   {
-    id: "delivery-direct-001",
-    partnerId: "partner-demo-001",
+    id: "1a2b3c4d-1111-4aaa-9bbb-000000000001",
+    partnerId: PARTNER_DEMO_ID,
     title: "Ensaio - Bruno (Importação Direta)",
     clientName: "Bruno",
     targetEmail: "dev@babybook.dev",
@@ -660,8 +665,8 @@ export const mockDeliveries: MockDelivery[] = [
     updatedAt: "2024-12-15T16:30:00Z",
   },
   {
-    id: "delivery-001",
-    partnerId: "partner-demo-001",
+    id: "1a2b3c4d-1111-4aaa-9bbb-000000000002",
+    partnerId: PARTNER_DEMO_ID,
     title: "Ensaio Newborn - Sofia",
     clientName: "Ana Silva",
     description: "Ensaio newborn da pequena Sofia, 10 dias de vida.",
@@ -674,8 +679,8 @@ export const mockDeliveries: MockDelivery[] = [
     updatedAt: "2024-12-10T16:30:00Z",
   },
   {
-    id: "delivery-002",
-    partnerId: "partner-demo-001",
+    id: "1a2b3c4d-1111-4aaa-9bbb-000000000003",
+    partnerId: PARTNER_DEMO_ID,
     title: "Smash the Cake - Miguel",
     clientName: "Carla Santos",
     description: "Smash the Cake de 1 aninho do Miguel.",
@@ -688,8 +693,8 @@ export const mockDeliveries: MockDelivery[] = [
     updatedAt: "2024-12-09T11:00:00Z",
   },
   {
-    id: "delivery-003",
-    partnerId: "partner-demo-001",
+    id: "1a2b3c4d-1111-4aaa-9bbb-000000000004",
+    partnerId: PARTNER_DEMO_ID,
     title: "Ensaio Gestante - Julia",
     clientName: "Julia Mendes",
     description: null,

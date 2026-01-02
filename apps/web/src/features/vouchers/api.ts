@@ -40,7 +40,8 @@ export async function redeemVoucher(
  * Get user's redeemed vouchers
  */
 export async function getMyVouchers(): Promise<VoucherValidationResult[]> {
-  return apiClient.get<VoucherValidationResult[]>(`${API_BASE}/me`);
+  const response = await apiClient.get<VoucherValidationResult[]>(`${API_BASE}/me`);
+  return response || [];
 }
 
 /**

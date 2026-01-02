@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import { PartnerLayout } from "@/layouts/PartnerLayout";
@@ -14,7 +15,6 @@ import { CheckoutPage } from "@/pages/CheckoutPage";
 import { CheckoutSuccessPage } from "@/pages/CheckoutSuccessPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
-import { MomentsListPage } from "@/features/moments/pages/MomentsListPage";
 import { MomentDetailPage } from "@/features/moments/pages/MomentDetailPage";
 import { CapsulePage } from "@/features/capsule/pages/CapsulePage";
 import { VaultPage } from "@/features/vault/pages/VaultPage";
@@ -24,7 +24,6 @@ import { VisitasPage } from "@/pages/VisitasPage";
 import { PerfilCriancaPage } from "@/pages/PerfilCriancaPage";
 import { MomentDraftPage } from "@/features/moments/pages/MomentDraftPage";
 import { MomentAvulsoPage } from "@/pages/MomentAvulsoPage";
-import { ChapterMomentsPage } from "@/features/moments/pages/ChapterMomentsPage";
 // Partner Portal
 import {
   PartnerDashboard,
@@ -59,6 +58,19 @@ import {
   ArmazenamentoPage,
 } from "@/features/settings";
 
+function LegacyMomentosRedirect() {
+  return <Navigate to="/jornada" replace />;
+}
+
+function LegacyMomentosDetailRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/jornada/moment/${id}` : "/jornada"} replace />;
+}
+
+function LegacyJourneyChaptersRedirect() {
+  return <Navigate to="/jornada" replace />;
+}
+
 export function AppRouter() {
   return (
     <Router future={{ v7_relativeSplatPath: true }}>
@@ -76,8 +88,12 @@ export function AppRouter() {
             path="/dashboard"
             element={<Navigate to="/jornada" replace />}
           />
-          <Route path="/momentos" element={<MomentsListPage />} />
-          <Route path="/momentos/:id" element={<MomentDetailPage />} />
+          {/* Rotas legadas: páginas antigas de momentos */}
+          <Route path="/momentos" element={<LegacyMomentosRedirect />} />
+          <Route
+            path="/momentos/:id"
+            element={<LegacyMomentosDetailRedirect />}
+          />
           <Route path="/capsula" element={<CapsulePage />} />
           <Route path="/cofre" element={<VaultPage />} />
           <Route path="/perfil-usuario" element={<ProfilePage />} />
@@ -89,11 +105,13 @@ export function AppRouter() {
             path="/jornada/moment/draft/:template_id"
             element={<MomentDraftPage />}
           />
+          <Route path="/jornada/moment/:id" element={<MomentDetailPage />} />
           <Route path="/jornada/moment/avulso" element={<MomentAvulsoPage />} />
           <Route path="/app/novo-momento" element={<AddMomentPage />} />
+          {/* Rota legada: visão de capítulo completo */}
           <Route
             path="/jornada/capitulos/:chapterId"
-            element={<ChapterMomentsPage />}
+            element={<LegacyJourneyChaptersRedirect />}
           />
           <Route path="/saude" element={<SaudePage />} />
           <Route path="/visitas" element={<VisitasPage />} />

@@ -36,7 +36,8 @@
     "retry": "Tentar novamente",
     "reload": "Recarregar página",
     "noResults": "Nenhum resultado encontrado",
-    "required": "Obrigatório"
+    "required": "Obrigatório",
+    "select": "Selecione..."
   },
   "auth": {
     "login": "Entrar",
@@ -463,6 +464,177 @@
       "title": "Jornada",
       "errorTitle": "Não foi possível carregar a jornada",
       "errorDescription": "Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
+    },
+    "moments": {
+      "common": {
+        "newMoment": "Novo Momento"
+      },
+      "free": {
+        "description": "Crie um momento livre, sem necessidade de seguir um template"
+      },
+      "draft": {
+        "selectChildFirst": "Selecione uma criança primeiro.",
+        "goToProfile": "Ir para Perfil",
+        "missingTemplateTitle": "Estamos quase lá!",
+        "missingTemplateDescription": "Ainda não temos o formulário configurado para este momento ({{templateId}}). Compartilhe este identificador com o time de produto para liberarmos os campos específicos. Enquanto isso, continue registrando com o formulário genérico de momentos avulsos.",
+        "backToJourney": "Voltar para a jornada",
+        "useFreeMoment": "Usar momento avulso"
+      },
+      "wizard": {
+        "types": {
+          "photo": {
+            "label": "Foto",
+            "description": "Capture um instante especial"
+          },
+          "video": {
+            "label": "Vídeo",
+            "description": "Grave um momento em movimento"
+          },
+          "audio": {
+            "label": "Áudio",
+            "description": "Grave uma mensagem de voz"
+          },
+          "text": {
+            "label": "Texto",
+            "description": "Escreva uma memória"
+          }
+        },
+        "errors": {
+          "microphonePermission": "Não foi possível acessar o microfone. Verifique as permissões.",
+          "createFailed": "Erro ao criar momento. Tente novamente."
+        },
+        "stepType": {
+          "subtitle": "Como você quer registrar esse momento?"
+        },
+        "stepMedia": {
+          "title": {
+            "photo": "Adicione suas fotos",
+            "video": "Adicione seu vídeo",
+            "audio": "Grave ou envie áudio",
+            "text": "Pule esta etapa"
+          },
+          "upload": {
+            "tapToAddPhotos": "Toque para adicionar fotos",
+            "tapToAddVideo": "Toque para adicionar vídeo",
+            "dragDrop": "ou arraste e solte aqui"
+          },
+          "audio": {
+            "start": "Iniciar Gravação",
+            "stop": "Parar Gravação",
+            "success": "Áudio gravado com sucesso!",
+            "recordAgain": "Gravar novamente"
+          },
+          "textSkip": "Você pode adicionar fotos depois, se quiser.\nContinue para escrever sua memória."
+        },
+        "stepDetails": {
+          "title": "Conta essa história",
+          "fields": {
+            "titleLabel": "Título do momento *",
+            "titlePlaceholder": "Ex: Primeiro sorriso",
+            "dateLabel": "Quando aconteceu?",
+            "descriptionLabel": "Conte mais sobre esse momento (opcional)",
+            "descriptionPlaceholder": "O que tornou esse momento especial..."
+          }
+        },
+        "stepPreview": {
+          "title": "Tudo certo?",
+          "untitled": "Sem título"
+        },
+        "stepSuccess": {
+          "title": "Momento registrado!",
+          "subtitle": "Essa memória foi salva para sempre",
+          "cta": "Ver na Jornada"
+        },
+        "saving": "Salvando...",
+        "saveMoment": "Salvar Momento",
+        "continue": "Continuar"
+      },
+      "form": {
+        "fields": {
+          "titleLabel": "Título do Momento *",
+          "titlePlaceholder": "Ex: Primeiro Sorriso",
+          "dateLabel": "Data do Momento *",
+          "summaryLabel": "Descrição (opcional)",
+          "summaryPlaceholder": "Conte a história desse momento especial...",
+          "tagsPlaceholder": "Separe por vírgulas"
+        },
+        "sections": {
+          "details": "Detalhes do momento"
+        },
+        "errors": {
+          "requiredField": "Campo obrigatório."
+        },
+        "media": {
+          "helper": {
+            "generic": "Até 10 mídias por momento. Você adicionou {{count}}.",
+            "photos": "Fotos: {{current}}/{{max}} (meta: {{range}})",
+            "videoOrAudio": "Vídeo ou áudio: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
+            "video": "Vídeo: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
+            "audio": "Áudio: {{current}}/{{max}}{{requiredSuffix}}",
+            "requiredSuffix": " (obrigatório)",
+            "secondsSuffix": " ({{seconds}}s)"
+          },
+          "errors": {
+            "maxItemsGeneric": "Limite de 10 mídias por momento.",
+            "photosNotAllowed": "Este momento não aceita fotos.",
+            "videosNotAllowed": "Este momento não aceita vídeos.",
+            "audiosNotAllowed": "Este momento não aceita áudios.",
+            "maxDurationExceeded": "Duração máxima: {{maxSeconds}}s. Arquivo \"{{fileName}}\" tem ~{{duration}}s.",
+            "maxPhotosExceeded": "Limite de fotos excedido: máximo {{max}}.",
+            "minPhotosRequired": "Adicione pelo menos {{min}} foto(s).",
+            "maxVideoOrAudioExceeded": "Limite excedido: no máximo {{max}} vídeo OU áudio.",
+            "chooseOnlyOneVideoOrAudio": "Escolha apenas um: vídeo OU áudio.",
+            "videoOrAudioRequired": "Inclua 1 vídeo OU áudio para este momento.",
+            "maxVideosExceeded": "Limite de vídeos excedido: máximo {{max}}.",
+            "videoRequired": "Inclua 1 vídeo para este momento.",
+            "maxAudiosExceeded": "Limite de áudios excedido: máximo {{max}}.",
+            "audioRequired": "Inclua 1 áudio para este momento.",
+            "maxPhotos": "Limite de fotos: máximo {{max}}.",
+            "maxVideoOrAudio": "Limite: no máximo {{max}} vídeo OU áudio.",
+            "maxVideos": "Limite de vídeos: máximo {{max}}.",
+            "maxAudios": "Limite de áudios: máximo {{max}}."
+          }
+        },
+        "stamps": {
+          "emptyHint": "Gere os carimbos da mãozinha e do pezinho acima.",
+          "readyTitle": "Artes Prontas:",
+          "handLabel": "Carimbo da Mãozinha",
+          "footLabel": "Carimbo do Pezinho"
+        },
+        "saving": "Salvando...",
+        "save": "Salvar Momento"
+      }
+    },
+    "importDelivery": {
+      "title": "Importar entrega",
+      "subtitle": "Selecione em qual Livro você quer importar essas fotos.",
+      "invalidLink": "Link inválido.",
+      "notFound": "Não encontrei essa entrega na sua conta. Se você acabou de receber o link, tente atualizar a página.",
+      "notFoundTip": "Dica: confirme se você está logado(a) com o mesmo e-mail para o qual o fotógrafo enviou a entrega.",
+      "deliveryLabel": "Entrega",
+      "fromPartner": "De {{name}}",
+      "assetsCount": "{{count}} arquivo(s)",
+      "sentTo": "Enviado para {{email}}",
+      "noChildrenHint": "Você ainda não tem nenhum Livro. Selecione “novo Livro”.",
+      "newChildPlaceholder": "Nome do bebê (opcional)",
+      "importing": "Importando…",
+      "cta": "Importar agora",
+      "options": {
+        "existing": {
+          "title": "Importar em um Livro existente",
+          "description": "Grátis para este Livro."
+        },
+        "new": {
+          "title": "Criar um novo Livro",
+          "description": "Pode consumir 1 crédito do fotógrafo."
+        }
+      },
+      "errors": {
+        "selectChildRequired": "Selecione um bebê (Livro) para importar.",
+        "emailMismatch": "Esta entrega foi enviada para outro e-mail. Faça login com o e-mail correto para resgatar.",
+        "emailMismatchMasked": "Esta entrega foi enviada para outro e-mail. Faça login com {{email}} para resgatar.",
+        "generic": "Falha ao importar entrega. Tente novamente."
+      }
     },
     "myAccount": {
       "title": "Minha Conta",

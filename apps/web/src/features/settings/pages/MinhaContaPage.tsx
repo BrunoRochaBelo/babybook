@@ -332,7 +332,7 @@ export const MinhaContaPage = () => {
         >
           {t("b2c.myAccount.theme")}
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 p-1.5 rounded-2xl" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
           {[
             { value: "light" as const, icon: Sun, label: t("b2c.myAccount.themeLight") },
             { value: "dark" as const, icon: Moon, label: t("b2c.myAccount.themeDark") },
@@ -341,24 +341,21 @@ export const MinhaContaPage = () => {
             <button
               key={option.value}
               onClick={() => setTheme(option.value)}
-              className="flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors border-2"
+              className="flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-semibold text-xs"
               style={{
                 backgroundColor:
                   theme === option.value
-                    ? "var(--bb-color-accent-light, rgba(0,0,0,0.05))"
-                    : "var(--bb-color-bg)",
-                borderColor:
-                  theme === option.value
-                    ? "var(--bb-color-accent)"
-                    : "var(--bb-color-border)",
+                    ? "var(--bb-color-surface)"
+                    : "transparent",
                 color:
                   theme === option.value
                     ? "var(--bb-color-accent)"
                     : "var(--bb-color-ink-muted)",
+                boxShadow: theme === option.value ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
               }}
             >
-              <option.icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{option.label}</span>
+              <option.icon className="w-4 h-4" />
+              <span>{option.label}</span>
             </button>
           ))}
         </div>
@@ -370,29 +367,26 @@ export const MinhaContaPage = () => {
         >
           {t("b2c.myAccount.language")}
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 p-1.5 rounded-2xl" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
           {languages.map((option) => (
             <button
               key={option.code}
               onClick={() => setLanguage(option.code)}
-              className="flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-colors border-2"
+              className="flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-semibold text-xs"
               style={{
                 backgroundColor:
                   language === option.code
-                    ? "var(--bb-color-accent-light, rgba(0,0,0,0.05))"
-                    : "var(--bb-color-bg)",
-                borderColor:
-                  language === option.code
-                    ? "var(--bb-color-accent)"
-                    : "var(--bb-color-border)",
+                    ? "var(--bb-color-surface)"
+                    : "transparent",
                 color:
                   language === option.code
                     ? "var(--bb-color-accent)"
                     : "var(--bb-color-ink-muted)",
+                boxShadow: language === option.code ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
               }}
             >
-              <span className="text-xl">{option.flag}</span>
-              <span className="text-xs font-medium">{option.name.split(" ")[0]}</span>
+              <span className="text-sm">{option.flag}</span>
+              <span>{option.name.split(" ")[0]}</span>
             </button>
           ))}
         </div>

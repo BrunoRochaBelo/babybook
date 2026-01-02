@@ -31,9 +31,18 @@ const MomentDetailSkeleton = () => (
 export const MomentDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data: moment, isLoading } = useMoment(id || "");
+  const { data: moment, isLoading, error } = useMoment(id || "");
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+
+  const handleBack = () => {
+    // Tenta voltar no histórico (melhor UX), com fallback para a Jornada.
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/jornada");
+  };
 
   const openMediaViewer = (index: number) => {
     setViewerIndex(index);
@@ -41,24 +50,70 @@ export const MomentDetailPage = () => {
   };
 
   if (isLoading) {
-    return <MomentDetailSkeleton />;
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+            <span className="font-semibold text-gray-700">Voltar</span>
+          </button>
+        </div>
+
+        <MomentDetailSkeleton />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+            <span className="font-semibold text-gray-700">Voltar</span>
+          </button>
+        </div>
+
+        <div className="text-center py-20">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Erro ao carregar o momento
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Não foi possível carregar este momento agora. Tente novamente em
+            instantes.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!moment) {
     return (
-      <div className="max-w-3xl mx-auto text-center py-20">
-        <h2 className="text-xl font-semibold text-gray-600">
-          Momento não encontrado
-        </h2>
-        <p className="text-gray-400 mt-2">
-          O momento que você está procurando não existe ou foi removido.
-        </p>
-        <button
-          onClick={() => navigate("/momentos")}
-          className="mt-6 bg-primary text-white px-4 py-2 rounded-lg"
-        >
-          Voltar para Momentos
-        </button>
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+            <span className="font-semibold text-gray-700">Voltar</span>
+          </button>
+        </div>
+
+        <div className="text-center py-20">
+          <h2 className="text-xl font-semibold text-gray-600">
+            Momento não encontrado
+          </h2>
+          <p className="text-gray-400 mt-2">
+            O momento que você está procurando não existe ou foi removido.
+          </p>
+        </div>
       </div>
     );
   }
@@ -77,7 +132,7 @@ export const MomentDetailPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
-          onClick={() => navigate("/momentos")}
+          onClick={handleBack}
           className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-5 h-5 text-gray-700" />

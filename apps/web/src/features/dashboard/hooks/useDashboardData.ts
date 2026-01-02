@@ -4,6 +4,7 @@ import { useMoments } from "@/hooks/api";
 import {
   GUIDED_MOMENT_SEQUENCE,
   type CatalogSequenceItem,
+  normalizeTemplateKey,
 } from "@/data/momentCatalog";
 
 interface DashboardData {
@@ -22,7 +23,10 @@ const pickNextTemplate = (moments: Moment[]): CatalogSequenceItem | null => {
         (moment): moment is Moment & { templateKey: string } =>
           moment.status === "draft" && Boolean(moment.templateKey),
       )
-      .map((moment) => moment.templateKey),
+      .map(
+        (moment) =>
+          normalizeTemplateKey(moment.templateKey) ?? moment.templateKey,
+      ),
   );
   if (draftKeys.size > 0) {
     const draftCandidate = GUIDED_MOMENT_SEQUENCE.find((item) =>
@@ -36,7 +40,10 @@ const pickNextTemplate = (moments: Moment[]): CatalogSequenceItem | null => {
   const completedTemplates = new Set(
     moments
       .filter((moment) => moment.status === "published")
-      .map((moment) => moment.templateKey)
+      .map(
+        (moment) =>
+          normalizeTemplateKey(moment.templateKey) ?? moment.templateKey,
+      )
       .filter((template): template is string => Boolean(template)),
   );
 

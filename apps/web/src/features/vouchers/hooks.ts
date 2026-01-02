@@ -7,6 +7,6 @@ export const useMyVouchers = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["my-vouchers"],
     enabled: options?.enabled ?? true,
-    queryFn: async (): Promise<VoucherValidationResult[]> => getMyVouchers(),
+    queryFn: async (): Promise<VoucherValidationResult[]> => (await getMyVouchers()) || [],
     staleTime: 60_000,
   });

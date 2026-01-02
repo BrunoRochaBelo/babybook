@@ -172,7 +172,7 @@ export async function fetchNotifications(): Promise<NotificationsResponse> {
 
   try {
     const response = await apiClient.get<NotificationsResponse>(API_BASE);
-    return response;
+    return response || { items: [], total: 0, unread_count: 0 };
   } catch (error) {
     console.error("[Notifications] API error:", error);
     throw error;
@@ -192,7 +192,7 @@ export async function fetchUnreadCount(): Promise<UnreadCountResponse> {
     const response = await apiClient.get<UnreadCountResponse>(
       `${API_BASE}/unread-count`
     );
-    return response;
+    return response || { unread_count: 0 };
   } catch (error) {
     throw error;
   }
@@ -257,7 +257,7 @@ export async function fetchPreferences(): Promise<NotificationPreferences> {
     const response = await apiClient.get<NotificationPreferences>(
       `${API_BASE}/preferences`
     );
-    return response;
+    return response || MOCK_PREFERENCES;
   } catch (error) {
     if (shouldUseMockFallback()) {
       return mockPreferencesState;

@@ -36,6 +36,7 @@ import { useCreateMoment } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { Confetti } from "@/components/animations";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@babybook/i18n";
 
 type MomentType = "photo" | "video" | "audio" | "text";
 type WizardStep = "type" | "media" | "details" | "preview" | "success";
@@ -52,6 +53,7 @@ export function AddMomentWizard({
   const navigate = useNavigate();
   const { selectedChild } = useSelectedChild();
   const { mutateAsync: createMoment, isPending } = useCreateMoment();
+  const { t, i18n } = useTranslation();
 
   // Wizard state
   const [step, setStep] = useState<WizardStep>(initialType ? "media" : "type");
@@ -144,7 +146,7 @@ export function AddMomentWizard({
       });
     } catch (error) {
       console.error("Failed to start recording:", error);
-      alert("Não foi possível acessar o microfone. Verifique as permissões.");
+      alert(t("b2c.moments.wizard.errors.microphonePermission"));
     }
   };
 
@@ -175,7 +177,7 @@ export function AddMomentWizard({
     try {
       await createMoment({
         childId: selectedChild.id,
-        title: title || "Novo Momento",
+        title: title || t("b2c.moments.common.newMoment"),
         summary: description,
         occurredAt,
         payload: mediaFiles.length
@@ -197,7 +199,7 @@ export function AddMomentWizard({
       setShowConfetti(true);
     } catch (error) {
       console.error("Failed to create moment:", error);
-      alert("Erro ao criar momento. Tente novamente.");
+      alert(t("b2c.moments.wizard.errors.createFailed"));
     }
   };
 
@@ -240,29 +242,29 @@ export function AddMomentWizard({
     {
       type: "photo" as MomentType,
       icon: Camera,
-      label: "Foto",
-      description: "Capture um instante especial",
+      label: t("b2c.moments.wizard.types.photo.label"),
+      description: t("b2c.moments.wizard.types.photo.description"),
       color: "from-pink-400 to-rose-500",
     },
     {
       type: "video" as MomentType,
       icon: Video,
-      label: "Vídeo",
-      description: "Grave um momento em movimento",
+      label: t("b2c.moments.wizard.types.video.label"),
+      description: t("b2c.moments.wizard.types.video.description"),
       color: "from-purple-400 to-indigo-500",
     },
     {
       type: "audio" as MomentType,
       icon: Mic,
-      label: "Áudio",
-      description: "Grave uma mensagem de voz",
+      label: t("b2c.moments.wizard.types.audio.label"),
+      description: t("b2c.moments.wizard.types.audio.description"),
       color: "from-amber-400 to-orange-500",
     },
     {
       type: "text" as MomentType,
       icon: FileText,
-      label: "Texto",
-      description: "Escreva uma memória",
+      label: t("b2c.moments.wizard.types.text.label"),
+      description: t("b2c.moments.wizard.types.text.description"),
       color: "from-teal-400 to-emerald-500",
     },
   ];
@@ -271,18 +273,25 @@ export function AddMomentWizard({
     <>
       <Confetti isActive={showConfetti} duration={3000} />
 
-      <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      <div
+        className="fixed inset-0 z-50 flex flex-col"
+        style={{
+          backgroundColor: "var(--bb-color-bg)",
+          color: "var(--bb-color-ink)",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+        <div
+          className="flex items-center justify-between border-b p-4"
+          style={{ borderColor: "var(--bb-color-border)" }}
+        >
           <button
             onClick={step === "type" ? handleClose : handleBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="rounded-full p-2 transition-colors"
+            style={{ color: "var(--bb-color-ink)" }}
+            aria-label={t("common.back")}
           >
-            {step === "type" ? (
-              <X className="w-5 h-5 text-gray-600" />
-            ) : (
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            )}
+            <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
           <div className="flex gap-1.5">
             {steps.slice(0, -1).map((s, index) => (
@@ -294,7 +303,7 @@ export function AddMomentWizard({
                     ? "w-6 bg-primary"
                     : index === currentStepIndex
                       ? "w-6 bg-primary"
-                      : "w-1.5 bg-gray-200",
+                      : "w-1.5 bg-[var(--bb-color-border)]",
                 )}
               />
             ))}
@@ -314,11 +323,11 @@ export function AddMomentWizard({
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-md mx-auto"
               >
-                <h1 className="text-2xl font-serif font-bold text-center text-gray-800 mb-2">
-                  Novo Momento
+                <h1 className="mb-2 text-center text-2xl font-serif font-bold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.common.newMoment")}
                 </h1>
-                <p className="text-center text-gray-500 mb-8">
-                  Como você quer registrar esse momento?
+                <p className="mb-8 text-center text-[var(--bb-color-ink-muted)]">
+                  {t("b2c.moments.wizard.stepType.subtitle")}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -355,11 +364,15 @@ export function AddMomentWizard({
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-md mx-auto"
               >
-                <h2 className="text-xl font-serif font-bold text-center text-gray-800 mb-2">
-                  {momentType === "photo" && "Adicione suas fotos"}
-                  {momentType === "video" && "Adicione seu vídeo"}
-                  {momentType === "audio" && "Grave ou envie áudio"}
-                  {momentType === "text" && "Pule esta etapa"}
+                <h2 className="mb-2 text-center text-xl font-serif font-bold text-[var(--bb-color-ink)]">
+                  {momentType === "photo" &&
+                    t("b2c.moments.wizard.stepMedia.title.photo")}
+                  {momentType === "video" &&
+                    t("b2c.moments.wizard.stepMedia.title.video")}
+                  {momentType === "audio" &&
+                    t("b2c.moments.wizard.stepMedia.title.audio")}
+                  {momentType === "text" &&
+                    t("b2c.moments.wizard.stepMedia.title.text")}
                 </h2>
 
                 {/* Photo/Video Upload */}
@@ -378,17 +391,30 @@ export function AddMomentWizard({
                     {mediaFiles.length === 0 ? (
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full aspect-square border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
+                        className="flex aspect-square w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors hover:border-primary"
+                        style={{
+                          borderColor: "var(--bb-color-border)",
+                          backgroundColor: "transparent",
+                        }}
                       >
-                        <Upload className="w-12 h-12 text-gray-400 mb-3" />
-                        <p className="font-medium text-gray-600">
-                          Toque para{" "}
+                        <Upload className="mb-3 h-12 w-12 text-[var(--bb-color-ink-muted)]" />
+                        <p
+                          className="font-medium"
+                          style={{ color: "var(--bb-color-ink)" }}
+                        >
                           {momentType === "photo"
-                            ? "adicionar fotos"
-                            : "adicionar vídeo"}
+                            ? t(
+                                "b2c.moments.wizard.stepMedia.upload.tapToAddPhotos",
+                              )
+                            : t(
+                                "b2c.moments.wizard.stepMedia.upload.tapToAddVideo",
+                              )}
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
-                          ou arraste e solte aqui
+                        <p
+                          className="mt-1 text-sm"
+                          style={{ color: "var(--bb-color-ink-muted)" }}
+                        >
+                          {t("b2c.moments.wizard.stepMedia.upload.dragDrop")}
                         </p>
                       </button>
                     ) : (
@@ -411,7 +437,11 @@ export function AddMomentWizard({
                               )}
                               <button
                                 onClick={() => handleRemoveMedia(index)}
-                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full text-white"
+                                style={{
+                                  backgroundColor: "var(--bb-color-danger)",
+                                }}
+                                aria-label={t("common.delete")}
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -420,9 +450,10 @@ export function AddMomentWizard({
                           {momentType === "photo" && mediaFiles.length < 10 && (
                             <button
                               onClick={() => fileInputRef.current?.click()}
-                              className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-primary transition-colors"
+                              className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed transition-colors hover:border-primary"
+                              style={{ borderColor: "var(--bb-color-border)" }}
                             >
-                              <ImageIcon className="w-6 h-6 text-gray-400" />
+                              <ImageIcon className="h-6 w-6 text-[var(--bb-color-ink-muted)]" />
                             </button>
                           )}
                         </div>
@@ -448,7 +479,7 @@ export function AddMomentWizard({
                         </div>
 
                         {isRecording && (
-                          <p className="text-2xl font-mono text-gray-800">
+                          <p className="text-2xl font-mono text-[var(--bb-color-ink)]">
                             {Math.floor(audioDuration / 60)}:
                             {(audioDuration % 60).toString().padStart(2, "0")}
                           </p>
@@ -467,7 +498,9 @@ export function AddMomentWizard({
                               : "bg-primary hover:bg-primary/90",
                           )}
                         >
-                          {isRecording ? "Parar Gravação" : "Iniciar Gravação"}
+                          {isRecording
+                            ? t("b2c.moments.wizard.stepMedia.audio.stop")
+                            : t("b2c.moments.wizard.stepMedia.audio.start")}
                         </button>
                       </>
                     ) : (
@@ -475,8 +508,8 @@ export function AddMomentWizard({
                         <div className="w-24 h-24 mx-auto rounded-full bg-green-500 flex items-center justify-center">
                           <Check className="w-10 h-10 text-white" />
                         </div>
-                        <p className="text-gray-600">
-                          Áudio gravado com sucesso!
+                        <p className="text-[var(--bb-color-ink-muted)]">
+                          {t("b2c.moments.wizard.stepMedia.audio.success")}
                         </p>
                         <audio
                           src={URL.createObjectURL(audioBlob)}
@@ -488,9 +521,10 @@ export function AddMomentWizard({
                             setAudioBlob(null);
                             setAudioDuration(0);
                           }}
-                          className="text-sm text-gray-500 underline"
+                          className="text-sm underline"
+                          style={{ color: "var(--bb-color-ink-muted)" }}
                         >
-                          Gravar novamente
+                          {t("b2c.moments.wizard.stepMedia.audio.recordAgain")}
                         </button>
                       </div>
                     )}
@@ -500,11 +534,9 @@ export function AddMomentWizard({
                 {/* Text - Skip message */}
                 {momentType === "text" && (
                   <div className="text-center py-12">
-                    <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      Você pode adicionar fotos depois, se quiser.
-                      <br />
-                      Continue para escrever sua memória.
+                    <FileText className="mx-auto mb-4 h-16 w-16 text-[var(--bb-color-border)]" />
+                    <p className="text-[var(--bb-color-ink-muted)]">
+                      {t("b2c.moments.wizard.stepMedia.textSkip")}
                     </p>
                   </div>
                 )}
@@ -520,49 +552,70 @@ export function AddMomentWizard({
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-md mx-auto space-y-6"
               >
-                <h2 className="text-xl font-serif font-bold text-center text-gray-800 mb-6">
-                  Conta essa história
+                <h2 className="mb-6 text-center text-xl font-serif font-bold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.wizard.stepDetails.title")}
                 </h2>
 
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Título do momento *
+                  <label className="mb-2 block text-sm font-medium text-[var(--bb-color-ink)]">
+                    {t("b2c.moments.wizard.stepDetails.fields.titleLabel")}
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Primeiro sorriso"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder={t(
+                      "b2c.moments.wizard.stepDetails.fields.titlePlaceholder",
+                    )}
+                    className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      borderColor: "var(--bb-color-border)",
+                      color: "var(--bb-color-ink)",
+                    }}
                   />
                 </div>
 
                 {/* Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="w-4 h-4 inline mr-1" />
-                    Quando aconteceu?
+                  <label className="mb-2 block text-sm font-medium text-[var(--bb-color-ink)]">
+                    <Calendar className="mr-1 inline h-4 w-4" aria-hidden />
+                    {t("b2c.moments.wizard.stepDetails.fields.dateLabel")}
                   </label>
                   <input
                     type="date"
                     value={occurredAt}
                     onChange={(e) => setOccurredAt(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      borderColor: "var(--bb-color-border)",
+                      color: "var(--bb-color-ink)",
+                    }}
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conte mais sobre esse momento (opcional)
+                  <label className="mb-2 block text-sm font-medium text-[var(--bb-color-ink)]">
+                    {t(
+                      "b2c.moments.wizard.stepDetails.fields.descriptionLabel",
+                    )}
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="O que tornou esse momento especial..."
+                    placeholder={t(
+                      "b2c.moments.wizard.stepDetails.fields.descriptionPlaceholder",
+                    )}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full resize-none rounded-xl border px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{
+                      backgroundColor: "var(--bb-color-surface)",
+                      borderColor: "var(--bb-color-border)",
+                      color: "var(--bb-color-ink)",
+                    }}
                   />
                 </div>
               </motion.div>
@@ -577,14 +630,14 @@ export function AddMomentWizard({
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-md mx-auto"
               >
-                <h2 className="text-xl font-serif font-bold text-center text-gray-800 mb-6">
-                  Tudo certo?
+                <h2 className="mb-6 text-center text-xl font-serif font-bold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.wizard.stepPreview.title")}
                 </h2>
 
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="overflow-hidden rounded-2xl border bg-[var(--bb-color-surface)] border-[var(--bb-color-border)]">
                   {/* Media Preview */}
                   {mediaPreviewUrls.length > 0 && (
-                    <div className="aspect-video bg-gray-100">
+                    <div className="aspect-video bg-[var(--bb-color-bg)]">
                       {momentType === "video" ? (
                         <video
                           src={mediaPreviewUrls[0]}
@@ -603,7 +656,10 @@ export function AddMomentWizard({
 
                   {/* Audio Preview */}
                   {audioBlob && (
-                    <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50">
+                    <div
+                      className="p-4"
+                      style={{ backgroundColor: "var(--bb-color-bg)" }}
+                    >
                       <audio
                         src={URL.createObjectURL(audioBlob)}
                         controls
@@ -614,18 +670,20 @@ export function AddMomentWizard({
 
                   {/* Content */}
                   <div className="p-4 space-y-2">
-                    <p className="text-sm text-gray-500">
-                      {new Date(occurredAt).toLocaleDateString("pt-BR", {
+                    <p className="text-sm text-[var(--bb-color-ink-muted)]">
+                      {new Date(occurredAt).toLocaleDateString(i18n.language, {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
                       })}
                     </p>
-                    <h3 className="text-xl font-serif font-bold text-gray-800">
-                      {title || "Sem título"}
+                    <h3 className="text-xl font-serif font-bold text-[var(--bb-color-ink)]">
+                      {title || t("b2c.moments.wizard.stepPreview.untitled")}
                     </h3>
                     {description && (
-                      <p className="text-gray-600">{description}</p>
+                      <p className="text-[var(--bb-color-ink-muted)]">
+                        {description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -649,18 +707,18 @@ export function AddMomentWizard({
                   <Sparkles className="w-12 h-12 text-white" />
                 </motion.div>
 
-                <h2 className="text-2xl font-serif font-bold text-gray-800 mb-2">
-                  Momento registrado!
+                <h2 className="mb-2 text-2xl font-serif font-bold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.wizard.stepSuccess.title")}
                 </h2>
-                <p className="text-gray-500 mb-8">
-                  Essa memória foi salva para sempre
+                <p className="mb-8 text-[var(--bb-color-ink-muted)]">
+                  {t("b2c.moments.wizard.stepSuccess.subtitle")}
                 </p>
 
                 <button
                   onClick={handleFinish}
                   className="w-full py-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
                 >
-                  Ver na Jornada
+                  {t("b2c.moments.wizard.stepSuccess.cta")}
                 </button>
               </motion.div>
             )}
@@ -669,7 +727,10 @@ export function AddMomentWizard({
 
         {/* Footer - Navigation */}
         {step !== "type" && step !== "success" && (
-          <div className="p-4 border-t border-gray-100">
+          <div
+            className="border-t p-4"
+            style={{ borderColor: "var(--bb-color-border)" }}
+          >
             <button
               onClick={step === "preview" ? handleSubmit : handleNext}
               disabled={!canProceed() || isPending}
@@ -677,7 +738,7 @@ export function AddMomentWizard({
                 "w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors",
                 canProceed() && !isPending
                   ? "bg-primary text-white hover:bg-primary/90"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                  : "bg-[var(--bb-color-border)] text-[var(--bb-color-ink-muted)] cursor-not-allowed",
               )}
             >
               {isPending ? (
@@ -691,16 +752,16 @@ export function AddMomentWizard({
                     }}
                     className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                   />
-                  Salvando...
+                  {t("b2c.moments.wizard.saving")}
                 </>
               ) : step === "preview" ? (
                 <>
                   <Check className="w-5 h-5" />
-                  Salvar Momento
+                  {t("b2c.moments.wizard.saveMoment")}
                 </>
               ) : (
                 <>
-                  Continuar
+                  {t("b2c.moments.wizard.continue")}
                   <ChevronRight className="w-5 h-5" />
                 </>
               )}

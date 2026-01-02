@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 import { nanoid } from "nanoid";
 import {
   mockChildren,
@@ -39,6 +39,13 @@ const defaultRole = mockUser.role ?? "owner";
 const defaultHasPurchased = mockUser.hasPurchased ?? false;
 const defaultOnboardingCompleted = mockUser.onboardingCompleted ?? true;
 
+const fallbackUuidV4 = () =>
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = Math.floor(Math.random() * 16);
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+
 const randomId = () => {
   if (
     typeof crypto !== "undefined" &&
@@ -46,7 +53,7 @@ const randomId = () => {
   ) {
     return crypto.randomUUID();
   }
-  return nanoid();
+  return fallbackUuidV4();
 };
 
 const makeAccount = ({
@@ -220,7 +227,6 @@ const toVaccineResponse = (vaccine: HealthVaccine) => ({
   due_date: vaccine.dueDate,
   applied_at: vaccine.appliedAt,
   status: vaccine.status,
-  notes: vaccine.notes,
 });
 
 const mutableChildren = [...mockChildren];
@@ -554,7 +560,7 @@ export const handlers = [
         childId = action.child_id;
       } else {
         const newChild: Child = {
-          id: nanoid(),
+          id: randomId(),
           name: action.child_name?.trim() || "Novo Livro",
           birthday: null,
           avatarUrl: null,
@@ -565,7 +571,7 @@ export const handlers = [
         childId = newChild.id;
       }
 
-      const momentId = nanoid();
+      const momentId = randomId();
       const moment: Moment = {
         id: momentId,
         childId,
@@ -611,7 +617,7 @@ export const handlers = [
       avatar_url?: string;
     };
     const child: Child = {
-      id: nanoid(),
+      id: randomId(),
       name: body.name,
       birthday: body.birthday ?? null,
       avatarUrl: body.avatar_url ?? null,
@@ -658,7 +664,7 @@ export const handlers = [
       payload?: Record<string, unknown>;
     };
     const moment: Moment = {
-      id: nanoid(),
+      id: randomId(),
       childId: body.child_id,
       title: body.title,
       summary: body.summary ?? "",
@@ -695,7 +701,7 @@ export const handlers = [
       message: string;
     };
     const entry: GuestbookEntry = {
-      id: nanoid(),
+      id: randomId(),
       childId: body.child_id,
       authorName: body.author_name,
       authorEmail: body.author_email ?? null,
@@ -715,7 +721,7 @@ export const handlers = [
   http.post(withBase("/health/measurements"), async ({ request }) => {
     const body = (await request.json()) as CreateHealthMeasurementInput;
     const measurement: HealthMeasurement = {
-      id: nanoid(),
+      id: randomId(),
       childId: body.childId,
       date: body.date,
       weight: body.weight,
@@ -1025,7 +1031,7 @@ export const handlers = [
       `Ensaio - ${body.child_name?.trim() || body.client_name?.trim() || targetEmail}`;
 
     const newDelivery: MockDelivery = {
-      id: `delivery-${nanoid(8)}`,
+      id: randomId(),
       partnerId: mockPartner.id,
       title,
       clientName: body.client_name ?? null,
@@ -1296,7 +1302,7 @@ export const handlers = [
       {
         success: true,
         message: "Cadastro realizado com sucesso! Aguarde a aprovação.",
-        partner_id: nanoid(),
+        partner_id: randomId(),
         status: "pending_approval",
       },
       { status: 201 },
@@ -1357,7 +1363,10 @@ export const handlers = [
   // Remove family member
   http.delete(withBase("/me/settings/family/:memberId"), () => {
     if (!sessionActive) return sessionRequiredResponse();
-    return HttpResponse.json({ success: true, message: "Membro removido com sucesso." });
+    return HttpResponse.json({
+      success: true,
+      message: "Membro removido com sucesso.",
+    });
   }),
 
   // Get subscription
@@ -1368,7 +1377,9 @@ export const handlers = [
       plan_display_name: "Plano Família",
       price_cents: 2990,
       currency: "BRL",
-      renewal_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      renewal_date: new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       features: [
         "Armazenamento ilimitado de fotos e vídeos",
         "Até 5 membros da família",
@@ -1403,20 +1414,25 @@ export const handlers = [
     return HttpResponse.json({
       request_id: nanoid(),
       status: "queued",
-      message: "Sua solicitação foi recebida. Você receberá um email quando estiver pronta.",
+      message:
+        "Sua solicitação foi recebida. Você receberá um email quando estiver pronta.",
     });
   }),
 
   // Request account deletion
   http.post(withBase("/me/settings/data/delete"), async ({ request }) => {
     if (!sessionActive) return sessionRequiredResponse();
-    const body = (await request.json()) as { confirmation: string; password: string };
+    const body = (await request.json()) as {
+      confirmation: string;
+      password: string;
+    };
     if (body.confirmation !== "EXCLUIR MINHA CONTA") {
       return HttpResponse.json(
         {
           error: {
             code: "delete.confirmation_invalid",
-            message: "Confirmação inválida. Digite exatamente 'EXCLUIR MINHA CONTA'.",
+            message:
+              "Confirmação inválida. Digite exatamente 'EXCLUIR MINHA CONTA'.",
           },
         },
         { status: 400 },
@@ -1424,7 +1440,8 @@ export const handlers = [
     }
     return HttpResponse.json({
       success: true,
-      message: "Sua conta será excluída em 30 dias. Você pode cancelar a qualquer momento.",
+      message:
+        "Sua conta será excluída em 30 dias. Você pode cancelar a qualquer momento.",
     });
   }),
 ];

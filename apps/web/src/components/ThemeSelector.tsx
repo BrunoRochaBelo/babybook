@@ -53,49 +53,26 @@ export function ThemeSelector({ className = "" }: ThemeSelectorProps) {
   };
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-900 w-full sm:w-auto min-w-[140px] justify-between"
-        aria-label={t("partner.settings.preferences.theme")}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <span className="text-slate-700 dark:text-slate-300">{currentTheme.label}</span>
-        </div>
-        <ChevronDown
-          className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className="absolute left-0 top-full mt-1 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 min-w-[140px] w-full"
-          role="listbox"
-          aria-label={t("partner.settings.preferences.theme")}
-        >
-          {themeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={option.value === theme}
-              onClick={() => handleSelect(option.value)}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${
-                option.value === theme
-                  ? "bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
-                  : "text-slate-700 dark:text-slate-300"
-              }`}
-            >
-              <option.icon className="w-4 h-4" />
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
+    <div className={`p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 flex gap-2 ${className}`}>
+      {themeOptions.map((option) => {
+        const Icon = option.icon;
+        const isActive = theme === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => handleSelect(option.value)}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ${
+              isActive
+                ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            <span className="hidden sm:inline">{option.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
