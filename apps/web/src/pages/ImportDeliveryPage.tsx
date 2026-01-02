@@ -53,6 +53,19 @@ export function ImportDeliveryPage() {
 
   const isBusy = pendingQuery.isLoading || childrenQuery.isLoading;
 
+  const canSubmit =
+    Boolean(delivery) &&
+    !importMutation.isPending &&
+    (mode === "new" || Boolean(selectedChildId));
+
+  const submitHint = useMemo(() => {
+    if (!delivery) return null;
+    if (importMutation.isPending) return null;
+    if (mode === "existing" && !selectedChildId)
+      return t("b2c.importDelivery.errors.selectChildRequired");
+    return null;
+  }, [delivery, importMutation.isPending, mode, selectedChildId, t]);
+
   // Se o link veio com childId, tentamos pré-selecionar (multi-filho).
   useEffect(() => {
     if (!childrenQuery.isSuccess) return;
@@ -285,7 +298,10 @@ export function ImportDeliveryPage() {
                   type="radio"
                   className="mt-1"
                   checked={mode === "existing"}
-                  onChange={() => setMode("existing")}
+                  onChange={() => {
+                    setMode("existing");
+                    setError(null);
+                  }}
                   disabled={!children.length}
                 />
                 <div>
@@ -314,7 +330,10 @@ export function ImportDeliveryPage() {
                       color: "var(--bb-color-ink)",
                     }}
                     value={selectedChildId}
-                    onChange={(e) => setSelectedChildId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedChildId(e.target.value);
+                      setError(null);
+                    }}
                     disabled={!children.length}
                   >
                     {children.map((c) => (
@@ -342,7 +361,10 @@ export function ImportDeliveryPage() {
                   type="radio"
                   className="mt-1"
                   checked={mode === "new"}
-                  onChange={() => setMode("new")}
+                  onChange={() => {
+                    setMode("new");
+                    setError(null);
+                  }}
                 />
                 <div>
                   <div
@@ -371,7 +393,10 @@ export function ImportDeliveryPage() {
                     }}
                     placeholder={t("b2c.importDelivery.newChildPlaceholder")}
                     value={newChildName}
-                    onChange={(e) => setNewChildName(e.target.value)}
+                    onChange={(e) => {
+                      setNewChildName(e.target.value);
+                      setError(null);
+                    }}
                   />
                 </div>
               )}
@@ -397,7 +422,8 @@ export function ImportDeliveryPage() {
                 backgroundColor: "var(--bb-color-accent)",
                 color: "var(--bb-color-surface)",
               }}
-              disabled={importMutation.isPending || !delivery}
+              disabled={!canSubmit}
+              title={!canSubmit && submitHint ? submitHint : undefined}
               onClick={() => void onSubmit()}
             >
               {importMutation.isPending ? (
@@ -412,6 +438,16 @@ export function ImportDeliveryPage() {
                 </>
               )}
             </button>
+
+            {!canSubmit && submitHint ? (
+              <p
+                className="text-xs"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+                role="status"
+              >
+                {submitHint}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

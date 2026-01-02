@@ -15,7 +15,7 @@
  * - Beautiful animations between steps
  */
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -35,6 +35,15 @@ import {
 import { useCreateMoment } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { Confetti } from "@/components/animations";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@babybook/i18n";
 
@@ -69,6 +78,8 @@ export function AddMomentWizard({
   );
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<string[]>([]);
+
+  const [isNoMediaDialogOpen, setIsNoMediaDialogOpen] = useState(false);
 
   // Audio recording
   const [isRecording, setIsRecording] = useState(false);
@@ -171,7 +182,7 @@ export function AddMomentWizard({
     }
   };
 
-  const handleSubmit = async () => {
+  const performSubmit = async () => {
     if (!selectedChild) return;
 
     try {
@@ -203,6 +214,22 @@ export function AddMomentWizard({
     }
   };
 
+  const handleSubmit = async () => {
+    if (!selectedChild) return;
+
+    // Nudge carinhoso: se a pessoa vai salvar sem nenhuma mídia, sugerimos completar depois.
+    // Não bloqueia: só dá uma escolha explícita, premium, antes de salvar.
+    const hasAnyMedia = mediaFiles.length > 0 || audioBlob !== null;
+    const shouldNudgeNoMedia = !hasAnyMedia && momentType !== "text";
+
+    if (shouldNudgeNoMedia) {
+      setIsNoMediaDialogOpen(true);
+      return;
+    }
+
+    await performSubmit();
+  };
+
   const handleFinish = () => {
     // Cleanup preview URLs
     mediaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -224,10 +251,9 @@ export function AddMomentWizard({
       case "type":
         return momentType !== null;
       case "media":
-        if (momentType === "text") return true;
-        if (momentType === "audio")
-          return audioBlob !== null || mediaFiles.length > 0;
-        return mediaFiles.length > 0;
+        // Mídia é opcional: o usuário pode continuar e salvar mesmo sem anexos.
+        // (Ex.: adicionar fotos depois.)
+        return true;
       case "details":
         return title.trim().length > 0;
       case "preview":
@@ -236,6 +262,30 @@ export function AddMomentWizard({
         return true;
     }
   }, [step, momentType, mediaFiles, audioBlob, title]);
+
+  const proceedHint = useMemo(() => {
+    if (isPending) return null;
+    if (canProceed()) return null;
+
+    if (step === "media") {
+      if (momentType === "text") return null;
+      if (momentType === "audio")
+        return t("b2c.moments.wizard.validation.missingAudio");
+      return t("b2c.moments.wizard.validation.missingMedia");
+    }
+
+    if (step === "details") {
+      return t("b2c.moments.wizard.validation.missingTitle");
+    }
+
+    return null;
+  }, [canProceed, isPending, momentType, step, t]);
+
+  const isContinuingWithoutMedia =
+    step === "media" &&
+    momentType !== "text" &&
+    mediaFiles.length === 0 &&
+    audioBlob === null;
 
   // Type selection cards
   const typeOptions = [
@@ -272,6 +322,46 @@ export function AddMomentWizard({
   return (
     <>
       <Confetti isActive={showConfetti} duration={3000} />
+
+      <Dialog open={isNoMediaDialogOpen} onOpenChange={setIsNoMediaDialogOpen}>
+        <DialogContent
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle style={{ color: "var(--bb-color-ink)" }}>
+              {t("b2c.moments.common.noMediaNudge.title")}
+            </DialogTitle>
+            <DialogDescription style={{ color: "var(--bb-color-ink-muted)" }}>
+              {t("b2c.moments.common.noMediaNudge.description")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsNoMediaDialogOpen(false);
+                setStep("media");
+              }}
+            >
+              {t("b2c.moments.common.noMediaNudge.addNow")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsNoMediaDialogOpen(false);
+                void performSubmit();
+              }}
+            >
+              {t("b2c.moments.common.noMediaNudge.saveAnyway")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div
         className="fixed inset-0 z-50 flex flex-col"
@@ -374,6 +464,54 @@ export function AddMomentWizard({
                   {momentType === "text" &&
                     t("b2c.moments.wizard.stepMedia.title.text")}
                 </h2>
+
+                {momentType !== "text" &&
+                ((momentType === "audio" && !audioBlob && !isRecording) ||
+                  ((momentType === "photo" || momentType === "video") &&
+                    mediaFiles.length === 0)) ? (
+                  <div
+                    className="mb-4 rounded-2xl border p-4"
+                    style={{
+                      backgroundColor: "var(--bb-color-bg)",
+                      borderColor: "var(--bb-color-border)",
+                    }}
+                  >
+                    <p className="text-sm font-semibold text-[var(--bb-color-ink)]">
+                      {t("b2c.moments.wizard.stepMedia.optionalHint.title")}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+                      {t(
+                        "b2c.moments.wizard.stepMedia.optionalHint.description",
+                      )}
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        type="button"
+                        variant="softOutline"
+                        size="sm"
+                        onClick={() => {
+                          if (momentType === "audio") {
+                            void startAudioRecording();
+                            return;
+                          }
+                          fileInputRef.current?.click();
+                        }}
+                      >
+                        {t("b2c.moments.wizard.stepMedia.optionalHint.addNow")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="softGhost"
+                        size="sm"
+                        onClick={handleNext}
+                      >
+                        {t(
+                          "b2c.moments.wizard.stepMedia.optionalHint.skipForNow",
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
 
                 {/* Photo/Video Upload */}
                 {(momentType === "photo" || momentType === "video") && (
@@ -677,6 +815,21 @@ export function AddMomentWizard({
                         year: "numeric",
                       })}
                     </p>
+
+                    {!audioBlob &&
+                    mediaPreviewUrls.length === 0 &&
+                    momentType !== "text" ? (
+                      <div
+                        className="inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs"
+                        style={{
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink-muted)",
+                        }}
+                      >
+                        {t("b2c.moments.wizard.stepPreview.noMediaBadge")}
+                      </div>
+                    ) : null}
+
                     <h3 className="text-xl font-serif font-bold text-[var(--bb-color-ink)]">
                       {title || t("b2c.moments.wizard.stepPreview.untitled")}
                     </h3>
@@ -740,6 +893,7 @@ export function AddMomentWizard({
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "bg-[var(--bb-color-border)] text-[var(--bb-color-ink-muted)] cursor-not-allowed",
               )}
+              title={!canProceed() && proceedHint ? proceedHint : undefined}
             >
               {isPending ? (
                 <>
@@ -761,11 +915,22 @@ export function AddMomentWizard({
                 </>
               ) : (
                 <>
-                  {t("b2c.moments.wizard.continue")}
+                  {isContinuingWithoutMedia
+                    ? t("b2c.moments.wizard.continueNoMedia")
+                    : t("b2c.moments.wizard.continue")}
                   <ChevronRight className="w-5 h-5" />
                 </>
               )}
             </button>
+
+            {!canProceed() && proceedHint ? (
+              <p
+                className="mt-2 text-center text-xs text-[var(--bb-color-ink-muted)]"
+                role="status"
+              >
+                {proceedHint}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

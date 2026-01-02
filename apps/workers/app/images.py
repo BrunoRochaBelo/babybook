@@ -89,7 +89,7 @@ async def _generate_variants(
     processed = await asyncio.to_thread(_resize_variants, source)
     variants: list[VariantData] = []
     for preset, resized_path, width, height in processed:
-        dest_key = f"media/u/{job.account_id}/{job.asset_id}/{preset}.webp"
+        dest_key = f"u/{job.account_id}/assets/{job.asset_id}/{preset}.webp"
         await storage.upload_file(
             bucket=settings.bucket_derivatives,
             key=dest_key,
@@ -126,4 +126,4 @@ def _resize_variants(source: Path) -> list[tuple[str, Path, int, int]]:
 
 def _canonical_original_key(job: AssetJobPayload) -> str:
     suffix = Path(job.key).suffix or ".bin"
-    return f"media/u/{job.account_id}/{job.asset_id}/original{suffix}"
+    return f"u/{job.account_id}/assets/{job.asset_id}/original{suffix}"

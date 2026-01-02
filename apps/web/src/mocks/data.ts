@@ -123,10 +123,11 @@ export const mockChildren: Child[] = [
 
 export const mockMoments: Moment[] = [
   makeMoment({
-    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a04",
-    childId: CHILD_ALICE_ID,
     id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a00",
     childId: CHILD_ALICE_ID,
+    title: "A Grande Descoberta",
+    summary:
+      "O momento em que tudo começou — reações, emoções e o primeiro susto bom.",
     occurredAt: "2024-03-15",
     templateKey: "capitulo_1_descoberta",
     status: "published",
@@ -157,10 +158,11 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-16", "07:55:00"),
   }),
   makeMoment({
-    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a05",
-    childId: CHILD_ALICE_ID,
     id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a01",
     childId: CHILD_ALICE_ID,
+    title: "Primeira Noite",
+    summary:
+      "A primeira noite em casa — ajustes, rotinas e aquele silêncio novo.",
     occurredAt: "2024-03-18",
     templateKey: "capitulo_2_primeira_noite",
     status: "published",
@@ -180,10 +182,10 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-19", "09:12:00"),
   }),
   makeMoment({
-    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a06",
-    childId: CHILD_ALICE_ID,
     id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a02",
     childId: CHILD_ALICE_ID,
+    title: "Primeiro Banho",
+    summary: "O primeiro banho — água na temperatura certa e muita fofura.",
     occurredAt: "2024-03-20",
     templateKey: "capitulo_2_primeiro_banho",
     status: "published",
@@ -203,10 +205,10 @@ export const mockMoments: Moment[] = [
     publishedAt: at("2024-03-21", "10:15:00"),
   }),
   makeMoment({
-    id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a07",
-    childId: CHILD_ALICE_ID,
     id: "b6f2d8b2-9f8e-4a40-9e7a-7b1b5d7d2a03",
     childId: CHILD_ALICE_ID,
+    title: "Primeiro Sorriso",
+    summary: "Aquele sorriso que muda o dia inteiro.",
     occurredAt: "2024-04-25",
     templateKey: "capitulo_3_primeiro_sorriso",
     status: "draft",

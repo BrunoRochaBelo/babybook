@@ -665,10 +665,22 @@ export const MomentsTimeline = ({
         );
         const momentMatch = analyzeMatch(momentText, q, tokens);
         if (momentMatch.score > 0) {
+          const sequenceTemplate: CatalogSequenceItem =
+            getMomentByTemplateKey(template.templateKey) ??
+            ({
+              ...template,
+              chapterId: chapter.id,
+              chapterTitle: chapter.title,
+              chapterSubtitle: chapter.subtitle,
+              chapterAccent: chapter.accent,
+              range: chapter.range,
+              order: 0,
+            } satisfies CatalogSequenceItem);
+
           momentResults.push({
             kind: "moment",
             chapterId: chapter.id,
-            template,
+            template: sequenceTemplate,
             score: momentMatch.score,
             matchedExact: momentMatch.matchedExact,
             matchedTokens: momentMatch.matchedTokens,
@@ -869,11 +881,7 @@ export const MomentsTimeline = ({
       const history = sortedDesc.slice(1);
 
       const catalogMoment = getMomentByTemplateKey(canonicalTemplateKey);
-      const label =
-        catalogMoment?.title ??
-        catalogMoment?.label ??
-        latest.title ??
-        "Momento";
+      const label = catalogMoment?.title ?? latest.title ?? "Momento";
       const recurrenceKind = (
         catalogMoment?.type === "series" ? "series" : "recurring"
       ) as "recurring" | "series";

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy import func, select
@@ -25,6 +26,7 @@ from babybook_api.schemas.assets import (
 from babybook_api.services.queue import QueuePublisher, get_queue_publisher
 from babybook_api.settings import settings
 from babybook_api.storage import get_cold_storage
+from babybook_api.storage.paths import secure_filename
 from babybook_api.uploads.file_validation import validate_magic_bytes
 
 router = APIRouter()
@@ -80,6 +82,7 @@ async def init_upload(
         return UploadInitResponse(
             asset_id=str(existing.id),
             status=existing.status,  # type: ignore[arg-type]
+            key=existing.key_original,
             deduplicated=True,
         )
 
@@ -101,6 +104,11 @@ async def init_upload(
 
     kind: AssetKind = payload.kind or _infer_kind(payload.mime)
     asset_id = uuid.uuid4()
+    safe_name = secure_filename(payload.filename)
+    suffix = Path(safe_name).suffix or ".bin"
+    # Key final (viewer-accessible via Edge) — o worker coloca variantes no mesmo prefixo.
+    # Observação: o Edge valida `u/{account_id}/...` via claim `account_id` do JWT.
+    key_original = f"u/{account_id}/assets/{asset_id}/original{suffix}"
     asset = Asset(
         id=asset_id,
         account_id=account_id,
@@ -112,33 +120,80 @@ async def init_upload(
         sha256=payload.sha256,
         scope=payload.scope or "moment",
     )
-    asset.key_original = f"accounts/{account_id}/uploads/{asset_id}/{payload.filename}"
-    account.storage_bytes_used += payload.size
+    asset.key_original = key_original
 
     part_size = settings.upload_part_bytes
     part_count = max(1, math.ceil(payload.size / part_size))
     upload = UploadSession(
         account_id=account_id,
         asset=asset,
-        filename=payload.filename,
+        filename=safe_name,
         mime=payload.mime,
         size_bytes=payload.size,
         sha256=payload.sha256,
         part_size=part_size,
         part_count=part_count,
     )
+
     db.add_all([asset, upload])
     await db.flush()
+
+    # Gera URLs presigned diretamente no storage (opção mais barata, sem gateway).
+    # - part_count == 1  -> PUT simples
+    # - part_count > 1   -> multipart (upload_part)
+    try:
+        storage = await get_cold_storage()
+        metadata = {
+            "bb_asset_id": str(asset_id),
+            "bb_account_id": str(account_id),
+            "bb_sha256": payload.sha256,
+        }
+
+        if part_count > 1:
+            storage_upload_id = await storage.create_multipart_upload(
+                key=key_original,
+                content_type=payload.mime,
+                metadata=metadata,
+            )
+            upload.storage_upload_id = storage_upload_id
+            part_infos = await storage.generate_presigned_part_urls(
+                key=key_original,
+                upload_id=storage_upload_id,
+                part_count=part_count,
+                expires_in=timedelta(hours=2),
+            )
+            parts = [p.part_number for p in part_infos]
+            urls = [p.url for p in part_infos]
+        else:
+            presigned = await storage.generate_presigned_put_url(
+                key=key_original,
+                content_type=payload.mime,
+                expires_in=timedelta(hours=1),
+                metadata=metadata,
+            )
+            parts = [1]
+            urls = [presigned.url]
+    except AppError:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise AppError(
+            status_code=500,
+            code="upload.init.failed",
+            message=f"Falha ao preparar upload: {str(e)}",
+        )
+
+    # Atualiza uso após prepararmos o upload com sucesso.
+    account.storage_bytes_used += payload.size
     await db.commit()
     await db.refresh(upload)
 
-    parts = list(range(1, upload.part_count + 1))
-    urls = [f"{settings.upload_url_base}/{upload.id}/part/{part}" for part in parts]
     return UploadInitResponse(
         asset_id=str(asset_id),
         status=asset.status,  # type: ignore[arg-type]
         upload_id=str(upload.id),
-        key=asset.key_original,
+        key=key_original,
+        part_size=part_size,
         parts=parts,
         urls=urls,
     )
@@ -181,6 +236,29 @@ async def complete_upload(
     if len(payload.etags) != session.part_count:
         raise AppError(status_code=400, code="upload.parts.mismatch", message="Partes incompletas.")
 
+    # Se multipart, precisamos finalizar no provider antes de validar/enfileirar.
+    if session.part_count > 1:
+        if not session.storage_upload_id:
+            raise AppError(
+                status_code=409,
+                code="upload.missing_storage_upload_id",
+                message="Sessao multipart sem upload_id do storage.",
+            )
+        try:
+            storage = await get_cold_storage()
+            ordered = sorted(payload.etags, key=lambda e: e.part)
+            await storage.complete_multipart_upload(
+                asset.key_original,
+                session.storage_upload_id,
+                parts=[{"PartNumber": e.part, "ETag": e.etag} for e in ordered],
+            )
+        except Exception as e:
+            raise AppError(
+                status_code=400,
+                code="upload.complete.failed",
+                message=f"Falha ao concluir upload multipart: {str(e)}",
+            )
+
     if settings.upload_validation_enabled:
         # Validation: Magic Bytes & Size
         # Verifica se o arquivo enviado corresponde ao tipo e tamanho declarados.
@@ -204,6 +282,12 @@ async def complete_upload(
                 header=header,
             )
         except Exception as e:
+            # Best-effort cleanup para evitar lixo em caso de validação falhar.
+            try:
+                storage = await get_cold_storage()
+                await storage.delete_object(asset.key_original)
+            except Exception:
+                pass
             # Se falhar, marcamos como falha e retornamos erro
             asset.status = "failed"
             session.status = "failed"

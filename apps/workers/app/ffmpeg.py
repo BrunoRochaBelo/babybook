@@ -118,7 +118,7 @@ async def _transcode_variants(
             ],
         )
         width, height, duration_ms = await _probe_video(settings.ffprobe_path, output_path)
-        dest_key = f"media/u/{job.account_id}/{job.asset_id}/{preset}.mp4"
+        dest_key = f"u/{job.account_id}/assets/{job.asset_id}/{preset}.mp4"
         await storage.upload_file(
             bucket=settings.bucket_derivatives,
             key=dest_key,
@@ -182,4 +182,4 @@ async def _probe_video(executable: str, path: Path) -> tuple[int, int, int]:
 
 def _canonical_original_key(job: AssetJobPayload) -> str:
     suffix = Path(job.key).suffix or ".bin"
-    return f"media/u/{job.account_id}/{job.asset_id}/original{suffix}"
+    return f"u/{job.account_id}/assets/{job.asset_id}/original{suffix}"

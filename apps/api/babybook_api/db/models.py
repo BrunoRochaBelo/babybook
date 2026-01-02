@@ -355,6 +355,9 @@ class UploadSession(TimestampMixin, Base):
     size_bytes: Mapped[int] = mapped_column(BigInteger)
     sha256: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(24), default="pending")
+    # UploadId retornado pelo provider (S3-compatible) para uploads multipart.
+    # Em uploads simples (PUT único), permanece NULL.
+    storage_upload_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     part_size: Mapped[int] = mapped_column(Integer)
     part_count: Mapped[int] = mapped_column(Integer)
     etags: Mapped[list[dict[str, Any]] | None] = mapped_column(MutableList.as_mutable(JSON), nullable=True, default=list)

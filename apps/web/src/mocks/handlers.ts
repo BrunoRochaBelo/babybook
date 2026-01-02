@@ -236,6 +236,24 @@ const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
 const mutableDeliveries: MockDelivery[] = [...mockDeliveries];
 
+type MockUpload = {
+  assetId: string;
+  uploadId: string;
+  key: string;
+  sha256: string;
+  mime: string;
+  size: number;
+  parts: number[];
+  etags: Map<number, string>;
+};
+
+const mockUploads = new Map<string, MockUpload>();
+const sha256Index = new Map<string, { assetId: string; key: string }>();
+
+const mockPartSize = 5 * 1024 * 1024; // 5MB
+const mockStorageUrlForPart = (uploadId: string, part: number) =>
+  `/__mock_storage__/uploads/${uploadId}/parts/${part}`;
+
 type MockClientChildAccess = {
   id: string;
   name: string;
@@ -663,6 +681,39 @@ export const handlers = [
       occurred_at?: string;
       payload?: Record<string, unknown>;
     };
+
+    const rawPayload = body.payload ?? {};
+    const rawMedia = (rawPayload as Record<string, unknown>).media;
+
+    const media = Array.isArray(rawMedia)
+      ? rawMedia
+          .map((item) => {
+            const entry = item as Record<string, unknown>;
+            const type = entry.type;
+            const kind =
+              type === "image" ? "photo" : type === "video" ? "video" : "audio";
+
+            return {
+              id:
+                typeof entry.id === "string" && entry.id.length > 0
+                  ? entry.id
+                  : randomId(),
+              kind,
+              key: typeof entry.key === "string" ? entry.key : undefined,
+              url: undefined,
+              durationSeconds:
+                typeof entry.durationSeconds === "number"
+                  ? entry.durationSeconds
+                  : undefined,
+              variants: [],
+            };
+          })
+          .filter(Boolean)
+      : [];
+
+    const payload = { ...rawPayload } as Record<string, unknown>;
+    delete payload.media;
+
     const moment: Moment = {
       id: randomId(),
       childId: body.child_id,
@@ -672,8 +723,9 @@ export const handlers = [
       templateKey: body.template_key ?? null,
       status: "draft",
       privacy: "private",
-      payload: body.payload ?? {},
-      media: [],
+      payload,
+      // @ts-expect-error - contratos podem ter tipos mais estritos, mas para MSW basta simular.
+      media,
       rev: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -681,6 +733,141 @@ export const handlers = [
     };
     mutableMoments.unshift(moment);
     return HttpResponse.json(toMomentResponse(moment), { status: 201 });
+  }),
+
+  // ==========================================================================
+  // Uploads (B2C/B2B) - mocks para DEV/Test (direct-to-storage)
+  // ==========================================================================
+
+  http.post(withBase("/uploads/init"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+
+    const body = (await request.json()) as {
+      child_id?: string;
+      filename?: string;
+      size?: number;
+      mime?: string;
+      sha256?: string;
+      kind?: string | null;
+      scope?: string | null;
+    };
+
+    const sha256 = (body.sha256 ?? "").toString();
+    if (sha256 && sha256Index.has(sha256)) {
+      const existing = sha256Index.get(sha256)!;
+      return HttpResponse.json({
+        asset_id: existing.assetId,
+        status: "ready",
+        upload_id: null,
+        key: existing.key,
+        part_size: null,
+        parts: null,
+        urls: null,
+        deduplicated: true,
+      });
+    }
+
+    const assetId = randomId();
+    const uploadId = randomId();
+    const childId = (body.child_id ?? "child-mock").toString();
+    const filename = (body.filename ?? "upload.bin").toString();
+    const size = typeof body.size === "number" ? body.size : 0;
+    const mime = (body.mime ?? "application/octet-stream").toString();
+
+    const key = `u/${childId}/assets/${assetId}/${filename}`;
+
+    const partSize = mockPartSize;
+    const partCount = Math.max(1, Math.ceil(size / partSize));
+    const parts = Array.from({ length: partCount }, (_, i) => i + 1);
+    const urls = parts.map((part) => mockStorageUrlForPart(uploadId, part));
+
+    const upload: MockUpload = {
+      assetId,
+      uploadId,
+      key,
+      sha256,
+      mime,
+      size,
+      parts,
+      etags: new Map(),
+    };
+    mockUploads.set(uploadId, upload);
+
+    return HttpResponse.json({
+      asset_id: assetId,
+      status: "queued",
+      upload_id: uploadId,
+      key,
+      part_size: partSize,
+      parts,
+      urls,
+      deduplicated: false,
+    });
+  }),
+
+  http.put("/__mock_storage__/uploads/:uploadId/parts/:part", ({ params }) => {
+    const uploadId = params.uploadId as string;
+    const partNumber = Number(params.part);
+    const upload = mockUploads.get(uploadId);
+    if (!upload || !Number.isFinite(partNumber)) {
+      return HttpResponse.text("Not found", { status: 404 });
+    }
+
+    const etag = `\"mock-etag-${randomId()}\"`;
+    upload.etags.set(partNumber, etag);
+
+    return new HttpResponse(null, {
+      status: 200,
+      headers: {
+        ETag: etag,
+        "Access-Control-Expose-Headers": "ETag",
+      },
+    });
+  }),
+
+  http.post(withBase("/uploads/complete"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+
+    const body = (await request.json()) as {
+      upload_id?: string;
+      etags?: Array<{ part: number; etag: string }>;
+    };
+
+    const uploadId = (body.upload_id ?? "").toString();
+    const upload = mockUploads.get(uploadId);
+    if (!upload) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "uploads.not_found",
+            message: "Upload não encontrado",
+            trace_id: "mock-trace-upload",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    const received = body.etags ?? [];
+    for (const entry of received) {
+      if (typeof entry?.part === "number" && typeof entry?.etag === "string") {
+        upload.etags.set(entry.part, entry.etag);
+      }
+    }
+
+    // Marca como pronto e habilita dedup futuras por sha256.
+    if (upload.sha256) {
+      sha256Index.set(upload.sha256, {
+        assetId: upload.assetId,
+        key: upload.key,
+      });
+    }
+    mockUploads.delete(uploadId);
+
+    return HttpResponse.json({
+      asset_id: upload.assetId,
+      status: "processing",
+    });
   }),
   http.get(withBase("/guestbook"), ({ request }) => {
     const url = new URL(request.url);

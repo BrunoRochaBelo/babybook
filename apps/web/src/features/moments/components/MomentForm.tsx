@@ -1,12 +1,27 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MediaUploader } from "./MediaUploader";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCreateMoment } from "@/hooks/api";
 import type { MomentTemplate } from "../hooks/useMomentTemplate";
 import { StampGenerator } from "./StampGenerator";
 import { useTranslation } from "@babybook/i18n";
+import { uploadMomentMediaFiles } from "@/features/uploads/b2cUpload";
 
 type MediaKind = "photo" | "video" | "audio";
 
@@ -146,12 +161,17 @@ const buildHelperText = (
   if (media.photos) {
     const min = media.photos.min ?? 0;
     const max = media.photos.max ?? 0;
-    const range = min > 0 ? `${min}–${max}` : `até ${max}`;
+    const suggestion =
+      min > 0 ? (min === max ? String(min) : `${min}–${max}`) : null;
     parts.push(
       t("b2c.moments.form.media.helper.photos", {
         current: counts.photos,
         max,
-        range,
+        suggestionSuffix: suggestion
+          ? t("b2c.moments.form.media.helper.photosSuggestionSuffix", {
+              suggestion,
+            })
+          : "",
       }),
     );
   }
@@ -244,15 +264,22 @@ export const MomentForm = ({
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState(
     new Date().toISOString().split("T")[0],
   );
+  const [occurredAtError, setOccurredAtError] = useState<string | null>(null);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [mediaUploadPct, setMediaUploadPct] = useState<number | null>(null);
+  const [mediaUploadLabel, setMediaUploadLabel] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, unknown>>({});
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const { mutate: createMoment, isPending } = useCreateMoment();
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [isNoMediaDialogOpen, setIsNoMediaDialogOpen] = useState(false);
+  const [noMediaConfirmed, setNoMediaConfirmed] = useState(false);
+  const { mutateAsync: createMoment, isPending } = useCreateMoment();
 
   const effectiveMedia = useMemo(() => {
     if (!template?.media) return null;
@@ -269,6 +296,8 @@ export const MomentForm = ({
   useEffect(() => {
     if (template) {
       setTitle(template.title);
+      setTitleError(null);
+      setOccurredAtError(null);
       const defaults = template.defaults ?? {};
       const next: Record<string, unknown> = { ...defaults };
       for (const field of template.fields ?? []) {
@@ -285,6 +314,52 @@ export const MomentForm = ({
       setFieldErrors({});
     }
   }, [template]);
+
+  const scrollToId = (id: string) => {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    try {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (el as any).focus?.();
+    } catch {
+      // ignore
+    }
+  };
+
+  const isTitleValid = title.trim().length > 0;
+  const isDateValid = occurredAt.trim().length > 0;
+
+  const missingTemplateRequiredFields = useMemo(() => {
+    const fields = template?.fields ?? [];
+    if (!fields.length) return [];
+
+    const missing = [] as Array<{ key: string; label: string }>;
+    for (const field of fields) {
+      if (!field.required) continue;
+
+      const value = fieldValues[field.key];
+      if (field.type === "number") {
+        const n = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(n)) {
+          missing.push({ key: field.key, label: field.label });
+        }
+        continue;
+      }
+      if (field.type === "tags") {
+        if (!Array.isArray(value) || value.length === 0) {
+          missing.push({ key: field.key, label: field.label });
+        }
+        continue;
+      }
+      if (isBlank(value)) {
+        missing.push({ key: field.key, label: field.label });
+      }
+    }
+
+    return missing;
+  }, [fieldValues, template?.fields]);
 
   const validateFields = () => {
     const fields = template?.fields ?? [];
@@ -329,54 +404,99 @@ export const MomentForm = ({
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  const validateAgainstTemplate = (files: File[]) => {
-    const media = effectiveMedia;
-    if (!media) return null;
+  const validateAgainstTemplate = useCallback(
+    (files: File[]) => {
+      const media = effectiveMedia;
+      if (!media) return null;
 
-    const { photos, videos, audios } = countKinds(files);
+      const { photos, videos, audios } = countKinds(files);
 
-    if (media.photos) {
-      const min = media.photos.min ?? 0;
-      const max = media.photos.max ?? 0;
-      if (photos > max)
-        return t("b2c.moments.form.media.errors.maxPhotosExceeded", { max });
-      if (min > 0 && photos < min)
-        return t("b2c.moments.form.media.errors.minPhotosRequired", { min });
-    }
-
-    if (media.videoOrAudio) {
-      const max = media.videoOrAudio.max ?? 1;
-      const required = isRuleRequired(media.videoOrAudio, media.notes);
-      const combined = videos + audios;
-      if (combined > max)
-        return t("b2c.moments.form.media.errors.maxVideoOrAudioExceeded", {
-          max,
-        });
-      if (max === 1 && videos > 0 && audios > 0)
-        return t("b2c.moments.form.media.errors.chooseOnlyOneVideoOrAudio");
-      if (required && combined < 1)
-        return t("b2c.moments.form.media.errors.videoOrAudioRequired");
-    } else {
-      if (media.video) {
-        const max = media.video.max ?? 1;
-        const required = isRuleRequired(media.video, media.notes);
-        if (videos > max)
-          return t("b2c.moments.form.media.errors.maxVideosExceeded", { max });
-        if (required && videos < 1)
-          return t("b2c.moments.form.media.errors.videoRequired");
+      if (media.photos) {
+        const min = media.photos.min ?? 0;
+        const max = media.photos.max ?? 0;
+        if (photos > max)
+          return t("b2c.moments.form.media.errors.maxPhotosExceeded", { max });
+        // B2C: fotos não devem ser obrigatórias (min vira apenas uma referência de "meta").
+        // B2B: mantém o comportamento de mínimo (ex.: galeria 50+ fotos).
+        if (audience === "b2b" && min > 0 && photos < min)
+          return t("b2c.moments.form.media.errors.minPhotosRequired", { min });
       }
-      if (media.audio) {
-        const max = media.audio.max ?? 1;
-        const required = isRuleRequired(media.audio, media.notes);
-        if (audios > max)
-          return t("b2c.moments.form.media.errors.maxAudiosExceeded", { max });
-        if (required && audios < 1)
-          return t("b2c.moments.form.media.errors.audioRequired");
-      }
-    }
 
+      if (media.videoOrAudio) {
+        const max = media.videoOrAudio.max ?? 1;
+        const required = isRuleRequired(media.videoOrAudio, media.notes);
+        const combined = videos + audios;
+        if (combined > max)
+          return t("b2c.moments.form.media.errors.maxVideoOrAudioExceeded", {
+            max,
+          });
+        if (max === 1 && videos > 0 && audios > 0)
+          return t("b2c.moments.form.media.errors.chooseOnlyOneVideoOrAudio");
+        if (required && combined < 1)
+          return t("b2c.moments.form.media.errors.videoOrAudioRequired");
+      } else {
+        if (media.video) {
+          const max = media.video.max ?? 1;
+          const required = isRuleRequired(media.video, media.notes);
+          if (videos > max)
+            return t("b2c.moments.form.media.errors.maxVideosExceeded", {
+              max,
+            });
+          if (required && videos < 1)
+            return t("b2c.moments.form.media.errors.videoRequired");
+        }
+        if (media.audio) {
+          const max = media.audio.max ?? 1;
+          const required = isRuleRequired(media.audio, media.notes);
+          if (audios > max)
+            return t("b2c.moments.form.media.errors.maxAudiosExceeded", {
+              max,
+            });
+          if (required && audios < 1)
+            return t("b2c.moments.form.media.errors.audioRequired");
+        }
+      }
+
+      return null;
+    },
+    [audience, effectiveMedia, t],
+  );
+
+  const derivedMediaError = useMemo(
+    () => validateAgainstTemplate(mediaFiles),
+    [mediaFiles, validateAgainstTemplate],
+  );
+
+  const canSubmit =
+    !isPending &&
+    mediaUploadPct === null &&
+    isTitleValid &&
+    isDateValid &&
+    missingTemplateRequiredFields.length === 0 &&
+    !derivedMediaError;
+
+  const submitHint = useMemo(() => {
+    if (isPending) return null;
+    if (mediaUploadPct !== null) {
+      return t("b2c.moments.form.saving");
+    }
+    if (derivedMediaError) return derivedMediaError;
+    if (!isTitleValid) return t("b2c.moments.form.validation.missingTitle");
+    if (!isDateValid) return t("b2c.moments.form.validation.missingDate");
+    if (missingTemplateRequiredFields.length > 0)
+      return t("b2c.moments.form.validation.missingField", {
+        field: missingTemplateRequiredFields[0]?.label ?? "",
+      });
     return null;
-  };
+  }, [
+    derivedMediaError,
+    isDateValid,
+    isPending,
+    isTitleValid,
+    mediaUploadPct,
+    missingTemplateRequiredFields,
+    t,
+  ]);
 
   const handleAddMedia = async (files: File[]) => {
     const media = effectiveMedia;
@@ -438,6 +558,21 @@ export const MomentForm = ({
 
       for (const file of acceptedByDuration) {
         const kind = fileKind(file);
+
+        // LÓGICA DE SUBSTITUIÇÃO INTELIGENTE (PREMIUM UX)
+        // Se já existe um arquivo com o mesmo nome (ex: "carimbo_mao.png"), substitui.
+        // Isso permite que o StampGenerator atualize a arte sem duplicar.
+        const existingIndex = temp.findIndex(
+          (f) => f.name === file.name && f.name.startsWith("carimbo_"),
+        );
+
+        if (existingIndex !== -1) {
+          // Substitui o arquivo existente e continua para o próximo loop
+          const newTemp = [...temp];
+          newTemp[existingIndex] = file;
+          temp = newTemp;
+          continue;
+        }
 
         if (kind === "photo" && !allowPhoto) {
           lastError = t("b2c.moments.form.media.errors.photosNotAllowed");
@@ -509,24 +644,31 @@ export const MomentForm = ({
     });
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!title || !occurredAt) {
-      return;
-    }
+  const performCreateMoment = async () => {
+    try {
+      setMediaError(null);
 
-    if (!validateFields()) {
-      return;
-    }
+      let uploadedMedia: Array<{
+        id: string;
+        type: "image" | "video" | "audio";
+        key: string;
+      }> | null = null;
 
-    const validationError = validateAgainstTemplate(mediaFiles);
-    if (validationError) {
-      setMediaError(validationError);
-      return;
-    }
+      if (mediaFiles.length) {
+        setMediaUploadPct(0);
+        setMediaUploadLabel(t("b2c.moments.form.saving"));
+        uploadedMedia = await uploadMomentMediaFiles({
+          childId,
+          files: mediaFiles,
+          scope: "moment",
+          onProgress: ({ fileName, overallPct }) => {
+            setMediaUploadLabel(fileName);
+            setMediaUploadPct(overallPct);
+          },
+        });
+      }
 
-    createMoment(
-      {
+      await createMoment({
         childId,
         title,
         summary: summary || undefined,
@@ -543,371 +685,553 @@ export const MomentForm = ({
             };
           }
 
-          if (mediaFiles.length) {
-            payload.media = mediaFiles.map((file) => ({
-              id: file.name,
-              type: file.type.startsWith("video")
-                ? "video"
-                : file.type.startsWith("audio")
-                  ? "audio"
-                  : "image",
-              url: URL.createObjectURL(file),
-            }));
+          if (uploadedMedia?.length) {
+            payload.media = uploadedMedia;
           }
 
           return Object.keys(payload).length ? payload : undefined;
         })(),
-      },
-      {
-        onSuccess: () => {
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            navigate("/jornada");
-          }
-        },
-      },
-    );
+      });
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate("/jornada");
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Falha ao salvar momento.";
+      setMediaError(message);
+      scrollToId("moment-media");
+    } finally {
+      setMediaUploadPct(null);
+      setMediaUploadLabel(null);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitAttempted(true);
+
+    let ok = true;
+
+    if (!title.trim()) {
+      setTitleError(t("b2c.moments.form.errors.requiredField"));
+      ok = false;
+    }
+    if (!occurredAt.trim()) {
+      setOccurredAtError(t("b2c.moments.form.errors.requiredField"));
+      ok = false;
+    }
+
+    if (!ok) {
+      scrollToId(!title.trim() ? "moment-title" : "moment-date");
+      return;
+    }
+
+    if (!validateFields()) {
+      const firstMissing = missingTemplateRequiredFields[0];
+      if (firstMissing) {
+        scrollToId(`moment-field-${firstMissing.key}`);
+      }
+      return;
+    }
+
+    const validationError =
+      derivedMediaError ?? validateAgainstTemplate(mediaFiles);
+    if (validationError) {
+      setMediaError(validationError);
+      scrollToId("moment-media");
+      return;
+    }
+
+    // Nudge premium: se está sem mídia, pergunta antes de salvar.
+    if (!mediaFiles.length && !noMediaConfirmed) {
+      setIsNoMediaDialogOpen(true);
+      return;
+    }
+
+    await performCreateMoment();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-          {t("b2c.moments.form.fields.titleLabel")}
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
-          style={{
-            backgroundColor: "var(--bb-color-surface)",
-            borderColor: "var(--bb-color-border)",
-            color: "var(--bb-color-ink)",
-          }}
-          placeholder={t("b2c.moments.form.fields.titlePlaceholder")}
-          required
-        />
-      </div>
+    <>
+      <Dialog open={isNoMediaDialogOpen} onOpenChange={setIsNoMediaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle style={{ color: "var(--bb-color-ink)" }}>
+              {t("b2c.moments.common.noMediaNudge.title")}
+            </DialogTitle>
+            <DialogDescription style={{ color: "var(--bb-color-ink-muted)" }}>
+              {t("b2c.moments.common.noMediaNudge.description")}
+            </DialogDescription>
+          </DialogHeader>
 
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-          {t("b2c.moments.form.fields.dateLabel")}
-        </label>
-        <input
-          type="date"
-          value={occurredAt}
-          onChange={(e) => setOccurredAt(e.target.value)}
-          className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
-          style={{
-            backgroundColor: "var(--bb-color-surface)",
-            borderColor: "var(--bb-color-border)",
-            color: "var(--bb-color-ink)",
-          }}
-          required
-        />
-      </div>
-
-      {template?.fields?.length ? (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--bb-color-ink)]">
-              {t("b2c.moments.form.sections.details")}
-            </h3>
-            <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
-              {template.prompt}
-            </p>
-          </div>
-
-          {template.fields
-            .filter(
-              (f) => template.id !== "marcas-crescimento" || f.key !== "limb",
-            )
-            .map((field) => {
-              const value = fieldValues[field.key];
-              const error = fieldErrors[field.key];
-              const commonClassName =
-                "w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none";
-
-              return (
-                <div key={field.key}>
-                  <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-                    {field.label}
-                    {field.required ? " *" : ""}
-                  </label>
-
-                  {field.type === "select" ? (
-                    <select
-                      value={typeof value === "string" ? value : ""}
-                      onChange={(e) => setField(field.key, e.target.value)}
-                      className={commonClassName}
-                      disabled={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    >
-                      <option value="">{t("common.select")}</option>
-                      {(field.options ?? []).map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : field.type === "textarea" || field.type === "richtext" ? (
-                    <textarea
-                      value={typeof value === "string" ? value : ""}
-                      onChange={(e) => setField(field.key, e.target.value)}
-                      className={
-                        "w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
-                      }
-                      rows={4}
-                      placeholder={field.placeholder}
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  ) : field.type === "number" ? (
-                    <input
-                      type="number"
-                      value={
-                        typeof value === "number"
-                          ? String(value)
-                          : typeof value === "string"
-                            ? value
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === "") {
-                          setField(field.key, "");
-                          return;
-                        }
-                        setField(field.key, Number(raw));
-                      }}
-                      className={commonClassName}
-                      placeholder={field.placeholder}
-                      min={field.min}
-                      max={field.max}
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  ) : field.type === "tags" ? (
-                    <input
-                      type="text"
-                      value={Array.isArray(value) ? value.join(", ") : ""}
-                      onChange={(e) =>
-                        setField(field.key, toTags(e.target.value))
-                      }
-                      className={commonClassName}
-                      placeholder={
-                        field.placeholder ??
-                        t("b2c.moments.form.fields.tagsPlaceholder")
-                      }
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  ) : field.type === "date" ? (
-                    <input
-                      type="date"
-                      value={typeof value === "string" ? value : ""}
-                      onChange={(e) => setField(field.key, e.target.value)}
-                      className={commonClassName}
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  ) : field.type === "datetime" ? (
-                    <input
-                      type="datetime-local"
-                      value={typeof value === "string" ? value : ""}
-                      onChange={(e) => setField(field.key, e.target.value)}
-                      className={commonClassName}
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      value={typeof value === "string" ? value : ""}
-                      onChange={(e) => setField(field.key, e.target.value)}
-                      className={commonClassName}
-                      placeholder={field.placeholder}
-                      readOnly={field.readOnly}
-                      style={{
-                        backgroundColor: "var(--bb-color-surface)",
-                        borderColor: "var(--bb-color-border)",
-                        color: "var(--bb-color-ink)",
-                      }}
-                    />
-                  )}
-
-                  {field.helperText ? (
-                    <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
-                      {field.helperText}
-                    </p>
-                  ) : null}
-
-                  {error ? (
-                    <p
-                      className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
-                      role="alert"
-                    >
-                      {error}
-                    </p>
-                  ) : null}
-                </div>
-              );
-            })}
-        </div>
-      ) : null}
-
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-          {t("b2c.moments.form.fields.summaryLabel")}
-        </label>
-        <textarea
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          className="w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
-          style={{
-            backgroundColor: "var(--bb-color-surface)",
-            borderColor: "var(--bb-color-border)",
-            color: "var(--bb-color-ink)",
-          }}
-          rows={4}
-          placeholder={t("b2c.moments.form.fields.summaryPlaceholder")}
-        />
-      </div>
-
-      {template?.id === "marcas-crescimento" ? (
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <StampGenerator
-              type="hand"
-              placeholderUrl="/placeholders/hand_stamp.png"
-              onSuccess={(file: File) => {
-                const renamed = new File([file], "carimbo_mao.png", {
-                  type: file.type,
-                });
-                handleAddMedia([renamed]);
-              }}
-            />
-            <StampGenerator
-              type="foot"
-              placeholderUrl="/placeholders/foot_stamp.png"
-              onSuccess={(file: File) => {
-                const renamed = new File([file], "carimbo_pe.png", {
-                  type: file.type,
-                });
-                handleAddMedia([renamed]);
-              }}
-            />
-          </div>
-
-          {mediaFiles.length === 0 && (
-            <p className="text-center text-xs text-[var(--bb-color-ink-muted)]">
-              {t("b2c.moments.form.stamps.emptyHint")}
-            </p>
-          )}
-
-          {mediaFiles.length > 0 && (
-            <div
-              className="mt-4 rounded-2xl border p-4"
-              style={{
-                backgroundColor: "var(--bb-color-bg)",
-                borderColor: "var(--bb-color-border)",
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsNoMediaDialogOpen(false);
+                scrollToId("moment-media");
               }}
             >
-              <p className="mb-3 text-sm font-bold text-[var(--bb-color-ink)]">
-                {t("b2c.moments.form.stamps.readyTitle")}
+              {t("b2c.moments.common.noMediaNudge.addNow")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setNoMediaConfirmed(true);
+                setIsNoMediaDialogOpen(false);
+                void performCreateMoment();
+              }}
+            >
+              {t("b2c.moments.common.noMediaNudge.saveAnyway")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
+            {t("b2c.moments.form.fields.titleLabel")}
+          </label>
+          <input
+            id="moment-title"
+            type="text"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setTitleError(null);
+            }}
+            className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+              color: "var(--bb-color-ink)",
+            }}
+            placeholder={t("b2c.moments.form.fields.titlePlaceholder")}
+            required
+            aria-invalid={
+              Boolean(titleError) || (submitAttempted && !isTitleValid)
+            }
+          />
+
+          {titleError ? (
+            <p
+              className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
+              role="alert"
+            >
+              {titleError}
+            </p>
+          ) : null}
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
+            {t("b2c.moments.form.fields.dateLabel")}
+          </label>
+          <input
+            id="moment-date"
+            type="date"
+            value={occurredAt}
+            onChange={(e) => {
+              setOccurredAt(e.target.value);
+              setOccurredAtError(null);
+            }}
+            className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+              color: "var(--bb-color-ink)",
+            }}
+            required
+            aria-invalid={
+              Boolean(occurredAtError) || (submitAttempted && !isDateValid)
+            }
+          />
+
+          {occurredAtError ? (
+            <p
+              className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
+              role="alert"
+            >
+              {occurredAtError}
+            </p>
+          ) : null}
+        </div>
+
+        {template?.fields?.length ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--bb-color-ink)]">
+                {t("b2c.moments.form.sections.details")}
+              </h3>
+              <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+                {template.prompt}
               </p>
-              <div className="grid grid-cols-1 gap-2">
-                {mediaFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-xl border p-3 shadow-sm"
-                    style={{
-                      backgroundColor: "var(--bb-color-surface)",
-                      borderColor: "var(--bb-color-border)",
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-xs"
+            </div>
+
+            {template.fields
+              .filter(
+                (f) => template.id !== "marcas-crescimento" || f.key !== "limb",
+              )
+              .map((field) => {
+                const value = fieldValues[field.key];
+                const error = fieldErrors[field.key];
+                const commonClassName =
+                  "w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none";
+
+                return (
+                  <div key={field.key}>
+                    <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
+                      {field.label}
+                      {field.required ? " *" : ""}
+                    </label>
+
+                    {field.type === "select" ? (
+                      <select
+                        id={`moment-field-${field.key}`}
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
+                        className={commonClassName}
+                        disabled={field.readOnly}
                         style={{
-                          backgroundColor: "var(--bb-color-ink)",
-                          color: "var(--bb-color-surface)",
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
                         }}
                       >
-                        {file.name.includes("mao") ? "✋" : "👣"}
-                      </div>
-                      <span className="text-sm font-medium text-[var(--bb-color-ink)]">
-                        {file.name.includes("mao")
-                          ? t("b2c.moments.form.stamps.handLabel")
-                          : t("b2c.moments.form.stamps.footLabel")}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMedia(index)}
-                      className="group rounded-lg p-2 transition-colors"
-                      aria-label={t("common.delete")}
-                    >
-                      <X className="h-4 w-4 text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-danger)]" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <MediaUploader
-          mediaFiles={mediaFiles}
-          onAddMedia={handleAddMedia}
-          onRemoveMedia={handleRemoveMedia}
-          accept={accept}
-          helperText={helperText}
-          error={mediaError}
-        />
-      )}
+                        <option value="">{t("common.select")}</option>
+                        {(field.options ?? []).map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.type === "textarea" ||
+                      field.type === "richtext" ? (
+                      <textarea
+                        id={`moment-field-${field.key}`}
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
+                        className={
+                          "w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
+                        }
+                        rows={4}
+                        placeholder={field.placeholder}
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    ) : field.type === "number" ? (
+                      <input
+                        id={`moment-field-${field.key}`}
+                        type="number"
+                        value={
+                          typeof value === "number"
+                            ? String(value)
+                            : typeof value === "string"
+                              ? value
+                              : ""
+                        }
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            setField(field.key, "");
+                            return;
+                          }
+                          setField(field.key, Number(raw));
+                        }}
+                        className={commonClassName}
+                        placeholder={field.placeholder}
+                        min={field.min}
+                        max={field.max}
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    ) : field.type === "tags" ? (
+                      <input
+                        id={`moment-field-${field.key}`}
+                        type="text"
+                        value={Array.isArray(value) ? value.join(", ") : ""}
+                        onChange={(e) =>
+                          setField(field.key, toTags(e.target.value))
+                        }
+                        className={commonClassName}
+                        placeholder={
+                          field.placeholder ??
+                          t("b2c.moments.form.fields.tagsPlaceholder")
+                        }
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    ) : field.type === "date" ? (
+                      <input
+                        id={`moment-field-${field.key}`}
+                        type="date"
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
+                        className={commonClassName}
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    ) : field.type === "datetime" ? (
+                      <input
+                        id={`moment-field-${field.key}`}
+                        type="datetime-local"
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
+                        className={commonClassName}
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    ) : (
+                      <input
+                        id={`moment-field-${field.key}`}
+                        type="text"
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
+                        className={commonClassName}
+                        placeholder={field.placeholder}
+                        readOnly={field.readOnly}
+                        style={{
+                          backgroundColor: "var(--bb-color-surface)",
+                          borderColor: "var(--bb-color-border)",
+                          color: "var(--bb-color-ink)",
+                        }}
+                      />
+                    )}
 
-      <div className="flex gap-4 pt-4">
-        <Button type="submit" disabled={isPending || !title} className="flex-1">
-          {isPending
-            ? t("b2c.moments.form.saving")
-            : t("b2c.moments.form.save")}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate("/jornada")}
-          className="flex-1"
-        >
-          {t("common.cancel")}
-        </Button>
-      </div>
-    </form>
+                    {field.helperText ? (
+                      <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+                        {field.helperText}
+                      </p>
+                    ) : null}
+
+                    {error ? (
+                      <p
+                        className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
+                        role="alert"
+                      >
+                        {error}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+          </div>
+        ) : null}
+
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
+            {t("b2c.moments.form.fields.summaryLabel")}
+          </label>
+          <textarea
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            className="w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+              color: "var(--bb-color-ink)",
+            }}
+            rows={4}
+            placeholder={t("b2c.moments.form.fields.summaryPlaceholder")}
+          />
+        </div>
+
+        {template?.id === "marcas-crescimento" ? (
+          <div className="space-y-6" id="moment-media">
+            <div className="flex flex-col md:flex-row gap-4">
+              <StampGenerator
+                type="hand"
+                placeholderUrl="/placeholders/hand_stamp.png"
+                onSuccess={(file: File) => {
+                  const renamed = new File([file], "carimbo_mao.png", {
+                    type: file.type,
+                  });
+                  handleAddMedia([renamed]);
+                }}
+              />
+              <StampGenerator
+                type="foot"
+                placeholderUrl="/placeholders/foot_stamp.png"
+                onSuccess={(file: File) => {
+                  const renamed = new File([file], "carimbo_pe.png", {
+                    type: file.type,
+                  });
+                  handleAddMedia([renamed]);
+                }}
+              />
+            </div>
+
+            {mediaFiles.length === 0 && (
+              <p className="text-center text-xs text-[var(--bb-color-ink-muted)]">
+                {t("b2c.moments.form.stamps.emptyHint")}
+              </p>
+            )}
+
+            {mediaFiles.length > 0 && (
+              <div
+                className="mt-4 rounded-2xl border p-4"
+                style={{
+                  backgroundColor: "var(--bb-color-bg)",
+                  borderColor: "var(--bb-color-border)",
+                }}
+              >
+                <p className="mb-3 text-sm font-bold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.form.stamps.readyTitle")}
+                </p>
+                <div className="grid grid-cols-1 gap-2">
+                  {mediaFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-xl border p-3 shadow-sm"
+                      style={{
+                        backgroundColor: "var(--bb-color-surface)",
+                        borderColor: "var(--bb-color-border)",
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "var(--bb-color-ink)",
+                            color: "var(--bb-color-surface)",
+                          }}
+                        >
+                          {file.name.includes("mao") ? "✋" : "👣"}
+                        </div>
+                        <span className="text-sm font-medium text-[var(--bb-color-ink)]">
+                          {file.name.includes("mao")
+                            ? t("b2c.moments.form.stamps.handLabel")
+                            : t("b2c.moments.form.stamps.footLabel")}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMedia(index)}
+                        className="group rounded-lg p-2 transition-colors"
+                        aria-label={t("common.delete")}
+                      >
+                        <X className="h-4 w-4 text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-danger)]" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div id="moment-media">
+            {mediaFiles.length === 0 && !derivedMediaError ? (
+              <div
+                className="mb-3 rounded-2xl border p-4"
+                style={{
+                  backgroundColor: "var(--bb-color-bg)",
+                  borderColor: "var(--bb-color-border)",
+                }}
+              >
+                <p className="text-sm font-semibold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.form.media.optionalHint.title")}
+                </p>
+                <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+                  {t("b2c.moments.form.media.optionalHint.description")}
+                </p>
+              </div>
+            ) : null}
+            <MediaUploader
+              mediaFiles={mediaFiles}
+              onAddMedia={handleAddMedia}
+              onRemoveMedia={handleRemoveMedia}
+              accept={accept}
+              helperText={helperText}
+              error={mediaError ?? derivedMediaError}
+            />
+          </div>
+        )}
+
+        {mediaUploadPct !== null ? (
+          <div
+            className="rounded-xl border p-3"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+            }}
+            aria-live="polite"
+          >
+            <p className="text-xs text-[var(--bb-color-ink-muted)]">
+              {t("b2c.moments.form.saving")}
+              {mediaUploadLabel ? ` — ${mediaUploadLabel}` : ""}
+            </p>
+            <div
+              className="mt-2 h-2 w-full overflow-hidden rounded-full"
+              style={{ backgroundColor: "var(--bb-color-border)" }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${mediaUploadPct}%`,
+                  backgroundColor: "var(--bb-color-ink)",
+                  transition: "width 160ms ease",
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex gap-4 pt-4">
+          <Button
+            type="submit"
+            disabled={!canSubmit}
+            className="flex-1"
+            title={!canSubmit && submitHint ? submitHint : undefined}
+          >
+            {isPending
+              ? t("b2c.moments.form.saving")
+              : t("b2c.moments.form.save")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/jornada")}
+            className="flex-1"
+            disabled={isPending}
+          >
+            {t("common.cancel")}
+          </Button>
+        </div>
+
+        {!canSubmit && submitHint ? (
+          <p
+            className="text-xs text-[var(--bb-color-ink-muted)]"
+            role={submitAttempted ? "alert" : "status"}
+          >
+            {submitHint}
+          </p>
+        ) : null}
+      </form>
+    </>
   );
 };

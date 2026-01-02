@@ -467,7 +467,13 @@
     },
     "moments": {
       "common": {
-        "newMoment": "New Moment"
+        "newMoment": "New Moment",
+        "noMediaNudge": {
+          "title": "Want to make this moment even more complete?",
+          "description": "No photo right now is totally fine. You can save and add it later — but an image makes it even nicer to revisit.",
+          "addNow": "Add now",
+          "saveAnyway": "Save anyway"
+        }
       },
       "free": {
         "description": "Create a free moment, no template required"
@@ -503,6 +509,11 @@
           "microphonePermission": "Couldn't access the microphone. Please check your permissions.",
           "createFailed": "Error creating the moment. Please try again."
         },
+        "validation": {
+          "missingMedia": "Add a media item to continue.",
+          "missingAudio": "Record or upload an audio to continue.",
+          "missingTitle": "Fill in the title to continue."
+        },
         "stepType": {
           "subtitle": "How do you want to record this moment?"
         },
@@ -512,6 +523,12 @@
             "video": "Add your video",
             "audio": "Record or upload audio",
             "text": "Skip this step"
+          },
+          "optionalHint": {
+            "title": "It’s okay to continue without media",
+            "description": "If you’re in a hurry, keep going now and complete it later to make the memory even richer.",
+            "addNow": "Add now",
+            "skipForNow": "Skip for now"
           },
           "upload": {
             "tapToAddPhotos": "Tap to add photos",
@@ -538,7 +555,8 @@
         },
         "stepPreview": {
           "title": "All set?",
-          "untitled": "Untitled"
+          "untitled": "Untitled",
+          "noMediaBadge": "No media (add later)"
         },
         "stepSuccess": {
           "title": "Moment saved!",
@@ -547,7 +565,8 @@
         },
         "saving": "Saving...",
         "saveMoment": "Save Moment",
-        "continue": "Continue"
+        "continue": "Continue",
+        "continueNoMedia": "Continue (no media)"
       },
       "form": {
         "fields": {
@@ -564,10 +583,20 @@
         "errors": {
           "requiredField": "Required field."
         },
+        "validation": {
+          "missingTitle": "Fill in the title to save.",
+          "missingDate": "Select a date to save.",
+          "missingField": "Fill the required field: {{field}}."
+        },
         "media": {
+          "optionalHint": {
+            "title": "You can add photos later",
+            "description": "If you want, add at least one photo — it helps you relive this moment with extra warmth. But you can save now with no media."
+          },
           "helper": {
             "generic": "Up to 10 media items per moment. You added {{count}}.",
-            "photos": "Photos: {{current}}/{{max}} (goal: {{range}})",
+            "photos": "Photos: {{current}}/{{max}}{{suggestionSuffix}}",
+            "photosSuggestionSuffix": " · Optional suggestion: {{suggestion}}",
             "videoOrAudio": "Video or audio: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
             "video": "Video: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
             "audio": "Audio: {{current}}/{{max}}{{requiredSuffix}}",

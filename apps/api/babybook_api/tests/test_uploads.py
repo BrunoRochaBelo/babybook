@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from uuid import UUID
-
-import asyncio
+from datetime import datetime
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -12,15 +10,30 @@ from babybook_api.db.models import Asset
 from babybook_api.main import app
 from babybook_api.services.inline_worker import process_inline_job
 from babybook_api.services.queue import get_queue_publisher
+from babybook_api.storage.base import PresignedUrlResult
 from app import queue as worker_queue
 
 from .conftest import TestingSessionLocal
 
-from babybook_api.db.models import Asset
-from .conftest import TestingSessionLocal
 
+def test_upload_flow_and_dedup(monkeypatch, client: TestClient, login: None) -> None:
+    # Evita dependência de MinIO real nos testes: mocka storage presigned.
+    from babybook_api.routes import uploads as uploads_routes
 
-def test_upload_flow_and_dedup(client: TestClient, login: None) -> None:
+    class FakeStorage:
+        async def generate_presigned_put_url(self, *, key: str, content_type: str, expires_in, metadata=None):
+            return PresignedUrlResult(
+                url=f"https://presigned.test/{key}",
+                method="PUT",
+                expires_at=datetime.utcnow(),
+                headers={},
+            )
+
+    async def fake_get_cold_storage():
+        return FakeStorage()
+
+    monkeypatch.setattr(uploads_routes, "get_cold_storage", fake_get_cold_storage)
+
     child_resp = client.post("/children", json={"name": "Bebe"})
     assert child_resp.status_code == 201
     child_id = child_resp.json()["id"]
@@ -69,6 +82,23 @@ async def _fetch_asset(asset_id: UUID) -> Asset:
 
 
 def test_upload_processed_by_worker(monkeypatch, client: TestClient, login: None) -> None:
+    # Evita dependência de MinIO real nos testes: mocka storage presigned.
+    from babybook_api.routes import uploads as uploads_routes
+
+    class FakeStorage:
+        async def generate_presigned_put_url(self, *, key: str, content_type: str, expires_in, metadata=None):
+            return PresignedUrlResult(
+                url=f"https://presigned.test/{key}",
+                method="PUT",
+                expires_at=datetime.utcnow(),
+                headers={},
+            )
+
+    async def fake_get_cold_storage():
+        return FakeStorage()
+
+    monkeypatch.setattr(uploads_routes, "get_cold_storage", fake_get_cold_storage)
+
     published: list[tuple[str, dict, dict]] = []
 
     child_resp = client.post("/children", json={"name": "Bebe"})

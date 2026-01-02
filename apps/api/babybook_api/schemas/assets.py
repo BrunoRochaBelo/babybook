@@ -25,6 +25,7 @@ class UploadInitResponse(BaseModel):
     status: AssetStatus
     upload_id: str | None = None
     key: str | None = None
+    part_size: int | None = None
     parts: list[int] | None = None
     urls: list[str] | None = None
     deduplicated: bool = False

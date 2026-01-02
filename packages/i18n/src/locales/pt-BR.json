@@ -467,7 +467,13 @@
     },
     "moments": {
       "common": {
-        "newMoment": "Novo Momento"
+        "newMoment": "Novo Momento",
+        "noMediaNudge": {
+          "title": "Quer deixar esse momento ainda mais completo?",
+          "description": "Sem foto agora tudo bem. Você pode salvar e adicionar depois — mas com uma imagem fica ainda mais gostoso de lembrar.",
+          "addNow": "Adicionar agora",
+          "saveAnyway": "Salvar mesmo assim"
+        }
       },
       "free": {
         "description": "Crie um momento livre, sem necessidade de seguir um template"
@@ -503,6 +509,11 @@
           "microphonePermission": "Não foi possível acessar o microfone. Verifique as permissões.",
           "createFailed": "Erro ao criar momento. Tente novamente."
         },
+        "validation": {
+          "missingMedia": "Adicione uma mídia para continuar.",
+          "missingAudio": "Grave ou envie um áudio para continuar.",
+          "missingTitle": "Preencha o título para continuar."
+        },
         "stepType": {
           "subtitle": "Como você quer registrar esse momento?"
         },
@@ -512,6 +523,12 @@
             "video": "Adicione seu vídeo",
             "audio": "Grave ou envie áudio",
             "text": "Pule esta etapa"
+          },
+          "optionalHint": {
+            "title": "Tudo bem seguir sem mídia",
+            "description": "Se estiver com pressa, continue agora e complete depois para deixar a memória ainda mais rica.",
+            "addNow": "Adicionar agora",
+            "skipForNow": "Pular por enquanto"
           },
           "upload": {
             "tapToAddPhotos": "Toque para adicionar fotos",
@@ -538,7 +555,8 @@
         },
         "stepPreview": {
           "title": "Tudo certo?",
-          "untitled": "Sem título"
+          "untitled": "Sem título",
+          "noMediaBadge": "Sem mídia (adicione depois)"
         },
         "stepSuccess": {
           "title": "Momento registrado!",
@@ -547,7 +565,8 @@
         },
         "saving": "Salvando...",
         "saveMoment": "Salvar Momento",
-        "continue": "Continuar"
+        "continue": "Continuar",
+        "continueNoMedia": "Continuar (sem mídia)"
       },
       "form": {
         "fields": {
@@ -564,10 +583,20 @@
         "errors": {
           "requiredField": "Campo obrigatório."
         },
+        "validation": {
+          "missingTitle": "Preencha o título para salvar.",
+          "missingDate": "Selecione a data para salvar.",
+          "missingField": "Preencha o campo obrigatório: {{field}}."
+        },
         "media": {
+          "optionalHint": {
+            "title": "Você pode adicionar fotos depois",
+            "description": "Adicione ao menos uma foto se quiser — ela ajuda a reviver esse momento com mais carinho. Mas você pode salvar agora, sem mídia."
+          },
           "helper": {
             "generic": "Até 10 mídias por momento. Você adicionou {{count}}.",
-            "photos": "Fotos: {{current}}/{{max}} (meta: {{range}})",
+            "photos": "Fotos: {{current}}/{{max}}{{suggestionSuffix}}",
+            "photosSuggestionSuffix": " · Sugestão (opcional): {{suggestion}}",
             "videoOrAudio": "Vídeo ou áudio: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
             "video": "Vídeo: {{current}}/{{max}}{{secondsSuffix}}{{requiredSuffix}}",
             "audio": "Áudio: {{current}}/{{max}}{{requiredSuffix}}",

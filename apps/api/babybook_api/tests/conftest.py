@@ -97,6 +97,11 @@ def login(client: TestClient) -> None:
     assert resp.status_code == 204
     assert SESSION_COOKIE_NAME in client.cookies
 
+    # A maioria das rotas mutáveis exige CSRF via header.
+    # Como os testes usam o mesmo TestClient, registramos o token como default
+    # para evitar 403 por `auth.csrf.missing`.
+    client.headers.update({"X-CSRF-Token": csrf})
+
 
 @pytest.fixture
 def default_account_id() -> str:
