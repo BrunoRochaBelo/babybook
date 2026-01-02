@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/auth";
 import { useMyVouchers } from "@/features/vouchers";
 import { useMomentTemplate } from "../hooks/useMomentTemplate";
 import { MomentForm } from "../components/MomentForm";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
 
 export const MomentDraftPage = () => {
@@ -131,12 +131,31 @@ export const MomentDraftPage = () => {
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
         <div>
-          <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
-            {template?.title || t("b2c.moments.common.newMoment")}
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1
+              className="text-2xl font-bold"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
+              {template?.title || t("b2c.moments.common.newMoment")}
+            </h1>
+
+            {template?.id === "marcas-crescimento" ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.25em]"
+                style={{
+                  borderColor: "rgba(242,153,93,0.35)",
+                  background:
+                    "linear-gradient(135deg, rgba(242,153,93,0.18), rgba(168,85,247,0.14))",
+                  color: "var(--bb-color-ink)",
+                  boxShadow: "0 0 0 1px rgba(242,153,93,0.08) inset",
+                }}
+                title="Este momento inclui geração por IA"
+              >
+                <Sparkles className="h-4 w-4" aria-hidden />
+                IA
+              </span>
+            ) : null}
+          </div>
           {template?.prompt && (
             <p
               className="text-sm"
@@ -145,6 +164,16 @@ export const MomentDraftPage = () => {
               {template.prompt}
             </p>
           )}
+
+          {template?.id === "marcas-crescimento" ? (
+            <p
+              className="mt-1 text-xs"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              Gere um carimbo (mão/pé) a partir da sua foto — a IA remove o
+              fundo e aplica o efeito de tinta.
+            </p>
+          ) : null}
         </div>
       </div>
 

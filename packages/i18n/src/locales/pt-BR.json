@@ -475,6 +475,33 @@
           "saveAnyway": "Salvar mesmo assim"
         }
       },
+      "card": {
+        "actions": {
+          "openFeatured": "Abrir mídia em destaque",
+          "openPhoto": "Abrir foto",
+          "openVideo": "Abrir vídeo",
+          "seeMore": "Ver mais",
+          "seeLess": "Ver menos",
+          "prevMedia": "Mídia anterior",
+          "nextMedia": "Próxima mídia"
+        },
+        "dialog": {
+          "label": "Visualização de mídia"
+        },
+        "noDescription": "Sem descrição...",
+        "noMedia": {
+          "title": "Sem mídia",
+          "description": "Você pode adicionar fotos ou vídeos depois."
+        },
+        "age": {
+          "years": "{{count}} ano",
+          "years_plural": "{{count}} anos",
+          "months": "{{count}} mês",
+          "months_plural": "{{count}} meses",
+          "days": "{{count}} dia",
+          "days_plural": "{{count}} dias"
+        }
+      },
       "free": {
         "description": "Crie um momento livre, sem necessidade de seguir um template"
       },
@@ -626,6 +653,18 @@
         },
         "stamps": {
           "emptyHint": "Gere os carimbos da mãozinha e do pezinho acima.",
+          "guide": {
+            "title": "Gerador de carimbo com IA",
+            "description": "A IA remove o fundo e aplica o efeito de tinta. Para um resultado melhor, use uma foto bem iluminada e com fundo limpo.",
+            "cta": "Como tirar a foto (qualidade, fundo e luz)",
+            "bullets": {
+              "1": "Use luz natural (perto de uma janela). Evite flash direto e sombras duras.",
+              "2": "Fundo liso e neutro (folha branca, mesa clara). Evite estampas e objetos por perto.",
+              "3": "Foto nítida (sem tremido). Toque para focar antes de fotografar.",
+              "4": "Centralize mão/pé, deixe margens e evite cortar dedos/calcanhar.",
+              "5": "Se a pele estiver muito brilhando, seque levemente e tente de novo (reflexos atrapalham)."
+            }
+          },
           "readyTitle": "Artes Prontas:",
           "handLabel": "Carimbo da Mãozinha",
           "footLabel": "Carimbo do Pezinho"

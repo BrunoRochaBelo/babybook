@@ -5,7 +5,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MediaUploader } from "./MediaUploader";
 import { Button } from "@/components/ui/button";
@@ -1063,6 +1063,51 @@ export const MomentForm = ({
 
         {template?.id === "marcas-crescimento" ? (
           <div className="space-y-6" id="moment-media">
+            <div
+              className="rounded-2xl border p-4"
+              style={{
+                backgroundColor: "var(--bb-color-bg)",
+                borderColor: "var(--bb-color-border)",
+              }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <p className="text-sm font-semibold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.form.stamps.guide.title")}
+                </p>
+
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
+                  style={{
+                    borderColor: "rgba(242,153,93,0.35)",
+                    background:
+                      "linear-gradient(135deg, rgba(242,153,93,0.18), rgba(168,85,247,0.14))",
+                    color: "var(--bb-color-ink)",
+                    boxShadow: "0 0 0 1px rgba(242,153,93,0.08) inset",
+                  }}
+                  title="Gerado por IA"
+                >
+                  <Sparkles className="h-3 w-3" aria-hidden />
+                  IA
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+                {t("b2c.moments.form.stamps.guide.description")}
+              </p>
+
+              <details className="mt-3">
+                <summary className="cursor-pointer select-none text-xs font-semibold text-[var(--bb-color-ink)]">
+                  {t("b2c.moments.form.stamps.guide.cta")}
+                </summary>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-[var(--bb-color-ink-muted)]">
+                  <li>{t("b2c.moments.form.stamps.guide.bullets.1")}</li>
+                  <li>{t("b2c.moments.form.stamps.guide.bullets.2")}</li>
+                  <li>{t("b2c.moments.form.stamps.guide.bullets.3")}</li>
+                  <li>{t("b2c.moments.form.stamps.guide.bullets.4")}</li>
+                  <li>{t("b2c.moments.form.stamps.guide.bullets.5")}</li>
+                </ul>
+              </details>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-4">
               <StampGenerator
                 type="hand"

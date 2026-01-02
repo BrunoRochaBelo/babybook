@@ -475,6 +475,33 @@
           "saveAnyway": "Save anyway"
         }
       },
+      "card": {
+        "actions": {
+          "openFeatured": "Open featured media",
+          "openPhoto": "Open photo",
+          "openVideo": "Open video",
+          "seeMore": "See more",
+          "seeLess": "See less",
+          "prevMedia": "Previous media",
+          "nextMedia": "Next media"
+        },
+        "dialog": {
+          "label": "Media viewer"
+        },
+        "noDescription": "No description…",
+        "noMedia": {
+          "title": "No media",
+          "description": "You can add photos or videos later."
+        },
+        "age": {
+          "years": "{{count}} year",
+          "years_plural": "{{count}} years",
+          "months": "{{count}} month",
+          "months_plural": "{{count}} months",
+          "days": "{{count}} day",
+          "days_plural": "{{count}} days"
+        }
+      },
       "free": {
         "description": "Create a free moment, no template required"
       },
@@ -626,6 +653,18 @@
         },
         "stamps": {
           "emptyHint": "Generate the hand and foot stamps above.",
+          "guide": {
+            "title": "AI stamp generator",
+            "description": "AI removes the background and applies the ink effect. For best results, use a well-lit photo with a clean background.",
+            "cta": "How to take the photo (quality, background and lighting)",
+            "bullets": {
+              "1": "Use natural light (near a window). Avoid direct flash and harsh shadows.",
+              "2": "Use a plain, neutral background (white paper, light table). Avoid patterns and nearby objects.",
+              "3": "Keep it sharp (no motion blur). Tap to focus before taking the picture.",
+              "4": "Center the hand/foot, leave some margins and avoid cutting fingers/heel.",
+              "5": "If the skin is too shiny, gently dry it and try again (reflections can hurt results)."
+            }
+          },
           "readyTitle": "Ready assets:",
           "handLabel": "Hand stamp",
           "footLabel": "Foot stamp"

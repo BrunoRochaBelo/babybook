@@ -12,6 +12,7 @@ import {
   Circle,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -1313,18 +1314,42 @@ export const MomentsTimeline = ({
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="min-w-0">
-                                    <p
-                                      className="text-xs uppercase tracking-[0.3em]"
-                                      style={{
-                                        color: "var(--bb-color-ink-muted)",
-                                      }}
-                                    >
-                                      {template.type === "recurring"
-                                        ? "Recorrente"
-                                        : template.type === "series"
-                                          ? "Série"
-                                          : "Único"}
-                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p
+                                        className="text-xs uppercase tracking-[0.3em]"
+                                        style={{
+                                          color: "var(--bb-color-ink-muted)",
+                                        }}
+                                      >
+                                        {template.type === "recurring"
+                                          ? "Recorrente"
+                                          : template.type === "series"
+                                            ? "Série"
+                                            : "Único"}
+                                      </p>
+
+                                      {template.id === "marcas-crescimento" ? (
+                                        <span
+                                          className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
+                                          style={{
+                                            borderColor:
+                                              "rgba(242,153,93,0.35)",
+                                            background:
+                                              "linear-gradient(135deg, rgba(242,153,93,0.18), rgba(168,85,247,0.14))",
+                                            color: "var(--bb-color-ink)",
+                                            boxShadow:
+                                              "0 0 0 1px rgba(242,153,93,0.08) inset",
+                                          }}
+                                          title="Gerado por IA"
+                                        >
+                                          <Sparkles
+                                            className="h-3 w-3"
+                                            aria-hidden
+                                          />
+                                          IA
+                                        </span>
+                                      ) : null}
+                                    </div>
                                     <p
                                       className="mt-0.5 font-semibold"
                                       style={{ color: "var(--bb-color-ink)" }}
@@ -1577,18 +1602,41 @@ export const MomentsTimeline = ({
                             >
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
-                                  <p
-                                    className="text-xs uppercase tracking-[0.3em]"
-                                    style={{
-                                      color: "var(--bb-color-ink-muted)",
-                                    }}
-                                  >
-                                    {template.type === "recurring"
-                                      ? "Recorrente"
-                                      : template.type === "series"
-                                        ? "Série"
-                                        : "Único"}
-                                  </p>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p
+                                      className="text-xs uppercase tracking-[0.3em]"
+                                      style={{
+                                        color: "var(--bb-color-ink-muted)",
+                                      }}
+                                    >
+                                      {template.type === "recurring"
+                                        ? "Recorrente"
+                                        : template.type === "series"
+                                          ? "Série"
+                                          : "Único"}
+                                    </p>
+
+                                    {template.id === "marcas-crescimento" ? (
+                                      <span
+                                        className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
+                                        style={{
+                                          borderColor: "rgba(242,153,93,0.35)",
+                                          background:
+                                            "linear-gradient(135deg, rgba(242,153,93,0.18), rgba(168,85,247,0.14))",
+                                          color: "var(--bb-color-ink)",
+                                          boxShadow:
+                                            "0 0 0 1px rgba(242,153,93,0.08) inset",
+                                        }}
+                                        title="Gerado por IA"
+                                      >
+                                        <Sparkles
+                                          className="h-3 w-3"
+                                          aria-hidden
+                                        />
+                                        IA
+                                      </span>
+                                    ) : null}
+                                  </div>
                                   <p
                                     className="font-semibold"
                                     style={{ color: "var(--bb-color-ink)" }}
@@ -2037,6 +2085,31 @@ export const MomentsTimeline = ({
                                               >
                                                 Momento
                                               </span>
+
+                                              {r.template.id ===
+                                              "marcas-crescimento" ? (
+                                                <span
+                                                  className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
+                                                  style={{
+                                                    borderColor:
+                                                      "rgba(242,153,93,0.35)",
+                                                    background:
+                                                      "linear-gradient(135deg, rgba(242,153,93,0.18), rgba(168,85,247,0.14))",
+                                                    color:
+                                                      "var(--bb-color-ink)",
+                                                    boxShadow:
+                                                      "0 0 0 1px rgba(242,153,93,0.08) inset",
+                                                  }}
+                                                  title="Gerado por IA"
+                                                >
+                                                  <Sparkles
+                                                    className="h-3 w-3"
+                                                    aria-hidden
+                                                  />
+                                                  IA
+                                                </span>
+                                              ) : null}
+
                                               <span
                                                 className="truncate font-semibold"
                                                 style={{
