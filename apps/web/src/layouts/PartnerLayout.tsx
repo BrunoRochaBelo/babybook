@@ -27,7 +27,6 @@ import {
   MoonStar,
   Package,
   Settings,
-  Sparkles,
   Sun,
   HelpCircle,
   FileText,
@@ -88,8 +87,6 @@ export function PartnerLayout() {
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
   const [isCreditsOpen, setCreditsOpen] = useState(false);
 
-
-
   // Fetch partner profile
   const { data: profile } = useQuery({
     queryKey: ["partner", "profile"],
@@ -100,9 +97,9 @@ export function PartnerLayout() {
   const { data: stats } = useQuery({
     queryKey: ["partner", "stats"],
     queryFn: getPartnerDashboardStats,
-    // Reduce stale time to ensure updates are reflected quicker, 
+    // Reduce stale time to ensure updates are reflected quicker,
     // or rely on invalidateQueries if we implemented the purchase flow fully.
-    staleTime: 5000, 
+    staleTime: 5000,
     refetchOnWindowFocus: true,
   });
 
@@ -119,7 +116,7 @@ export function PartnerLayout() {
   const handleMarkAllAsRead = () => {
     queryClient.setQueryData<Notification[]>(
       ["partner", "notifications"],
-      (old) => old?.map((n) => ({ ...n, unread: false })) ?? []
+      (old) => old?.map((n) => ({ ...n, unread: false })) ?? [],
     );
   };
 
@@ -127,7 +124,7 @@ export function PartnerLayout() {
     queryClient.setQueryData<Notification[]>(
       ["partner", "notifications"],
       (old) =>
-        old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? []
+        old?.map((n) => (n.id === id ? { ...n, unread: false } : n)) ?? [],
     );
   };
 
@@ -176,10 +173,7 @@ export function PartnerLayout() {
           <div className="flex items-center justify-between h-16 relative">
             {/* Logo & Brand */}
             <div className="flex items-center">
-              <Link
-                to="/partner"
-                className="flex items-center gap-2"
-              >
+              <Link to="/partner" className="flex items-center gap-2">
                 <BabyBookLogo variant="b2b" size="md" />
               </Link>
             </div>
@@ -238,7 +232,7 @@ export function PartnerLayout() {
                         {/* Abstract shapes for "digital" feel */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 dark:bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 dark:bg-pink-500/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
-                        
+
                         <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 relative z-10">
                           Saldo Disponível
                         </p>
@@ -260,8 +254,12 @@ export function PartnerLayout() {
 
                         {(stats?.reserved_credits || 0) > 0 && (
                           <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between relative z-10">
-                            <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">Reservados</span>
-                            <span className="text-gray-900 dark:text-white font-bold">{stats?.reserved_credits}</span>
+                            <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                              Reservados
+                            </span>
+                            <span className="text-gray-900 dark:text-white font-bold">
+                              {stats?.reserved_credits}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -285,7 +283,8 @@ export function PartnerLayout() {
                               2
                             </div>
                             <p className="text-sm text-gray-700 dark:text-gray-300">
-                              Cada recurso utiliza uma quantidade específica de créditos.
+                              Cada recurso utiliza uma quantidade específica de
+                              créditos.
                             </p>
                           </div>
                           <div className="flex items-center gap-3">
@@ -364,7 +363,7 @@ export function PartnerLayout() {
                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                           Recentes
                         </p>
-                        <button 
+                        <button
                           onClick={handleMarkAllAsRead}
                           className="text-xs font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           disabled={unreadCount === 0}
@@ -377,27 +376,37 @@ export function PartnerLayout() {
                         {notifications.map((notification) => (
                           <div
                             key={notification.id}
-                            onClick={() => handleNotificationClick(notification)}
+                            onClick={() =>
+                              handleNotificationClick(notification)
+                            }
                             className={cn(
                               "relative px-6 py-5 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group",
-                              notification.unread ? "bg-white dark:bg-gray-900" : "bg-transparent opacity-80"
+                              notification.unread
+                                ? "bg-white dark:bg-gray-900"
+                                : "bg-transparent opacity-80",
                             )}
                           >
                             <div className="flex gap-4">
-                              <div className={cn(
-                                "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105",
-                                notification.unread 
-                                  ? "bg-pink-50 text-pink-600 dark:bg-pink-900/20 dark:text-pink-400 ring-2 ring-pink-100 dark:ring-pink-900/30" 
-                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
+                              <div
+                                className={cn(
+                                  "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105",
+                                  notification.unread
+                                    ? "bg-pink-50 text-pink-600 dark:bg-pink-900/20 dark:text-pink-400 ring-2 ring-pink-100 dark:ring-pink-900/30"
+                                    : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+                                )}
+                              >
                                 <Bell className="w-5 h-5" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2 mb-1">
-                                  <p className={cn(
-                                    "text-sm font-semibold truncate pr-2",
-                                    notification.unread ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300"
-                                  )}>
+                                  <p
+                                    className={cn(
+                                      "text-sm font-semibold truncate pr-2",
+                                      notification.unread
+                                        ? "text-gray-900 dark:text-white"
+                                        : "text-gray-600 dark:text-gray-300",
+                                    )}
+                                  >
                                     {notification.title}
                                   </p>
                                   <span className="text-[10px] text-gray-400 whitespace-nowrap font-medium">
@@ -508,7 +517,7 @@ export function PartnerLayout() {
                               "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "light"
                                 ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
                             )}
                           >
                             <Sun className="w-4 h-4" />
@@ -521,7 +530,7 @@ export function PartnerLayout() {
                               "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "dark"
                                 ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
                             )}
                           >
                             <MoonStar className="w-4 h-4" />
@@ -534,7 +543,7 @@ export function PartnerLayout() {
                               "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300",
                               theme === "system"
                                 ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
                             )}
                           >
                             <Monitor className="w-4 h-4" />
@@ -624,7 +633,6 @@ export function PartnerLayout() {
                     </DrawerBody>
 
                     <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6">
-
                       <button
                         onClick={handleLogout}
                         disabled={logoutMutation.isPending}

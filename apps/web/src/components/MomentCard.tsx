@@ -1,9 +1,7 @@
 import type { Moment as ApiMoment } from "@babybook/contracts";
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getMomentByTemplateKey } from "@/data/momentCatalog";
 import { getMediaUrl } from "@/lib/media";
-import { cn } from "@/lib/utils";
 
 interface MomentCardProps {
   moment: ApiMoment;
@@ -61,7 +59,9 @@ export const MomentCard = ({ moment }: MomentCardProps) => {
   const payload = moment.payload as Record<string, unknown> | undefined;
   const summary =
     moment.summary ||
-    (typeof payload?.["relato"] === "string" ? (payload["relato"] as string) : "");
+    (typeof payload?.["relato"] === "string"
+      ? (payload["relato"] as string)
+      : "");
   const badge = statusBadge(moment.status);
 
   const typeStyles = {
@@ -138,7 +138,10 @@ export const MomentCard = ({ moment }: MomentCardProps) => {
             {moment.title}
           </h4>
           {displayDate && (
-            <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+            <p
+              className="text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
               {new Date(displayDate).toLocaleDateString("pt-BR")}
             </p>
           )}

@@ -17,7 +17,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     console.log("[StampWorker] Preloading models...");
     try {
       await fetch(PUBLIC_PATH + "model.json");
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     return;
@@ -194,7 +194,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
         // 2. AUMENTO DE CONTRASTE para destacar linhas
         // SmoothStep faz os escuros ficarem mais escuros, claros mais claros
-        let enhanced = norm * norm * (3 - 2 * norm);
+        const enhanced = norm * norm * (3 - 2 * norm);
 
         // 3. Threshold para separar sulcos de pele
         const creaseThreshold = 0.35;

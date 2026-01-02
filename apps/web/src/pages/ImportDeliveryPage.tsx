@@ -40,7 +40,10 @@ export function ImportDeliveryPage() {
     return items.find((d) => d.deliveryId === deliveryId) ?? null;
   }, [pendingQuery.data?.items, deliveryId]);
 
-  const children = childrenQuery.data ?? [];
+  const children = useMemo(
+    () => childrenQuery.data ?? [],
+    [childrenQuery.data],
+  );
 
   const [mode, setMode] = useState<"existing" | "new">(
     children.length ? "existing" : "new",

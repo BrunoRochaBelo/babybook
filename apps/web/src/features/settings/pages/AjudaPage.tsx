@@ -4,7 +4,7 @@
  * Página com FAQs e informações de suporte.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft,
@@ -15,6 +15,7 @@ import {
   Heart,
 } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
+import { TextPageSkeleton } from "../components/TextPageSkeleton";
 
 interface FAQ {
   id: string;
@@ -24,7 +25,13 @@ interface FAQ {
 
 export const AjudaPage = () => {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const FAQS = useMemo<FAQ[]>(() => [
     {
@@ -53,6 +60,10 @@ export const AjudaPage = () => {
       answer: t("b2c.help.questions.exportAnswer"),
     },
   ], [t]);
+
+  if (isLoading) {
+    return <TextPageSkeleton />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

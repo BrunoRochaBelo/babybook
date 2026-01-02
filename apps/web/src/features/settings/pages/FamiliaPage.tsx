@@ -7,15 +7,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  ChevronLeft,
-  Users,
-  UserPlus,
-  Crown,
-  X,
-  Mail,
-  Loader2,
-} from "lucide-react";
+import { ChevronLeft, UserPlus, Crown, X, Mail } from "lucide-react";
 import {
   listFamilyMembers,
   inviteFamilyMember,
@@ -24,7 +16,7 @@ import {
   type FamilyMember,
 } from "../api";
 import { useTranslation } from "@babybook/i18n";
-import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
+import { FamiliaSkeleton } from "../components/FamiliaSkeleton";
 
 // Mock data para fallback em dev
 const MOCK_MEMBERS: FamilyMember[] = [
@@ -55,7 +47,8 @@ export const FamiliaPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [inviteEmail, setInviteEmail] = useState("");
-  const [localMembers, setLocalMembers] = useState<FamilyMember[]>(MOCK_MEMBERS);
+  const [localMembers, setLocalMembers] =
+    useState<FamilyMember[]>(MOCK_MEMBERS);
 
   // Busca membros da família da API
   const { data, isLoading, error } = useQuery({
@@ -64,10 +57,6 @@ export const FamiliaPage = () => {
     retry: 1,
     staleTime: 30000,
   });
-
-  if (isLoading) {
-    return <B2CSkeleton />;
-  }
 
   // Atualiza estado local quando dados da API chegam
   useEffect(() => {
@@ -78,9 +67,13 @@ export const FamiliaPage = () => {
 
   // Mutation para convidar membro
   const inviteMutation = useMutation({
-    mutationFn: (email: string) => inviteFamilyMember({ email, role: "viewer" }),
+    mutationFn: (email: string) =>
+      inviteFamilyMember({ email, role: "viewer" }),
     onSuccess: (newMember) => {
-      setLocalMembers((prev) => [...prev, { ...newMember, status: "pending" as const }]);
+      setLocalMembers((prev) => [
+        ...prev,
+        { ...newMember, status: "pending" as const },
+      ]);
       setInviteEmail("");
       queryClient.invalidateQueries({ queryKey: settingsApiKeys.family });
     },
@@ -119,6 +112,10 @@ export const FamiliaPage = () => {
   const handleRemoveMember = (memberId: string) => {
     removeMutation.mutate(memberId);
   };
+
+  if (isLoading) {
+    return <FamiliaSkeleton />;
+  }
 
   const getRoleBadge = (role: FamilyMember["role"]) => {
     const config = {
@@ -168,6 +165,20 @@ export const FamiliaPage = () => {
         {t("b2c.family.description")}
       </p>
 
+      {/* Fallback/aviso quando a API falha */}
+      {error && (
+        <div
+          className="mb-6 rounded-2xl p-3 text-sm"
+          style={{
+            backgroundColor: "var(--bb-color-bg)",
+            border: "1px solid var(--bb-color-border)",
+            color: "var(--bb-color-ink-muted)",
+          }}
+        >
+          Não foi possível carregar os membros agora. Exibindo dados locais.
+        </div>
+      )}
+
       {/* Invite Section */}
       <div
         className="rounded-2xl p-4 mb-6"
@@ -181,7 +192,10 @@ export const FamiliaPage = () => {
             className="w-5 h-5"
             style={{ color: "var(--bb-color-accent)" }}
           />
-          <h3 className="font-semibold" style={{ color: "var(--bb-color-ink)" }}>
+          <h3
+            className="font-semibold"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             {t("b2c.family.inviteTitle")}
           </h3>
         </div>
@@ -285,7 +299,8 @@ export const FamiliaPage = () => {
                   <span
                     className="px-3 py-1 rounded-full text-xs font-medium"
                     style={{
-                      backgroundColor: "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
+                      backgroundColor:
+                        "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
                       color: "var(--bb-color-accent)",
                     }}
                   >
@@ -320,12 +335,14 @@ export const FamiliaPage = () => {
       >
         <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
           <strong>{t("b2c.family.aboutPermissions")}</strong>
-          <br />• <strong>{t("b2c.family.roles.owner")}</strong> {t("b2c.family.roles.ownerDesc")}
-          <br />• <strong>{t("b2c.family.roles.guardian")}</strong> {t("b2c.family.roles.guardianDesc")}
-          <br />• <strong>{t("b2c.family.roles.viewer")}</strong> {t("b2c.family.roles.viewerDesc")}
+          <br />• <strong>{t("b2c.family.roles.owner")}</strong>{" "}
+          {t("b2c.family.roles.ownerDesc")}
+          <br />• <strong>{t("b2c.family.roles.guardian")}</strong>{" "}
+          {t("b2c.family.roles.guardianDesc")}
+          <br />• <strong>{t("b2c.family.roles.viewer")}</strong>{" "}
+          {t("b2c.family.roles.viewerDesc")}
         </p>
       </div>
     </div>
   );
 };
-

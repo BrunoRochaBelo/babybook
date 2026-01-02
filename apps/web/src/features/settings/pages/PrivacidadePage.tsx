@@ -4,10 +4,11 @@
  * Página para configurações de privacidade e compartilhamento.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, Globe, Users, Lock, Eye, Download, Trash2 } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
+import { TextPageSkeleton } from "../components/TextPageSkeleton";
 
 interface PrivacySetting {
   id: string;
@@ -20,6 +21,12 @@ interface PrivacySetting {
 
 export const PrivacidadePage = () => {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
   
   const [values, setValues] = useState<Record<string, string>>({
     album_visibility: "guardians",
@@ -68,6 +75,10 @@ export const PrivacidadePage = () => {
   const updateSetting = (id: string, value: string) => {
     setValues((prev) => ({ ...prev, [id]: value }));
   };
+
+  if (isLoading) {
+    return <TextPageSkeleton />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

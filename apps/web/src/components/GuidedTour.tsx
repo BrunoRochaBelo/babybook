@@ -1,6 +1,6 @@
 /**
  * Guided Tour Component
- * 
+ *
  * Tour guiado interativo que destaca elementos da interface
  * para novos usuários, explicando cada funcionalidade.
  */
@@ -15,99 +15,144 @@ import {
   CreditCard,
   Package,
   BarChart3,
-  Settings,
   Bell,
+  Users,
+  User,
+  Calendar,
+  Archive,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@babybook/i18n";
 
-const TOUR_COMPLETED_KEY = "@babybook/partner-tour-completed";
+export const TOUR_COMPLETED_KEY_B2B = "@babybook/partner-tour-completed";
+export const TOUR_COMPLETED_KEY_B2C = "@babybook/b2c-tour-completed";
 
 export interface TourStep {
   id: string;
   target: string; // CSS selector
-  title: string;
-  description: string;
-  icon?: typeof CreditCard;
+  titleKey: string;
+  descriptionKey: string;
+  icon: LucideIcon;
   position?: "top" | "bottom" | "left" | "right";
 }
 
-const DEFAULT_STEPS: TourStep[] = [
+export const PARTNER_TOUR_STEPS: TourStep[] = [
   {
     id: "welcome",
     target: "[data-tour='dashboard-header']",
-    title: "Bem-vindo ao Portal do Parceiro!",
-    description: "Este é o seu painel principal. Aqui você acompanha entregas, créditos e estatísticas do seu estúdio.",
+    titleKey: "partner.tour.welcome.title",
+    descriptionKey: "partner.tour.welcome.description",
     icon: Sparkles,
-    position: "bottom",
   },
   {
     id: "credits",
-    target: "[data-tour='credits-card']",
-    title: "Seus Créditos",
-    description: "Créditos são usados para gerar vouchers. Compre pacotes e envie fotos aos seus clientes.",
+    target: '[data-tour="credits-card"]',
+    titleKey: "partner.tour.credits.title",
+    descriptionKey: "partner.tour.credits.description",
     icon: CreditCard,
-    position: "bottom",
   },
   {
     id: "stats",
-    target: "[data-tour='stats-grid']",
-    title: "Estatísticas",
-    description: "Acompanhe o número de entregas, vouchers gerados e resgates em tempo real.",
+    target: '[data-tour="stats-grid"]',
+    titleKey: "partner.tour.stats.title",
+    descriptionKey: "partner.tour.stats.description",
     icon: BarChart3,
-    position: "top",
   },
   {
     id: "deliveries",
-    target: "[data-tour='recent-deliveries']",
-    title: "Entregas Recentes",
-    description: "Veja suas últimas entregas e acompanhe o status de cada uma.",
+    target: '[data-tour="recent-deliveries"]',
+    titleKey: "partner.tour.deliveries.title",
+    descriptionKey: "partner.tour.deliveries.description",
     icon: Package,
-    position: "top",
   },
   {
     id: "notifications",
-    target: "[data-tour='notifications-button']",
-    title: "Notificações",
-    description: "Fique por dentro de novos resgates e atualizações importantes.",
+    target: '[data-tour="notifications-button"]',
+    titleKey: "partner.tour.notifications.title",
+    descriptionKey: "partner.tour.notifications.description",
     icon: Bell,
-    position: "bottom",
   },
   {
     id: "settings",
-    target: "[data-tour='user-menu']",
-    title: "Menu do Usuário",
-    description: "Acesse configurações, altere o tema e gerencie sua conta.",
-    icon: Settings,
-    position: "bottom",
+    target: '[data-tour="user-menu"]',
+    titleKey: "partner.tour.settings.title",
+    descriptionKey: "partner.tour.settings.description",
+    icon: User,
+  },
+];
+
+export const B2C_TOUR_STEPS: TourStep[] = [
+  {
+    id: "welcome",
+    target: "[data-tour='b2c-header']",
+    titleKey: "b2c.tour.welcome.title",
+    descriptionKey: "b2c.tour.welcome.description",
+    icon: Sparkles,
+  },
+  {
+    id: "timeline",
+    target: '[data-tour="moments-timeline"]',
+    titleKey: "b2c.tour.timeline.title",
+    descriptionKey: "b2c.tour.timeline.description",
+    icon: Calendar,
+  },
+  {
+    id: "vault",
+    target: '[data-tour="vault-nav"]',
+    titleKey: "b2c.tour.vault.title",
+    descriptionKey: "b2c.tour.vault.description",
+    icon: Archive,
+  },
+  {
+    id: "family",
+    target: '[data-tour="family-nav"]',
+    titleKey: "b2c.tour.family.title",
+    descriptionKey: "b2c.tour.family.description",
+    icon: Users,
+  },
+  {
+    id: "settings",
+    target: '[data-tour="user-menu"]',
+    titleKey: "b2c.tour.settings.title",
+    descriptionKey: "b2c.tour.settings.description",
+    icon: User,
   },
 ];
 
 interface GuidedTourProps {
-  steps?: TourStep[];
+  steps: TourStep[];
+  tourKey: string;
   onComplete?: () => void;
   autoStart?: boolean;
 }
 
 export function GuidedTour({
-  steps = DEFAULT_STEPS,
+  steps,
+  tourKey,
   onComplete,
   autoStart = true,
 }: GuidedTourProps) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const { t } = useTranslation(); // Initialize useTranslation hook
+
+  // Determina se é B2C ou B2B para cores
+  const isB2C = tourKey === TOUR_COMPLETED_KEY_B2C;
+  const accentColor = isB2C ? "var(--bb-color-accent)" : "#ec4899"; // Pink-500 default for B2B
 
   // Verifica se já completou o tour
   useEffect(() => {
     if (!autoStart) return;
-    
-    const completed = localStorage.getItem(TOUR_COMPLETED_KEY);
+
+    const completed = localStorage.getItem(tourKey);
     if (completed !== "true") {
-      // Delay para garantir que o DOM está pronto
-      const timer = setTimeout(() => setIsActive(true), 1000);
+      // Delay para garantir que o DOM está pronto e animações iniciais terminaram
+      const timer = setTimeout(() => setIsActive(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, [autoStart]);
+  }, [autoStart, tourKey]);
 
   // Atualiza posição do elemento alvo
   const updateTargetRect = useCallback(() => {
@@ -125,11 +170,11 @@ export function GuidedTour({
 
   useEffect(() => {
     if (!isActive) return;
-    
+
     updateTargetRect();
     window.addEventListener("resize", updateTargetRect);
     window.addEventListener("scroll", updateTargetRect, true);
-    
+
     return () => {
       window.removeEventListener("resize", updateTargetRect);
       window.removeEventListener("scroll", updateTargetRect, true);
@@ -151,13 +196,13 @@ export function GuidedTour({
   };
 
   const handleComplete = () => {
-    localStorage.setItem(TOUR_COMPLETED_KEY, "true");
+    localStorage.setItem(tourKey, "true");
     setIsActive(false);
     onComplete?.();
   };
 
   const handleSkip = () => {
-    localStorage.setItem(TOUR_COMPLETED_KEY, "true");
+    localStorage.setItem(tourKey, "true");
     setIsActive(false);
   };
 
@@ -175,12 +220,24 @@ export function GuidedTour({
     switch (position) {
       case "top":
         return {
-          left: Math.max(padding, Math.min(targetRect.left + targetRect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - padding)),
+          left: Math.max(
+            padding,
+            Math.min(
+              targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+              window.innerWidth - tooltipWidth - padding,
+            ),
+          ),
           bottom: window.innerHeight - targetRect.top + padding,
         };
       case "bottom":
         return {
-          left: Math.max(padding, Math.min(targetRect.left + targetRect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - padding)),
+          left: Math.max(
+            padding,
+            Math.min(
+              targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+              window.innerWidth - tooltipWidth - padding,
+            ),
+          ),
           top: targetRect.bottom + padding,
         };
       case "left":
@@ -260,34 +317,57 @@ export function GuidedTour({
       {/* Highlight do elemento - borda animada */}
       {targetRect && (
         <div
-          className="absolute border-4 border-pink-500 rounded-xl pointer-events-none"
+          className="absolute border-4 rounded-xl pointer-events-none"
           style={{
             left: targetRect.left - 8,
             top: targetRect.top - 8,
             width: targetRect.width + 16,
             height: targetRect.height + 16,
-            animation: "pulse-border 2s ease-in-out infinite",
+            borderColor: accentColor,
+            animation: "pulse-border-custom 2s ease-in-out infinite",
           }}
         />
       )}
+
+      {/* Inject custom animation if not present */}
+      <style>{`
+        @keyframes pulse-border-custom {
+          0%, 100% {
+            border-color: ${accentColor};
+            box-shadow: 0 0 0 0 ${accentColor}44;
+          }
+          50% {
+            border-color: ${accentColor}cc;
+            box-shadow: 0 0 0 8px ${accentColor}00;
+          }
+        }
+      `}</style>
 
       {/* Tooltip */}
       <div
         className={cn(
           "absolute w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5",
           "border border-gray-200 dark:border-gray-700",
-          "animate-in fade-in-0 zoom-in-95 duration-300"
+          "animate-in fade-in-0 zoom-in-95 duration-300",
         )}
         style={tooltipStyle}
       >
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center flex-shrink-0">
-            <Icon className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              backgroundColor: isB2C
+                ? "var(--bb-color-accent-soft)"
+                : "#fdf2f8",
+              color: accentColor,
+            }}
+          >
+            <Icon className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-tight">
-              {step.title}
+              {t(step.titleKey)}
             </h3>
           </div>
           <button
@@ -301,7 +381,7 @@ export function GuidedTour({
 
         {/* Content */}
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-          {step.description}
+          {t(step.descriptionKey)}
         </p>
 
         {/* Progress */}
@@ -312,11 +392,14 @@ export function GuidedTour({
               className={cn(
                 "h-1.5 rounded-full transition-all",
                 idx === currentStep
-                  ? "w-6 bg-pink-500"
+                  ? "w-6"
                   : idx < currentStep
-                    ? "w-1.5 bg-pink-300 dark:bg-pink-700"
-                    : "w-1.5 bg-gray-200 dark:bg-gray-700"
+                    ? "w-1.5 opacity-60"
+                    : "w-1.5 bg-gray-200 dark:bg-gray-700",
               )}
+              style={{
+                backgroundColor: idx <= currentStep ? accentColor : undefined,
+              }}
             />
           ))}
         </div>
@@ -341,7 +424,8 @@ export function GuidedTour({
             )}
             <button
               onClick={handleNext}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-pink-500 text-white text-sm font-medium rounded-lg hover:bg-pink-600 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"
+              style={{ backgroundColor: accentColor }}
             >
               {currentStep < steps.length - 1 ? (
                 <>
@@ -356,18 +440,18 @@ export function GuidedTour({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
 /**
  * Hook para controlar o tour manualmente
  */
-export function useGuidedTour() {
+export function useGuidedTour(tourKey: string = TOUR_COMPLETED_KEY_B2C) {
   const [isActive, setIsActive] = useState(false);
 
   const startTour = () => {
-    localStorage.removeItem(TOUR_COMPLETED_KEY);
+    localStorage.removeItem(tourKey);
     setIsActive(true);
   };
 
@@ -376,7 +460,7 @@ export function useGuidedTour() {
   };
 
   const resetTour = () => {
-    localStorage.removeItem(TOUR_COMPLETED_KEY);
+    localStorage.removeItem(tourKey);
   };
 
   return { isActive, startTour, endTour, resetTour };

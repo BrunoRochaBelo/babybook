@@ -12,7 +12,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { Plus, Maximize2, X } from "lucide-react";
+import { Plus, Maximize2 } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useTheme } from "@/hooks/useTheme";
 import { B2CErrorState } from "@/layouts/b2cStates";
@@ -29,7 +29,13 @@ interface HealthGrowthTabProps {
 }
 
 export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
-  const { data: measurements = [], isLoading, isError, error, refetch } = useHealthMeasurements(childId);
+  const {
+    data: measurements = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useHealthMeasurements(childId);
   // useCreateHealthMeasurement moved to form component
   const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
@@ -40,13 +46,6 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   );
   const lastMeasurement = sortedMeasurements.at(-1);
   const measurementGoal: number = 12;
-  const measurementsPercent =
-    measurementGoal === 0
-      ? 0
-      : Math.min(
-          100,
-          Math.round((sortedMeasurements.length / measurementGoal) * 100),
-        );
   const lastMeasurementDate = lastMeasurement
     ? new Date(lastMeasurement.date).toLocaleDateString("pt-BR", {
         day: "numeric",
@@ -71,17 +70,27 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
     weight: measurement.weight,
     height: measurement.height,
     // Mock healthy range (just an example calculation around the point)
-    expectedMinWeight: measurement.weight ? measurement.weight * 0.9 : undefined,
-    expectedMaxWeight: measurement.weight ? measurement.weight * 1.1 : undefined,
+    expectedMinWeight: measurement.weight
+      ? measurement.weight * 0.9
+      : undefined,
+    expectedMaxWeight: measurement.weight
+      ? measurement.weight * 1.1
+      : undefined,
   }));
 
   if (isLoading) {
-     return (
-       <div className="space-y-6">
-         <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
-         <div className="h-64 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
-       </div>
-     );
+    return (
+      <div className="space-y-6">
+        <div
+          className="h-32 rounded-3xl animate-pulse"
+          style={{ backgroundColor: "var(--bb-color-muted)" }}
+        />
+        <div
+          className="h-64 rounded-3xl animate-pulse"
+          style={{ backgroundColor: "var(--bb-color-muted)" }}
+        />
+      </div>
+    );
   }
 
   if (isError) {
@@ -95,20 +104,26 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
         skeleton={
           <div className="space-y-6">
             {/* HUD Skeleton */}
-            <div className="rounded-[32px] border p-6" style={{ borderColor: "var(--bb-color-border)", backgroundColor: "var(--bb-color-surface)" }}>
-                 <div className="flex gap-4 mb-6">
-                    <div className="flex-1 space-y-2">
-                       <div className="h-3 w-20 rounded bg-gray-200 animate-pulse" />
-                       <div className="h-6 w-32 rounded bg-gray-200 animate-pulse" />
-                    </div>
-                 </div>
-                 <div className="h-[120px] w-full rounded-2xl bg-gray-100 animate-pulse" />
+            <div
+              className="rounded-[32px] border p-6"
+              style={{
+                borderColor: "var(--bb-color-border)",
+                backgroundColor: "var(--bb-color-surface)",
+              }}
+            >
+              <div className="flex gap-4 mb-6">
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-20 rounded bg-gray-200 animate-pulse" />
+                  <div className="h-6 w-32 rounded bg-gray-200 animate-pulse" />
+                </div>
+              </div>
+              <div className="h-[120px] w-full rounded-2xl bg-gray-100 animate-pulse" />
             </div>
             {/* List Skeleton */}
             <div className="space-y-3">
-               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
-               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
-               <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+              <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+              <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+              <div className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
             </div>
           </div>
         }
@@ -159,7 +174,7 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
         }
       />
 
-      <HealthGrowthForm 
+      <HealthGrowthForm
         childId={childId}
         open={showForm}
         onOpenChange={setShowForm}
@@ -236,31 +251,43 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
               >
                 <defs>
                   <linearGradient id="healthyRange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="4 4"
                   stroke={isDark ? "#3d352e" : "#E3DBCF"}
                 />
-                <XAxis 
-                   dataKey="date" 
-                   stroke={isDark ? "#8a8075" : "#8C8C8C"} 
-                   tick={{ fontSize: 12 }}
+                <XAxis
+                  dataKey="date"
+                  stroke={isDark ? "#8a8075" : "#8C8C8C"}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis 
-                   yAxisId="weight"
-                   stroke="#F2995D" 
-                   tick={{ fontSize: 12 }}
-                   label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft', fill: '#F2995D', fontSize: 12 }}
+                <YAxis
+                  yAxisId="weight"
+                  stroke="#F2995D"
+                  tick={{ fontSize: 12 }}
+                  label={{
+                    value: "Peso (kg)",
+                    angle: -90,
+                    position: "insideLeft",
+                    fill: "#F2995D",
+                    fontSize: 12,
+                  }}
                 />
-                <YAxis 
-                   yAxisId="height" 
-                   orientation="right" 
-                   stroke="#C76A6A" 
-                   tick={{ fontSize: 12 }}
-                   label={{ value: 'Altura (cm)', angle: 90, position: 'insideRight', fill: '#C76A6A', fontSize: 12 }}
+                <YAxis
+                  yAxisId="height"
+                  orientation="right"
+                  stroke="#C76A6A"
+                  tick={{ fontSize: 12 }}
+                  label={{
+                    value: "Altura (cm)",
+                    angle: 90,
+                    position: "insideRight",
+                    fill: "#C76A6A",
+                    fontSize: 12,
+                  }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -268,19 +295,19 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
                     borderColor: "var(--bb-color-border)",
                     backgroundColor: "var(--bb-color-surface)",
                     color: "var(--bb-color-ink)",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                   }}
                   itemStyle={{ padding: 0 }}
                 />
                 <Legend verticalAlign="top" height={36} />
-                <Area 
+                <Area
                   yAxisId="weight"
-                  type="monotone" 
-                  dataKey="expectedMaxWeight" 
+                  type="monotone"
+                  dataKey="expectedMaxWeight"
                   baseValue="dataMin" // or use expectedMinWeight if you restructure data for [min, max]
-                  stroke="none" 
-                  fill="url(#healthyRange)" 
-                  name="Faixa Saudável (OMS)" 
+                  stroke="none"
+                  fill="url(#healthyRange)"
+                  name="Faixa Saudável (OMS)"
                 />
                 <Line
                   yAxisId="weight"

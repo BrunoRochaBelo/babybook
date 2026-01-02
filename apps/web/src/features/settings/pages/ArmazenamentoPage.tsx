@@ -14,11 +14,10 @@ import {
   Mic,
   Check,
   Cloud,
-  Loader2,
 } from "lucide-react";
 import { getStorageStats, settingsApiKeys } from "../api";
 import { useTranslation } from "@babybook/i18n";
-import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
+import { SettingsSubsectionSkeleton } from "../components/SettingsSubsectionSkeleton";
 
 export const ArmazenamentoPage = () => {
   const { t } = useTranslation();
@@ -32,7 +31,7 @@ export const ArmazenamentoPage = () => {
   });
 
   if (isLoading) {
-    return <B2CSkeleton />;
+    return <SettingsSubsectionSkeleton />;
   }
 
   // Converte bytes para GB
@@ -41,10 +40,15 @@ export const ArmazenamentoPage = () => {
   };
 
   const storageUsed = data ? formatStorage(data.bytes_used) : "2.3";
-  const storageTotal = data?.is_unlimited ? t("b2c.storage.unlimited") : data ? formatStorage(data.bytes_quota) + " GB" : t("b2c.storage.unlimited");
-  const usagePercentage = data && !data.is_unlimited && data.bytes_quota > 0
-    ? Math.min(100, (data.bytes_used / data.bytes_quota) * 100)
-    : 23;
+  const storageTotal = data?.is_unlimited
+    ? t("b2c.storage.unlimited")
+    : data
+      ? formatStorage(data.bytes_quota) + " GB"
+      : t("b2c.storage.unlimited");
+  const usagePercentage =
+    data && !data.is_unlimited && data.bytes_quota > 0
+      ? Math.min(100, (data.bytes_used / data.bytes_quota) * 100)
+      : 23;
   const photosCount = data?.photos_count ?? 156;
   const videosCount = data?.videos_count ?? 12;
   const audiosCount = data?.audios_count ?? 8;
@@ -81,7 +85,10 @@ export const ArmazenamentoPage = () => {
             className="w-5 h-5"
             style={{ color: "var(--bb-color-accent)" }}
           />
-          <h3 className="font-semibold" style={{ color: "var(--bb-color-ink)" }}>
+          <h3
+            className="font-semibold"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             {t("b2c.storage.usedSpace")}
           </h3>
         </div>
@@ -92,7 +99,10 @@ export const ArmazenamentoPage = () => {
           >
             {storageUsed} GB
           </span>
-          <span className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+          <span
+            className="text-sm"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
             {t("b2c.storage.usedOfTotal", { total: storageTotal })}
           </span>
         </div>
@@ -126,9 +136,24 @@ export const ArmazenamentoPage = () => {
         </h4>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: Image, value: photosCount.toString(), label: t("b2c.storage.photos"), color: "var(--bb-color-accent)" },
-            { icon: Video, value: videosCount.toString(), label: t("b2c.storage.videos"), color: "var(--bb-color-accent)" },
-            { icon: Mic, value: audiosCount.toString(), label: t("b2c.storage.audios"), color: "var(--bb-color-accent)" },
+            {
+              icon: Image,
+              value: photosCount.toString(),
+              label: t("b2c.storage.photos"),
+              color: "var(--bb-color-accent)",
+            },
+            {
+              icon: Video,
+              value: videosCount.toString(),
+              label: t("b2c.storage.videos"),
+              color: "var(--bb-color-accent)",
+            },
+            {
+              icon: Mic,
+              value: audiosCount.toString(),
+              label: t("b2c.storage.audios"),
+              color: "var(--bb-color-accent)",
+            },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -183,7 +208,10 @@ export const ArmazenamentoPage = () => {
             <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
               {t("b2c.storage.backupActive")}
             </p>
-            <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+            <p
+              className="text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
               {t("b2c.storage.lastBackup", { time: "2 horas" })}
             </p>
           </div>

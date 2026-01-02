@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarClock, FileText, Plus, Stethoscope } from "lucide-react";
+import { CalendarClock, Plus, Stethoscope } from "lucide-react";
 import { useHealthVisits } from "@/hooks/api";
 import { HudCard } from "@/components/HudCard";
 import { HealthVisitForm } from "@/components/HealthVisitForm";
@@ -11,7 +11,13 @@ interface HealthPediatrianTabProps {
 import { B2CErrorState } from "@/layouts/b2cStates";
 
 export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
-  const { data: visits = [], isLoading, isError, error, refetch } = useHealthVisits(childId);
+  const {
+    data: visits = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useHealthVisits(childId);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Sorting
@@ -25,7 +31,7 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
 
   const lastVisit = sortedVisits[0];
   const totalVisits = sortedVisits.length;
-  
+
   // HUD Data
   const hudValue = lastVisit
     ? new Date(lastVisit.date).toLocaleDateString("pt-BR", {
@@ -34,19 +40,27 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
         year: "numeric",
       })
     : "Nenhuma visita";
-    
-  let hudDescription = "Registre as consultas para manter o histórico médico organizado.";
+
+  let hudDescription =
+    "Registre as consultas para manter o histórico médico organizado.";
   if (totalVisits > 0) {
-     const visitText = totalVisits === 1 ? "visita realizada" : "visitas realizadas";
-     hudDescription = `Última consulta. Total de ${totalVisits} ${visitText} até o momento.`;
+    const visitText =
+      totalVisits === 1 ? "visita realizada" : "visitas realizadas";
+    hudDescription = `Última consulta. Total de ${totalVisits} ${visitText} até o momento.`;
   }
 
   // Loading State
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-32 rounded-3xl animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
-        <div className="h-64 rounded-[32px] animate-pulse" style={{ backgroundColor: "var(--bb-color-muted)" }} />
+        <div
+          className="h-32 rounded-3xl animate-pulse"
+          style={{ backgroundColor: "var(--bb-color-muted)" }}
+        />
+        <div
+          className="h-64 rounded-[32px] animate-pulse"
+          style={{ backgroundColor: "var(--bb-color-muted)" }}
+        />
       </div>
     );
   }
@@ -54,10 +68,10 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
   // Error State
   if (isError) {
     const skeleton = (
-       <div className="space-y-6">
-         <div className="h-32 rounded-[32px] bg-gray-100 animate-pulse" />
-         <div className="h-64 rounded-[32px] bg-gray-100 animate-pulse" />
-       </div>
+      <div className="space-y-6">
+        <div className="h-32 rounded-[32px] bg-gray-100 animate-pulse" />
+        <div className="h-64 rounded-[32px] bg-gray-100 animate-pulse" />
+      </div>
     );
     return (
       <B2CErrorState
@@ -89,7 +103,7 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
         }
       />
 
-      <HealthVisitForm 
+      <HealthVisitForm
         childId={childId}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
@@ -104,21 +118,21 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
             >
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 rounded-full bg-surface-hover px-3 py-1">
-                   <CalendarClock className="h-3.5 w-3.5 text-ink-muted" />
-                   <span className="text-xs font-medium uppercase tracking-wider text-ink-muted">
+                  <CalendarClock className="h-3.5 w-3.5 text-ink-muted" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-ink-muted">
                     {new Date(visit.date).toLocaleDateString("pt-BR", {
                       weekday: "long",
                       day: "numeric",
                       month: "long",
                     })}
-                   </span>
+                  </span>
                 </div>
               </div>
 
               <h3 className="mb-2 font-serif text-xl font-medium text-ink">
                 {visit.reason}
               </h3>
-              
+
               {visit.notes ? (
                 <div className="mt-3 rounded-2xl bg-surface-hover/50 p-4">
                   <p className="text-sm leading-relaxed text-ink-muted">
@@ -126,7 +140,9 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-ink-muted italic">Sem observações.</p>
+                <p className="text-sm text-ink-muted italic">
+                  Sem observações.
+                </p>
               )}
             </article>
           ))}
@@ -136,9 +152,12 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
           <div className="mb-4 rounded-full bg-surface-hover p-4">
             <Stethoscope className="h-8 w-8 text-ink-muted" />
           </div>
-          <h3 className="mb-2 font-serif text-lg text-ink">Nenhuma consulta registrada</h3>
+          <h3 className="mb-2 font-serif text-lg text-ink">
+            Nenhuma consulta registrada
+          </h3>
           <p className="max-w-xs text-sm text-ink-muted">
-            Comece registrando a primeira visita ao pediatra para manter o histórico de saúde organizado.
+            Comece registrando a primeira visita ao pediatra para manter o
+            histórico de saúde organizado.
           </p>
           <button
             type="button"

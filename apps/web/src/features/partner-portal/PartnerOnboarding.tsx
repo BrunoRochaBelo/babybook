@@ -18,13 +18,14 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 
 const ONBOARDING_DISMISSED_KEY = "@babybook/partner-onboarding-dismissed";
 
 interface OnboardingStep {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: typeof User;
   to: string;
   check: (stats: OnboardingStats) => boolean;
@@ -40,32 +41,32 @@ interface OnboardingStats {
 const STEPS: OnboardingStep[] = [
   {
     id: "profile",
-    title: "Personalize seu estúdio",
-    description: "Seus clientes verão seu nome e marca nas entregas",
+    titleKey: "partner.onboarding.steps.profile.title",
+    descriptionKey: "partner.onboarding.steps.profile.description",
     icon: User,
     to: "/partner/settings",
     check: (s) => s.hasCompletedProfile,
   },
   {
     id: "credits",
-    title: "Adquira créditos",
-    description: "Cada crédito = 1 entrega com voucher exclusivo",
+    titleKey: "partner.onboarding.steps.credits.title",
+    descriptionKey: "partner.onboarding.steps.credits.description",
     icon: CreditCard,
     to: "/partner/credits",
     check: (s) => s.hasCredits,
   },
   {
     id: "delivery",
-    title: "Envie sua primeira entrega",
-    description: "Surpreenda um cliente com fotos incríveis",
+    titleKey: "partner.onboarding.steps.delivery.title",
+    descriptionKey: "partner.onboarding.steps.delivery.description",
     icon: Package,
     to: "/partner/deliveries/new",
     check: (s) => s.hasDeliveries,
   },
   {
     id: "stats",
-    title: "Desbloqueie estatísticas avançadas",
-    description: "Complete 5 entregas para ver insights do seu negócio",
+    titleKey: "partner.onboarding.steps.stats.title",
+    descriptionKey: "partner.onboarding.steps.stats.description",
     icon: BarChart3,
     to: "/partner",
     check: (s) => s.hasFiveDeliveries,
@@ -77,6 +78,7 @@ interface PartnerOnboardingProps {
 }
 
 export function PartnerOnboarding({ stats }: PartnerOnboardingProps) {
+  const { t } = useTranslation();
   const [isDismissed, setIsDismissed] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -113,10 +115,10 @@ export function PartnerOnboarding({ stats }: PartnerOnboardingProps) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Vamos começar! 🚀
+              {t("partner.onboarding.title")}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Siga estes passos para entregar suas primeiras fotos
+              {t("partner.onboarding.subtitle")}
             </p>
           </div>
         </div>
@@ -135,13 +137,13 @@ export function PartnerOnboarding({ stats }: PartnerOnboardingProps) {
         <div className="flex items-center justify-between text-sm mb-1.5">
           <span className="text-gray-600 dark:text-gray-400">
             {completedCount === 0 
-              ? "Pronto para começar?" 
+              ? t("partner.onboarding.progress.start") 
               : completedCount === STEPS.length - 1 
-                ? "Quase lá!" 
-                : "Continue assim!"}
+                ? t("partner.onboarding.progress.almost") 
+                : t("partner.onboarding.progress.continue")}
           </span>
           <span className="font-medium text-pink-600 dark:text-pink-400">
-            {completedCount}/{STEPS.length} etapas
+            {t("partner.onboarding.progress.etapas", { current: completedCount, total: STEPS.length })}
           </span>
         </div>
         <div className="h-2 bg-white dark:bg-gray-800 rounded-full overflow-hidden">
@@ -189,7 +191,7 @@ export function PartnerOnboarding({ stats }: PartnerOnboardingProps) {
                       : "text-gray-900 dark:text-white"
                   }`}
                 >
-                  {step.title}
+                  {t(step.titleKey)}
                 </p>
                 <p
                   className={`text-xs ${
@@ -198,7 +200,7 @@ export function PartnerOnboarding({ stats }: PartnerOnboardingProps) {
                       : "text-gray-500 dark:text-gray-400"
                   }`}
                 >
-                  {step.description}
+                  {t(step.descriptionKey)}
                 </p>
               </div>
               {!isCompleted && (

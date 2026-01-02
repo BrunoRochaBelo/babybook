@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .deps import AsyncSessionLocal
@@ -49,6 +50,9 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(TraceIdMiddleware)
+    # Performance: compress responses (especialmente JSON) quando vale a pena.
+    # Mantemos um mínimo para não comprimir payloads pequenos.
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     @app.middleware("http")
     async def add_security_headers(request: Request, call_next):

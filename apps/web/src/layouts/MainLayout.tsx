@@ -123,6 +123,7 @@ export const MainLayout = () => {
             backgroundColor: "var(--bb-color-bg)",
             borderBottom: "1px solid var(--bb-color-border)",
           }}
+          data-tour="b2c-header"
         >
           <div className="mx-auto w-full max-w-5xl px-4 py-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -176,6 +177,7 @@ export const MainLayout = () => {
                       color: "var(--bb-color-ink)",
                     }}
                     aria-label="Abrir menu principal"
+                    data-tour="user-menu-button"
                   >
                     <span className="font-semibold">
                       {selectedChild?.name || "Cadastre uma criança"}
@@ -216,6 +218,7 @@ export const MainLayout = () => {
             border: "2px solid var(--bb-color-border)",
           }}
           aria-label="Navegação dos livros"
+          data-tour="bottom-nav"
         >
           <LayoutGroup id="book-nav">
             {BOOKS_NAV.map((book) => {
@@ -297,7 +300,7 @@ export const MainLayout = () => {
           onOpenChange={setMainDrawerOpen}
           userName={user?.name}
           userEmail={user?.email}
-          children={childrenList}
+          childrenList={childrenList}
           selectedChild={selectedChild}
           onSelectChild={setSelectedChildId}
           onLogout={handleLogout}

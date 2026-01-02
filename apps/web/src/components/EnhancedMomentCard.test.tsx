@@ -1,4 +1,3 @@
-import React from "react";
 import {
   render,
   screen,
@@ -14,7 +13,7 @@ import type { Moment } from "@babybook/contracts";
 vi.mock("@babybook/i18n", () => ({
   useTranslation: () => ({
     i18n: { language: "pt-BR" },
-    t: (key: string, options?: any) => {
+    t: (key: string, options?: { count?: number }) => {
       // Mapeamento mínimo para manter os testes determinísticos.
       const count = options?.count;
 
@@ -52,37 +51,54 @@ vi.mock("@babybook/i18n", () => ({
 vi.mock("framer-motion", async () => {
   const React = await import("react");
 
-  const passthrough = (Tag: any) =>
-    React.forwardRef(({ children, ...rest }: any, ref: any) => {
-      // Remove props de animação/layout para não vazarem no DOM durante testes.
-      // (Evita warnings do React em JSDOM.)
-      const {
-        layout,
-        layoutId,
-        initial,
-        animate,
-        exit,
-        transition,
-        whileHover,
-        whileTap,
-        variants,
-        onAnimationComplete,
-        ...domProps
-      } = rest;
+  type PassthroughProps = Record<string, unknown> & {
+    children?: React.ReactNode;
+  };
 
-      return React.createElement(Tag, { ref, ...domProps }, children);
-    });
+  const passthrough = (Tag: React.ElementType) => {
+    const Wrapped = React.forwardRef<unknown, PassthroughProps>(
+      (props, ref) => {
+        // Remove props de animação/layout para não vazarem no DOM durante testes.
+        // (Evita warnings do React em JSDOM.)
+        const domProps: Record<string, unknown> = { ...props };
+
+        delete domProps.layout;
+        delete domProps.layoutId;
+        delete domProps.initial;
+        delete domProps.animate;
+        delete domProps.exit;
+        delete domProps.transition;
+        delete domProps.whileHover;
+        delete domProps.whileTap;
+        delete domProps.variants;
+        delete domProps.onAnimationComplete;
+
+        const { children, ...rest } = domProps as {
+          children?: React.ReactNode;
+        } & Record<string, unknown>;
+
+        return React.createElement(Tag, { ref, ...rest }, children);
+      },
+    );
+
+    Wrapped.displayName = `FramerMotionPassthrough(${typeof Tag === "string" ? Tag : "Component"})`;
+    return Wrapped;
+  };
 
   const motionProxy = new Proxy(
     {},
     {
-      get: (_target, key) => passthrough(key),
+      get: (_target, key) => passthrough(key as React.ElementType),
     },
   );
 
   return {
-    AnimatePresence: ({ children }: any) => <>{children}</>,
-    LayoutGroup: ({ children }: any) => <>{children}</>,
+    AnimatePresence: ({ children }: { children?: React.ReactNode }) => (
+      <>{children}</>
+    ),
+    LayoutGroup: ({ children }: { children?: React.ReactNode }) => (
+      <>{children}</>
+    ),
     motion: motionProxy,
   };
 });
@@ -103,7 +119,19 @@ vi.mock("@/hooks/useSelectedChild", () => ({
 }));
 
 vi.mock("@/store/auth", () => ({
-  useAuthStore: (selector: any) =>
+  useAuthStore: <T,>(
+    selector: (state: {
+      user: {
+        id: string;
+        email: string;
+        name: string;
+        locale: string;
+        role: string;
+        hasPurchased: boolean;
+        onboardingCompleted: boolean;
+      };
+    }) => T,
+  ) =>
     selector({
       user: {
         id: "22222222-2222-2222-2222-222222222222",
@@ -118,7 +146,8 @@ vi.mock("@/store/auth", () => ({
 }));
 
 vi.mock("@/lib/media", () => ({
-  getMediaUrl: (media: any) => media?.url ?? "https://example.com/placeholder",
+  getMediaUrl: (media: { url?: string | null } | null | undefined) =>
+    media?.url ?? "https://example.com/placeholder",
 }));
 
 vi.mock("@/data/momentCatalog", () => ({

@@ -5,11 +5,7 @@ import { useMoments } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAppStore } from "@/store/app";
 import { MomentCard } from "@/components/MomentCard";
-import {
-  B2CLoadingState,
-  B2CErrorState,
-  B2CEmptyState,
-} from "@/layouts/b2cStates";
+import { B2CErrorState, B2CEmptyState } from "@/layouts/b2cStates";
 import { DashboardSkeleton } from "@/components/skeletons";
 
 const templates = [
@@ -148,10 +144,7 @@ export const DashboardPage = () => {
               Começar
             </button>
           </div>
-          <p
-            className="text-xs"
-            style={{ color: "var(--bb-color-ink-muted)" }}
-          >
+          <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>
             Não obrigatório. Você pode criar um momento livre a qualquer
             momento.
           </p>

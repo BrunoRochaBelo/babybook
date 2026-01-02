@@ -1,4 +1,4 @@
-import { http, HttpResponse, passthrough } from "msw";
+import { http, HttpResponse } from "msw";
 import { nanoid } from "nanoid";
 import {
   mockChildren,
@@ -813,7 +813,7 @@ export const handlers = [
       return HttpResponse.text("Not found", { status: 404 });
     }
 
-    const etag = `\"mock-etag-${randomId()}\"`;
+    const etag = `"mock-etag-${randomId()}"`;
     upload.etags.set(partNumber, etag);
 
     return new HttpResponse(null, {

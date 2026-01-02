@@ -4,10 +4,11 @@
  * Página com termos de uso e política de privacidade.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, FileText, Shield, ExternalLink } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
+import { TextPageSkeleton } from "../components/TextPageSkeleton";
 
 interface LegalDoc {
   id: string;
@@ -20,6 +21,12 @@ interface LegalDoc {
 
 export const TermosPage = () => {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const LEGAL_DOCS = useMemo<LegalDoc[]>(() => [
     {
@@ -39,6 +46,10 @@ export const TermosPage = () => {
       url: "/politica-de-privacidade",
     },
   ], [t]);
+
+  if (isLoading) {
+    return <TextPageSkeleton />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

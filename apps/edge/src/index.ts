@@ -62,6 +62,7 @@ app.use("*", async (c, next) => {
 
   // Best-effort: aplica em respostas JSON/HTML e também em arquivos proxied.
   c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
   c.header("Referrer-Policy", "strict-origin-when-cross-origin");
   c.header(
     "Permissions-Policy",

@@ -1,11 +1,10 @@
-version: "3.8"
-
 services:
   # 1. Banco de Dados (PostgreSQL 15)
   # Alinhado com o Neon (Postgres)
   db:
     image: postgres:15-alpine
     container_name: babybook_db_local
+    restart: unless-stopped
     ports:
       - "5432:5432" # Expõe o banco na porta padrão
     environment:
@@ -23,8 +22,12 @@ services:
   # 2. Storage Mock (Minio S3)
   # Alinhado com um storage S3-compatible (Cloudflare R2 em produção)
   storage:
-    image: minio/minio:latest
+    # Pin por digest para evitar drift de :latest.
+    # Para atualizar: rode `docker pull minio/minio:latest` e depois
+    # `docker image inspect minio/minio:latest --format '{{index .RepoDigests 0}}'`.
+    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     container_name: babybook_storage_local
+    restart: unless-stopped
     ports:
       - "9000:9000" # API Endpoint
       - "9001:9001" # Console Web
@@ -35,13 +38,16 @@ services:
     volumes:
       - babybook-storage-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "mc ready local"]
+      # O container do MinIO possui curl; usar o endpoint de health é mais confiável.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/ready >/dev/null"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   storage-init:
-    image: minio/mc:latest
+    # Pin por digest para evitar drift de :latest.
+    # Para atualizar: `docker pull minio/mc:latest` e depois `docker image inspect minio/mc:latest --format '{{index .RepoDigests 0}}'`.
+    image: minio/mc@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
     container_name: babybook_storage_init
     depends_on:
       storage:
@@ -72,6 +78,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile # Assume que existe um Dockerfile na API
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -89,6 +96,18 @@ services:
         condition: service_healthy
       storage:
         condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      # Usamos Python (já existe na imagem) para checar o endpoint /health.
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read(); print('ok')\"",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
     # Monta o código da API para live-reload
     volumes:
       - ./apps/api:/app/apps/api
@@ -102,6 +121,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       target: devserver
+    restart: unless-stopped
     ports:
       - "5173:5173"
     volumes:
@@ -116,6 +136,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
     environment:
       VITE_API_BASE_URL: "http://api:8000"
       VITE_MEDIA_BASE_URL: "http://storage:9000"
@@ -131,6 +152,7 @@ services:
     build:
       context: .
       dockerfile: apps/workers/Dockerfile
+    restart: unless-stopped
     environment:
       QUEUE_PROVIDER: database
       WORKER_DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-babybook}:${POSTGRES_PASSWORD:-babybook}@db:5432/${POSTGRES_DB:-babybook_dev}"
@@ -151,6 +173,8 @@ services:
         condition: service_healthy
       storage-init:
         condition: service_completed_successfully
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./apps/workers:/app/apps/workers
 

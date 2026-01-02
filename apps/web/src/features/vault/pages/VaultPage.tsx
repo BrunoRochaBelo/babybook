@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Upload, FileText, Lock } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileText, Lock } from "lucide-react";
 import { useVault } from "../hooks/useVault";
 import { VaultCard } from "../components/VaultCard";
 import { VaultEmptyCard } from "../components/VaultEmptyCard";
@@ -42,7 +42,13 @@ const DOCUMENT_SLOTS = [
 ];
 
 export const VaultPage = () => {
-  const { data: documents = [], isLoading, isError, error, refetch } = useVault();
+  const {
+    data: documents = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useVault();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const handleSlotClick = (id: string) => {
     console.log("Clicked slot", id);
@@ -164,12 +170,12 @@ export const VaultPage = () => {
           )}
 
           {slotDocuments.additional.map((doc) => (
-             <VaultCard
-                key={doc.id}
-                label={doc.name} // Additional docs use their name as label
-                document={doc}
-                onClick={() => handleSlotClick(doc.id)}
-              />
+            <VaultCard
+              key={doc.id}
+              label={doc.name} // Additional docs use their name as label
+              document={doc}
+              onClick={() => handleSlotClick(doc.id)}
+            />
           ))}
 
           {slotDocuments.slots.length === 0 &&

@@ -21,12 +21,18 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useTheme } from "@/hooks/useTheme";
-import { useLanguage, useTranslation } from "@babybook/i18n";
+import { apiClient } from "@/lib/api-client";
+import { useTranslation } from "@babybook/i18n";
+import { MinhaContaSkeleton } from "../components/MinhaContaSkeleton";
 
 export const MinhaContaPage = () => {
   const { t } = useTranslation();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading } = useAuthStore((state) => state);
   const { theme, setTheme } = useTheme();
+
+  if (isLoading) {
+    return <MinhaContaSkeleton />;
+  }
   const { language, setLanguage, languages } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,7 +138,8 @@ export const MinhaContaPage = () => {
               className="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
               style={{
                 color: "var(--bb-color-accent)",
-                backgroundColor: "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
+                backgroundColor:
+                  "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
               }}
             >
               {t("b2c.myAccount.edit")}
@@ -274,36 +281,47 @@ export const MinhaContaPage = () => {
             <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
               {t("b2c.myAccount.changePassword")}
             </p>
-            <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+            <p
+              className="text-sm"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
               {t("b2c.myAccount.changePasswordDesc")}
             </p>
           </div>
         </button>
 
-        <div className="mt-4 p-4 rounded-xl border border-dashed" style={{ borderColor: "var(--bb-color-border)" }}>
-          <p className="text-sm font-medium mb-1" style={{ color: "var(--bb-color-ink)" }}>
+        <div
+          className="mt-4 p-4 rounded-xl border border-dashed"
+          style={{ borderColor: "var(--bb-color-border)" }}
+        >
+          <p
+            className="text-sm font-medium mb-1"
+            style={{ color: "var(--bb-color-ink)" }}
+          >
             {t("b2c.myAccount.signOutAll")}
           </p>
-          <p className="text-xs mb-3" style={{ color: "var(--bb-color-ink-muted)" }}>
+          <p
+            className="text-xs mb-3"
+            style={{ color: "var(--bb-color-ink-muted)" }}
+          >
             {t("b2c.myAccount.signOutAllDesc")}
           </p>
           <button
             type="button"
             className="w-full py-2.5 rounded-xl font-medium transition-colors border"
-            style={{ 
+            style={{
               borderColor: "var(--bb-color-danger)",
               color: "var(--bb-color-danger)",
             }}
             onClick={async () => {
-               if (window.confirm(t("b2c.myAccount.signOutAllConfirm"))) {
-                  try {
-                    const { apiClient } = await import("@/lib/api-client");
-                    await apiClient.post("/auth/logout/all");
-                    window.location.href = "/login";
-                  } catch (err) {
-                    alert(t("b2c.myAccount.signOutAllError"));
-                  }
+              if (window.confirm(t("b2c.myAccount.signOutAllConfirm"))) {
+                try {
+                  await apiClient.post("/auth/logout/all");
+                  window.location.href = "/login";
+                } catch {
+                  alert(t("b2c.myAccount.signOutAllError"));
                 }
+              }
             }}
           >
             {t("b2c.myAccount.signOutAllBtn")}
@@ -332,11 +350,29 @@ export const MinhaContaPage = () => {
         >
           {t("b2c.myAccount.theme")}
         </p>
-        <div className="flex gap-2 p-1.5 rounded-2xl" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+        <div
+          className="flex gap-2 p-1.5 rounded-2xl"
+          style={{
+            backgroundColor: "var(--bb-color-bg)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
           {[
-            { value: "light" as const, icon: Sun, label: t("b2c.myAccount.themeLight") },
-            { value: "dark" as const, icon: Moon, label: t("b2c.myAccount.themeDark") },
-            { value: "system" as const, icon: Smartphone, label: t("b2c.myAccount.themeSystem") },
+            {
+              value: "light" as const,
+              icon: Sun,
+              label: t("b2c.myAccount.themeLight"),
+            },
+            {
+              value: "dark" as const,
+              icon: Moon,
+              label: t("b2c.myAccount.themeDark"),
+            },
+            {
+              value: "system" as const,
+              icon: Smartphone,
+              label: t("b2c.myAccount.themeSystem"),
+            },
           ].map((option) => (
             <button
               key={option.value}
@@ -351,7 +387,10 @@ export const MinhaContaPage = () => {
                   theme === option.value
                     ? "var(--bb-color-accent)"
                     : "var(--bb-color-ink-muted)",
-                boxShadow: theme === option.value ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                boxShadow:
+                  theme === option.value
+                    ? "0 1px 2px rgba(0,0,0,0.05)"
+                    : "none",
               }}
             >
               <option.icon className="w-4 h-4" />
@@ -367,7 +406,13 @@ export const MinhaContaPage = () => {
         >
           {t("b2c.myAccount.language")}
         </p>
-        <div className="flex gap-2 p-1.5 rounded-2xl" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+        <div
+          className="flex gap-2 p-1.5 rounded-2xl"
+          style={{
+            backgroundColor: "var(--bb-color-bg)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
           {languages.map((option) => (
             <button
               key={option.code}
@@ -382,7 +427,10 @@ export const MinhaContaPage = () => {
                   language === option.code
                     ? "var(--bb-color-accent)"
                     : "var(--bb-color-ink-muted)",
-                boxShadow: language === option.code ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                boxShadow:
+                  language === option.code
+                    ? "0 1px 2px rgba(0,0,0,0.05)"
+                    : "none",
               }}
             >
               <span className="text-sm">{option.flag}</span>
@@ -403,4 +451,3 @@ export const MinhaContaPage = () => {
     </div>
   );
 };
-

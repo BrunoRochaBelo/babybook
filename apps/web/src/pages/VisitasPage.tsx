@@ -6,7 +6,6 @@ import { useGuestbookEntries } from "@/hooks/api";
 import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
-import { cn } from "@/lib/utils";
 import { B2CEmptyState, B2CErrorState } from "@/layouts/b2cStates";
 import { GuestbookSkeleton } from "@/components/skeletons/GuestbookSkeleton";
 
@@ -14,13 +13,25 @@ const TOTAL_SLOTS: number = 20;
 
 export const VisitasPage = () => {
   const { selectedChild } = useSelectedChild();
-  const { data: entries = [], isLoading, isError, error, refetch } = useGuestbookEntries(selectedChild?.id);
-  const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGuestbookEntries(selectedChild?.id);
+  const [activeTab, setActiveTab] = useState<"approved" | "pending">(
+    "approved",
+  );
   const [showForm, setShowForm] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
-  const pendingCount = entries.filter((entry) => entry.status === "pending").length;
-  const approvedCount = entries.filter((entry) => entry.status === "approved").length;
+  const pendingCount = entries.filter(
+    (entry) => entry.status === "pending",
+  ).length;
+  const approvedCount = entries.filter(
+    (entry) => entry.status === "approved",
+  ).length;
   const slotUsagePercent =
     TOTAL_SLOTS === 0
       ? 0
@@ -55,7 +66,10 @@ export const VisitasPage = () => {
       return (
         <div>
           {showForm && (
-            <GuestbookForm childId={selectedChild.id} onClose={() => setShowForm(false)} />
+            <GuestbookForm
+              childId={selectedChild.id}
+              onClose={() => setShowForm(false)}
+            />
           )}
 
           <GuestbookList childId={selectedChild.id} status="approved" />
@@ -303,7 +317,9 @@ export const VisitasPage = () => {
                   borderColor: "var(--bb-color-border)",
                   color: "var(--bb-color-ink)",
                 }}
-                onClick={() => inviteLink && navigator.clipboard?.writeText(inviteLink)}
+                onClick={() =>
+                  inviteLink && navigator.clipboard?.writeText(inviteLink)
+                }
               >
                 Copiar
               </button>
@@ -336,7 +352,9 @@ export const VisitasPage = () => {
                 }}
                 onClick={() => {
                   if (!inviteLink) return;
-                  const subject = encodeURIComponent("Convite para deixar mensagem");
+                  const subject = encodeURIComponent(
+                    "Convite para deixar mensagem",
+                  );
                   const body = encodeURIComponent(
                     `Olá! Você foi convidado a deixar uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteLink}`,
                   );

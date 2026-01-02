@@ -5,16 +5,10 @@
  * Usa react-query para fetch da API com fallback para mock em dev.
  */
 
-import {
-  createContext,
-  useContext,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchNotifications,
-  fetchUnreadCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   type Notification,
@@ -44,14 +38,16 @@ interface NotificationsContextValue {
 }
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
-  null
+  null,
 );
 
 interface NotificationsProviderProps {
   children: ReactNode;
 }
 
-export function NotificationsProvider({ children }: NotificationsProviderProps) {
+export function NotificationsProvider({
+  children,
+}: NotificationsProviderProps) {
   const queryClient = useQueryClient();
 
   // Query para buscar notificações
@@ -102,7 +98,7 @@ export function NotificationsProvider({ children }: NotificationsProviderProps) 
     (id: string) => {
       markAsReadMutation.mutate(id);
     },
-    [markAsReadMutation]
+    [markAsReadMutation],
   );
 
   const markAllAsRead = useCallback(() => {
@@ -134,7 +130,7 @@ export function useNotifications() {
   const context = useContext(NotificationsContext);
   if (!context) {
     throw new Error(
-      "useNotifications must be used within NotificationsProvider"
+      "useNotifications must be used within NotificationsProvider",
     );
   }
   return context;

@@ -124,6 +124,16 @@ async def require_csrf_token(
     O token precisa ser enviado fora do cookie (header), e precisa bater com o
     token armazenado na sessão.
     """
+    validate_csrf_token_for_session(session=session, csrf_token=csrf_token)
+
+
+def validate_csrf_token_for_session(*, session: SessionModel, csrf_token: str | None) -> None:
+    """Valida CSRF token em modo cookie-session.
+
+    Alguns endpoints precisam rodar checagens de autorização (ex.: ownership)
+    antes de exigir CSRF, para evitar bloquear mensagens de erro específicas.
+    Essa função permite aplicar o mesmo enforcement de forma manual.
+    """
     if not csrf_token:
         raise AppError(
             status_code=status.HTTP_403_FORBIDDEN,

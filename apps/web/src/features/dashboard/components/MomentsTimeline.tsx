@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Circle,
   ChevronDown,
-  ChevronUp,
   Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -1357,19 +1356,32 @@ export const MomentsTimeline = ({
                                       {template.title}
                                     </p>
                                   </div>
-                                  <span
-                                    className="inline-flex items-center gap-2 text-xs"
-                                    style={{
-                                      color: "var(--bb-color-ink-muted)",
-                                    }}
-                                  >
-                                    <StatusIcon className="h-4 w-4" />
-                                    {publishedCount > 0
-                                      ? template.type === "unique"
+                                  {publishedCount > 0 ? (
+                                    <span
+                                      className="inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold"
+                                      style={{
+                                        backgroundColor:
+                                          "var(--bb-color-success)",
+                                        color: "var(--bb-color-surface)",
+                                        opacity: 0.9,
+                                      }}
+                                    >
+                                      <StatusIcon className="h-4 w-4" />
+                                      {template.type === "unique"
                                         ? "Feito"
-                                        : `${publishedCount} registro(s)`
-                                      : "Não iniciado"}
-                                  </span>
+                                        : `${publishedCount} registro(s)`}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="inline-flex items-center gap-2 text-xs"
+                                      style={{
+                                        color: "var(--bb-color-ink-muted)",
+                                      }}
+                                    >
+                                      <StatusIcon className="h-4 w-4" />
+                                      Não iniciado
+                                    </span>
+                                  )}
                                 </div>
                               </button>
                             );
@@ -1644,19 +1656,32 @@ export const MomentsTimeline = ({
                                     {template.title}
                                   </p>
                                 </div>
-                                <span
-                                  className="text-xs"
-                                  style={{ color: "var(--bb-color-ink-muted)" }}
-                                >
-                                  <span className="inline-flex items-center gap-2">
-                                    <StatusIcon className="h-4 w-4" />
-                                    {publishedCount > 0
-                                      ? template.type === "unique"
+                                  {publishedCount > 0 ? (
+                                    <span
+                                      className="inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold"
+                                      style={{
+                                        backgroundColor:
+                                          "var(--bb-color-success)",
+                                        color: "var(--bb-color-surface)",
+                                        opacity: 0.9,
+                                      }}
+                                    >
+                                      <StatusIcon className="h-4 w-4" />
+                                      {template.type === "unique"
                                         ? "Feito"
-                                        : `${publishedCount} registro(s)`
-                                      : "Não iniciado"}
-                                  </span>
-                                </span>
+                                        : `${publishedCount} registro(s)`}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="inline-flex items-center gap-2 text-xs"
+                                      style={{
+                                        color: "var(--bb-color-ink-muted)",
+                                      }}
+                                    >
+                                      <StatusIcon className="h-4 w-4" />
+                                      Não iniciado
+                                    </span>
+                                  )}
                               </div>
                               <p
                                 className="mt-1 text-sm"

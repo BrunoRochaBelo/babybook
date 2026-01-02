@@ -48,14 +48,18 @@ interface B2CMainDrawerProps {
   userName?: string;
   userEmail?: string;
   userAvatar?: string;
-  children: Child[];
+  childrenList: Child[];
   selectedChild: Child | null;
   onSelectChild: (childId: string) => void;
   onLogout?: () => void;
   isLoggingOut?: boolean;
 }
 
-const THEME_OPTIONS: Array<{ value: Theme; label: string; icon: React.ElementType }> = [
+const THEME_OPTIONS: Array<{
+  value: Theme;
+  label: string;
+  icon: React.ElementType;
+}> = [
   { value: "light", label: "Claro", icon: Sun },
   { value: "dark", label: "Escuro", icon: Moon },
   { value: "system", label: "Sistema", icon: Monitor },
@@ -67,7 +71,7 @@ export function B2CMainDrawer({
   userName = "Usuário",
   userEmail,
   userAvatar,
-  children,
+  childrenList,
   selectedChild,
   onSelectChild,
   onLogout,
@@ -75,7 +79,7 @@ export function B2CMainDrawer({
 }: B2CMainDrawerProps) {
   const { theme, setTheme } = useTheme();
 
-  const hasChildren = children.length > 0;
+  const hasChildren = childrenList.length > 0;
 
   // Widget de Armazenamento Estilizado
   const StorageWidget = () => (
@@ -104,7 +108,7 @@ export function B2CMainDrawer({
         </div>
         <ChevronRight className="w-5 h-5 text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform" />
       </div>
-      
+
       {/* Mock Progress Bar */}
       <div className="space-y-1.5">
         <div className="flex justify-between text-[10px] font-semibold uppercase tracking-wider text-[var(--bb-color-ink-muted)]">
@@ -112,16 +116,26 @@ export function B2CMainDrawer({
           <span>45%</span>
         </div>
         <div className="h-2 w-full rounded-full bg-[var(--bb-color-bg)] overflow-hidden">
-          <div 
-            className="h-full rounded-full bg-[var(--bb-color-accent)] opacity-80" 
-            style={{ width: "45%" }} 
+          <div
+            className="h-full rounded-full bg-[var(--bb-color-accent)] opacity-80"
+            style={{ width: "45%" }}
           />
         </div>
       </div>
     </Link>
   );
 
-  const MenuLink = ({ to, icon: Icon, title, subtitle }: { to: string; icon: any; title: string; subtitle: string }) => (
+  const MenuLink = ({
+    to,
+    icon: Icon,
+    title,
+    subtitle,
+  }: {
+    to: string;
+    icon: React.ElementType;
+    title: string;
+    subtitle: string;
+  }) => (
     <Link
       to={to}
       onClick={() => onOpenChange(false)}
@@ -134,9 +148,7 @@ export function B2CMainDrawer({
         <p className="text-sm font-semibold text-[var(--bb-color-ink)] group-hover:text-[var(--bb-color-accent)] transition-colors">
           {title}
         </p>
-        <p className="text-xs text-[var(--bb-color-ink-muted)]">
-          {subtitle}
-        </p>
+        <p className="text-xs text-[var(--bb-color-ink-muted)]">{subtitle}</p>
       </div>
       <div className="text-[var(--bb-color-ink-muted)] group-hover:translate-x-1 transition-transform">
         <ChevronRight className="w-5 h-5" />
@@ -148,9 +160,9 @@ export function B2CMainDrawer({
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent
         className="h-full w-full sm:max-w-[380px] border-l outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right"
-        style={{ 
-            backgroundColor: "var(--bb-color-surface)",
-            borderColor: "var(--bb-color-border)"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
         }}
       >
         <DrawerHeader
@@ -185,9 +197,7 @@ export function B2CMainDrawer({
           </div>
         </DrawerHeader>
 
-        <DrawerBody
-          className="px-6 py-6 space-y-8 overflow-y-auto custom-scrollbar"
-        >
+        <DrawerBody className="px-6 py-6 space-y-8 overflow-y-auto custom-scrollbar">
           {/* Child Selector Section */}
           <div className="space-y-4">
             <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
@@ -196,7 +206,7 @@ export function B2CMainDrawer({
             <div className="space-y-2.5">
               {hasChildren ? (
                 <>
-                  {children.map((child) => {
+                  {childrenList.map((child) => {
                     const isSelected = selectedChild?.id === child.id;
                     return (
                       <button
@@ -210,7 +220,7 @@ export function B2CMainDrawer({
                           "w-full flex items-center gap-3 p-2 pr-4 rounded-2xl border transition-all",
                           isSelected
                             ? "border-[var(--bb-color-accent)] bg-[var(--bb-color-accent)]/5 shadow-sm"
-                            : "border-[var(--bb-color-border)] bg-[var(--bb-color-bg)] hover:border-[var(--bb-color-ink-muted)]"
+                            : "border-[var(--bb-color-border)] bg-[var(--bb-color-bg)] hover:border-[var(--bb-color-ink-muted)]",
                         )}
                       >
                         <div
@@ -218,7 +228,7 @@ export function B2CMainDrawer({
                             "w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-sm transition-transform active:scale-95",
                             isSelected
                               ? "bg-[var(--bb-color-accent)]"
-                              : "bg-[var(--bb-color-ink-muted)]"
+                              : "bg-[var(--bb-color-ink-muted)]",
                           )}
                         >
                           {child.avatarUrl ? (
@@ -236,7 +246,7 @@ export function B2CMainDrawer({
                             "flex-1 text-left font-bold text-sm",
                             isSelected
                               ? "text-[var(--bb-color-accent)]"
-                              : "text-[var(--bb-color-ink)]"
+                              : "text-[var(--bb-color-ink)]",
                           )}
                         >
                           {child.name}
@@ -302,7 +312,7 @@ export function B2CMainDrawer({
                       "flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold transition-all duration-300",
                       isActive
                         ? "bg-[var(--bb-color-surface)] text-[var(--bb-color-accent)] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                        : "text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)] hover:bg-[var(--bb-color-surface)]/50"
+                        : "text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)] hover:bg-[var(--bb-color-surface)]/50",
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -315,52 +325,52 @@ export function B2CMainDrawer({
 
           {/* Account Section */}
           <div className="space-y-4">
-             <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
               Conta
             </p>
-            
+
             <StorageWidget />
 
             <div className="space-y-1.5 mt-4">
-                <MenuLink 
-                    to="/jornada/minha-conta"
-                    icon={Settings}
-                    title="Configurações"
-                    subtitle="Meus dados e preferências"
-                />
-                <MenuLink
-                    to="/jornada/familia"
-                    icon={Users}
-                    title="Família"
-                    subtitle="Membros com acesso"
-                />
-                 <MenuLink
-                    to="/jornada/privacidade"
-                    icon={Shield}
-                    title="Privacidade"
-                    subtitle="Seus dados e segurança"
-                />
+              <MenuLink
+                to="/jornada/minha-conta"
+                icon={Settings}
+                title="Configurações"
+                subtitle="Meus dados e preferências"
+              />
+              <MenuLink
+                to="/jornada/familia"
+                icon={Users}
+                title="Família"
+                subtitle="Membros com acesso"
+              />
+              <MenuLink
+                to="/jornada/privacidade"
+                icon={Shield}
+                title="Privacidade"
+                subtitle="Seus dados e segurança"
+              />
             </div>
           </div>
 
           {/* Support Section */}
           <div className="space-y-4">
-             <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
               Suporte
             </p>
             <div className="space-y-1.5">
-                 <MenuLink
-                    to="/jornada/ajuda"
-                    icon={HelpCircle}
-                    title="Central de Ajuda"
-                    subtitle="Tire suas dúvidas"
-                />
-                 <MenuLink
-                    to="/jornada/termos"
-                    icon={FileText}
-                    title="Termos e Políticas"
-                    subtitle="Informações legais"
-                />
+              <MenuLink
+                to="/jornada/ajuda"
+                icon={HelpCircle}
+                title="Central de Ajuda"
+                subtitle="Tire suas dúvidas"
+              />
+              <MenuLink
+                to="/jornada/termos"
+                icon={FileText}
+                title="Termos e Políticas"
+                subtitle="Informações legais"
+              />
             </div>
           </div>
         </DrawerBody>
@@ -380,7 +390,7 @@ export function B2CMainDrawer({
             <LogOut className="w-4 h-4" />
             {isLoggingOut ? "Saindo..." : "Sair da conta"}
           </button>
-          
+
           <div className="text-center mt-4">
             <p className="text-[10px] text-[var(--bb-color-ink-muted)] opacity-50 font-serif">
               BabyBook v1.0.0

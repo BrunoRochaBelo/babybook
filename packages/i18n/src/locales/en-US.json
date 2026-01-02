@@ -139,10 +139,10 @@
         "processing": "Processing",
         "ready": "Ready",
         "delivered": "Delivered",
-        "cancelled": "Cancelled",
-        "all": "All",
-        "active": "Active"
+        "cancelled": "Cancelled"
       },
+      "all": "All",
+      "active": "Active",
       "detail": {
         "title": "Delivery Details",
         "recipientInfo": "Recipient Information",
@@ -210,6 +210,60 @@
       "hints": {
         "openDetailsToGenerate": "Tip: open details to generate voucher.",
         "keyboardShortcuts": "Tip: Esc to close • ←/→ to navigate."
+      }
+    },
+    "onboarding": {
+      "title": "Let's get started! 🚀",
+      "subtitle": "Follow these steps to deliver your first photos",
+      "progress": {
+        "start": "Ready to start?",
+        "continue": "Keep it up!",
+        "almost": "Almost there!",
+        "etapas": "{{current}}/{{total}} steps"
+      },
+      "steps": {
+        "profile": {
+          "title": "Personalize your studio",
+          "description": "Your customers will see your name and brand in deliveries"
+        },
+        "credits": {
+          "title": "Purchase credits",
+          "description": "Each credit = 1 delivery with exclusive voucher"
+        },
+        "delivery": {
+          "title": "Send your first delivery",
+          "description": "Surprise a customer with amazing photos"
+        },
+        "stats": {
+          "title": "Unlock advanced statistics",
+          "description": "Complete 5 deliveries to see business insights"
+        }
+      }
+    },
+    "tour": {
+      "welcome": {
+        "title": "Welcome to the Partner Portal!",
+        "description": "This is your main dashboard. Here you can track deliveries, credits, and studio statistics."
+      },
+      "credits": {
+        "title": "Your Credits",
+        "description": "Credits are used to generate vouchers. Buy packages and send photos to your customers."
+      },
+      "stats": {
+        "title": "Statistics",
+        "description": "Track the number of deliveries, vouchers generated, and redemptions in real time."
+      },
+      "deliveries": {
+        "title": "Recent Deliveries",
+        "description": "See your latest deliveries and track the status of each one."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Stay on top of new redemptions and important updates."
+      },
+      "settings": {
+        "title": "User Menu",
+        "description": "Access settings, change the theme, and manage your account."
       }
     },
     "credits": {
@@ -309,17 +363,6 @@
         "logoutAllDesc": "Sign out from all active sessions (e.g., mobile, other computers).",
         "logoutAllConfirm": "Do you want to sign out from all active devices? You will need to log in again."
       }
-    },
-    "onboarding": {
-      "title": "Set up your account",
-      "subtitle": "Complete the steps below to get started",
-      "steps": {
-        "profile": "Complete your profile",
-        "logo": "Add your logo",
-        "firstDelivery": "Create your first delivery"
-      },
-      "completed": "🎉 Congratulations! You've completed the setup!",
-      "skip": "Skip for now"
     },
     "upload": {
       "title": "Add Photos",
@@ -465,6 +508,52 @@
       "errorTitle": "Could not load the journey",
       "errorDescription": "There was a problem fetching dashboard data. Try reloading."
     },
+    "onboarding": {
+      "title": "Welcome to Baby Book!",
+      "subtitle": "Follow these steps to complete your album",
+      "progress": {
+        "start": "Ready to start?",
+        "continue": "Keep it up!",
+        "almost": "Almost there!"
+      },
+      "steps": {
+        "profile": {
+          "title": "Complete baby profile",
+          "description": "Add photo and important details"
+        },
+        "moment": {
+          "title": "Record first moment",
+          "description": "Capture a special memory today"
+        },
+        "vault": {
+          "title": "Explore the Vault",
+          "description": "Store documents and exams securely"
+        },
+        "family": {
+          "title": "Add a family member",
+          "description": "Invite the other parent"
+        }
+      }
+    },
+    "tour": {
+      "welcome": {
+        "title": "Welcome to Baby Book! 💖",
+        "description": "This is where the magic happens. Let's show you how to organize your baby's memories."
+      },
+      "timeline": {
+        "title": "Your Timeline",
+        "description": "All your recorded moments appear here, organized by baby's age."
+      },
+      "bottomNav": {
+        "title": "Quick Access",
+        "description": "Navigate between journal, health, messages, and the document vault."
+      },
+      "userMenu": {
+        "title": "Profile and Settings",
+        "description": "Switch between babies, invite family members, and access your account."
+      }
+    },
+
     "moments": {
       "common": {
         "newMoment": "New Moment",

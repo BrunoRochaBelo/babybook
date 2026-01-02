@@ -16,6 +16,27 @@ ENV VITE_ENABLE_MSW=false
 
 RUN pnpm --filter @babybook/web build
 
+# Dev server (usado pelo docker-compose target: devserver)
+FROM node:20-alpine AS devserver
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/package.json
+COPY packages packages
+COPY apps/web apps/web
+
+RUN pnpm install --frozen-lockfile
+
+# Segurança: roda como usuário não-root (user padrão do image node)
+USER node
+
+EXPOSE 5173
+
+CMD ["pnpm", "--filter", "@babybook/web", "dev", "--host", "0.0.0.0", "--port", "5173"]
+
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 
 COPY apps/web/docker/nginx.conf /etc/nginx/conf.d/default.conf

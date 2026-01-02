@@ -5,7 +5,7 @@
  * Inclui fallback para dados mock quando a API não está disponível.
  */
 
-import { apiClient, ApiError } from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth";
 
 const API_BASE = "/me/notifications";
@@ -132,8 +132,8 @@ let mockPreferencesState = { ...MOCK_PREFERENCES };
  * Emails de usuários de teste que podem usar mock
  */
 const TEST_USER_EMAILS = [
-  "dev@babybook.dev",  // B2C test user
-  "pro@babybook.dev",  // B2B test user
+  "dev@babybook.dev", // B2C test user
+  "pro@babybook.dev", // B2B test user
 ];
 
 /**
@@ -142,7 +142,7 @@ const TEST_USER_EMAILS = [
  */
 function isTestUser(): boolean {
   const user = useAuthStore.getState().user;
-  
+
   if (!user?.email) return false;
   return TEST_USER_EMAILS.includes(user.email.toLowerCase());
 }
@@ -188,33 +188,29 @@ export async function fetchUnreadCount(): Promise<UnreadCountResponse> {
     return { unread_count: count };
   }
 
-  try {
-    const response = await apiClient.get<UnreadCountResponse>(
-      `${API_BASE}/unread-count`
-    );
-    return response || { unread_count: 0 };
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.get<UnreadCountResponse>(
+    `${API_BASE}/unread-count`,
+  );
+  return response || { unread_count: 0 };
 }
 
 /**
  * Marca uma notificação como lida
  */
 export async function markNotificationAsRead(
-  notificationId: string
+  notificationId: string,
 ): Promise<{ success: boolean }> {
   try {
     const response = await apiClient.patch<{ success: boolean }>(
       `${API_BASE}/${notificationId}/read`,
-      {}
+      {},
     );
     return response;
   } catch (error) {
     if (shouldUseMockFallback()) {
       console.warn("[Notifications] mark-read API falhou, usando mock");
       mockNotificationsState = mockNotificationsState.map((n) =>
-        n.id === notificationId ? { ...n, unread: false } : n
+        n.id === notificationId ? { ...n, unread: false } : n,
       );
       return { success: true };
     }
@@ -230,10 +226,10 @@ export async function markAllNotificationsAsRead(): Promise<{
   marked: number;
 }> {
   try {
-    const response = await apiClient.patch<{ success: boolean; marked: number }>(
-      `${API_BASE}/read-all`,
-      {}
-    );
+    const response = await apiClient.patch<{
+      success: boolean;
+      marked: number;
+    }>(`${API_BASE}/read-all`, {});
     return response;
   } catch (error) {
     if (shouldUseMockFallback()) {
@@ -255,7 +251,7 @@ export async function markAllNotificationsAsRead(): Promise<{
 export async function fetchPreferences(): Promise<NotificationPreferences> {
   try {
     const response = await apiClient.get<NotificationPreferences>(
-      `${API_BASE}/preferences`
+      `${API_BASE}/preferences`,
     );
     return response || MOCK_PREFERENCES;
   } catch (error) {
@@ -270,12 +266,12 @@ export async function fetchPreferences(): Promise<NotificationPreferences> {
  * Atualiza preferências de notificação
  */
 export async function updatePreferences(
-  updates: Partial<NotificationPreferences>
+  updates: Partial<NotificationPreferences>,
 ): Promise<NotificationPreferences> {
   try {
     const response = await apiClient.patch<NotificationPreferences>(
       `${API_BASE}/preferences`,
-      updates
+      updates,
     );
     return response;
   } catch (error) {

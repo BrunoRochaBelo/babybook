@@ -14,14 +14,13 @@ import { getPartnerProfile, updatePartnerProfile } from "./api";
 import type { Partner } from "./types";
 import { usePartnerPageHeader } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import {
-  PartnerErrorState,
-} from "@/layouts/partnerStates";
+import { PartnerErrorState } from "@/layouts/partnerStates";
 import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { useUnsavedChangesWarning } from "@/hooks/useOnlineStatus";
 import { SuccessButton } from "@/components/SuccessButton";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { apiClient } from "@/lib/api-client";
 import { SettingsSkeleton } from "./components/SettingsSkeleton";
 
 export function PartnerSettingsPage() {
@@ -86,10 +85,7 @@ export function PartnerSettingsPage() {
     : false;
 
   // Alertar ao sair com alterações não salvas
-  useUnsavedChangesWarning(
-    hasUnsavedChanges,
-    t("errors.validation"),
-  );
+  useUnsavedChangesWarning(hasUnsavedChanges, t("errors.validation"));
 
   // Estado de sucesso para o botão
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -107,9 +103,7 @@ export function PartnerSettingsPage() {
       toast.success(t("common.success"));
     },
     onError: (err) => {
-      toast.error(
-        err instanceof Error ? err.message : t("errors.generic"),
-      );
+      toast.error(err instanceof Error ? err.message : t("errors.generic"));
     },
   });
 
@@ -372,7 +366,9 @@ export function PartnerSettingsPage() {
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t("common.status")}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("common.status")}
+              </p>
               <p className="font-medium text-gray-900 dark:text-white capitalize">
                 {profile?.status === "approved"
                   ? `✓ ${t("partner.deliveries.status.delivered")}`
@@ -386,7 +382,8 @@ export function PartnerSettingsPage() {
                 {t("partner.credits.balance")}
               </p>
               <p className="font-medium text-gray-900 dark:text-white">
-                {profile?.voucher_balance || 0} {t("partner.credits.title").toLowerCase()}
+                {profile?.voucher_balance || 0}{" "}
+                {t("partner.credits.title").toLowerCase()}
               </p>
             </div>
           </div>
@@ -403,12 +400,13 @@ export function PartnerSettingsPage() {
           <button
             type="button"
             onClick={async () => {
-              if (window.confirm(t("partner.settings.security.logoutAllConfirm"))) {
+              if (
+                window.confirm(t("partner.settings.security.logoutAllConfirm"))
+              ) {
                 try {
-                  const { apiClient } = await import("@/lib/api-client");
                   await apiClient.post("/auth/logout/all");
                   window.location.href = "/pro/login";
-                } catch (err) {
+                } catch {
                   toast.error(t("errors.generic"));
                 }
               }

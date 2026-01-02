@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Activity,
   Stethoscope,
@@ -9,14 +8,13 @@ import {
   Baby,
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { cn } from "@/lib/utils";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAuthStore } from "@/store/auth";
 import { HealthGrowthTab } from "@/components/HealthGrowthTab";
 import { HealthPediatrianTab } from "@/components/HealthPediatrianTab";
 import { HealthVaccinesTab } from "@/components/HealthVaccinesTab";
 import { useLogout } from "@/hooks/api";
-import { B2CLoadingState, B2CEmptyState, B2CPage } from "@/layouts/b2cStates";
+import { B2CLoadingState, B2CEmptyState } from "@/layouts/b2cStates";
 
 type HealthTab = "crescimento" | "pediatra" | "vacinas";
 

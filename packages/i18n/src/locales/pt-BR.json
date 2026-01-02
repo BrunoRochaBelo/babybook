@@ -309,17 +309,6 @@
         "logoutAllConfirm": "Deseja encerrar todas as sessões ativas? Você precisará logar novamente."
       }
     },
-    "onboarding": {
-      "title": "Configure sua conta",
-      "subtitle": "Complete os passos abaixo para começar",
-      "steps": {
-        "profile": "Complete seu perfil",
-        "logo": "Adicione seu logo",
-        "firstDelivery": "Crie sua primeira entrega"
-      },
-      "completed": "🎉 Parabéns! Você completou a configuração!",
-      "skip": "Pular por enquanto"
-    },
     "upload": {
       "title": "Adicionar Fotos",
       "backToDelivery": "Voltar à entrega",
@@ -429,6 +418,60 @@
         "hint": "Entrega arquivada (oculta na lista ativa). Você pode desarquivar a qualquer momento."
       },
       "active": "Ativas"
+    },
+    "onboarding": {
+      "title": "Vamos começar! 🚀",
+      "subtitle": "Siga estes passos para entregar suas primeiras fotos",
+      "progress": {
+        "start": "Pronto para começar?",
+        "continue": "Continue assim!",
+        "almost": "Quase lá!",
+        "etapas": "{{current}}/{{total}} etapas"
+      },
+      "steps": {
+        "profile": {
+          "title": "Personalize seu estúdio",
+          "description": "Seus clientes verão seu nome e marca nas entregas"
+        },
+        "credits": {
+          "title": "Adquira créditos",
+          "description": "Cada crédito = 1 entrega com voucher exclusivo"
+        },
+        "delivery": {
+          "title": "Envie sua primeira entrega",
+          "description": "Surpreenda um cliente com fotos incríveis"
+        },
+        "stats": {
+          "title": "Desbloqueie estatísticas avançadas",
+          "description": "Complete 5 entregas para ver insights do seu negócio"
+        }
+      }
+    },
+    "tour": {
+      "welcome": {
+        "title": "Bem-vindo ao Portal do Parceiro!",
+        "description": "Este é o seu painel principal. Aqui você acompanha entregas, créditos e estatísticas do seu estúdio."
+      },
+      "credits": {
+        "title": "Seus Créditos",
+        "description": "Créditos são usados para gerar vouchers. Compre pacotes e envie fotos aos seus clientes."
+      },
+      "stats": {
+        "title": "Estatísticas",
+        "description": "Acompanhe o número de entregas, vouchers gerados e resgates em tempo real."
+      },
+      "deliveries": {
+        "title": "Entregas Recentes",
+        "description": "Veja suas últimas entregas e acompanhe o status de cada uma."
+      },
+      "notifications": {
+        "title": "Notificações",
+        "description": "Fique por dentro de novos resgates e atualizações importantes."
+      },
+      "settings": {
+        "title": "Menu do Usuário",
+        "description": "Acesse configurações, altere o tema e gerencie sua conta."
+      }
     }
   },
   "errors": {
@@ -465,6 +508,52 @@
       "errorTitle": "Não foi possível carregar a jornada",
       "errorDescription": "Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
     },
+    "onboarding": {
+      "title": "Bem-vinda ao Baby Book!",
+      "subtitle": "Siga estes passos para completar o seu álbum",
+      "progress": {
+        "start": "Pronta para começar?",
+        "continue": "Continue assim!",
+        "almost": "Quase lá!"
+      },
+      "steps": {
+        "profile": {
+          "title": "Complete o perfil do bebê",
+          "description": "Adicione foto e detalhes importantes"
+        },
+        "moment": {
+          "title": "Registre o primeiro momento",
+          "description": "Capture uma lembrança especial hoje"
+        },
+        "vault": {
+          "title": "Explore o Cofre",
+          "description": "Guarde documentos e exames com segurança"
+        },
+        "family": {
+          "title": "Adicione um familiar",
+          "description": "Convide o outro papai ou mamãe"
+        }
+      }
+    },
+    "tour": {
+      "welcome": {
+        "title": "Bem-vinda ao Baby Book! 💖",
+        "description": "Aqui é onde a mágica acontece. Vamos te mostrar como organizar as memórias do seu bebê."
+      },
+      "timeline": {
+        "title": "Sua Linha do Tempo",
+        "description": "Todos os momentos registrados aparecem aqui, organizados por idade do bebê."
+      },
+      "bottomNav": {
+        "title": "Acesso Rápido",
+        "description": "Navegue entre o diário, saúde, mensagens e o cofre de documentos."
+      },
+      "userMenu": {
+        "title": "Perfil e Configurações",
+        "description": "Aqui você troca de bebê, convida familiares e acessa sua conta."
+      }
+    },
+
     "moments": {
       "common": {
         "newMoment": "Novo Momento",

@@ -41,6 +41,7 @@ import { StatCard } from "@/layouts/StatCard";
 import { PartnerErrorState } from "@/layouts/partnerStates";
 import { PartnerOnboarding } from "./PartnerOnboarding";
 import { PartnerDetailedStats } from "./PartnerDetailedStats";
+import { GuidedTour, PARTNER_TOUR_STEPS, TOUR_COMPLETED_KEY_B2B } from "@/components/GuidedTour";
 
 type TFn = (key: string, options?: Record<string, unknown>) => string;
 
@@ -697,6 +698,8 @@ export function PartnerDashboard() {
           </>
         )}
       </div>
+      
+      <GuidedTour steps={PARTNER_TOUR_STEPS} tourKey={TOUR_COMPLETED_KEY_B2B} />
     </PartnerPage>
   );
 }

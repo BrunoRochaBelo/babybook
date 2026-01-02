@@ -261,7 +261,7 @@ export function AddMomentWizard({
       default:
         return true;
     }
-  }, [step, momentType, mediaFiles, audioBlob, title]);
+  }, [step, momentType, title]);
 
   const proceedHint = useMemo(() => {
     if (isPending) return null;

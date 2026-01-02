@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Upload,
   Camera,
-  Loader2,
   CheckCircle2,
   AlertCircle,
   RefreshCcw,

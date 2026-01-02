@@ -8,7 +8,7 @@ import {
   DrawerBody,
   DrawerFooter,
 } from "@/components/ui/drawer";
-import { Camera, Calendar, FileText, Syringe, AlertTriangle } from "lucide-react";
+import { Camera, Calendar, Syringe, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HealthVaccineFormProps {
@@ -144,7 +144,7 @@ export const HealthVaccineForm = ({
                   "flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 transition-all",
                   hasPhoto
                     ? "border-success bg-success/10 text-success"
-                    : "border-border text-ink-muted hover:border-ink hover:bg-surface-hover"
+                    : "border-border text-ink-muted hover:border-ink hover:bg-surface-hover",
                 )}
               >
                 {hasPhoto ? (

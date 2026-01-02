@@ -235,7 +235,7 @@ export const EnhancedMomentCard = ({
   const ageLabel = calculateAge(selectedChild?.birthday, displayDate, t);
   const payload = moment.payload as Record<string, unknown> | undefined;
   const description = moment.summary || (payload?.["relato"] as string) || "";
-  const media = moment.media || [];
+  const media = React.useMemo(() => moment.media ?? [], [moment.media]);
 
   const headerExtra = extractExtraHeaderInfo(moment);
 

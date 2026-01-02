@@ -10,7 +10,14 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from babybook_api.auth.session import UserSession, get_current_user, require_csrf_token
+from babybook_api.auth.session import (
+    UserSession,
+    get_current_session,
+    get_current_user,
+    require_csrf_token,
+    validate_csrf_token_for_session,
+)
+from babybook_api.db.models import Session as SessionModel
 from babybook_api.db.models import Account, Asset, Child, Delivery, Moment, Partner, PartnerLedger
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
@@ -333,9 +340,10 @@ async def import_delivery(
     delivery_id: str,
     body: DeliveryImportRequest,
     current_user: UserSession = Depends(get_current_user),
+    session: SessionModel = Depends(get_current_session),
+    csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
     db: AsyncSession = Depends(get_db_session),
     storage: PartnerStorageService = Depends(get_partner_storage),
-    _: None = Depends(require_csrf_token),
 ) -> DeliveryImportResponse:
     await enforce_rate_limit(bucket="me:import:user", limit="5/minute", identity=current_user.id)
     account_id = uuid.UUID(current_user.account_id)
@@ -371,6 +379,10 @@ async def import_delivery(
             # Fallback legado: restrição por account_id
             if delivery.target_account_id != account_id:
                 raise AppError(status_code=403, code="delivery.forbidden", message="Sem acesso a esta entrega.")
+
+        # A partir daqui, o usuário está autorizado a operar na entrega.
+        # Exigimos CSRF token antes de qualquer ação mutável.
+        validate_csrf_token_for_session(session=session, csrf_token=csrf_token)
 
         direct_import_flag = bool((delivery.assets_payload or {}).get("direct_import"))
         if not direct_import_flag:

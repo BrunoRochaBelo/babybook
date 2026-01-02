@@ -1,5 +1,5 @@
 import { useLanguage, type LanguageOption } from "@babybook/i18n";
-import { ChevronDown, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 interface LanguageSelectorProps {
@@ -95,7 +95,9 @@ export function LanguageSelector({
   }
 
   return (
-    <div className={`p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 flex gap-2 ${className}`}>
+    <div
+      className={`p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 flex gap-2 ${className}`}
+    >
       {languages.map((lang) => {
         const isActive = language === lang.code;
         return (

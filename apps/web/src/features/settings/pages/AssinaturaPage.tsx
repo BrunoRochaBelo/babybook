@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { getSubscription, settingsApiKeys } from "../api";
 import { useTranslation } from "@babybook/i18n";
-import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
+import { SettingsSubsectionSkeleton } from "../components/SettingsSubsectionSkeleton";
 
 export const AssinaturaPage = () => {
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ export const AssinaturaPage = () => {
   });
 
   if (isLoading) {
-    return <B2CSkeleton />;
+    return <SettingsSubsectionSkeleton />;
   }
 
   // Valores default para fallback
