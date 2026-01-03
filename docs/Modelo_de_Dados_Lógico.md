@@ -567,6 +567,20 @@ CREATE TABLE IF NOT EXISTS app.guestbook_entry (
   created_at timestamptz NOT NULL DEFAULT now(),
   deleted_at timestamptz NULL
 );
+
+CREATE TABLE IF NOT EXISTS app.guestbook_invite (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id uuid NOT NULL REFERENCES app.account(id) ON DELETE CASCADE,
+  child_id uuid NOT NULL REFERENCES app.child(id) ON DELETE CASCADE,
+  email citext NOT NULL,
+  token text NOT NULL UNIQUE, -- Token seguro (hash) ou opaco para o link
+  message text NULL,          -- Mensagem personalizada do convite
+  expires_at timestamptz NOT NULL,
+  created_by uuid NOT NULL REFERENCES app.app_user(id), -- Quem enviou o convite
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+-- Índice para garantir que não spamamos o mesmo email para a mesma criança
+CREATE UNIQUE INDEX IF NOT EXISTS uq_guestbook_invite_email ON app.guestbook_invite(child_id, email);
 ```
 
 ### 6.3 Export e PoD (Print-on-Demand)

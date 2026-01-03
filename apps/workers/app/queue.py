@@ -58,6 +58,8 @@ JOB_MAP: dict[str, JobHandler] = {
     "media.transcode": _lazy_handler("app.media_processing:process_transcode_job"),
     "media.optimize_image": _lazy_handler("app.media_processing:process_image_optimize_job"),
     "media.thumbnail": _lazy_handler("app.media_processing:process_thumbnail_job"),
+    # Notifications
+    "notification": _lazy_handler("app.notifications:process_notification_job"),
 }
 
 

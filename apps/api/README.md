@@ -108,6 +108,7 @@ Variáveis importantes:
 - `ENV`: `staging` ou `production`
 - `SECRET_KEY`: segredo forte (não-default)
 - `SERVICE_API_TOKEN`: token de service account (não-default)
+- `RESEND_API_KEY`: chave API Resend (para envio de e-mails/notificações)
 - `BILLING_WEBHOOK_SECRET`: segredo do webhook do gateway (não-default)
 - `SESSION_COOKIE_SECURE=true`
 - `FRONTEND_URL` (https)

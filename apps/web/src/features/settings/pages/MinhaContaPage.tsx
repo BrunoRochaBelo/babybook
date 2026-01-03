@@ -22,18 +22,18 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { useTheme } from "@/hooks/useTheme";
 import { apiClient } from "@/lib/api-client";
-import { useTranslation } from "@babybook/i18n";
+import { useLanguage, useTranslation } from "@babybook/i18n";
 import { MinhaContaSkeleton } from "../components/MinhaContaSkeleton";
 
 export const MinhaContaPage = () => {
   const { t } = useTranslation();
   const { user, isLoading } = useAuthStore((state) => state);
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage, languages } = useLanguage();
 
   if (isLoading) {
     return <MinhaContaSkeleton />;
   }
-  const { language, setLanguage, languages } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({

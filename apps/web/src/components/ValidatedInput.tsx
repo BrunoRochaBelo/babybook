@@ -1,6 +1,6 @@
 /**
  * Input Validation Component
- * 
+ *
  * Campo de input com validação em tempo real que mostra ícone de sucesso/erro
  * e mensagem de validação enquanto o usuário digita.
  */
@@ -16,7 +16,8 @@ export interface ValidationRule {
   message: string;
 }
 
-interface ValidatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ValidatedInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   label?: string;
@@ -25,6 +26,8 @@ interface ValidatedInputProps extends React.InputHTMLAttributes<HTMLInputElement
   validateOnBlur?: boolean;
   validateDelay?: number;
   helperText?: string;
+  /** Mensagem de erro vinda de validação externa (ex.: react-hook-form). */
+  error?: string;
   containerClassName?: string;
 }
 
@@ -37,6 +40,7 @@ export function ValidatedInput({
   validateOnBlur = false,
   validateDelay = 500,
   helperText,
+  error,
   containerClassName,
   className,
   id,
@@ -86,10 +90,16 @@ export function ValidatedInput({
 
   const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
+  const hasExternalError = Boolean(error);
+  const effectiveStatus: ValidationStatus = hasExternalError
+    ? "invalid"
+    : status;
+  const effectiveErrorMessage = error ?? errorMessage;
+
   const statusIcon = useMemo(() => {
     if (!showValidation || !value) return null;
-    
-    switch (status) {
+
+    switch (effectiveStatus) {
       case "validating":
         return <Loader2 className="w-4 h-4 animate-spin text-gray-400" />;
       case "valid":
@@ -107,7 +117,7 @@ export function ValidatedInput({
       default:
         return null;
     }
-  }, [status, value, showValidation]);
+  }, [effectiveStatus, value, showValidation]);
 
   return (
     <div className={containerClassName}>
@@ -130,12 +140,16 @@ export function ValidatedInput({
             "focus:ring-2 focus:ring-pink-500 focus:border-pink-500",
             "placeholder:text-gray-400 dark:placeholder:text-gray-500",
             "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
-            status === "valid" && "border-green-500 dark:border-green-500",
-            status === "invalid" && "border-red-500 dark:border-red-500",
-            status === "idle" && "border-gray-300 dark:border-gray-600",
-            status === "validating" && "border-gray-300 dark:border-gray-600",
+            effectiveStatus === "valid" &&
+              "border-green-500 dark:border-green-500",
+            effectiveStatus === "invalid" &&
+              "border-red-500 dark:border-red-500",
+            effectiveStatus === "idle" &&
+              "border-gray-300 dark:border-gray-600",
+            effectiveStatus === "validating" &&
+              "border-gray-300 dark:border-gray-600",
             showValidation && value && "pr-12",
-            className
+            className,
           )}
           {...props}
         />
@@ -145,15 +159,15 @@ export function ValidatedInput({
           </div>
         )}
       </div>
-      
+
       {/* Mensagem de erro ou helper text */}
-      {errorMessage && status === "invalid" && (
+      {effectiveErrorMessage && effectiveStatus === "invalid" && (
         <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in fade-in-0 slide-in-from-top-1 duration-200">
           <AlertCircle className="w-3 h-3" />
-          {errorMessage}
+          {effectiveErrorMessage}
         </p>
       )}
-      {helperText && status !== "invalid" && (
+      {helperText && effectiveStatus !== "invalid" && (
         <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
           {helperText}
         </p>

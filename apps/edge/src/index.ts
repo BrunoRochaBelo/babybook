@@ -35,6 +35,8 @@ type Bindings = {
 
   // Optional: comma-separated allowlist of origins for CORS
   CORS_ALLOWED_ORIGINS?: string;
+  // URL do Frontend (SPA)
+  APP_BASE_URL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -89,6 +91,97 @@ app.get("/health", (c) => {
 // Mount file routes under /v1/file
 // Example: GET /v1/file/u/user-uuid/m/moment-uuid/photo.jpg
 app.route("/v1/file", fileRoutes);
+
+// =============================================================================
+// Guestbook Invite Route
+// =============================================================================
+
+app.get("/guestbook/:token", async (c) => {
+  const token = c.req.param("token");
+  const apiBaseUrl = c.env.API_BASE_URL ?? "http://localhost:8000";
+  const appBaseUrl = c.env.APP_BASE_URL ?? "http://localhost:5173";
+
+  // Validate token minimal format
+  if (!token || token.length < 10) {
+    return c.html("<h1>Link inválido</h1>", 400);
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/guestbook/invites/${token}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return c.html(
+          `
+                <!DOCTYPE html>
+                <html>
+                <head><title>Convite não encontrado</title></head>
+                <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                    <h1>Convite não encontrado ou expirado 😔</h1>
+                    <p>Peça um novo link para quem te convidou.</p>
+                </body>
+                </html>
+             `,
+          404,
+        );
+      }
+      throw new Error("API failed");
+    }
+
+    const meta = (await response.json()) as { child_name?: unknown };
+    const childName =
+      typeof meta?.child_name === "string" && meta.child_name.trim()
+        ? meta.child_name
+        : "seu bebê";
+
+    const title = `Convite: Livro de ${childName}`;
+    const description = `Você foi convidado(a) para deixar uma mensagem carinhosa no livro de ${childName}.`;
+    const targetUrl = `${appBaseUrl}/guestbook/${token}`;
+
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>${title}</title>
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="${c.req.url}">
+        <meta property="og:title" content="${title}">
+        <meta property="og:description" content="${description}">
+        
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary">
+        <meta property="twitter:title" content="${title}">
+        <meta property="twitter:description" content="${description}">
+
+        <meta http-equiv="refresh" content="0;url=${targetUrl}">
+        <style>
+           body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #F7F3EF; color: #4A4A4A; }
+           .loader { border: 4px solid #f3f3f3; border-top: 4px solid #F2995D; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+      </head>
+      <body>
+         <div class="loader"></div>
+         <p>Redirecionando para o BabyBook...</p>
+         <script>window.location.href = "${targetUrl}"</script>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error("Guestbook Edge Error:", err);
+    // Fallback redirect even if metadata fetch fails?
+    // Or show error
+    const targetUrl = `${appBaseUrl}/guestbook/${token}`;
+    return c.html(`
+         <meta http-equiv="refresh" content="0;url=${targetUrl}">
+         <body>Redirecionando...</body>
+      `);
+  }
+});
 
 // =============================================================================
 // Share Token Routes

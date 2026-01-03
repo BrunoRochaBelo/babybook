@@ -1,9 +1,12 @@
 import { useHealthVaccines } from "@/hooks/api";
-import { CheckCircle, Clock3, AlertCircle, Syringe } from "lucide-react";
+import { motion } from "motion/react";
+import { CheckCircle2, Clock3, AlertCircle, Syringe } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
-import { useState } from "react";
+import React, { useState } from "react";
 import { HealthVaccineForm } from "@/components/HealthVaccineForm";
+import { HealthCardDetailViewer } from "@/components/HealthCardDetailViewer";
+import { cn } from "@/lib/utils";
 
 interface HealthVaccinesTabProps {
   childId: string;
@@ -12,20 +15,38 @@ interface HealthVaccinesTabProps {
 const statusConfig = {
   completed: {
     label: "Aplicada",
-    icon: CheckCircle,
-    className: "text-success",
+    icon: CheckCircle2,
+    containerClass: "inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold",
+    style: {
+      backgroundColor: "var(--bb-color-success)",
+      color: "var(--bb-color-surface)",
+      opacity: 0.9,
+    },
+    iconClass: "h-4 w-4",
   },
   scheduled: {
     label: "Agendada",
     icon: Clock3,
-    className: "text-accent",
+    containerClass: "flex items-center gap-2 text-sm font-semibold",
+    style: {
+      color: "var(--bb-color-accent)",
+    },
+    iconClass: "h-4 w-4",
   },
   overdue: {
     label: "Atrasada",
     icon: AlertCircle,
-    className: "text-danger",
+    containerClass: "flex items-center gap-2 text-sm font-semibold",
+    style: {
+      color: "var(--bb-color-danger)",
+    },
+    iconClass: "h-4 w-4",
   },
 };
+
+// ...
+
+
 
 const VACCINE_CALENDAR = [
   { period: "Ao nascer", months: 0, vaccines: ["BCG", "Hepatite B"] },
@@ -90,6 +111,9 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedVaccineForForm, setSelectedVaccineForForm] =
     useState<string>("");
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+
+  const selectedEntry = data.find(e => e.id === selectedEntryId);
 
   const schedule = VACCINE_CALENDAR.map((section) => ({
     ...section,
@@ -259,6 +283,7 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
             {section.period}
           </p>
           <div className="mt-4 space-y-3">
+
             {section.vaccines.map(({ name, entry }) => {
               const status =
                 (entry &&
@@ -267,9 +292,22 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
               const StatusIcon = status?.icon || Clock3;
 
               return (
-                <div
+                <motion.button
                   key={name}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-4 py-3"
+                  layoutId={entry ? `vaccine-card-${entry.id}` : undefined}
+                  type="button"
+                  onClick={() => {
+                    if (entry && entry.status === "completed") {
+                      setSelectedEntryId(entry.id);
+                    } else {
+                      setSelectedVaccineForForm(name);
+                      setIsFormOpen(true);
+                    }
+                  }}
+                  className={cn(
+                    "flex flex-wrap items-center justify-between gap-4 w-full text-left rounded-2xl border border-border bg-surface px-4 py-3 transition-all",
+                    "hover:border-[var(--bb-color-accent)] hover:shadow-sm active:scale-[0.99] cursor-pointer"
+                  )}
                 >
                   <div>
                     <p className="font-semibold text-ink">{name}</p>
@@ -290,11 +328,14 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <StatusIcon className={status.className} />
-                    <span className={status.className}>{status.label}</span>
+                  <div
+                    className={status.containerClass}
+                    style={status.style}
+                  >
+                    <StatusIcon className={status.iconClass} />
+                    <span>{status.label}</span>
                   </div>
-                </div>
+                </motion.button>
               );
             })}
           </div>
@@ -306,6 +347,59 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
       />
+
+      <HealthCardDetailViewer
+        isOpen={!!selectedEntry}
+        onClose={() => setSelectedEntryId(null)}
+        title={selectedEntry?.name || "Detalhes da Vacina"}
+        subtitle={selectedEntry?.appliedAt ? `Aplicada em ${new Date(selectedEntry.appliedAt).toLocaleDateString("pt-BR")}` : "Registro de Vacina"}
+        icon={Syringe}
+        layoutId={selectedEntry ? `vaccine-card-${selectedEntry.id}` : undefined}
+      >
+        {selectedEntry && (
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6">
+                <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] mb-2">Status</p>
+                <div className="flex items-center gap-2">
+                  <span 
+                    className={cn(statusConfig[selectedEntry.status as keyof typeof statusConfig]?.containerClass)}
+                    style={statusConfig[selectedEntry.status as keyof typeof statusConfig]?.style}
+                  >
+                    {React.createElement(statusConfig[selectedEntry.status as keyof typeof statusConfig]?.icon || Clock3, {
+                      className: statusConfig[selectedEntry.status as keyof typeof statusConfig]?.iconClass
+                    })}
+                    <span className="ml-2">
+                       {statusConfig[selectedEntry.status as keyof typeof statusConfig]?.label}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {selectedEntry.appliedAt && (
+                <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6">
+                  <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] mb-2">Data da Aplicação</p>
+                  <p className="text-lg font-semibold text-[var(--bb-color-ink)]">
+                    {new Date(selectedEntry.appliedAt).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {selectedEntry.notes && (
+              <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6">
+                <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] mb-4">Observações</p>
+                <p className="text-lg leading-relaxed text-[var(--bb-color-ink)] whitespace-pre-wrap">{selectedEntry.notes}</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </HealthCardDetailViewer>
     </section>
   );
 };

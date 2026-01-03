@@ -1147,7 +1147,75 @@ Cria um novo momento (via template) referenciando asset_ids de uploads concluíd
 
 (Endpoints GET /moments/{id}, PATCH /moments/{id}, DELETE /moments/{id}, POST /moments/{id}/publish, etc. seguem o padrão RESTful conforme documento original, com ETag e RBAC.)
 
-(Recursos: Marcadores, Séries, Capítulos, Compartilhamento (Shares), Guestbook, Cápsula, Saúde, Cofre, Print-on-Demand e Exportação seguem os padrões definidos no documento anterior, pois já estavam alinhados com o Modelo de Dados e não são impactados diretamente pela mudança de faturamento.)
+(Recursos: Marcadores, Séries, Capítulos, Compartilhamento (Shares), Cápsula, Saúde, Cofre, Print-on-Demand e Exportação seguem os padrões definidos no documento anterior...)
+
+### Recurso: Guestbook (Livro de Visitas)
+
+Endpoints para interação de convidados e gestão de convites.
+
+#### POST /children/{child_id}/guestbook/invites
+
+Envia um convite por e-mail para alguém deixar uma mensagem no Guestbook.
+
+**Racional:** Permite que o Owner convide avós e amigos de forma ativa. O sistema envia um e-mail com um link único (`/guestbook/{token}`).
+
+**Corpo da Requisição:**
+
+```json
+{
+  "email": "vovo@example.com",
+  "message": "Vovó, venha deixar um recadinho para a Alice!",
+  "lang": "pt-BR"
+}
+```
+
+**Respostas de Sucesso:** 201 Created
+
+```json
+{
+  "invite_id": "uuid",
+  "token": "..." // (Opcional, geralmente enviado por email)
+}
+```
+
+**Respostas de Erro:** 401 Unauthorized, 422 Unprocessable Entity (Ex: email inválido).
+
+#### GET /guestbook/invites/{token}
+
+Recupera metadados do convite usando o token público. Usado pela página de aterrissagem (Edge/Frontend) para mostrar "Você foi convidado por Ana para visitar o livro de Alice".
+
+**Acesso:** Público (Autenticação via Token na URL).
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{
+  "child_name": "Alice",
+  "child_avatar_url": "...",
+  "inviter_name": "Ana",
+  "message": "Vovó...",
+  "valid": true
+}
+```
+
+**Respostas de Erro:** 404 Not Found (Token inválido ou expirado).
+
+#### POST /guestbook/entries (via Token)
+
+Cria uma mensagem no guestbook usando o token do convite.
+
+**Corpo da Requisição:**
+
+```json
+{
+  "token": "...",
+  "name": "Vovó Maria",
+  "message": "Alice, você é a luz das nossas vidas!",
+  "relationship": "Avó"
+}
+```
+
+**Resposta de Sucesso:** 201 Created (Status: pending).
 
 ### Recurso: Sinais Vitais (Health Checks)
 

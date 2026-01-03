@@ -214,7 +214,7 @@ Usamos um monorepo pnpm para gerenciar as fronteiras do nosso stack. A Estrutura
   - api/: O "Cérebro" (FastAPI, Python). Controla RBAC, Quotas, Negócio.
   - web/: O "Coração" (React SPA, Vite). A experiência da "Ana" (Persona).
   - edge/: O "Rosto Público" (SSR Links, Hono/CF). O que o "Sérgio" (Persona) vê.
-  - workers/: A "Fábrica" (Jobs de Mídia, Modal/Python). Consome da Fila CF.
+  - workers/: A "Fábrica" (Jobs de Mídia, E-mails, Modal/Python). Consome da Fila CF.
   - admin/: Ferramentas de CLI (ex: rodar Jobs manuais, db:upgrade).
 
 - **/packages/**: Descrição: Código compartilhado que não é deployável sozinho. É o nosso "core" interno, linkado via pnpm para os apps/.

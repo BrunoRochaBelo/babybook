@@ -48,6 +48,12 @@ GET /v1/file/sys/defaults/placeholder.webp
 GET /s/{token}
 ```
 
+### Convites do Guestbook
+
+```
+GET /guestbook/{token}
+```
+
 ### Health Check
 
 ```

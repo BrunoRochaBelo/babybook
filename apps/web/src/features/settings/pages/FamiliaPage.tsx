@@ -17,6 +17,9 @@ import {
 } from "../api";
 import { useTranslation } from "@babybook/i18n";
 import { FamiliaSkeleton } from "../components/FamiliaSkeleton";
+import { useSelectedChild } from "@/hooks/useSelectedChild";
+import { useGuestbookEntries } from "@/hooks/api";
+import { GuestbookFamilyTree } from "@/features/guestbook/GuestbookFamilyTree";
 
 // Mock data para fallback em dev
 const MOCK_MEMBERS: FamilyMember[] = [
@@ -49,6 +52,11 @@ export const FamiliaPage = () => {
   const [inviteEmail, setInviteEmail] = useState("");
   const [localMembers, setLocalMembers] =
     useState<FamilyMember[]>(MOCK_MEMBERS);
+  const { selectedChild } = useSelectedChild();
+
+  const { data: guestbookEntries = [] } = useGuestbookEntries(
+    selectedChild?.id,
+  );
 
   // Busca membros da família da API
   const { data, isLoading, error } = useQuery({
@@ -178,6 +186,58 @@ export const FamiliaPage = () => {
           Não foi possível carregar os membros agora. Exibindo dados locais.
         </div>
       )}
+
+      <div className="mb-6">
+        <div className="mb-2 flex items-end justify-between gap-3">
+          <div>
+            <p
+              className="text-xs uppercase tracking-[0.3em]"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              Rede afetiva
+            </p>
+            <h2
+              className="mt-1 font-serif text-xl"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
+              Livro de Visitas
+            </h2>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {selectedChild && (
+              <div
+                className="text-sm"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                Criança:{" "}
+                <span style={{ color: "var(--bb-color-ink)" }}>
+                  {selectedChild.name}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {selectedChild ? (
+          <GuestbookFamilyTree
+            childName={selectedChild.name}
+            entries={guestbookEntries}
+            variant="hud"
+          />
+        ) : (
+          <div
+            className="rounded-2xl border p-4 text-sm"
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              borderColor: "var(--bb-color-border)",
+              color: "var(--bb-color-ink-muted)",
+            }}
+          >
+            Selecione uma criança para ver a rede afetiva a partir das mensagens
+            aprovadas no Livro de Visitas.
+          </div>
+        )}
+      </div>
 
       {/* Invite Section */}
       <div

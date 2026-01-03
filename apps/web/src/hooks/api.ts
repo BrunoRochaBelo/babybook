@@ -35,6 +35,31 @@ import { apiClient, ApiError } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth";
 import { withRetry } from "@/lib/retry";
 
+const guestbookInviteCreatedSchema = z.object({
+  id: z.string(),
+  token: z.string(),
+  url: z.string().url(),
+  child_id: z.string().uuid(),
+  invited_email: z.string().email().nullable(),
+  expires_at: z.string().datetime().nullable(),
+});
+
+export type GuestbookInviteCreated = z.infer<
+  typeof guestbookInviteCreatedSchema
+>;
+
+const guestbookInvitePublicMetaSchema = z.object({
+  token: z.string(),
+  child_id: z.string().uuid(),
+  child_name: z.string(),
+  invited_email: z.string().email().nullable(),
+  expires_at: z.string().datetime().nullable(),
+});
+
+export type GuestbookInvitePublicMeta = z.infer<
+  typeof guestbookInvitePublicMetaSchema
+>;
+
 /**
  * Obtém um token CSRF do servidor com retry automático.
  *
@@ -108,7 +133,16 @@ type CreateGuestbookEntryInput = {
   childId: string;
   authorName: string;
   authorEmail?: string;
+  relationshipDegree: GuestbookEntry["relationshipDegree"];
   message: string;
+  assetId?: string;
+};
+
+type CreateGuestbookInviteInput = {
+  childId: string;
+  invitedEmail?: string;
+  expiresAt?: string | null;
+  messageOpt?: string;
 };
 
 type CreateHealthMeasurementInput = Omit<HealthMeasurement, "id">;
@@ -421,7 +455,9 @@ export const useCreateGuestbookEntry = () => {
           child_id: entry.childId,
           author_name: entry.authorName,
           author_email: entry.authorEmail,
+          relationship_degree: entry.relationshipDegree,
           message: entry.message,
+          asset_id: entry.assetId,
         },
         { schema: guestbookEntrySchema },
       );
@@ -430,6 +466,97 @@ export const useCreateGuestbookEntry = () => {
       queryClient.invalidateQueries({
         queryKey: ["guestbook", variables.childId],
       });
+    },
+  });
+};
+
+export const useCreateGuestbookInvite = () => {
+  return useMutation({
+    mutationFn: async (payload: CreateGuestbookInviteInput) => {
+      return apiClient.post(
+        "/guestbook/invites",
+        {
+          child_id: payload.childId,
+          invited_email: payload.invitedEmail,
+          expires_at: payload.expiresAt ?? null,
+          message_opt: payload.messageOpt,
+        },
+        { schema: guestbookInviteCreatedSchema },
+      );
+    },
+  });
+};
+
+export const useGuestbookInvitePublicMeta = (token?: string) =>
+  useQuery({
+    queryKey: ["guestbook-invite", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<GuestbookInvitePublicMeta | null> => {
+      if (!token) return null;
+      return apiClient.get(`/guestbook/invites/${token}`, {
+        schema: guestbookInvitePublicMetaSchema,
+      });
+    },
+  });
+
+export const useCreateGuestbookEntryFromInvite = () => {
+  return useMutation({
+    mutationFn: async (payload: {
+      token: string;
+      authorName: string;
+      authorEmail?: string;
+      relationshipDegree: GuestbookEntry["relationshipDegree"];
+      message: string;
+      assetId?: string;
+    }): Promise<GuestbookEntry> => {
+      return apiClient.post(
+        `/guestbook/invites/${payload.token}/entries`,
+        {
+          author_name: payload.authorName,
+          author_email: payload.authorEmail,
+          relationship_degree: payload.relationshipDegree,
+          message: payload.message,
+          asset_id: payload.assetId,
+        },
+        { schema: guestbookEntrySchema },
+      );
+    },
+  });
+};
+
+export const useApproveGuestbookEntry = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      entryId: string;
+      relationshipDegree?: GuestbookEntry["relationshipDegree"];
+    }): Promise<GuestbookEntry> => {
+      return apiClient.post(
+        `/guestbook/${payload.entryId}/approve`,
+        { relationship_degree: payload.relationshipDegree ?? null },
+        { schema: guestbookEntrySchema },
+      );
+    },
+    onSuccess: (entry) => {
+      queryClient.invalidateQueries({ queryKey: ["guestbook", entry.childId] });
+    },
+  });
+};
+
+export const useRejectGuestbookEntry = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      entryId: string;
+    }): Promise<GuestbookEntry> => {
+      return apiClient.post(
+        `/guestbook/${payload.entryId}/reject`,
+        {},
+        { schema: guestbookEntrySchema },
+      );
+    },
+    onSuccess: (entry) => {
+      queryClient.invalidateQueries({ queryKey: ["guestbook", entry.childId] });
     },
   });
 };

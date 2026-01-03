@@ -40,9 +40,11 @@ def _serialize_guestbook(entry: GuestbookEntry) -> GuestbookEntryResponse:
         child_id=str(entry.child_id),
         author_name=entry.author_name,
         author_email=entry.author_email,
+        relationship_degree=entry.relationship_degree,
         message=entry.message,
         status=entry.status,
         created_at=entry.created_at,
+        asset_id=str(entry.asset_id) if entry.asset_id else None,
     )
 
 
@@ -198,7 +200,9 @@ async def create_public_guestbook_entry(
         share_link_id=share.id,
         author_name=payload.author_name,
         author_email=payload.author_email,
+        relationship_degree=payload.relationship_degree,
         message=payload.message,
+        asset_id=payload.asset_id,
         status="pending",
     )
     db.add(entry)

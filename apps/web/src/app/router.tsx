@@ -45,6 +45,7 @@ import { OnboardingPage } from "@/features/onboarding";
 import { AddMomentPage } from "@/pages/AddMomentPage";
 // Share Page
 import { SharedMomentPage } from "@/pages/SharedMomentPage";
+import { GuestbookInvitePage } from "@/pages/GuestbookInvitePage";
 import { ImportDeliveryPage } from "@/pages/ImportDeliveryPage";
 // B2C Settings Pages
 import {
@@ -157,6 +158,9 @@ export function AppRouter() {
 
         {/* Share Page - Public (for viral loop) */}
         <Route path="/share/:token" element={<SharedMomentPage />} />
+
+        {/* Guestbook Invite - Public */}
+        <Route path="/guestbook/:token" element={<GuestbookInvitePage />} />
 
         {/* Onboarding - Protected */}
         <Route

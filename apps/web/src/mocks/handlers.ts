@@ -207,7 +207,9 @@ const toGuestbookResponse = (entry: GuestbookEntry) => ({
   child_id: entry.childId,
   author_name: entry.authorName,
   author_email: entry.authorEmail,
+  relationship_degree: entry.relationshipDegree,
   message: entry.message,
+  asset_id: entry.assetId,
   status: entry.status,
   created_at: entry.createdAt,
 });
@@ -235,6 +237,16 @@ const mutableGuestbook = [...mockGuestbookEntries];
 const mutableMeasurements = [...mockHealthMeasurements];
 const mutableVaccines = [...mockHealthVaccines];
 const mutableDeliveries: MockDelivery[] = [...mockDeliveries];
+
+type MockGuestbookInvite = {
+  token: string;
+  id: string;
+  childId: string;
+  invitedEmail: string | null;
+  expiresAt: string | null;
+};
+
+const mutableGuestbookInvites: MockGuestbookInvite[] = [];
 
 type MockUpload = {
   assetId: string;
@@ -885,19 +897,177 @@ export const handlers = [
       child_id: string;
       author_name: string;
       author_email?: string;
+      relationship_degree: GuestbookEntry["relationshipDegree"];
       message: string;
+      asset_id?: string | null;
     };
     const entry: GuestbookEntry = {
       id: randomId(),
       childId: body.child_id,
       authorName: body.author_name,
       authorEmail: body.author_email ?? null,
+      relationshipDegree: body.relationship_degree,
       message: body.message,
+      assetId: body.asset_id ?? null,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
     mutableGuestbook.unshift(entry);
     return HttpResponse.json(toGuestbookResponse(entry), { status: 201 });
+  }),
+
+  // Guestbook Invites (public link flow)
+  http.post(withBase("/guestbook/invites"), async ({ request }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    const body = (await request.json()) as {
+      child_id: string;
+      invited_email?: string | null;
+      expires_at?: string | null;
+    };
+
+    const token = nanoid(24);
+    const id = randomId();
+    const invite: MockGuestbookInvite = {
+      id,
+      token,
+      childId: body.child_id,
+      invitedEmail: body.invited_email ?? null,
+      expiresAt: body.expires_at ?? null,
+    };
+    mutableGuestbookInvites.unshift(invite);
+
+    return HttpResponse.json(
+      {
+        id,
+        token,
+        url: `${window.location.origin}/guestbook/${token}`,
+        child_id: invite.childId,
+        invited_email: invite.invitedEmail,
+        expires_at: invite.expiresAt,
+      },
+      { status: 201 },
+    );
+  }),
+  http.get(withBase("/guestbook/invites/:token"), ({ params }) => {
+    const token = String(params.token ?? "");
+    const invite = mutableGuestbookInvites.find((it) => it.token === token);
+    if (!invite) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "guestbook_invite.not_found",
+            message: "Convite não encontrado ou expirado",
+            trace_id: "mock-trace-guestbook-invite",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    const child = mutableChildren.find((c) => c.id === invite.childId);
+
+    return HttpResponse.json({
+      token: invite.token,
+      child_id: invite.childId,
+      child_name: child?.name ?? "",
+      invited_email: invite.invitedEmail,
+      expires_at: invite.expiresAt,
+    });
+  }),
+  http.post(
+    withBase("/guestbook/invites/:token/entries"),
+    async ({ params, request }) => {
+      const token = String(params.token ?? "");
+      const invite = mutableGuestbookInvites.find((it) => it.token === token);
+      if (!invite) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "guestbook_invite.not_found",
+              message: "Convite não encontrado ou expirado",
+              trace_id: "mock-trace-guestbook-invite",
+            },
+          },
+          { status: 404 },
+        );
+      }
+
+      const body = (await request.json()) as {
+        author_name: string;
+        author_email?: string;
+        relationship_degree: GuestbookEntry["relationshipDegree"];
+        message: string;
+        asset_id?: string | null;
+      };
+
+      const entry: GuestbookEntry = {
+        id: randomId(),
+        childId: invite.childId,
+        authorName: body.author_name,
+        authorEmail: body.author_email ?? null,
+        relationshipDegree: body.relationship_degree,
+        message: body.message,
+        assetId: body.asset_id ?? null,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+
+      mutableGuestbook.unshift(entry);
+      return HttpResponse.json(toGuestbookResponse(entry), { status: 201 });
+    },
+  ),
+
+  // Guestbook moderation
+  http.post(
+    withBase("/guestbook/:entryId/approve"),
+    async ({ params, request }) => {
+      if (!sessionActive) return sessionRequiredResponse();
+      const entryId = String(params.entryId ?? "");
+      const body = (await request.json()) as {
+        relationship_degree?: GuestbookEntry["relationshipDegree"] | null;
+      };
+
+      const entry = mutableGuestbook.find((it) => it.id === entryId);
+      if (!entry) {
+        return HttpResponse.json(
+          {
+            error: {
+              code: "guestbook_entry.not_found",
+              message: "Entrada não encontrada",
+              trace_id: "mock-trace-guestbook-entry",
+            },
+          },
+          { status: 404 },
+        );
+      }
+
+      entry.status = "approved";
+      if (body.relationship_degree) {
+        entry.relationshipDegree = body.relationship_degree;
+      }
+
+      return HttpResponse.json(toGuestbookResponse(entry));
+    },
+  ),
+  http.post(withBase("/guestbook/:entryId/reject"), ({ params }) => {
+    if (!sessionActive) return sessionRequiredResponse();
+    const entryId = String(params.entryId ?? "");
+    const entry = mutableGuestbook.find((it) => it.id === entryId);
+    if (!entry) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: "guestbook_entry.not_found",
+            message: "Entrada não encontrada",
+            trace_id: "mock-trace-guestbook-entry",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    entry.status = "hidden";
+    return HttpResponse.json(toGuestbookResponse(entry));
   }),
   http.get(withBase("/children/:childId/health/measurements"), ({ params }) => {
     const measurements = mutableMeasurements.filter(

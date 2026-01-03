@@ -31,6 +31,19 @@ def _generate_uuid() -> uuid.UUID:
 moment_status_enum = Enum("draft", "published", "archived", name="moment_status_enum")
 moment_privacy_enum = Enum("private", "people", "public", name="moment_privacy_enum")
 guestbook_status_enum = Enum("pending", "approved", "hidden", name="guestbook_status_enum")
+guestbook_relationship_enum = Enum(
+    "mae",
+    "pai",
+    "tio",
+    "tia",
+    "irmao_irma",
+    "avo",
+    "avoa",
+    "amigo",
+    "madrasta",
+    "padrasto",
+    name="guestbook_relationship_enum",
+)
 asset_kind_enum = Enum("photo", "video", "audio", name="asset_kind_enum")
 asset_status_enum = Enum("queued", "processing", "ready", "failed", name="asset_status_enum")
 vault_kind_enum = Enum("certidao", "cpf_rg", "sus_plano", "outro", name="vault_kind_enum")
@@ -140,6 +153,7 @@ class Account(TimestampMixin, Base):
     people: Mapped[list["Person"]] = relationship(back_populates="account", cascade="all,delete")
     moments: Mapped[list["Moment"]] = relationship(back_populates="account", cascade="all,delete")
     share_links: Mapped[list["ShareLink"]] = relationship(back_populates="account", cascade="all,delete")
+    guestbook_invites: Mapped[list["GuestbookInvite"]] = relationship(back_populates="inviter", cascade="all,delete")
     assets: Mapped[list["Asset"]] = relationship(back_populates="account", cascade="all,delete")
     upload_sessions: Mapped[list["UploadSession"]] = relationship(back_populates="account", cascade="all,delete")
     series: Mapped[list["Series"]] = relationship(back_populates="account", cascade="all,delete")
@@ -406,6 +420,26 @@ class ShareLink(TimestampMixin, Base):
     guestbook_entries: Mapped[list["GuestbookEntry"]] = relationship(back_populates="share_link")
 
 
+class GuestbookInvite(TimestampMixin, Base):
+    __tablename__ = "guestbook_invites"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    inviter_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("accounts.id", ondelete="CASCADE"))
+    child_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("children.id", ondelete="CASCADE"))
+    token_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    invitee_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # revoked_at removed in favor of status=expired/revoked? Keeping for legacy if needed or remove?
+    # User schema didn't have it. Removing from model to match strict schema.
+
+    inviter: Mapped[Account] = relationship(back_populates="guestbook_invites")
+    entries: Mapped[list["GuestbookEntry"]] = relationship(back_populates="invite")
+
+
+
+
+
 class GuestbookEntry(TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "guestbook_entries"
 
@@ -417,12 +451,25 @@ class GuestbookEntry(TimestampMixin, SoftDeleteMixin, Base):
         ForeignKey("share_links.id", ondelete="SET NULL"),
         nullable=True,
     )
+    invite_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("guestbook_invites.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    asset_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("assets.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     author_name: Mapped[str] = mapped_column(String(120))
     author_email: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    relationship_degree: Mapped[str] = mapped_column(guestbook_relationship_enum)
     message: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(guestbook_status_enum, default="pending")
 
     share_link: Mapped[ShareLink | None] = relationship(back_populates="guestbook_entries")
+    invite: Mapped[GuestbookInvite | None] = relationship(back_populates="entries")
+    asset: Mapped[Asset | None] = relationship()
 
 
 class Chapter(TimestampMixin, SoftDeleteMixin, Base):

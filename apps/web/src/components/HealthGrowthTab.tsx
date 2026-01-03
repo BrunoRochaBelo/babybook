@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "motion/react";
 import { useHealthMeasurements } from "@/hooks/api";
 import {
   Tooltip,
@@ -12,7 +13,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { Plus, Maximize2 } from "lucide-react";
+import { Plus, Maximize2, Activity } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useTheme } from "@/hooks/useTheme";
 import { B2CErrorState } from "@/layouts/b2cStates";
@@ -23,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { HealthGrowthForm } from "@/components/HealthGrowthForm";
+import { HealthCardDetailViewer } from "@/components/HealthCardDetailViewer";
 
 interface HealthGrowthTabProps {
   childId: string;
@@ -40,6 +42,9 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
+  const [selectedMeasurementId, setSelectedMeasurementId] = useState<string | null>(null);
+
+  const selectedMeasurement = measurements.find(m => m.id === selectedMeasurementId);
 
   const sortedMeasurements = [...measurements].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
@@ -187,9 +192,12 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
           </h3>
           <div className="grid gap-3 grid-cols-1">
             {[...sortedMeasurements].reverse().map((measurement) => (
-              <div
+              <motion.button
                 key={measurement.id}
-                className="flex items-center justify-between rounded-2xl border border-border bg-surface px-5 py-4 transition-colors hover:border-ink-muted"
+                layoutId={`measurement-card-${measurement.id}`}
+                type="button"
+                onClick={() => setSelectedMeasurementId(measurement.id)}
+                className="flex items-center justify-between w-full text-left rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:border-[var(--bb-color-accent)] hover:shadow-sm active:scale-[0.99]"
               >
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-muted">
@@ -209,7 +217,7 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
                     </p>
                   </div>
                 )}
-              </div>
+              </motion.button>
             ))}
           </div>
         </div>
@@ -332,6 +340,36 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
           </div>
         </DialogContent>
       </Dialog>
+      <HealthCardDetailViewer
+        isOpen={!!selectedMeasurement}
+        onClose={() => setSelectedMeasurementId(null)}
+        title="Detalhes da Medição"
+        subtitle={selectedMeasurement ? new Date(selectedMeasurement.date).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }) : ""}
+        icon={Activity}
+        layoutId={selectedMeasurement ? `measurement-card-${selectedMeasurement.id}` : undefined}
+      >
+        {selectedMeasurement && (
+          <motion.div 
+            className="grid grid-cols-2 gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6 text-center">
+              <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)]">Peso</p>
+              <p className="mt-2 font-serif text-4xl font-bold text-[var(--bb-color-accent)]">
+                {selectedMeasurement.weight ? `${selectedMeasurement.weight} kg` : "--"}
+              </p>
+            </div>
+            <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6 text-center">
+              <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)]">Altura</p>
+              <p className="mt-2 font-serif text-4xl font-bold text-[var(--bb-color-ink)]">
+                {selectedMeasurement.height ? `${selectedMeasurement.height} cm` : "--"}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </HealthCardDetailViewer>
     </section>
   );
 };

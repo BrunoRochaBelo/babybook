@@ -137,9 +137,22 @@ const rawGuestbookEntrySchema = z.object({
   child_id: z.string().uuid(),
   author_name: z.string(),
   author_email: z.string().email().nullable(),
+  relationship_degree: z.enum([
+    "mae",
+    "pai",
+    "tio",
+    "tia",
+    "irmao_irma",
+    "avo",
+    "avoa",
+    "amigo",
+    "madrasta",
+    "padrasto",
+  ]),
   message: z.string(),
   status: z.enum(["approved", "pending", "hidden"]),
   created_at: isoDateSchema,
+  asset_id: z.string().uuid().nullable().optional(),
 });
 
 export const guestbookEntrySchema = rawGuestbookEntrySchema.transform(
@@ -148,9 +161,11 @@ export const guestbookEntrySchema = rawGuestbookEntrySchema.transform(
     childId: entry.child_id,
     authorName: entry.author_name,
     authorEmail: entry.author_email ?? null,
+    relationshipDegree: entry.relationship_degree,
     message: entry.message,
     status: entry.status,
     createdAt: entry.created_at,
+    assetId: entry.asset_id ?? null,
   }),
 );
 

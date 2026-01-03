@@ -436,8 +436,10 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     childId: CHILD_ALICE_ID,
     authorName: "Vovó Maria",
     authorEmail: "maria@example.com",
+    relationshipDegree: "avoa",
     message:
       "Que menina lindinha! Estamos orgulhosos de vocês. A casa está cheia de amor!",
+    assetId: null,
     status: "approved",
     createdAt: "2024-03-20T08:00:00Z",
   },
@@ -446,8 +448,10 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     childId: CHILD_ALICE_ID,
     authorName: "Tio João",
     authorEmail: null,
+    relationshipDegree: "tio",
     message:
       "Parabéns aos pais! Já reservei um sábado para fazer pizza para vocês descansarem.",
+    assetId: null,
     status: "approved",
     createdAt: "2024-03-22T15:30:00Z",
   },
@@ -456,8 +460,10 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     childId: CHILD_ALICE_ID,
     authorName: "Prima Ana",
     authorEmail: null,
+    relationshipDegree: "amigo",
     message:
       "Quero ser a responsável pelo capítulo de 'Galeria de Arte'! Posso?",
+    assetId: null,
     status: "pending",
     createdAt: "2024-11-10T10:15:00Z",
   },
@@ -466,8 +472,10 @@ export const mockGuestbookEntries: GuestbookEntry[] = [
     childId: CHILD_THEO_ID,
     authorName: "Dinda Carol",
     authorEmail: "carol@example.com",
+    relationshipDegree: "amigo",
     message:
       "Theo, já temos data para o seu piquenique de 2 anos. Contagem regressiva!",
+    assetId: null,
     status: "approved",
     createdAt: "2024-04-01T12:00:00Z",
   },

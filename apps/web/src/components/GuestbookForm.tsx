@@ -1,6 +1,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useCreateGuestbookEntry } from "@/hooks/api";
 import { X } from "lucide-react";
+import { uploadMomentMediaFiles } from "@/features/uploads/b2cUpload";
+import { relationshipDegreeOptions } from "@/features/guestbook/relationshipDegree";
+import { GuestbookEntry } from "@babybook/contracts";
 
 interface GuestbookFormProps {
   childId: string;
@@ -13,12 +16,38 @@ const FOCUSABLE_SELECTOR =
 export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
   const [authorName, setAuthorName] = useState("");
   const [authorEmail, setAuthorEmail] = useState("");
+  const [relationshipDegree, setRelationshipDegree] = useState<
+    GuestbookEntry["relationshipDegree"] | ""
+  >("");
   const [message, setMessage] = useState("");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [uploadPct, setUploadPct] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { mutate: createEntry, isPending } = useCreateGuestbookEntry();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const titleId = useId();
   const descriptionId = useId();
+
+  const isSubmitting = isPending || isUploading;
+
+  const getVideoDurationSeconds = async (file: File): Promise<number> => {
+    const url = URL.createObjectURL(file);
+    try {
+      const duration = await new Promise<number>((resolve, reject) => {
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.src = url;
+        video.onloadedmetadata = () => resolve(video.duration);
+        video.onerror = () =>
+          reject(new Error("Falha ao ler duração do vídeo"));
+      });
+      return duration;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
 
   useEffect(() => {
     nameInputRef.current?.focus();
@@ -63,25 +92,74 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!authorName || !message) {
+    setErrorMsg(null);
+    if (!authorName || !message || !relationshipDegree) {
       return;
     }
-    createEntry(
-      {
-        childId,
-        authorName,
-        authorEmail: authorEmail || undefined,
-        message,
-      },
-      {
-        onSuccess: () => {
-          setAuthorName("");
-          setAuthorEmail("");
-          setMessage("");
-          onClose();
+
+    try {
+      let assetId: string | undefined;
+
+      if (mediaFile) {
+        if (mediaFile.type.startsWith("video/")) {
+          const duration = await getVideoDurationSeconds(mediaFile);
+          if (Number.isFinite(duration) && duration > 15) {
+            setErrorMsg(
+              `O vídeo tem ${Math.ceil(duration)}s. Por enquanto, aceitamos até 15s.`,
+            );
+            return;
+          }
+        }
+
+        setIsUploading(true);
+        setUploadPct(0);
+        const uploaded = await uploadMomentMediaFiles({
+          childId,
+          files: [mediaFile],
+          scope: "guestbook",
+          onProgress: ({ overallPct }) => setUploadPct(overallPct),
+        });
+        assetId = uploaded[0]?.id;
+      }
+
+      createEntry(
+        {
+          childId,
+          authorName,
+          authorEmail: authorEmail || undefined,
+          relationshipDegree,
+          message,
+          assetId,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            setAuthorName("");
+            setAuthorEmail("");
+            setRelationshipDegree("");
+            setMessage("");
+            setMediaFile(null);
+            onClose();
+          },
+          onError: (err) => {
+            setErrorMsg(
+              err instanceof Error
+                ? err.message
+                : "Não foi possível enviar sua mensagem.",
+            );
+          },
+          onSettled: () => {
+            setIsUploading(false);
+            setUploadPct(0);
+          },
+        },
+      );
+    } catch (err) {
+      setIsUploading(false);
+      setUploadPct(0);
+      setErrorMsg(
+        err instanceof Error ? err.message : "Não foi possível anexar a mídia.",
+      );
+    }
   };
 
   return (
@@ -176,6 +254,98 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
           <div>
             <label
               className="block text-sm font-semibold mb-2"
+              htmlFor="guestbook-relationship"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
+              Grau de parentesco
+            </label>
+            <select
+              id="guestbook-relationship"
+              value={relationshipDegree}
+              onChange={(event) =>
+                setRelationshipDegree(
+                  (event.target.value || "") as
+                    | GuestbookEntry["relationshipDegree"]
+                    | "",
+                )
+              }
+              className="w-full px-3 py-2 border rounded-xl"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
+              required
+            >
+              <option value="" disabled>
+                Selecione...
+              </option>
+              {relationshipDegreeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="guestbook-media"
+              style={{ color: "var(--bb-color-ink)" }}
+            >
+              Foto ou vídeo (opcional)
+            </label>
+            <input
+              id="guestbook-media"
+              type="file"
+              accept="image/*,video/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                setMediaFile(file);
+                setErrorMsg(null);
+              }}
+              className="w-full px-3 py-2 border rounded-xl"
+              style={{
+                backgroundColor: "var(--bb-color-surface)",
+                borderColor: "var(--bb-color-border)",
+                color: "var(--bb-color-ink)",
+              }}
+            />
+            <p
+              className="mt-2 text-xs"
+              style={{ color: "var(--bb-color-ink-muted)" }}
+            >
+              Vídeos: até 15s. O upload pode demorar um pouco dependendo da sua
+              conexão.
+            </p>
+            {isUploading && (
+              <p
+                className="mt-2 text-xs"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                Enviando anexo... {uploadPct}%
+              </p>
+            )}
+          </div>
+
+          {errorMsg && (
+            <div
+              className="border rounded-lg p-3"
+              style={{
+                backgroundColor: "rgba(239,68,68,0.08)",
+                borderColor: "rgba(239,68,68,0.35)",
+              }}
+            >
+              <p className="text-xs" style={{ color: "var(--bb-color-ink)" }}>
+                {errorMsg}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label
+              className="block text-sm font-semibold mb-2"
               htmlFor="guestbook-message"
               style={{ color: "var(--bb-color-ink)" }}
             >
@@ -213,14 +383,14 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
           <div className="flex gap-2">
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isSubmitting}
               className="flex-1 px-6 py-2 rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 transition-all"
               style={{
                 backgroundColor: "var(--bb-color-accent)",
                 color: "var(--bb-color-surface)",
               }}
             >
-              {isPending ? "Enviando..." : "Enviar"}
+              {isSubmitting ? "Enviando..." : "Enviar"}
             </button>
             <button
               type="button"

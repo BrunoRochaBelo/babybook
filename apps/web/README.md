@@ -170,7 +170,7 @@ Todos os componentes usam:
 - [x] Cápsula do Tempo
 - [ ] Upload de mídia com progresso
 - [ ] Autenticação (login/signup)
-- [ ] Compartilhamento (link + guardiões)
+- [x] Compartilhamento (Convites Guestbook)
 - [ ] PoD (Print-on-Demand)
 - [ ] Fila de upload offline
 

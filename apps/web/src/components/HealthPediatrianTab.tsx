@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { CalendarClock, Plus, Stethoscope } from "lucide-react";
 import { useHealthVisits } from "@/hooks/api";
 import { HudCard } from "@/components/HudCard";
 import { HealthVisitForm } from "@/components/HealthVisitForm";
+import { HealthCardDetailViewer } from "@/components/HealthCardDetailViewer";
+import { B2CErrorState } from "@/layouts/b2cStates";
 
 interface HealthPediatrianTabProps {
   childId: string;
 }
-
-import { B2CErrorState } from "@/layouts/b2cStates";
 
 export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
   const {
@@ -19,6 +20,9 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
     refetch,
   } = useHealthVisits(childId);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
+ 
+  const selectedVisit = visits.find(v => v.id === selectedVisitId);
 
   // Sorting
   const sortedVisits = useMemo(
@@ -112,9 +116,12 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
       {sortedVisits.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {sortedVisits.map((visit) => (
-            <article
+            <motion.button
               key={visit.id}
-              className="relative overflow-hidden rounded-[32px] border border-border bg-surface p-6 shadow-sm transition-all hover:border-ink/20 hover:shadow-md"
+              layoutId={`visit-card-${visit.id}`}
+              type="button"
+              onClick={() => setSelectedVisitId(visit.id)}
+              className="relative w-full text-left overflow-hidden rounded-[32px] border border-border bg-surface p-6 shadow-sm transition-all hover:border-[var(--bb-color-accent)] hover:shadow-md active:scale-[0.99]"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 rounded-full bg-surface-hover px-3 py-1">
@@ -135,7 +142,7 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
 
               {visit.notes ? (
                 <div className="mt-3 rounded-2xl bg-surface-hover/50 p-4">
-                  <p className="text-sm leading-relaxed text-ink-muted">
+                  <p className="text-sm line-clamp-2 leading-relaxed text-ink-muted">
                     {visit.notes}
                   </p>
                 </div>
@@ -144,7 +151,7 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
                   Sem observações.
                 </p>
               )}
-            </article>
+            </motion.button>
           ))}
         </div>
       ) : (
@@ -168,6 +175,43 @@ export const HealthPediatrianTab = ({ childId }: HealthPediatrianTabProps) => {
           </button>
         </div>
       )}
+      <HealthCardDetailViewer
+        isOpen={!!selectedVisit}
+        onClose={() => setSelectedVisitId(null)}
+        title={selectedVisit?.reason || "Detalhes da Consulta"}
+        subtitle={selectedVisit ? new Date(selectedVisit.date).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }) : ""}
+        icon={Stethoscope}
+        layoutId={selectedVisit ? `visit-card-${selectedVisit.id}` : undefined}
+      >
+        {selectedVisit && (
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6">
+              <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] mb-4">Motivo da Consulta</p>
+              <p className="text-xl font-serif text-[var(--bb-color-ink)]">
+                {selectedVisit.reason}
+              </p>
+            </div>
+            
+            <div className="rounded-3xl bg-[var(--bb-color-bg)] p-6">
+              <p className="text-sm font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] mb-4">Relato e Observações</p>
+              {selectedVisit.notes ? (
+                <p className="text-lg leading-relaxed text-[var(--bb-color-ink)] whitespace-pre-wrap">
+                  {selectedVisit.notes}
+                </p>
+              ) : (
+                <p className="text-lg italic text-[var(--bb-color-ink-muted)]">
+                  Nenhuma observação registrada para esta consulta.
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </HealthCardDetailViewer>
     </section>
   );
 };

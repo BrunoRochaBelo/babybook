@@ -1,13 +1,25 @@
-import { useState } from "react";
-import { Users, CheckCircle, MessageCircle, Mail, X, Baby } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Users,
+  CheckCircle,
+  MessageCircle,
+  Mail,
+  X,
+  Baby,
+  UserPlus,
+} from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
-import { useGuestbookEntries } from "@/hooks/api";
+import { useCreateGuestbookInvite, useGuestbookEntries } from "@/hooks/api";
 import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
+import { B2CActionBar } from "@/components/B2CActionBar";
+import { B2CButton } from "@/components/B2CButton";
 import { B2CEmptyState, B2CErrorState } from "@/layouts/b2cStates";
 import { GuestbookSkeleton } from "@/components/skeletons/GuestbookSkeleton";
+import { GuestbookFamilyTree } from "@/features/guestbook/GuestbookFamilyTree";
+import { QRCodeSVG } from "qrcode.react";
 
 const TOTAL_SLOTS: number = 20;
 
@@ -26,6 +38,18 @@ export const VisitasPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
+  useEffect(() => {
+    if (activeTab === "pending") {
+      setShowForm(false);
+    }
+  }, [activeTab]);
+
+  const [invitedEmail, setInvitedEmail] = useState("");
+  const [inviteUrl, setInviteUrl] = useState<string>("");
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const { mutate: createInvite, isPending: isCreatingInvite } =
+    useCreateGuestbookInvite();
+
   const pendingCount = entries.filter(
     (entry) => entry.status === "pending",
   ).length;
@@ -37,9 +61,24 @@ export const VisitasPage = () => {
       ? 0
       : Math.min(100, Math.round((approvedCount / TOTAL_SLOTS) * 100));
 
-  const inviteLink = selectedChild
-    ? `https://cofrememoria.app/guestbook/${selectedChild.id}`
-    : "";
+  useEffect(() => {
+    if (!showInviteModal || !selectedChild) return;
+
+    // Gera um convite genérico (sem e-mail) quando o modal abre.
+    setInviteError(null);
+    createInvite(
+      { childId: selectedChild.id },
+      {
+        onSuccess: (data) => setInviteUrl(data.url),
+        onError: (err) =>
+          setInviteError(
+            err instanceof Error
+              ? err.message
+              : "Não foi possível gerar o convite.",
+          ),
+      },
+    );
+  }, [showInviteModal, selectedChild, createInvite]);
 
   if (isLoading) {
     return <GuestbookSkeleton />;
@@ -183,45 +222,39 @@ export const VisitasPage = () => {
           progressPercent={slotUsagePercent}
           actions={
             <>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-2xl border border-orange-100 bg-white dark:bg-stone-800/50 px-4 py-2 text-sm font-semibold text-[var(--bb-color-ink)] transition hover:bg-orange-50 dark:hover:bg-stone-700"
-              >
+              <B2CButton variant="secondary" size="sm">
                 Ampliar para 50
-              </button>
-              {activeTab === "approved" && (
-                <button
-                  type="button"
-                  onClick={() => setShowForm((state) => !state)}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] px-6 py-2 font-bold shadow-sm transition hover:opacity-90 active:scale-95"
-                >
-                  <Users className="h-4 w-4" />
-                  {showForm ? "Fechar formulário" : "Deixar mensagem"}
-                </button>
-              )}
-              {activeTab === "pending" ? (
-                <button
-                  type="button"
-                  onClick={() => setShowInviteModal(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] px-6 py-2 font-bold shadow-sm transition hover:opacity-90 active:scale-95"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Convidar
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowInviteModal(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-orange-100 bg-white dark:bg-stone-800/50 px-6 py-2 text-sm font-semibold text-[var(--bb-color-ink)] transition hover:bg-orange-50 dark:hover:bg-stone-700"
-                >
-                  <MessageCircle className="h-4 w-4 text-orange-400" />
-                  Convidar
-                </button>
-              )}
+              </B2CButton>
             </>
           }
         />
       </div>
+
+      {activeTab === "approved" && (
+        <div className="mb-6">
+          <GuestbookFamilyTree
+            childName={selectedChild.name}
+            entries={entries}
+          />
+        </div>
+      )}
+
+      <B2CActionBar>
+        {activeTab === "approved" && (
+          <B2CButton
+            variant="primary"
+            onClick={() => setShowForm((state) => !state)}
+          >
+            <Users className="h-4 w-4" />
+            {showForm ? "Fechar formulário" : "Deixar mensagem"}
+          </B2CButton>
+        )}
+
+        <B2CButton variant="secondary" onClick={() => setShowInviteModal(true)}>
+          <UserPlus className="h-4 w-4" />
+          Convidar
+        </B2CButton>
+      </B2CActionBar>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -287,12 +320,22 @@ export const VisitasPage = () => {
                 className="mx-auto flex h-32 w-32 items-center justify-center rounded-2xl shadow-inner"
                 style={{ backgroundColor: "var(--bb-color-surface)" }}
               >
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                >
-                  QR
-                </span>
+                {inviteUrl ? (
+                  <QRCodeSVG
+                    value={inviteUrl}
+                    size={120}
+                    level="M"
+                    includeMargin={false}
+                    fgColor="#1f2937"
+                  />
+                ) : (
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
+                  >
+                    {isCreatingInvite ? "Gerando..." : "QR"}
+                  </span>
+                )}
               </div>
               <p
                 className="mt-3 text-xs uppercase tracking-[0.3em]"
@@ -300,6 +343,66 @@ export const VisitasPage = () => {
               >
                 Escaneie o QR Code para acessar
               </p>
+            </div>
+
+            <div className="mt-4">
+              <label
+                className="block text-xs font-semibold mb-2"
+                htmlFor="guestbook-invited-email"
+                style={{ color: "var(--bb-color-ink-muted)" }}
+              >
+                E-mail do convidado (opcional, para pré-preencher)
+              </label>
+              <input
+                id="guestbook-invited-email"
+                type="email"
+                value={invitedEmail}
+                onChange={(event) => setInvitedEmail(event.target.value)}
+                placeholder="convidado@email.com"
+                className="w-full px-3 py-2 border rounded-xl"
+                style={{
+                  backgroundColor: "var(--bb-color-surface)",
+                  borderColor: "var(--bb-color-border)",
+                  color: "var(--bb-color-ink)",
+                }}
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  disabled={!selectedChild || isCreatingInvite}
+                  className="flex-1 rounded-[20px] border px-3 py-2 text-sm font-semibold transition disabled:opacity-50"
+                  style={{
+                    borderColor: "var(--bb-color-border)",
+                    color: "var(--bb-color-ink)",
+                  }}
+                  onClick={() => {
+                    if (!selectedChild) return;
+                    setInviteError(null);
+                    createInvite(
+                      {
+                        childId: selectedChild.id,
+                        invitedEmail: invitedEmail.trim() || undefined,
+                      },
+                      {
+                        onSuccess: (data) => setInviteUrl(data.url),
+                        onError: (err) =>
+                          setInviteError(
+                            err instanceof Error
+                              ? err.message
+                              : "Não foi possível gerar o convite.",
+                          ),
+                      },
+                    );
+                  }}
+                >
+                  {isCreatingInvite ? "Gerando..." : "Gerar/atualizar convite"}
+                </button>
+              </div>
+              {inviteError && (
+                <p className="mt-2 text-xs" style={{ color: "rgb(239,68,68)" }}>
+                  {inviteError}
+                </p>
+              )}
             </div>
             <div
               className="mt-6 flex flex-wrap items-center gap-2 rounded-[24px] border px-3 py-2 text-sm font-semibold"
@@ -309,7 +412,7 @@ export const VisitasPage = () => {
                 color: "var(--bb-color-ink)",
               }}
             >
-              <span className="flex-1 truncate">{inviteLink}</span>
+              <span className="flex-1 truncate">{inviteUrl || ""}</span>
               <button
                 type="button"
                 className="rounded-full border px-3 py-1 text-xs transition"
@@ -318,7 +421,7 @@ export const VisitasPage = () => {
                   color: "var(--bb-color-ink)",
                 }}
                 onClick={() =>
-                  inviteLink && navigator.clipboard?.writeText(inviteLink)
+                  inviteUrl && navigator.clipboard?.writeText(inviteUrl)
                 }
               >
                 Copiar
@@ -333,9 +436,9 @@ export const VisitasPage = () => {
                   color: "var(--bb-color-ink)",
                 }}
                 onClick={() => {
-                  if (!inviteLink) return;
+                  if (!inviteUrl) return;
                   const message = encodeURIComponent(
-                    `Deixe uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteLink}`,
+                    `Deixe uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteUrl}`,
                   );
                   window.open(`https://wa.me/?text=${message}`, "_blank");
                 }}
@@ -351,14 +454,15 @@ export const VisitasPage = () => {
                   color: "var(--bb-color-ink)",
                 }}
                 onClick={() => {
-                  if (!inviteLink) return;
+                  if (!inviteUrl) return;
                   const subject = encodeURIComponent(
                     "Convite para deixar mensagem",
                   );
                   const body = encodeURIComponent(
-                    `Olá! Você foi convidado a deixar uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteLink}`,
+                    `Olá! Você foi convidado a deixar uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteUrl}`,
                   );
-                  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                  const recipient = invitedEmail.trim();
+                  window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
                 }}
               >
                 <Mail className="h-4 w-4" />

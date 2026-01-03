@@ -13,6 +13,28 @@
   .bb-no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome/Safari */
   }
+
+  /* Microinterações (mobile web): remove highlight padrão e adiciona ripple */
+  .bb-pressable {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .bb-ripple {
+    position: absolute;
+    border-radius: 9999px;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+    pointer-events: none;
+    animation: bb-ripple 520ms ease-out;
+  }
+
+  @keyframes bb-ripple {
+    to {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0;
+    }
+  }
 }
 
 /* =============================================================================
@@ -47,7 +69,6 @@
   background-color: #5d4f44;
 }
 
-
 :root {
   /* B2C Design Tokens - disponíveis globalmente mas aplicados apenas em .app-b2c */
   --bb-color-bg: #f7f3ef;
@@ -67,7 +88,11 @@
   --bb-color-success-soft: rgba(140, 155, 135, 0.12);
   --bb-color-border: rgba(42, 42, 42, 0.1);
   --bb-color-border-strong: rgba(42, 42, 42, 0.18);
-  --bb-color-card-highlight-bg: linear-gradient(135deg, #ffecd9 0%, #ffd4a8 100%);
+  --bb-color-card-highlight-bg: linear-gradient(
+    135deg,
+    #ffecd9 0%,
+    #ffd4a8 100%
+  );
   --bb-color-card-highlight-text: #2a2a2a;
   --bb-color-card-highlight-muted: rgba(42, 42, 42, 0.7);
   --bb-color-card-highlight-border: rgba(242, 153, 93, 0.3);
@@ -119,7 +144,11 @@
   --bb-color-success-soft: rgba(158, 181, 150, 0.15);
   --bb-color-border: rgba(248, 244, 239, 0.1);
   --bb-color-border-strong: rgba(248, 244, 239, 0.18);
-  --bb-color-card-highlight-bg: linear-gradient(135deg, #3d2e24 0%, #2a1f18 100%);
+  --bb-color-card-highlight-bg: linear-gradient(
+    135deg,
+    #3d2e24 0%,
+    #2a1f18 100%
+  );
   --bb-color-card-highlight-text: #f8f4ef;
   --bb-color-card-highlight-muted: rgba(248, 244, 239, 0.65);
   --bb-color-card-highlight-border: rgba(244, 164, 107, 0.25);
@@ -137,31 +166,31 @@
   /* =========================================================================
      CORES — Paleta light (sem preto/branco puros para conforto visual)
      ========================================================================= */
-  
+
   /* Primary (Rosa acolhedor) */
   --partner-primary: #ec4899;
   --partner-primary-hover: #db2777;
   --partner-primary-light: #fdf2f8;
   --partner-primary-soft: rgba(236, 72, 153, 0.1);
   --partner-primary-glow: rgba(236, 72, 153, 0.25);
-  
+
   /* Surfaces (off-white, não branco puro) */
   --partner-surface: #ffffff;
   --partner-surface-elevated: #ffffff;
   --partner-surface-muted: #f3f4f6;
   --partner-bg: #e5e7eb;
-  
+
   /* Text (WCAG AA compliant - maior contraste) */
   --partner-text: #030712;
   --partner-text-secondary: #1f2937;
   --partner-text-muted: #374151;
   --partner-text-subtle: #4b5563;
-  
+
   /* Borders (significativamente mais visíveis) */
   --partner-border: rgba(0, 0, 0, 0.15);
   --partner-border-strong: rgba(0, 0, 0, 0.25);
   --partner-border-hover: rgba(236, 72, 153, 0.5);
-  
+
   /* Status Colors (tons acolhedores) */
   --partner-success: #10b981;
   --partner-success-soft: rgba(16, 185, 129, 0.1);
@@ -171,30 +200,30 @@
   --partner-error-soft: rgba(239, 68, 68, 0.1);
   --partner-info: #3b82f6;
   --partner-info-soft: rgba(59, 130, 246, 0.1);
-  
+
   /* =========================================================================
      ESPAÇAMENTO — Escala 8pt (8/12/16/24/32/40/48)
      ========================================================================= */
-  --partner-space-1: 0.25rem;   /* 4px */
-  --partner-space-2: 0.5rem;    /* 8px */
-  --partner-space-3: 0.75rem;   /* 12px */
-  --partner-space-4: 1rem;      /* 16px */
-  --partner-space-5: 1.25rem;   /* 20px */
-  --partner-space-6: 1.5rem;    /* 24px */
-  --partner-space-8: 2rem;      /* 32px */
-  --partner-space-10: 2.5rem;   /* 40px */
-  --partner-space-12: 3rem;     /* 48px */
-  
+  --partner-space-1: 0.25rem; /* 4px */
+  --partner-space-2: 0.5rem; /* 8px */
+  --partner-space-3: 0.75rem; /* 12px */
+  --partner-space-4: 1rem; /* 16px */
+  --partner-space-5: 1.25rem; /* 20px */
+  --partner-space-6: 1.5rem; /* 24px */
+  --partner-space-8: 2rem; /* 32px */
+  --partner-space-10: 2.5rem; /* 40px */
+  --partner-space-12: 3rem; /* 48px */
+
   /* =========================================================================
      RADIUS — Arredondamentos suaves
      ========================================================================= */
-  --partner-radius-sm: 0.375rem;  /* 6px */
-  --partner-radius-md: 0.5rem;    /* 8px */
-  --partner-radius-lg: 0.75rem;   /* 12px */
-  --partner-radius-xl: 1rem;      /* 16px */
-  --partner-radius-2xl: 1.5rem;   /* 24px */
+  --partner-radius-sm: 0.375rem; /* 6px */
+  --partner-radius-md: 0.5rem; /* 8px */
+  --partner-radius-lg: 0.75rem; /* 12px */
+  --partner-radius-xl: 1rem; /* 16px */
+  --partner-radius-2xl: 1.5rem; /* 24px */
   --partner-radius-full: 9999px;
-  
+
   /* =========================================================================
      SOMBRAS — Difusas e naturais (não agressivas)
      ========================================================================= */
@@ -204,35 +233,36 @@
   --partner-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
   --partner-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
   --partner-shadow-glow: 0 0 20px rgba(236, 72, 153, 0.15);
-  
+
   /* =========================================================================
      TRANSIÇÕES — Orgânicas e suaves
      ========================================================================= */
   --partner-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --partner-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --partner-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   --partner-duration-fast: 150ms;
   --partner-duration-normal: 200ms;
   --partner-duration-slow: 300ms;
   --partner-duration-slower: 500ms;
-  
+
   --partner-transition-fast: var(--partner-duration-fast) var(--partner-ease);
-  --partner-transition-normal: var(--partner-duration-normal) var(--partner-ease);
+  --partner-transition-normal: var(--partner-duration-normal)
+    var(--partner-ease);
   --partner-transition-slow: var(--partner-duration-slow) var(--partner-ease);
-  
+
   /* =========================================================================
      TIPOGRAFIA — Escala responsiva para conforto em todas as telas
      Mínimo (mobile) → Máximo (desktop grande)
      ========================================================================= */
-  --partner-font-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.8125rem);     /* 12-13px */
-  --partner-font-sm: clamp(0.875rem, 0.825rem + 0.2vw, 0.9375rem);  /* 14-15px */
-  --partner-font-base: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem);     /* 16-17px */
-  --partner-font-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);     /* 18-20px */
-  --partner-font-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);       /* 20-24px */
-  --partner-font-2xl: clamp(1.5rem, 1.35rem + 0.6vw, 1.875rem);     /* 24-30px */
-  --partner-font-3xl: clamp(1.875rem, 1.7rem + 0.7vw, 2.25rem);     /* 30-36px */
-  
+  --partner-font-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.8125rem); /* 12-13px */
+  --partner-font-sm: clamp(0.875rem, 0.825rem + 0.2vw, 0.9375rem); /* 14-15px */
+  --partner-font-base: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem); /* 16-17px */
+  --partner-font-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem); /* 18-20px */
+  --partner-font-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem); /* 20-24px */
+  --partner-font-2xl: clamp(1.5rem, 1.35rem + 0.6vw, 1.875rem); /* 24-30px */
+  --partner-font-3xl: clamp(1.875rem, 1.7rem + 0.7vw, 2.25rem); /* 30-36px */
+
   /* =========================================================================
      FOCO — Anel difuso acessível
      ========================================================================= */
@@ -250,24 +280,24 @@
   --partner-primary-light: rgba(244, 114, 182, 0.15);
   --partner-primary-soft: rgba(244, 114, 182, 0.1);
   --partner-primary-glow: rgba(244, 114, 182, 0.3);
-  
+
   /* Surfaces (cinza profundo com melhor contraste) */
   --partner-surface: #1f2328;
   --partner-surface-elevated: #262b31;
   --partner-surface-muted: #171a1e;
   --partner-bg: #0f1114;
-  
+
   /* Text (maior contraste para leitura no escuro) */
   --partner-text: #f8fafc;
   --partner-text-secondary: #e2e8f0;
   --partner-text-muted: #94a3b8;
   --partner-text-subtle: #64748b;
-  
+
   /* Borders (mais visíveis no dark mode) */
   --partner-border: rgba(255, 255, 255, 0.12);
   --partner-border-strong: rgba(255, 255, 255, 0.18);
   --partner-border-hover: rgba(244, 114, 182, 0.5);
-  
+
   /* Status Colors - Dark variants */
   --partner-success: #34d399;
   --partner-success-soft: rgba(52, 211, 153, 0.15);
@@ -277,7 +307,7 @@
   --partner-error-soft: rgba(248, 113, 113, 0.15);
   --partner-info: #60a5fa;
   --partner-info-soft: rgba(96, 165, 250, 0.15);
-  
+
   /* Shadows - More pronounced for dark mode */
   --partner-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --partner-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
@@ -285,7 +315,7 @@
   --partner-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
   --partner-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4);
   --partner-shadow-glow: 0 0 24px rgba(244, 114, 182, 0.2);
-  
+
   /* Focus ring for dark mode */
   --partner-focus-ring: 0 0 0 3px rgba(244, 114, 182, 0.4);
 }
@@ -307,8 +337,9 @@
 
 /* Hover suave com elevação */
 .hover-lift {
-  transition: transform var(--partner-transition-normal), 
-              box-shadow var(--partner-transition-normal);
+  transition:
+    transform var(--partner-transition-normal),
+    box-shadow var(--partner-transition-normal);
 }
 .hover-lift:hover {
   transform: translateY(-2px);
@@ -333,7 +364,7 @@
 
 /* Hitbox invisível para elementos pequenos */
 .touch-target::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -354,8 +385,9 @@
   border-radius: var(--partner-radius-lg);
   color: var(--partner-text);
   font-size: var(--partner-font-base);
-  transition: border-color var(--partner-transition-fast),
-              box-shadow var(--partner-transition-fast);
+  transition:
+    border-color var(--partner-transition-fast),
+    box-shadow var(--partner-transition-fast);
 }
 
 .input-soft::placeholder {
@@ -388,9 +420,10 @@
   border: none;
   border-radius: var(--partner-radius-lg);
   cursor: pointer;
-  transition: transform var(--partner-transition-fast),
-              box-shadow var(--partner-transition-fast),
-              filter var(--partner-transition-fast);
+  transition:
+    transform var(--partner-transition-fast),
+    box-shadow var(--partner-transition-fast),
+    filter var(--partner-transition-fast);
 }
 
 .btn-primary-soft:hover {
@@ -453,9 +486,10 @@
   border: 1px solid var(--partner-border);
   border-radius: var(--partner-radius-xl);
   box-shadow: var(--partner-shadow-sm);
-  transition: transform var(--partner-transition-normal),
-              box-shadow var(--partner-transition-normal),
-              border-color var(--partner-transition-normal);
+  transition:
+    transform var(--partner-transition-normal),
+    box-shadow var(--partner-transition-normal),
+    border-color var(--partner-transition-normal);
 }
 
 .card-soft:hover {
@@ -595,7 +629,8 @@ h4 {
    ============================================================================= */
 
 @keyframes pulse-border {
-  0%, 100% {
+  0%,
+  100% {
     border-color: rgb(236, 72, 153);
     box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4);
   }
@@ -694,14 +729,27 @@ h4 {
 
 /* Stagger children animations */
 .stagger-children > * {
-  animation: slideUp var(--partner-duration-normal) var(--partner-ease) backwards;
+  animation: slideUp var(--partner-duration-normal) var(--partner-ease)
+    backwards;
 }
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 150ms;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 250ms;
+}
 
 /* =============================================================================
    CONTRASTE WCAG AA — Overrides globais para tema claro
@@ -743,7 +791,9 @@ h4 {
 /* Cards e containers - melhor definição visual */
 :root:not(.dark) .bg-white {
   background-color: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04) !important;
 }
 
 :root:not(.dark) .bg-gray-50 {
@@ -766,15 +816,21 @@ h4 {
 
 /* Sombras de cards mais pronunciadas */
 :root:not(.dark) .shadow-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06) !important;
 }
 
 :root:not(.dark) .shadow-md {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04) !important;
 }
 
 :root:not(.dark) .shadow-lg {
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04) !important;
+  box-shadow:
+    0 10px 15px rgba(0, 0, 0, 0.08),
+    0 4px 6px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Rounded cards com borda */
@@ -831,13 +887,13 @@ html {
     font-size: 0.78rem !important; /* ~12.5px */
     line-height: 1.5 !important;
   }
-  
+
   /* text-sm no Tailwind = 14px, aumentar levemente para 14.5px em desktop */
   .text-sm {
     font-size: 0.9rem !important; /* ~14.5px */
     line-height: 1.5 !important;
   }
-  
+
   /* text-base já é ok, mas garantir line-height confortável */
   .text-base {
     line-height: 1.6 !important;
@@ -849,15 +905,15 @@ html {
   .text-xs {
     font-size: 0.8125rem !important; /* 13px */
   }
-  
+
   .text-sm {
     font-size: 0.9375rem !important; /* 15px */
   }
-  
+
   .text-base {
     font-size: 1rem !important; /* 16px */
   }
-  
+
   .text-lg {
     font-size: 1.125rem !important; /* 18px */
   }
@@ -879,7 +935,12 @@ label,
 }
 
 /* Títulos com line-height mais apertado */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   line-height: 1.3;
 }
 
@@ -892,20 +953,20 @@ h1, h2, h3, h4, h5, h6 {
   .p-4 {
     padding: 1.25rem !important; /* 20px */
   }
-  
+
   .p-5 {
     padding: 1.5rem !important; /* 24px */
   }
-  
+
   .p-6 {
     padding: 1.75rem !important; /* 28px */
   }
-  
+
   /* Gaps maiores */
   .gap-4 {
     gap: 1.25rem !important; /* 20px */
   }
-  
+
   .gap-6 {
     gap: 1.75rem !important; /* 28px */
   }
@@ -915,21 +976,20 @@ h1, h2, h3, h4, h5, h6 {
   .p-4 {
     padding: 1.5rem !important; /* 24px */
   }
-  
+
   .p-5 {
     padding: 1.75rem !important; /* 28px */
   }
-  
+
   .p-6 {
     padding: 2rem !important; /* 32px */
   }
-  
+
   .gap-4 {
     gap: 1.5rem !important; /* 24px */
   }
-  
+
   .gap-6 {
     gap: 2rem !important; /* 32px */
   }
 }
-

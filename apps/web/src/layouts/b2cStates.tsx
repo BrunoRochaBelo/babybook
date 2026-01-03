@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@babybook/i18n";
+import { B2C_BUTTON_SIZE_CLASSES } from "@/designTokens/b2cButton";
 
 // =============================================================================
 // TYPES
@@ -48,7 +49,8 @@ function toneStyles(tone: B2CStateTone) {
     case "success":
       return {
         icon: "text-[var(--bb-color-success)]",
-        iconBg: "bg-[var(--bb-color-success)]/20 dark:bg-[var(--bb-color-success)]/10",
+        iconBg:
+          "bg-[var(--bb-color-success)]/20 dark:bg-[var(--bb-color-success)]/10",
         iconRing: "ring-1 ring-[var(--bb-color-success)]/30",
       };
     case "warning":
@@ -61,13 +63,15 @@ function toneStyles(tone: B2CStateTone) {
       return {
         icon: "text-[var(--bb-color-danger)] dark:text-red-400",
         iconBg: "bg-[var(--bb-color-danger-soft)] dark:bg-red-900/20",
-        iconRing: "ring-1 ring-[var(--bb-color-danger)]/20 dark:ring-red-800/30",
+        iconRing:
+          "ring-1 ring-[var(--bb-color-danger)]/20 dark:ring-red-800/30",
       };
     case "neutral":
     default:
       return {
         icon: "text-[var(--bb-color-accent)]",
-        iconBg: "bg-[var(--bb-color-accent)]/10 dark:bg-[var(--bb-color-accent)]/20",
+        iconBg:
+          "bg-[var(--bb-color-accent)]/10 dark:bg-[var(--bb-color-accent)]/20",
         iconRing: "ring-1 ring-[var(--bb-color-accent)]/20",
       };
   }
@@ -88,7 +92,7 @@ function PrimaryAction({ action }: { action: B2CStateAction }) {
     "hover:shadow-[0_12px_28px_rgba(242,153,93,0.35)] hover:-translate-y-0.5",
     "active:scale-[0.98] transition-all duration-200",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bb-color-accent)]/40 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--bb-color-bg)]",
-    action.className
+    action.className,
   );
 
   if ("to" in action && typeof action.to === "string") {
@@ -105,7 +109,10 @@ function PrimaryAction({ action }: { action: B2CStateAction }) {
       type="button"
       onClick={action.onClick}
       disabled={action.disabled}
-      className={cn(baseClass, action.disabled && "opacity-60 cursor-not-allowed")}
+      className={cn(
+        baseClass,
+        action.disabled && "opacity-60 cursor-not-allowed",
+      )}
     >
       {Icon ? <Icon className="w-4 h-4" /> : null}
       {action.label}
@@ -118,12 +125,13 @@ function SecondaryAction({ action }: { action: B2CStateAction }) {
 
   // Usa cores secundárias do B2C (verde/borda)
   const baseClass = cn(
-    "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold",
+    "inline-flex items-center justify-center gap-2 rounded-2xl",
+    B2C_BUTTON_SIZE_CLASSES.md,
     "border-2 border-[var(--bb-color-muted)] bg-[var(--bb-color-surface)] text-[var(--bb-color-ink)]",
     "hover:border-[var(--bb-color-accent)]/60 hover:text-[var(--bb-color-accent)]",
     "active:scale-[0.98] transition-all duration-200",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bb-color-muted)]/40 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--bb-color-bg)]",
-    action.className
+    action.className,
   );
 
   if ("to" in action && typeof action.to === "string") {
@@ -140,7 +148,10 @@ function SecondaryAction({ action }: { action: B2CStateAction }) {
       type="button"
       onClick={action.onClick}
       disabled={action.disabled}
-      className={cn(baseClass, action.disabled && "opacity-60 cursor-not-allowed")}
+      className={cn(
+        baseClass,
+        action.disabled && "opacity-60 cursor-not-allowed",
+      )}
     >
       {Icon ? <Icon className="w-4 h-4" /> : null}
       {action.label}
@@ -181,8 +192,10 @@ function StateBody({
         ? "bg-[var(--bb-color-surface)]/50 rounded-2xl border border-[var(--bb-color-border)]/60 p-6"
         : "";
 
-  const innerClass = variant !== "inline" ? "max-w-md mx-auto text-center" : "text-center";
-  const padClass = variant === "page" ? "" : variant === "section" ? "" : "py-6";
+  const innerClass =
+    variant !== "inline" ? "max-w-md mx-auto text-center" : "text-center";
+  const padClass =
+    variant === "page" ? "" : variant === "section" ? "" : "py-6";
 
   return (
     <div className={wrapClass}>
@@ -193,7 +206,7 @@ function StateBody({
             className={cn(
               "w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center transition-transform duration-300 hover:scale-105",
               styles.iconBg,
-              styles.iconRing
+              styles.iconRing,
             )}
           >
             <Icon className={cn("w-8 h-8", styles.icon)} />
@@ -218,8 +231,12 @@ function StateBody({
         {/* Botões de ação */}
         {actions?.primary || actions?.secondary ? (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
-            {actions.secondary ? <SecondaryAction action={actions.secondary} /> : null}
-            {actions.primary ? <PrimaryAction action={actions.primary} /> : null}
+            {actions.secondary ? (
+              <SecondaryAction action={actions.secondary} />
+            ) : null}
+            {actions.primary ? (
+              <PrimaryAction action={actions.primary} />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -276,7 +293,7 @@ export function B2CLoadingState({
       aria-live="polite"
       className={cn(
         "flex items-center justify-center",
-        variant === "page" ? "py-24" : variant === "section" ? "py-12" : "py-6"
+        variant === "page" ? "py-24" : variant === "section" ? "py-12" : "py-6",
       )}
     >
       <div className="inline-flex items-center gap-3 text-sm text-[var(--bb-color-ink-muted)]">
@@ -339,7 +356,7 @@ export function B2CErrorState({
       }
 
       console.info(
-        `[babybook] Erro detectado em desenvolvimento. Tentativa ${attempts + 1}/${MAX_RETRIES} de recarregar...`
+        `[babybook] Erro detectado em desenvolvimento. Tentativa ${attempts + 1}/${MAX_RETRIES} de recarregar...`,
       );
 
       const timeoutId = setTimeout(() => {
@@ -370,7 +387,7 @@ export function B2CErrorState({
       typeof sessionStorage !== "undefined"
         ? sessionStorage.getItem(RELOAD_KEY) || "0"
         : "0",
-      10
+      10,
     );
 
     if (attempts < MAX_RETRIES) {
@@ -421,7 +438,7 @@ export function B2CErrorState({
       <div
         className={cn(
           "bg-[var(--bb-color-surface)] rounded-2xl shadow-lg p-6 text-center max-w-md mx-auto",
-          variant === "page" ? "border border-[var(--bb-color-border)]" : ""
+          variant === "page" ? "border border-[var(--bb-color-border)]" : "",
         )}
       >
         {/* Ícone de warning */}
@@ -447,7 +464,9 @@ export function B2CErrorState({
         </h2>
 
         {/* Descrição */}
-        <p className="text-[var(--bb-color-ink-muted)] mb-4">{finalDescription}</p>
+        <p className="text-[var(--bb-color-ink-muted)] mb-4">
+          {finalDescription}
+        </p>
 
         {/* Detalhes do erro (apenas em dev) */}
         {isDev && errorDetails && (
@@ -468,7 +487,10 @@ export function B2CErrorState({
           ) : (
             <button
               onClick={onRetry ?? handleReload}
-              className="px-4 py-2 rounded-2xl border-2 border-[var(--bb-color-muted)] text-[var(--bb-color-ink)] hover:border-[var(--bb-color-accent)] hover:text-[var(--bb-color-accent)] transition-colors"
+              className={cn(
+                "rounded-2xl border-2 border-[var(--bb-color-muted)] text-[var(--bb-color-ink)] hover:border-[var(--bb-color-accent)] hover:text-[var(--bb-color-accent)] transition-colors",
+                B2C_BUTTON_SIZE_CLASSES.md,
+              )}
             >
               {t("b2c.states.tryAgain")}
             </button>
