@@ -34,6 +34,7 @@ import {
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth";
 import { withRetry } from "@/lib/retry";
+import { getAffiliateReferralCode } from "@/lib/affiliate-referral";
 
 const guestbookInviteCreatedSchema = z.object({
   id: z.string(),
@@ -379,8 +380,10 @@ export const useLogout = () => {
 export const useCreateCheckout = () => {
   return useMutation({
     mutationFn: async (payload: { packageKey: string }) => {
+      const affiliateCode = getAffiliateReferralCode();
       return apiClient.post("/webhooks/checkout", {
         package_key: payload.packageKey,
+        affiliate_code: affiliateCode,
       });
     },
   });
@@ -389,10 +392,16 @@ export const useCreateCheckout = () => {
 export const useMockComplete = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { accountId: string; packageKey: string }) => {
+    mutationFn: async (payload: {
+      accountId: string;
+      packageKey: string;
+      affiliateCode?: string;
+    }) => {
+      const affiliateCode = payload.affiliateCode ?? getAffiliateReferralCode();
       return apiClient.post("/webhooks/mock-complete", {
         account_id: payload.accountId,
         package_key: payload.packageKey,
+        affiliate_code: affiliateCode,
       });
     },
     onSuccess: () =>

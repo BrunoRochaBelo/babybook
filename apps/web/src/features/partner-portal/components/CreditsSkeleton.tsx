@@ -7,9 +7,6 @@ export function CreditsSkeleton() {
       <div className="pb-60 lg:pb-12">
         {/* Header Skeleton */}
         <div className="mb-8">
-          <div className="hidden md:block mb-4">
-            <Skeleton className="h-4 w-32" />
-          </div>
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-6 w-96 max-w-full" />
         </div>

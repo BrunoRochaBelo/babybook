@@ -159,47 +159,47 @@
 
 /* =============================================================================
    Partner Portal Design Tokens — BabySoft UI
-   Princípios: suave, acolhedor, acessível, consistente
+   Princípios: suave, acolhedor, acessível, consistente, PREMIUM
    ============================================================================= */
 
 :root {
   /* =========================================================================
-     CORES — Paleta light (sem preto/branco puros para conforto visual)
+     CORES — Light Mode (Premium & Soft)
      ========================================================================= */
 
-  /* Primary (Rosa acolhedor) */
-  --partner-primary: #ec4899;
-  --partner-primary-hover: #db2777;
-  --partner-primary-light: #fdf2f8;
-  --partner-primary-soft: rgba(236, 72, 153, 0.1);
-  --partner-primary-glow: rgba(236, 72, 153, 0.25);
+  /* Primary (Rosa Sofisticado) */
+  --partner-primary: #ec4899; /* Pink-500 base */
+  --partner-primary-hover: #db2777; /* Pink-600 */
+  --partner-primary-light: #fce7f3; /* Pink-100 */
+  --partner-primary-soft: #fdf2f8; /* Pink-50 lighter */
+  --partner-primary-glow: rgba(236, 72, 153, 0.15); /* Soft pink glow */
 
-  /* Surfaces (off-white, não branco puro) */
-  --partner-surface: #ffffff;
+  /* Surface (Clean & Warm) */
+  --partner-bg: #fafafa; /* Neutral-50 almost white used for background */
+  --partner-surface: #ffffff; /* Pure white cards */
   --partner-surface-elevated: #ffffff;
-  --partner-surface-muted: #f3f4f6;
-  --partner-bg: #e5e7eb;
+  --partner-surface-muted: #f4f4f5; /* Zinc-100 */
 
-  /* Text (WCAG AA compliant - maior contraste) */
-  --partner-text: #030712;
-  --partner-text-secondary: #1f2937;
-  --partner-text-muted: #374151;
-  --partner-text-subtle: #4b5563;
+  /* Text (High Contrast & Clear) */
+  --partner-text: #18181b; /* Zinc-900 */
+  --partner-text-secondary: #52525b; /* Zinc-600 */
+  --partner-text-muted: #71717a; /* Zinc-500 */
+  --partner-text-subtle: #a1a1aa; /* Zinc-400 */
 
-  /* Borders (significativamente mais visíveis) */
-  --partner-border: rgba(0, 0, 0, 0.15);
-  --partner-border-strong: rgba(0, 0, 0, 0.25);
-  --partner-border-hover: rgba(236, 72, 153, 0.5);
+  /* Borders (Subtle & Refined) */
+  --partner-border: #e4e4e7; /* Zinc-200 */
+  --partner-border-strong: #d4d4d8; /* Zinc-300 */
+  --partner-border-hover: #a1a1aa; /* Zinc-400 */
 
-  /* Status Colors (tons acolhedores) */
-  --partner-success: #10b981;
-  --partner-success-soft: rgba(16, 185, 129, 0.1);
-  --partner-warning: #f59e0b;
-  --partner-warning-soft: rgba(245, 158, 11, 0.1);
-  --partner-error: #ef4444;
-  --partner-error-soft: rgba(239, 68, 68, 0.1);
-  --partner-info: #3b82f6;
-  --partner-info-soft: rgba(59, 130, 246, 0.1);
+  /* Feedback Colors (Pastel/Soft) */
+  --partner-success: #10b981; /* Emerald-500 */
+  --partner-success-soft: #ecfdf5; /* Emerald-50 */
+  --partner-warning: #f59e0b; /* Amber-500 */
+  --partner-warning-soft: #fffbeb; /* Amber-50 */
+  --partner-error: #ef4444; /* Red-500 */
+  --partner-error-soft: #fef2f2; /* Red-50 */
+  --partner-info: #3b82f6; /* Blue-500 */
+  --partner-info-soft: #eff6ff; /* Blue-50 */
 
   /* =========================================================================
      ESPAÇAMENTO — Escala 8pt (8/12/16/24/32/40/48)
@@ -228,9 +228,9 @@
      SOMBRAS — Difusas e naturais (não agressivas)
      ========================================================================= */
   --partner-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --partner-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
-  --partner-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --partner-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --partner-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --partner-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --partner-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
   --partner-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
   --partner-shadow-glow: 0 0 20px rgba(236, 72, 153, 0.15);
 

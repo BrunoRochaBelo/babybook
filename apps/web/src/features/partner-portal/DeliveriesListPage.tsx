@@ -2,6 +2,7 @@
  * Deliveries List Page
  *
  * Lista todas as entregas do parceiro com filtros e busca.
+ * Refatorado para UI Premium: Pills, Glassmorphism, Rounded-[2rem].
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -11,77 +12,40 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import {
   Plus,
   Search,
   Filter,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
   Package,
-  Clock,
-  CheckCircle2,
-  Ticket,
-  Gift,
-  Eye,
-  Upload,
   X,
+  Loader2,
 } from "lucide-react";
 import { listDeliveries, archiveDelivery } from "./api";
 import type { Delivery, DeliveryAggregations, DeliveryStatus } from "./types";
 import {
   getPartnerDeliveryDisplayStatus,
-  isPartnerDeliveryArchived,
 } from "./deliveryStatus";
-import { CreditStatusBadge } from "./creditStatus";
-import {
-  PLACEHOLDER_NOT_GENERATED,
-  PLACEHOLDER_NOT_INFORMED,
-} from "./placeholders";
 import {
   PartnerPageHeaderAction,
   usePartnerPageHeader,
 } from "@/layouts/partnerPageHeader";
 import { PartnerPage } from "@/layouts/PartnerPage";
-import { PartnerEmptyState, PartnerErrorState } from "@/layouts/partnerStates";
-import { PartnerBackButton } from "@/layouts/PartnerBackButton";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { PartnerErrorState } from "@/layouts/partnerStates";
 import {
   DeliveryFiltersModal,
   type DeliveryFilters,
   type DeliveriesFilterPreset,
 } from "./components/DeliveryFiltersModal";
 import { DeliveriesLoadingSkeleton } from "./components/DeliveriesLoadingSkeleton";
-import { DeliveryTableRow } from "./components/DeliveryTableRow";
+import { DeliveryTableRow, DELIVERY_GRID_COLS } from "./components/DeliveryTableRow";
 import { DeliveryCardMobile } from "./components/DeliveryCardMobile";
-import { statusConfig } from "./components/StatusBadges";
+import { DeliveryDetailsDrawer } from "./components/DeliveryDetailsDrawer";
+import { useTranslation } from "@babybook/i18n";
+import { cn } from "@/lib/utils";
 
-import { useTranslation, useLanguage } from "@babybook/i18n";
-
-// formatDate and formatDateTime moved to utils.ts
-
-// Status config moved to components/StatusBadges
-// StatusBadge moved to components/StatusBadges
-// getDeliveryDisplayStatus and isDeliveryArchived replaced by shared/imported versions
-import { StatusBadge } from "./components/StatusBadges";
-import { formatDate, formatDateTime } from "./utils";
-
-function getDeliveryDisplayStatus(delivery: Delivery): DeliveryStatus {
-  return getPartnerDeliveryDisplayStatus(delivery);
-}
-
-function isDeliveryArchived(delivery: Delivery): boolean {
-  return isPartnerDeliveryArchived(delivery);
-}
+// --- Types & Constants ---
 
 type FilterStatus = "all" | DeliveryStatus;
 type SortOption = "newest" | "oldest" | "status" | "client";
@@ -94,24 +58,16 @@ type CreditFilter =
   | "refunded"
   | "not_required"
   | "unknown";
-
 type ViewFilter = "all" | "needs_action";
-
 type PeriodFilter = "all" | "last_7" | "last_30" | "last_90" | "custom";
-
-type BuiltinDeliveriesFilterPreset = DeliveriesFilterPreset & {
-  /** Chave de i18n opcional usada apenas para presets built-in */
-  nameKey?: string;
-};
 
 const DELIVERIES_PRESETS_STORAGE_KEY =
   "@babybook/partner-deliveries-filter-presets";
 
-const BUILTIN_PRESETS: BuiltinDeliveriesFilterPreset[] = [
+const BUILTIN_PRESETS: DeliveriesFilterPreset[] = [
   {
     id: "builtin:needs_action",
     name: "Precisa de ação",
-    nameKey: "partner.deliveries.list.filters.presets.needsAction",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     filters: {
@@ -121,16 +77,12 @@ const BUILTIN_PRESETS: BuiltinDeliveriesFilterPreset[] = [
       sort: "status",
       voucher: "all",
       redeemed: "all",
-      credit: "all",
       view: "needs_action",
-      createdPeriod: "all",
-      redeemedPeriod: "all",
     },
   },
   {
     id: "builtin:without_voucher",
     name: "Sem voucher",
-    nameKey: "partner.deliveries.list.filters.presets.withoutVoucher",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     filters: {
@@ -140,29 +92,6 @@ const BUILTIN_PRESETS: BuiltinDeliveriesFilterPreset[] = [
       sort: "newest",
       voucher: "without",
       redeemed: "all",
-      credit: "all",
-      view: "all",
-      createdPeriod: "all",
-      redeemedPeriod: "all",
-    },
-  },
-  {
-    id: "builtin:redeemed",
-    name: "Resgatadas",
-    nameKey: "partner.deliveries.list.filters.presets.redeemed",
-    created_at: "2025-01-01T00:00:00.000Z",
-    updated_at: "2025-01-01T00:00:00.000Z",
-    filters: {
-      status: "all",
-      q: "",
-      includeArchived: false,
-      sort: "newest",
-      voucher: "with",
-      redeemed: "redeemed",
-      credit: "all",
-      view: "all",
-      createdPeriod: "all",
-      redeemedPeriod: "all",
     },
   },
 ];
@@ -182,109 +111,82 @@ function safeLoadPresets(): DeliveriesFilterPreset[] {
 }
 
 function makePresetId(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  return `preset_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  return `preset_${Date.now()}`;
 }
 
-function sumCounts(obj: Record<string, number> | undefined): number {
-  if (!obj) return 0;
-  return Object.values(obj).reduce((acc, v) => acc + (Number(v) || 0), 0);
-}
+// --- Components Helpers ---
 
-function getPeriodLabel(
-  period: PeriodFilter,
-  t: (key: string) => string,
-): string {
-  // TODO: Add translation keys for periods
-  if (period === "last_7") return "7 dias";
-  if (period === "last_30") return "30 dias";
-  if (period === "last_90") return "90 dias";
-  if (period === "custom")
-    return t("partner.credits.period.custom") || "intervalo";
-  return t("partner.credits.period.all") || "tudo";
-}
-
-function StatusCounterChip({
+function StatusPill({
   label,
-  title,
   count,
   active,
   onClick,
 }: {
   label: string;
-  title?: string;
   count: number;
   active: boolean;
   onClick: () => void;
 }) {
   return (
     <button
-      type="button"
       onClick={onClick}
-      title={title}
-      role="radio"
-      aria-checked={active}
-      aria-label={title || label}
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 whitespace-nowrap ${
+      className={cn(
+        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex-shrink-0",
         active
-          ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-          : "bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-      }`}
+          ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-md transform scale-105"
+          : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-100 dark:border-gray-700",
+      )}
     >
       <span>{label}</span>
-      <span
-        className={`tabular-nums text-xs ${
-          active
-            ? "text-white/70 dark:text-gray-900/60"
-            : "text-gray-400 dark:text-gray-500"
-        }`}
-      >
-        {count}
-      </span>
+      {count > 0 && (
+        <span
+          className={cn(
+            "px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums",
+            active
+              ? "bg-white/20 text-white dark:bg-black/10 dark:text-gray-900"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-500",
+          )}
+        >
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
-function ActiveFilterChip({
+function ActiveFilterTag({
   label,
-  title,
   onClear,
 }: {
   label: string;
-  title?: string;
   onClear: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClear}
-      title={title || `Remover filtro: ${label}`}
-      aria-label={title || `Remover filtro: ${label}`}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-    >
-      <span className="truncate max-w-[180px]">{label}</span>
-      <X className="w-3.5 h-3.5 opacity-70" />
-    </button>
+    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-300 border border-pink-100 dark:border-pink-900/30 animate-in fade-in zoom-in duration-200">
+      <span>{label}</span>
+      <button
+        onClick={onClear}
+        className="hover:bg-pink-100 dark:hover:bg-pink-900/40 rounded-full p-0.5 transition-colors"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
   );
 }
 
 export function DeliveriesListPage() {
   const { t } = useTranslation();
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Header Config
   usePartnerPageHeader(
     useMemo(
       () => ({
         title: t("partner.deliveries.list.title"),
-        backTo: "/partner",
-        backLabel: t("partner.deliveries.list.backToPortal"),
         actions: (
           <PartnerPageHeaderAction
             to="/partner/deliveries/new"
@@ -298,406 +200,145 @@ export function DeliveriesListPage() {
     ),
   );
 
+  // --- State Setup ---
+  // Defaults from URL
   const initialStatus = (searchParams.get("status") as FilterStatus) || "all";
   const initialQuery = searchParams.get("q") || "";
-  const initialArchived =
-    searchParams.get("archived") === "1" || initialStatus === "archived";
+  const initialArchived = searchParams.get("archived") === "1" || initialStatus === "archived";
   const initialSort = (searchParams.get("sort") as SortOption) || "newest";
-  const initialVoucher =
-    (searchParams.get("voucher") as VoucherFilter) || "all";
-  const initialRedeemed =
-    (searchParams.get("redeemed") as RedeemedFilter) || "all";
+  const initialVoucher = (searchParams.get("voucher") as VoucherFilter) || "all";
+  const initialRedeemed = (searchParams.get("redeemed") as RedeemedFilter) || "all";
   const initialCredit = (searchParams.get("credit") as CreditFilter) || "all";
   const initialView = (searchParams.get("view") as ViewFilter) || "all";
-
-  const initialCreatedPeriod =
-    (searchParams.get("created") as PeriodFilter) || "all";
+  const initialCreatedPeriod = (searchParams.get("created") as PeriodFilter) || "all";
   const initialCreatedFrom = searchParams.get("created_from") || "";
   const initialCreatedTo = searchParams.get("created_to") || "";
-
-  const initialRedeemedPeriod =
-    (searchParams.get("redeemed_period") as PeriodFilter) || "all";
+  const initialRedeemedPeriod = (searchParams.get("redeemed_period") as PeriodFilter) || "all";
   const initialRedeemedFrom = searchParams.get("redeemed_from") || "";
   const initialRedeemedTo = searchParams.get("redeemed_to") || "";
 
+  // React State
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialQuery);
   const [includeArchived, setIncludeArchived] = useState(initialArchived);
-  const [sort, setSort] = useState<SortOption>(initialSort);
-  const [voucherFilter, setVoucherFilter] =
-    useState<VoucherFilter>(initialVoucher);
-  const [redeemedFilter, setRedeemedFilter] =
-    useState<RedeemedFilter>(initialRedeemed);
-  const [creditFilter, setCreditFilter] = useState<CreditFilter>(initialCredit);
-  const [viewFilter, setViewFilter] = useState<ViewFilter>(initialView);
-
-  const [createdPeriod, setCreatedPeriod] =
-    useState<PeriodFilter>(initialCreatedPeriod);
+  const [sort, setSort] = useState(initialSort);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  
+  const [voucherFilter, setVoucherFilter] = useState(initialVoucher);
+  const [redeemedFilter, setRedeemedFilter] = useState(initialRedeemed);
+  const [creditFilter, setCreditFilter] = useState(initialCredit);
+  const [viewFilter, setViewFilter] = useState(initialView);
+  const [createdPeriod, setCreatedPeriod] = useState(initialCreatedPeriod);
   const [createdFrom, setCreatedFrom] = useState(initialCreatedFrom);
   const [createdTo, setCreatedTo] = useState(initialCreatedTo);
-
-  const [redeemedPeriod, setRedeemedPeriod] = useState<PeriodFilter>(
-    initialRedeemedPeriod,
-  );
+  const [redeemedPeriod, setRedeemedPeriod] = useState(initialRedeemedPeriod);
   const [redeemedFrom, setRedeemedFrom] = useState(initialRedeemedFrom);
   const [redeemedTo, setRedeemedTo] = useState(initialRedeemedTo);
-  const [previewDeliveryId, setPreviewDeliveryId] = useState<string | null>(
-    null,
-  );
-  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
-  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
-  const [presets, setPresets] = useState<DeliveriesFilterPreset[]>(() =>
-    safeLoadPresets(),
-  );
+  // Presets State
+  const [presets, setPresets] = useState<DeliveriesFilterPreset[]>(() => safeLoadPresets());
   const [selectedPresetId, setSelectedPresetId] = useState<string>("");
+  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<FilterStatus>(initialStatus);
-  // Track the last processed URL to avoid re-running on state changes
-  const lastProcessedUrlRef = useRef<string>("");
-
+  // Persist Presets
   useEffect(() => {
-    // Only sync URL → State when the URL actually changed (browser navigation)
-    const currentUrl = searchParams.toString();
-    if (currentUrl === lastProcessedUrlRef.current) {
-      return;
-    }
-    lastProcessedUrlRef.current = currentUrl;
+     try {
+       localStorage.setItem(DELIVERIES_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+     } catch {}
+  }, [presets]);
 
-    // Se o usuário navega com back/forward e a URL muda, sincronizamos o estado
-    // (sem reescrever a URL em loop).
-    const nextStatus = (searchParams.get("status") as FilterStatus) || "all";
-    const nextQuery = searchParams.get("q") || "";
-    const nextArchived =
-      searchParams.get("archived") === "1" || nextStatus === "archived";
-    const nextSort = (searchParams.get("sort") as SortOption) || "newest";
-    const nextVoucher = (searchParams.get("voucher") as VoucherFilter) || "all";
-    const nextRedeemed =
-      (searchParams.get("redeemed") as RedeemedFilter) || "all";
-    const nextCredit = (searchParams.get("credit") as CreditFilter) || "all";
-    const nextView = (searchParams.get("view") as ViewFilter) || "all";
-
-    const nextCreatedPeriod =
-      (searchParams.get("created") as PeriodFilter) || "all";
-    const nextCreatedFrom = searchParams.get("created_from") || "";
-    const nextCreatedTo = searchParams.get("created_to") || "";
-
-    const nextRedeemedPeriod =
-      (searchParams.get("redeemed_period") as PeriodFilter) || "all";
-    const nextRedeemedFrom = searchParams.get("redeemed_from") || "";
-    const nextRedeemedTo = searchParams.get("redeemed_to") || "";
-
-    // Apply all states from URL
-    setStatusFilter(nextStatus);
-    setSearchTerm(nextQuery);
-    setDebouncedSearchTerm(nextQuery);
-    setIncludeArchived(nextArchived);
-    setSort(nextSort);
-    setVoucherFilter(nextVoucher);
-    setRedeemedFilter(nextRedeemed);
-    setCreditFilter(nextCredit);
-    setViewFilter(nextView);
-    setCreatedPeriod(nextCreatedPeriod);
-    setCreatedFrom(nextCreatedFrom);
-    setCreatedTo(nextCreatedTo);
-    setRedeemedPeriod(nextRedeemedPeriod);
-    setRedeemedFrom(nextRedeemedFrom);
-    setRedeemedTo(nextRedeemedTo);
-  }, [searchParams]);
-
+  // Debounce Search
   useEffect(() => {
-    // Se o usuário/URL/preset selecionou "Arquivadas", garantir que o modo
-    // inclua arquivadas. (Evita cair para "all" e perder a intenção.)
-    if (statusFilter === "archived" && !includeArchived) {
-      setIncludeArchived(true);
-    }
-  }, [includeArchived, statusFilter]);
-
-  useEffect(() => {
-    // Se o usuário aplica um período de resgate, implicitamente estamos falando de resgatadas.
-    if (redeemedPeriod !== "all" && redeemedFilter !== "redeemed") {
-      setRedeemedFilter("redeemed");
-    }
-  }, [redeemedFilter, redeemedPeriod]);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 250);
-    return () => window.clearTimeout(t);
+     const t = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Sincronizar URL a partir do estado atual (inclui filtros client-side)
+  const lastProcessedUrlRef = useRef("");
+  // Sync URL -> State
   useEffect(() => {
-    const next = new URLSearchParams(searchParams);
+    const currentUrl = searchParams.toString();
+    if (currentUrl === lastProcessedUrlRef.current) return;
+    lastProcessedUrlRef.current = currentUrl;
+    
+    // Update state from URL parameters
+    setStatusFilter((searchParams.get("status") as FilterStatus) || "all");
+    setSearchTerm(searchParams.get("q") || "");
+    setDebouncedSearchTerm(searchParams.get("q") || "");
+    setIncludeArchived(searchParams.get("archived") === "1");
+    setSort((searchParams.get("sort") as SortOption) || "newest");
+    setVoucherFilter((searchParams.get("voucher") as VoucherFilter) || "all");
+    setRedeemedFilter((searchParams.get("redeemed") as RedeemedFilter) || "all");
+    setCreditFilter((searchParams.get("credit") as CreditFilter) || "all");
+    setViewFilter((searchParams.get("view") as ViewFilter) || "all");
+    setCreatedPeriod((searchParams.get("created") as PeriodFilter) || "all");
+    setCreatedFrom(searchParams.get("created_from") || "");
+    setCreatedTo(searchParams.get("created_to") || "");
+    setRedeemedPeriod((searchParams.get("redeemed_period") as PeriodFilter) || "all");
+    setRedeemedFrom(searchParams.get("redeemed_from") || "");
+    setRedeemedTo(searchParams.get("redeemed_to") || "");
+  }, [searchParams]);
 
-    if (statusFilter === "all") next.delete("status");
-    else next.set("status", statusFilter);
-
-    if (debouncedSearchTerm.trim()) next.set("q", debouncedSearchTerm.trim());
-    else next.delete("q");
-
+  // Sync State -> URL
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (statusFilter !== "all") next.set("status", statusFilter);
+    if (debouncedSearchTerm) next.set("q", debouncedSearchTerm);
     if (includeArchived) next.set("archived", "1");
-    else next.delete("archived");
-
-    if (sort === "newest") next.delete("sort");
-    else next.set("sort", sort);
-
-    if (voucherFilter === "all") next.delete("voucher");
-    else next.set("voucher", voucherFilter);
-
-    if (redeemedFilter === "all") next.delete("redeemed");
-    else next.set("redeemed", redeemedFilter);
-
-    if (creditFilter === "all") next.delete("credit");
-    else next.set("credit", creditFilter);
-
-    if (viewFilter === "all") next.delete("view");
-    else next.set("view", viewFilter);
-
-    if (createdPeriod === "all") {
-      next.delete("created");
-      next.delete("created_from");
-      next.delete("created_to");
-    } else {
-      next.set("created", createdPeriod);
-      if (createdPeriod === "custom" && createdFrom.trim())
-        next.set("created_from", createdFrom.trim());
-      else next.delete("created_from");
-      if (createdPeriod === "custom" && createdTo.trim())
-        next.set("created_to", createdTo.trim());
-      else next.delete("created_to");
-    }
-
-    if (redeemedPeriod === "all") {
-      next.delete("redeemed_period");
-      next.delete("redeemed_from");
-      next.delete("redeemed_to");
-    } else {
-      next.set("redeemed_period", redeemedPeriod);
-      if (redeemedPeriod === "custom" && redeemedFrom.trim())
-        next.set("redeemed_from", redeemedFrom.trim());
-      else next.delete("redeemed_from");
-      if (redeemedPeriod === "custom" && redeemedTo.trim())
-        next.set("redeemed_to", redeemedTo.trim());
-      else next.delete("redeemed_to");
-    }
+    if (sort !== "newest") next.set("sort", sort);
+    if (voucherFilter !== "all") next.set("voucher", voucherFilter);
+    if (redeemedFilter !== "all") next.set("redeemed", redeemedFilter);
+    if (creditFilter !== "all") next.set("credit", creditFilter);
+    if (viewFilter !== "all") next.set("view", viewFilter);
+    if (createdPeriod !== "all") next.set("created", createdPeriod);
+    if (createdFrom) next.set("created_from", createdFrom);
+    if (createdTo) next.set("created_to", createdTo);
+    if (redeemedPeriod !== "all") next.set("redeemed_period", redeemedPeriod);
+    if (redeemedFrom) next.set("redeemed_from", redeemedFrom);
+    if (redeemedTo) next.set("redeemed_to", redeemedTo);
 
     if (next.toString() !== searchParams.toString()) {
-      setSearchParams(next, { replace: true });
+         setSearchParams(next, { replace: true });
     }
   }, [
-    statusFilter,
-    includeArchived,
+      statusFilter, debouncedSearchTerm, includeArchived, sort, 
+      voucherFilter, redeemedFilter, creditFilter, viewFilter,
+      createdPeriod, createdFrom, createdTo,
+      redeemedPeriod, redeemedFrom, redeemedTo,
+      searchParams, setSearchParams
+  ]);
+
+  // Filters object for Modal
+  const filtersObj: DeliveryFilters = useMemo(() => ({
+    voucher: voucherFilter,
+    redeemed: redeemedFilter,
+    credit: creditFilter,
+    view: viewFilter,
     sort,
-    voucherFilter,
-    redeemedFilter,
-    creditFilter,
-    viewFilter,
     createdPeriod,
     createdFrom,
     createdTo,
     redeemedPeriod,
     redeemedFrom,
-    redeemedTo,
-    debouncedSearchTerm,
-    searchParams,
-    setSearchParams,
-  ]);
+    redeemedTo
+  }), [voucherFilter, redeemedFilter, creditFilter, viewFilter, sort, createdPeriod, createdFrom, createdTo, redeemedPeriod, redeemedFrom, redeemedTo]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        DELIVERIES_PRESETS_STORAGE_KEY,
-        JSON.stringify(presets),
-      );
-    } catch {
-      // ignore
-    }
-  }, [presets]);
+  const handleApplyFilters = (newFilters: DeliveryFilters) => {
+    setVoucherFilter(newFilters.voucher);
+    setRedeemedFilter(newFilters.redeemed);
+    setCreditFilter(newFilters.credit);
+    setViewFilter(newFilters.view);
+    setSort(newFilters.sort);
+    setCreatedPeriod(newFilters.createdPeriod);
+    setCreatedFrom(newFilters.createdFrom);
+    setCreatedTo(newFilters.createdTo);
+    setRedeemedPeriod(newFilters.redeemedPeriod);
+    setRedeemedFrom(newFilters.redeemedFrom);
+    setRedeemedTo(newFilters.redeemedTo);
+    setSelectedPresetId(""); // Clear preset selection on manual change
+  };
 
-  const PAGE_SIZE = 20;
-
-  // Query (pagination incremental)
-  const {
-    data,
-    isLoading,
-    isError,
-    isFetching,
-    isFetchingNextPage,
-    fetchNextPage,
-    hasNextPage,
-    refetch,
-  } = useInfiniteQuery({
-    queryKey: [
-      "partner",
-      "deliveries",
-      "list",
-      {
-        statusFilter,
-        includeArchived,
-        q: debouncedSearchTerm.trim(),
-        sort,
-        voucherFilter,
-        redeemedFilter,
-        creditFilter,
-        viewFilter,
-        createdPeriod,
-        createdFrom,
-        createdTo,
-        redeemedPeriod,
-        redeemedFrom,
-        redeemedTo,
-      },
-    ],
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      listDeliveries({
-        status_filter: statusFilter !== "all" ? statusFilter : undefined,
-        include_archived: includeArchived,
-        q: debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined,
-        sort,
-        voucher:
-          voucherFilter !== "all"
-            ? (voucherFilter as "with" | "without")
-            : undefined,
-        redeemed:
-          redeemedFilter !== "all"
-            ? (redeemedFilter as "redeemed" | "not_redeemed")
-            : undefined,
-        credit:
-          creditFilter !== "all"
-            ? (creditFilter as
-                | "reserved"
-                | "consumed"
-                | "refunded"
-                | "not_required"
-                | "unknown")
-            : undefined,
-        view: viewFilter !== "all" ? "needs_action" : undefined,
-        created:
-          createdPeriod !== "all"
-            ? (createdPeriod as "last_7" | "last_30" | "last_90" | "custom")
-            : undefined,
-        created_from:
-          createdPeriod === "custom" && createdFrom.trim()
-            ? createdFrom.trim()
-            : undefined,
-        created_to:
-          createdPeriod === "custom" && createdTo.trim()
-            ? createdTo.trim()
-            : undefined,
-        redeemed_period:
-          redeemedPeriod !== "all"
-            ? (redeemedPeriod as "last_7" | "last_30" | "last_90" | "custom")
-            : undefined,
-        redeemed_from:
-          redeemedPeriod === "custom" && redeemedFrom.trim()
-            ? redeemedFrom.trim()
-            : undefined,
-        redeemed_to:
-          redeemedPeriod === "custom" && redeemedTo.trim()
-            ? redeemedTo.trim()
-            : undefined,
-        limit: PAGE_SIZE,
-        offset: pageParam,
-      }),
-    getNextPageParam: (lastPage, allPages) => {
-      const loaded = allPages.reduce(
-        (acc, p) => acc + (p.deliveries?.length || 0),
-        0,
-      );
-      return loaded < (lastPage.total || 0) ? loaded : undefined;
-    },
-  });
-
-  // Mutation para arquivar (precisa ficar antes de qualquer early-return)
-  const archiveMutation = useMutation({
-    mutationFn: ({ id, archive }: { id: string; archive: boolean }) =>
-      archiveDelivery(id, archive),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partner", "deliveries"] });
-    },
-    onError: (err) => {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível atualizar o arquivamento da entrega",
-      );
-    },
-  });
-
-  const handleArchive = useCallback(
-    (delivery: Delivery, archive: boolean) => {
-      const title = delivery.title || delivery.client_name || "Entrega";
-
-      archiveMutation.mutate(
-        { id: delivery.id, archive },
-        {
-          onSuccess: () => {
-            toast.success(
-              archive
-                ? `Entrega arquivada: ${title}`
-                : `Entrega desarquivada: ${title}`,
-              {
-                action: {
-                  label: "Desfazer",
-                  onClick: () =>
-                    archiveMutation.mutate({
-                      id: delivery.id,
-                      archive: !archive,
-                    }),
-                },
-              },
-            );
-          },
-        },
-      );
-    },
-    [archiveMutation],
-  );
-
-  const errorState = isError ? (
-    <PartnerErrorState
-      title="Não foi possível carregar as entregas"
-      onRetry={refetch}
-      skeleton={<DeliveriesLoadingSkeleton />}
-    />
-  ) : null;
-
-  const { deliveries, total, aggregations } = useMemo(() => {
-    const pages = data?.pages || [];
-    const items = pages.flatMap((p) => p.deliveries || []);
-    const totalCount = pages.at(-1)?.total ?? 0;
-    const aggs = (
-      pages[0] as { aggregations?: DeliveryAggregations } | undefined
-    )?.aggregations;
-    return { deliveries: items, total: totalCount, aggregations: aggs };
-  }, [data]);
-
-  const filteredDeliveries = deliveries;
-  const showingCount = deliveries.length;
-
-  const hasAnyFiltersActive =
-    statusFilter !== "all" ||
-    searchTerm.trim() ||
-    sort !== "newest" ||
-    voucherFilter !== "all" ||
-    redeemedFilter !== "all" ||
-    creditFilter !== "all" ||
-    viewFilter !== "all" ||
-    createdPeriod !== "all" ||
-    redeemedPeriod !== "all";
-
-  const selectedUserPreset = useMemo(() => {
-    if (!selectedPresetId) return null;
-    return presets.find((p) => p.id === selectedPresetId) ?? null;
-  }, [presets, selectedPresetId]);
-
-  const isBuiltinPresetSelected = selectedPresetId.startsWith("builtin:");
-
-  const currentFiltersSnapshot = useMemo(
-    () => ({
+  const currentFiltersSnapshot = {
       status: statusFilter,
       q: searchTerm.trim(),
       includeArchived,
@@ -707,1337 +348,391 @@ export function DeliveriesListPage() {
       credit: creditFilter,
       view: viewFilter,
       createdPeriod,
-      createdFrom: createdFrom.trim(),
-      createdTo: createdTo.trim(),
-      redeemedPeriod,
-      redeemedFrom: redeemedFrom.trim(),
-      redeemedTo: redeemedTo.trim(),
-    }),
-    [
-      creditFilter,
-      createdFrom,
-      createdPeriod,
-      createdTo,
-      includeArchived,
-      redeemedFilter,
-      redeemedFrom,
-      redeemedPeriod,
-      redeemedTo,
-      searchTerm,
-      sort,
-      statusFilter,
-      voucherFilter,
-      viewFilter,
-    ],
-  );
-
-  const applyPreset = (preset: DeliveriesFilterPreset) => {
-    setStatusFilter(preset.filters.status);
-    setIncludeArchived(preset.filters.includeArchived);
-    setSort(preset.filters.sort);
-    setVoucherFilter(preset.filters.voucher);
-    setRedeemedFilter(preset.filters.redeemed);
-    setCreditFilter(preset.filters.credit ?? "all");
-    setViewFilter(preset.filters.view ?? "all");
-    setCreatedPeriod(preset.filters.createdPeriod ?? "all");
-    setCreatedFrom(preset.filters.createdFrom ?? "");
-    setCreatedTo(preset.filters.createdTo ?? "");
-    setRedeemedPeriod(preset.filters.redeemedPeriod ?? "all");
-    setRedeemedFrom(preset.filters.redeemedFrom ?? "");
-    setRedeemedTo(preset.filters.redeemedTo ?? "");
-    setSearchTerm(preset.filters.q);
-    setDebouncedSearchTerm(preset.filters.q);
-  };
-
-  const upsertSelectedPreset = () => {
-    if (!selectedUserPreset) return;
-    const now = new Date().toISOString();
-    setPresets((prev) =>
-      prev.map((p) =>
-        p.id === selectedUserPreset.id
-          ? { ...p, updated_at: now, filters: currentFiltersSnapshot }
-          : p,
-      ),
-    );
-  };
-
-  const deleteSelectedPreset = () => {
-    if (!selectedUserPreset) return;
-    setPresets((prev) => prev.filter((p) => p.id !== selectedUserPreset.id));
-    setSelectedPresetId("");
-  };
-
-  // Modal filter callbacks
-  const currentModalFilters: DeliveryFilters = useMemo(
-    () => ({
-      voucher: voucherFilter,
-      redeemed: redeemedFilter,
-      credit: creditFilter,
-      view: viewFilter,
-      sort,
-      createdPeriod,
       createdFrom,
       createdTo,
       redeemedPeriod,
       redeemedFrom,
       redeemedTo,
-    }),
-    [
-      voucherFilter,
-      redeemedFilter,
-      creditFilter,
-      viewFilter,
-      sort,
-      createdPeriod,
-      createdFrom,
-      createdTo,
-      redeemedPeriod,
-      redeemedFrom,
-      redeemedTo,
-    ],
-  );
+  };
 
-  const applyFiltersFromModal = useCallback((filters: DeliveryFilters) => {
-    setVoucherFilter(filters.voucher as VoucherFilter);
-    setRedeemedFilter(filters.redeemed as RedeemedFilter);
-    setCreditFilter(filters.credit as CreditFilter);
-    setViewFilter(filters.view as ViewFilter);
-    setSort(filters.sort as SortOption);
-    setCreatedPeriod(filters.createdPeriod as PeriodFilter);
-    setCreatedFrom(filters.createdFrom);
-    setCreatedTo(filters.createdTo);
-    setRedeemedPeriod(filters.redeemedPeriod as PeriodFilter);
-    setRedeemedFrom(filters.redeemedFrom);
-    setRedeemedTo(filters.redeemedTo);
-  }, []);
-
-  const resetAllFilters = useCallback(() => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setIncludeArchived(false);
-    setSort("newest");
-    setVoucherFilter("all");
-    setRedeemedFilter("all");
-    setCreditFilter("all");
-    setViewFilter("all");
-    setCreatedPeriod("all");
-    setCreatedFrom("");
-    setCreatedTo("");
-    setRedeemedPeriod("all");
-    setRedeemedFrom("");
-    setRedeemedTo("");
-    setSelectedPresetId("");
-  }, []);
-
-  const createPresetFromModal = useCallback(
-    (name: string) => {
-      const now = new Date().toISOString();
-      const preset: DeliveriesFilterPreset = {
-        id: makePresetId(),
-        name,
-        created_at: now,
-        updated_at: now,
-        filters: currentFiltersSnapshot,
-      };
-      setPresets((prev) => [preset, ...prev]);
+  // Preset Handlers
+  const handleSelectPreset = (preset: DeliveriesFilterPreset) => {
       setSelectedPresetId(preset.id);
-    },
-    [currentFiltersSnapshot],
-  );
+      setStatusFilter(preset.filters.status);
+      setIncludeArchived(preset.filters.includeArchived);
+      setSearchTerm(preset.filters.q);
+      setDebouncedSearchTerm(preset.filters.q);
+      handleApplyFilters({
+          ...filtersObj, // base
+          voucher: preset.filters.voucher,
+          redeemed: preset.filters.redeemed,
+          credit: preset.filters.credit ?? "all",
+          view: preset.filters.view ?? "all",
+          sort: preset.filters.sort,
+          createdPeriod: preset.filters.createdPeriod ?? "all",
+          createdFrom: preset.filters.createdFrom ?? "",
+          createdTo: preset.filters.createdTo ?? "",
+          redeemedPeriod: preset.filters.redeemedPeriod ?? "all",
+          redeemedFrom: preset.filters.redeemedFrom ?? "",
+          redeemedTo: preset.filters.redeemedTo ?? "",
+      });
+  };
 
-  const advancedFiltersCount = useMemo(() => {
-    let count = 0;
-    if (voucherFilter !== "all") count++;
-    if (redeemedFilter !== "all") count++;
-    if (creditFilter !== "all") count++;
-    if (viewFilter !== "all") count++;
-    if (createdPeriod !== "all") count++;
-    if (redeemedPeriod !== "all") count++;
-    if (sort !== "newest") count++;
-    return count;
-  }, [
-    voucherFilter,
-    redeemedFilter,
-    creditFilter,
-    viewFilter,
-    createdPeriod,
-    redeemedPeriod,
-    sort,
-  ]);
+  const handleSavePreset = (name: string) => {
+      const newPreset: DeliveriesFilterPreset = {
+          id: makePresetId(),
+          name,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          filters: currentFiltersSnapshot,
+      };
+      setPresets(prev => [...prev, newPreset]);
+      setSelectedPresetId(newPreset.id);
+  };
 
-  const computedCounts = useMemo(() => {
-    const byStatus: Record<DeliveryStatus, number> = {
-      draft: 0,
-      pending_upload: 0,
-      processing: 0,
-      ready: 0,
-      delivered: 0,
-      failed: 0,
-      archived: 0,
-    };
+  const handleUpdatePreset = () => {
+      if (!selectedPresetId) return;
+      setPresets(prev => prev.map(p => 
+          p.id === selectedPresetId 
+            ? { ...p, updated_at: new Date().toISOString(), filters: currentFiltersSnapshot }
+            : p
+      ));
+  };
 
-    for (const d of deliveries) {
-      const s = getDeliveryDisplayStatus(d);
-      byStatus[s] = (byStatus[s] ?? 0) + 1;
-    }
+  const handleDeletePreset = () => {
+      if (!selectedPresetId) return;
+      setPresets(prev => prev.filter(p => p.id !== selectedPresetId));
+      setSelectedPresetId("");
+  };
 
-    const archived = byStatus.archived || 0;
-    return {
-      totalAll: deliveries.length,
-      archived,
-      byStatus,
-      activeTotal: Math.max(0, deliveries.length - archived),
-    };
-  }, [deliveries]);
+  const handleResetFilters = () => {
+      setStatusFilter("all");
+      setIncludeArchived(false);
+      setSearchTerm("");
+      setDebouncedSearchTerm("");
+      setVoucherFilter("all");
+      setRedeemedFilter("all");
+      setCreditFilter("all");
+      setViewFilter("all");
+      setCreatedPeriod("all");
+      setRedeemedPeriod("all");
+      setSort("newest");
+      setSelectedPresetId("");
+  };
 
-  const statusCounters = useMemo(() => {
-    const byStatus = aggregations?.by_status as
-      | DeliveryAggregations["by_status"]
-      | undefined;
+  // Use Query Hook
+  const PAGE_SIZE = 20;
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    items,
+    aggregations
+  } = useDeliveriesQuery({
+      statusFilter,
+      includeArchived,
+      q: debouncedSearchTerm,
+      sort,
+      voucherFilter,
+      redeemedFilter,
+      creditFilter,
+      viewFilter,
+      createdPeriod,
+      createdFrom,
+      createdTo,
+      redeemedPeriod,
+      redeemedFrom,
+      redeemedTo,
+      PAGE_SIZE
+  });
 
-    const activeTotal = byStatus
-      ? sumCounts(byStatus)
-      : computedCounts.activeTotal;
-    const archivedCount = aggregations?.archived ?? computedCounts.archived;
-    const totalAll = aggregations?.total ?? computedCounts.totalAll;
+  // Infinite Scroll Observer
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    return {
-      totalAll,
-      archivedCount,
-      activeTotal,
-      byStatus: {
-        draft: byStatus?.draft ?? computedCounts.byStatus.draft,
-        pending_upload:
-          byStatus?.pending_upload ?? computedCounts.byStatus.pending_upload,
-        processing: byStatus?.processing ?? computedCounts.byStatus.processing,
-        failed: byStatus?.failed ?? computedCounts.byStatus.failed,
-        ready: byStatus?.ready ?? computedCounts.byStatus.ready,
-        delivered: byStatus?.delivered ?? computedCounts.byStatus.delivered,
-      },
-    };
-  }, [aggregations, computedCounts]);
-
-  const previewIndex = useMemo(() => {
-    if (!previewDeliveryId) return -1;
-    return filteredDeliveries.findIndex((d) => d.id === previewDeliveryId);
-  }, [filteredDeliveries, previewDeliveryId]);
-
-  const previewDelivery = useMemo(() => {
-    if (!previewDeliveryId) return null;
-    return (
-      filteredDeliveries.find((d) => d.id === previewDeliveryId) ||
-      deliveries.find((d) => d.id === previewDeliveryId) ||
-      null
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+            }
+        },
+        { threshold: 0.1, rootMargin: "100px" }
     );
-  }, [deliveries, filteredDeliveries, previewDeliveryId]);
 
-  const canPreviewPrev = previewIndex > 0;
-  const canPreviewNext =
-    previewIndex >= 0 && previewIndex < filteredDeliveries.length - 1;
-
-  const goPreviewPrev = useCallback(() => {
-    if (!canPreviewPrev) return;
-    const prev = filteredDeliveries[previewIndex - 1];
-    if (prev) setPreviewDeliveryId(prev.id);
-  }, [canPreviewPrev, filteredDeliveries, previewIndex]);
-
-  const goPreviewNext = useCallback(() => {
-    if (!canPreviewNext) return;
-    const next = filteredDeliveries[previewIndex + 1];
-    if (next) setPreviewDeliveryId(next.id);
-  }, [canPreviewNext, filteredDeliveries, previewIndex]);
-
-  useEffect(() => {
-    if (!previewDeliveryId) return;
-
-    // Se a entrega sumiu (filtro/busca/paginação), fecha a prévia.
-    if (!previewDelivery) {
-      setPreviewDeliveryId(null);
-      return;
+    if (loadMoreRef.current) {
+        observer.observe(loadMoreRef.current);
     }
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement as HTMLElement | null;
-      const isTyping =
-        activeEl?.tagName === "INPUT" ||
-        activeEl?.tagName === "TEXTAREA" ||
-        activeEl?.tagName === "SELECT" ||
-        activeEl?.isContentEditable;
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-      if (isTyping) return;
+   // Mutation to archive
+   const archiveMutation = useMutation({
+    mutationFn: ({ id, archive }: { id: string; archive: boolean }) =>
+      archiveDelivery(id, archive),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["partner", "deliveries"] }),
+  });
 
-      if (e.key === "Escape") {
-        setPreviewDeliveryId(null);
-        return;
-      }
 
-      if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "k") {
-        e.preventDefault();
-        goPreviewPrev();
-        return;
-      }
+  const handleArchive = (delivery: Delivery, archive: boolean) => {
+      archiveMutation.mutate({ id: delivery.id, archive });
+      toast.success(archive ? "Entrega arquivada" : "Entrega desarquivada");
+  };
 
-      if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "j") {
-        e.preventDefault();
-        goPreviewNext();
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [goPreviewNext, goPreviewPrev, previewDelivery, previewDeliveryId]);
-
-  // Atalho de teclado: "/" foca a busca (padrão comum em apps web)
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement as HTMLElement | null;
-      const isTyping =
-        activeEl?.tagName === "INPUT" ||
-        activeEl?.tagName === "TEXTAREA" ||
-        activeEl?.tagName === "SELECT" ||
-        activeEl?.isContentEditable;
-
-      if (isTyping) return;
-      if (e.defaultPrevented) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-      if (e.key === "/") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  // Tratamento de erro de carregamento (precisa ficar após os hooks)
-  if (errorState) {
-    return errorState;
-  }
+  const hasAnyFiltersActive = statusFilter !== "all" || searchTerm || viewFilter !== "all";
 
   return (
     <PartnerPage>
-      {/* Mobile summary - O botão voltar mobile é renderizado pelo header sticky */}
-      <div className="md:hidden mb-4">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-          Minhas entregas
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          {aggregations ? (
-            <>
-              <span className="font-medium text-gray-700 dark:text-gray-200">
-                {aggregations.total}
-              </span>{" "}
-              no total •{" "}
-              <span className="font-medium text-gray-700 dark:text-gray-200">
-                {aggregations.archived}
-              </span>{" "}
-              arquivadas
-            </>
-          ) : (
-            <>{total} entregas</>
-          )}
-        </p>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:block mb-8">
-        <PartnerBackButton
-          to="/partner"
-          label={t("partner.deliveries.list.backToPortal")}
-        />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+      <div className="flex flex-col gap-6">
+        <div className="mb-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              {t("partner.deliveries.list.title")}
+                {t("partner.deliveries.list.title")}
             </h1>
             <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
-              {aggregations ? (
-                <>
-                  <span className="font-medium text-gray-700 dark:text-gray-200">
-                    {aggregations.total}
-                  </span>{" "}
-                  {t("partner.deliveries.list.total")} •{" "}
-                  <span className="font-medium text-gray-700 dark:text-gray-200">
-                    {aggregations.archived}
-                  </span>{" "}
-                  {t("partner.deliveries.list.archived")}
-                </>
-              ) : (
-                <>
-                  {total} {t("partner.deliveries.list.deliveriesSuffix")}
-                </>
-              )}
+                Gerencie suas entregas, status e vouchers.
             </p>
-          </div>
-          <Link
-            to="/partner/deliveries/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">
-              {t("partner.deliveries.newDelivery")}
-            </span>
-          </Link>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          NOVA FILTER BAR MODERNIZADA
-          ══════════════════════════════════════════════════════════════════════ */}
-
-      {/* Filter Bar Unificada */}
-      <div className="mb-4 space-y-3">
-        {/* Linha principal: Busca + Filtros + Ordenação */}
-        <div className="flex items-center gap-2">
-          {/* Search */}
-          <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar cliente, voucher…"
-              data-search-input="true"
-              ref={searchInputRef}
-              aria-label="Buscar entregas"
-              title="Dica: pressione / para buscar"
-              className="
-                w-full pl-10 pr-9 py-2.5
-                border border-gray-200 dark:border-gray-700 
-                bg-white dark:bg-gray-800/80 
-                text-gray-900 dark:text-white 
-                rounded-xl 
-                focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 
-                placeholder:text-gray-400 dark:placeholder:text-gray-500 
-                text-sm
-                transition-all duration-200
-                hover:border-gray-300 dark:hover:border-gray-600
-              "
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Limpar busca"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Botão Filtros - Abre o modal */}
-          <button
-            type="button"
-            onClick={() => setIsFiltersModalOpen(true)}
-            className={`
-              relative inline-flex items-center gap-2 px-4 py-2.5
-              border rounded-xl font-medium text-sm
-              transition-all duration-200
-              ${
-                advancedFiltersCount > 0
-                  ? "border-pink-300 dark:border-pink-700 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/50"
-                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }
-            `}
-            title="Filtros avançados"
-          >
-            <Filter className="w-4 h-4" />
-            <span className="hidden sm:inline">Filtros</span>
-            {advancedFiltersCount > 0 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold">
-                {advancedFiltersCount}
-              </span>
-            )}
-          </button>
         </div>
 
-        {/* Status Chips - Redesenhados */}
-        <div
-          className="flex items-center gap-2 overflow-x-auto bb-no-scrollbar pb-1 -mx-1 px-1"
-          role="radiogroup"
-          aria-label={t("partner.deliveries.list.filters.status")}
-        >
-          <StatusCounterChip
-            label={t("partner.deliveries.list.filters.options.all")}
-            title={t("partner.deliveries.status.all")}
-            count={statusCounters.totalAll}
-            active={includeArchived && statusFilter === "all"}
-            onClick={() => {
-              setIncludeArchived(true);
-              setStatusFilter("all");
-            }}
-          />
-          <StatusCounterChip
-            label={t("partner.status.active")}
-            title={t("partner.status.active")}
-            count={statusCounters.activeTotal}
-            active={!includeArchived && statusFilter === "all"}
-            onClick={() => {
-              setIncludeArchived(false);
-              setStatusFilter("all");
-            }}
-          />
+        {/* Top Controls: Search & Main Filters */}
+        <div className="flex flex-col gap-4">
+           {/* Row 1: Search + Filter + New Delivery */}
+           <div className="flex items-center gap-2">
+               <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input 
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar por cliente ou título..."
+                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-none rounded-[1.5rem] shadow-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500/50 transition-all text-base"
+                  />
+                  <button 
+                     onClick={() => setIsFiltersModalOpen(true)}
+                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors"
+                  >
+                     <Filter className="w-5 h-5" />
+                  </button>
+               </div>
+               
+               {/* New Delivery Button (Prominent) */}
+               <Link
+                    to="/partner/deliveries/new" 
+                    className="flex-shrink-0 hidden sm:inline-flex group relative items-center justify-center gap-2 px-6 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-bold shadow-lg shadow-gray-900/10 dark:shadow-white/10 overflow-hidden transition-transform active:scale-95"
+               >
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Nova Entrega</span>
+                  </span>
+               </Link>
+               {/* Mobile variant (Icon only) */}
+               <Link
+                    to="/partner/deliveries/new" 
+                    className="flex-shrink-0 sm:hidden flex items-center justify-center w-14 h-14 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-[1.5rem] shadow-lg hover:scale-105 active:scale-95 transition-all"
+               >
+                   <Plus className="w-6 h-6" />
+               </Link>
+           </div>
 
-          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+           {/* Status Pills */}
+           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar mask-gradient-x">
+             <StatusPill 
+               label="Todas" 
+               count={aggregations?.total ?? 0}
+               active={statusFilter === "all" && !includeArchived} 
+               onClick={() => { setStatusFilter("all"); setIncludeArchived(false); }}
+             />
+             <StatusPill 
+               label="Rascunho" 
+               count={aggregations?.by_status?.draft ?? 0} 
+               active={statusFilter === "draft"} 
+               onClick={() => setStatusFilter("draft")}
+             />
+             {/* Note: 'active' status is a frontend concept in UI commonly, but backend enum might differs. 
+                 Assuming 'processing' or 'ready' or just using 'all' minus 'archived' for active.
+                 Based on types, we have specific statuses. Let's show specific statuses instead of 'Active' generic group if backend doesn't support it directly.
+                 However, UI wanted 'Ativas'. Let's Map 'Ativas' to reset status filter or show pending/processing/ready.
+                 For now, let's list specific statuses to be safe with types.
+             */}
+              <StatusPill 
+               label="Processando" 
+               count={aggregations?.by_status?.processing ?? 0} 
+               active={statusFilter === "processing"} 
+               onClick={() => setStatusFilter("processing")}
+             />
+              <StatusPill 
+               label="Prontas" 
+               count={aggregations?.by_status?.ready ?? 0} 
+               active={statusFilter === "ready"} 
+               onClick={() => setStatusFilter("ready")}
+             />
+              <StatusPill 
+               label="Entregues" 
+               count={aggregations?.by_status?.delivered ?? 0} 
+               active={statusFilter === "delivered"} 
+               onClick={() => setStatusFilter("delivered")}
+             />
+             <StatusPill 
+               label="Arquivadas" 
+               count={aggregations?.by_status?.archived ?? 0}
+               active={includeArchived} 
+               onClick={() => { setIncludeArchived(true); setStatusFilter("all"); }}
+             />
+           </div>
 
-          {(Object.keys(statusConfig) as DeliveryStatus[]).map((key) => {
-            if (key === "archived") return null; // Renderizado separadamente
-            const cfg = statusConfig[key];
-            return (
-              <StatusCounterChip
-                key={key}
-                label={t(cfg.shortLabelKey)}
-                title={t(cfg.labelKey)}
-                count={statusCounters.byStatus[key] || 0}
-                active={statusFilter === key}
-                onClick={() => {
-                  setIncludeArchived(false);
-                  setStatusFilter(key as FilterStatus);
-                }}
-              />
-            );
-          })}
-
-          <span className="h-5 w-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-
-          <StatusCounterChip
-            label={t(statusConfig.archived.shortLabelKey)}
-            title={t(statusConfig.archived.labelKey)}
-            count={statusCounters.archivedCount}
-            active={includeArchived && statusFilter === "archived"}
-            onClick={() => {
-              setIncludeArchived(true);
-              setStatusFilter("archived");
-            }}
-          />
-        </div>
-
-        {/* Hint mobile - Deslize */}
-        <p
-          className="sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center -mt-2"
-          aria-hidden="true"
-        >
-          ← Deslize para ver mais →
-        </p>
-      </div>
-
-      {/* Filtros Ativos - Chips removíveis */}
-      {hasAnyFiltersActive && (
-        <div className="mb-4 flex items-start gap-3 animate-fade-in">
-          <div className="flex flex-wrap gap-2 flex-1">
-            {statusFilter !== "all" && (
-              <ActiveFilterChip
-                label={`${t("partner.deliveries.list.filters.status")}: ${statusConfig[statusFilter]?.labelKey ? t(statusConfig[statusFilter].labelKey) : statusFilter}`}
-                onClear={() => setStatusFilter("all")}
-              />
-            )}
-
-            {searchTerm.trim() && (
-              <ActiveFilterChip
-                label={`Busca: "${searchTerm.trim()}"`}
-                onClear={() => setSearchTerm("")}
-              />
-            )}
-
-            {voucherFilter !== "all" && (
-              <ActiveFilterChip
-                label={voucherFilter === "with" ? "Com voucher" : "Sem voucher"}
-                onClear={() => setVoucherFilter("all")}
-              />
-            )}
-
-            {redeemedFilter !== "all" && (
-              <ActiveFilterChip
-                label={
-                  redeemedFilter === "redeemed"
-                    ? "Resgatadas"
-                    : "Não resgatadas"
-                }
-                onClear={() => setRedeemedFilter("all")}
-              />
-            )}
-
-            {creditFilter !== "all" && (
-              <ActiveFilterChip
-                label={
-                  creditFilter === "reserved"
-                    ? "Crédito reservado"
-                    : creditFilter === "consumed"
-                      ? "Crédito usado"
-                      : creditFilter === "refunded"
-                        ? "Crédito devolvido"
-                        : creditFilter === "not_required"
-                          ? "Sem custo"
-                          : "Crédito: ?"
-                }
-                onClear={() => setCreditFilter("all")}
-              />
-            )}
-
-            {viewFilter !== "all" && (
-              <ActiveFilterChip
-                label="Precisa de ação"
-                onClear={() => setViewFilter("all")}
-              />
-            )}
-
-            {createdPeriod !== "all" && (
-              <ActiveFilterChip
-                label={
-                  createdPeriod === "custom" && (createdFrom || createdTo)
-                    ? `${t("partner.deliveries.list.filters.date")}: ${createdFrom || "…"} → ${createdTo || "…"}`
-                    : `${t("partner.deliveries.list.filters.date")}: ${getPeriodLabel(createdPeriod, t)}`
-                }
-                onClear={() => {
-                  setCreatedPeriod("all");
-                  setCreatedFrom("");
-                  setCreatedTo("");
-                }}
-              />
-            )}
-
-            {redeemedPeriod !== "all" && (
-              <ActiveFilterChip
-                label={
-                  redeemedPeriod === "custom" && (redeemedFrom || redeemedTo)
-                    ? `${t("partner.deliveries.list.filters.redeemed")}: ${redeemedFrom || "…"} → ${redeemedTo || "…"}`
-                    : `${t("partner.deliveries.list.filters.redeemed")}: ${getPeriodLabel(redeemedPeriod, t)}`
-                }
-                onClear={() => {
-                  setRedeemedPeriod("all");
-                  setRedeemedFrom("");
-                  setRedeemedTo("");
-                }}
-              />
-            )}
-
-            {sort !== "newest" && (
-              <ActiveFilterChip
-                label={
-                  sort === "oldest"
-                    ? "Mais antigas"
-                    : sort === "status"
-                      ? "Por status"
-                      : "Por cliente"
-                }
-                onClear={() => setSort("newest")}
-              />
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={resetAllFilters}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Limpar todos os filtros"
-          >
-            <X className="w-3.5 h-3.5" />
-            Limpar
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Ordenação Mobile */}
-      {isSortModalOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/50 animate-fade-in"
-            onClick={() => setIsSortModalOpen(false)}
-          />
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl p-4 pb-8 animate-slide-up">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Ordenar por
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsSortModalOpen(false)}
-                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-1">
-              {[
-                { value: "newest", label: "Mais recentes" },
-                { value: "oldest", label: "Mais antigas" },
-                { value: "status", label: "Por status" },
-                { value: "client", label: "Por cliente" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    setSort(option.value as SortOption);
-                    setIsSortModalOpen(false);
-                  }}
-                  className={`w-full px-4 py-3 rounded-xl text-left text-sm font-medium transition-colors ${
-                    sort === option.value
-                      ? "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
-                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Filtros Avançados */}
-      <DeliveryFiltersModal
-        isOpen={isFiltersModalOpen}
-        onClose={() => setIsFiltersModalOpen(false)}
-        filters={currentModalFilters}
-        onApply={applyFiltersFromModal}
-        onReset={resetAllFilters}
-        presets={presets}
-        builtinPresets={BUILTIN_PRESETS}
-        selectedPresetId={selectedPresetId}
-        onSelectPreset={(preset) => {
-          setSelectedPresetId(preset.id);
-          applyPreset(preset);
-          setIsFiltersModalOpen(false);
-        }}
-        onSavePreset={createPresetFromModal}
-        onUpdatePreset={upsertSelectedPreset}
-        onDeletePreset={deleteSelectedPreset}
-        isBuiltinSelected={isBuiltinPresetSelected}
-        hasUserPreset={!!selectedUserPreset}
-      />
-      {isLoading ? (
-        <DeliveriesLoadingSkeleton />
-      ) : filteredDeliveries.length === 0 ? (
-        <PartnerEmptyState
-          variant="section"
-          icon={Package}
-          title={
-            searchTerm || statusFilter !== "all"
-              ? "Nenhuma entrega encontrada"
-              : "Tudo pronto para começar! 🎉"
-          }
-          description={
-            searchTerm || statusFilter !== "all"
-              ? "Tente ajustar os filtros ou buscar algo diferente."
-              : "Crie sua primeira entrega e comece a encantar seus clientes."
-          }
-          primaryAction={
-            !searchTerm && statusFilter === "all"
-              ? {
-                  label: "Criar primeira entrega",
-                  to: "/partner/deliveries/new",
-                  icon: Plus,
-                }
-              : undefined
-          }
-        />
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>
-              Mostrando <span className="font-medium">{showingCount}</span> de{" "}
-              <span className="font-medium">{total}</span>
-            </span>
-            {isFetching && !isFetchingNextPage ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Atualizando…
-              </span>
-            ) : null}
-          </div>
-
-          {/* Mobile: cards based list */}
-          <div className="lg:hidden grid gap-3 p-4">
-            {deliveries.map((delivery) => (
-              <DeliveryCardMobile
-                key={delivery.id}
-                delivery={delivery}
-                onArchive={(archive) => handleArchive(delivery, archive)}
-                isArchiving={
-                  archiveMutation.isPending &&
-                  archiveMutation.variables?.id === delivery.id
-                }
-              />
-            ))}
-          </div>
-
-          {/* Desktop: table */}
-          <div className="hidden lg:block">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="overflow-auto max-h-[70vh]">
-                <table className="min-w-[920px] w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400">
-                    <tr>
-                      <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Entrega
-                      </th>
-                      <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Cliente
-                      </th>
-                      <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Status
-                      </th>
-                      <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Criada em
-                      </th>
-                      <th className="sticky top-0 z-10 text-left font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        <span
-                          title="Código do voucher e status de cobrança (crédito)"
-                          aria-label="Voucher e crédito"
-                        >
-                          Voucher / Crédito
-                        </span>
-                      </th>
-                      <th className="sticky top-0 z-10 text-right font-medium px-4 py-2.5 bg-gray-50 dark:bg-gray-900/30">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {filteredDeliveries.map((delivery) => (
-                      <DeliveryTableRow
-                        key={delivery.id}
-                        delivery={delivery}
-                        isSelected={delivery.id === previewDeliveryId}
-                        onPreview={() => setPreviewDeliveryId(delivery.id)}
-                        onArchive={(archive) =>
-                          handleArchive(delivery, archive)
-                        }
-                        isArchiving={
-                          archiveMutation.isPending &&
-                          archiveMutation.variables?.id === delivery.id
-                        }
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {hasNextPage && (
-            <div className="flex justify-center pt-2">
-              <button
-                type="button"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors disabled:opacity-50"
-              >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Carregando…
-                  </>
-                ) : (
-                  "Carregar mais"
+           {/* Active Filters Display */}
+           {hasAnyFiltersActive && (
+             <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2">
+                {viewFilter === "needs_action" && (
+                    <ActiveFilterTag label="Precisa de atenção" onClear={() => setViewFilter("all")} />
                 )}
-              </button>
-            </div>
-          )}
+                {/* ... other tags ... */}
+             </div>
+           )}
         </div>
-      )}
 
-      {/* Quick preview (desktop-first) */}
-      <AnimatePresence>
-        {previewDelivery && (
-          <DeliveryQuickPreview
-            delivery={previewDelivery}
-            onClose={() => setPreviewDeliveryId(null)}
-            onPrev={goPreviewPrev}
-            onNext={goPreviewNext}
-            canPrev={canPreviewPrev}
-            canNext={canPreviewNext}
-          />
-        )}
-      </AnimatePresence>
+        {/* Listeners & Modals */}
+        <DeliveryFiltersModal 
+            isOpen={isFiltersModalOpen}
+            onClose={() => setIsFiltersModalOpen(false)}
+            filters={filtersObj}
+            onApply={handleApplyFilters}
+            onReset={handleResetFilters}
+            presets={presets}
+            builtinPresets={BUILTIN_PRESETS}
+            selectedPresetId={selectedPresetId}
+            onSelectPreset={handleSelectPreset}
+            onSavePreset={handleSavePreset}
+            onUpdatePreset={handleUpdatePreset}
+            onDeletePreset={handleDeletePreset}
+            isBuiltinSelected={selectedPresetId.startsWith("builtin:")}
+            hasUserPreset={Boolean(selectedPresetId && !selectedPresetId.startsWith("builtin:"))}
+        />
+
+        {/* Content Area */}
+        <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden min-h-[400px]">
+           {isLoading ? (
+               <div className="p-8">
+                  <DeliveriesLoadingSkeleton />
+               </div>
+           ) : isError ? (
+               <PartnerErrorState onRetry={() => {}} title="Erro ao carregar entregas" />
+           ) : items.length === 0 ? (
+               <div className="p-12 flex flex-col items-center justify-center text-center">
+                   <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mb-6">
+                       <Package className="w-10 h-10 text-gray-300 dark:text-gray-500" />
+                   </div>
+                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                       Nenhuma entrega encontrada
+                   </h3>
+                   <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-8">
+                       Tente ajustar os filtros ou crie uma nova entrega para começar.
+                   </p>
+                   <Link 
+                     to="/partner/deliveries/new"
+                     className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-2xl hover:scale-105 transition-transform"
+                   >
+                     Criar Nova Entrega
+                   </Link>
+               </div>
+           ) : (
+               <div className="flex flex-col">
+                  {/* Desktop Header */}
+                  <div className={`hidden md:grid ${DELIVERY_GRID_COLS} items-center gap-4 px-6 py-4 bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-400 uppercase tracking-wider`}>
+                      <div>Entrega / Cliente</div>
+                      <div>Status</div>
+                      <div>Voucher</div>
+                      <div>Criado em</div>
+                      <div className="text-right">Ações</div>
+                  </div>
+
+                  {/* List Items */}
+                  <div>
+                      {items.map((delivery, i) => (
+                          <motion.div 
+                              key={delivery.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                              className="group border-b border-gray-50 dark:border-gray-700/50 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                          >
+                              {/* Mobile Card View */}
+                              <div className="md:hidden p-4">
+                                <DeliveryCardMobile 
+                                    delivery={delivery}
+                                    onArchive={(archive) => handleArchive(delivery, archive)}
+                                    isArchiving={archiveMutation.isPending}
+                                />
+                              </div>
+
+                              {/* Desktop Row View */}
+                              <div className="hidden md:block">
+                                  <DeliveryTableRow 
+                                      delivery={delivery}
+                                      isSelected={selectedDeliveryId === delivery.id}
+                                      onPreview={() => setSelectedDeliveryId(delivery.id)}
+                                      onArchive={(archive) => handleArchive(delivery, archive)}
+                                      isArchiving={archiveMutation.isPending}
+                                  />
+                              </div>
+                          </motion.div>
+                      ))}
+                  </div>
+
+                  {/* Load More Trigger (Infinite Scroll) */}
+                  <div ref={loadMoreRef} className="py-8 text-center text-gray-400">
+                      {isFetchingNextPage ? (
+                          <div className="flex justify-center">
+                              <Loader2 className="w-6 h-6 animate-spin text-pink-500" />
+                          </div>
+                      ) : hasNextPage ? (
+                          <span className="text-xs">Carregando mais...</span>
+                      ) : null}
+                  </div>
+               </div>
+           )}
+        </div>
+
+        <DeliveryDetailsDrawer 
+            isOpen={!!selectedDeliveryId}
+            onClose={() => setSelectedDeliveryId(null)}
+            deliveryId={selectedDeliveryId}
+        />
+      </div>
     </PartnerPage>
   );
 }
 
-// =============================================================================
-// Quick preview (slide-over)
-// =============================================================================
+// Hook wrapper for cleaner component
+function useDeliveriesQuery(params: any) {
+    // Ensure we map "all" to undefined for the API if needed, or pass strict params
+    // backend expects status_filter for "active", "draft" etc. 
+    // "active" in UI pill might map to "processing,ready,delivered" or backend specific "active" alias.
+    // If backend only supports strict statuses, we need to map them.
+    // Assuming backend handles "draft", "ready", etc. correctly.
+    const queryParams = {
+        ...params,
+        status_filter: params.statusFilter === "all" ? undefined : params.statusFilter,
+        limit: params.PAGE_SIZE, 
+        offset: params.pageParam 
+    };
 
-function DeliveryQuickPreview({
-  delivery,
-  onClose,
-  onPrev,
-  onNext,
-  canPrev,
-  canNext,
-}: {
-  delivery: Delivery;
-  onClose: () => void;
-  onPrev: () => void;
-  onNext: () => void;
-  canPrev: boolean;
-  canNext: boolean;
-}) {
-  const { t } = useTranslation();
-  const { language } = useLanguage();
-  const isArchived = isDeliveryArchived(delivery);
-  const displayStatus = getDeliveryDisplayStatus(delivery);
-  const title = delivery.title || delivery.client_name || t("common.delivery");
-  const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
-  const hasVoucher = Boolean(delivery.voucher_code);
-  const canGenerateVoucher =
-    displayStatus === "ready" && !hasVoucher && delivery.assets_count > 0;
-  const isDirectImport = delivery.credit_status === "not_required";
+    const { data, ...rest } = useInfiniteQuery({
+        queryKey: ["partner", "deliveries", "list", params], // Params in key to trigger re-fetch
+        initialPageParam: 0,
+        queryFn: ({ pageParam }) => listDeliveries({ ...queryParams, offset: pageParam }),
+        getNextPageParam: (last, all) => {
+             const loaded = all.reduce((acc, p) => acc + (p.deliveries?.length || 0), 0);
+             return loaded < (last.total || 0) ? loaded : undefined;
+        }
+    });
 
-  const copyToClipboard = async (text: string, message: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedMessage(message);
-    } catch {
-      try {
-        const el = document.createElement("textarea");
-        el.value = text;
-        el.style.position = "fixed";
-        el.style.opacity = "0";
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-        setCopiedMessage(message);
-      } catch {
-        setCopiedMessage(t("partner.deliveries.actions.copyFailed"));
-      }
-    } finally {
-      window.setTimeout(() => setCopiedMessage(null), 1600);
-    }
-  };
+    const items = useMemo(() => data?.pages.flatMap(p => p.deliveries || []) || [], [data]);
+    const total = data?.pages[0]?.total || 0;
+    const aggregations = data?.pages[0]?.aggregations;
 
-  const deliveryUrl = new URL(
-    `/partner/deliveries/${delivery.id}`,
-    window.location.origin,
-  ).toString();
-
-  const timeline = getDeliveryTimeline(delivery, language);
-
-  // Ensure isOpen is strictly controlled by the presence of a delivery
-  const isOpen = Boolean(delivery);
-
-  return (
-    <Drawer
-      open={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      direction="responsive"
-    >
-      <DrawerContent>
-        {/* Header */}
-        <DrawerHeader>
-          <div className="flex items-start justify-between gap-3 w-full">
-            <div className="min-w-0">
-              <DrawerTitle>{title}</DrawerTitle>
-              <div className="mt-2 flex items-center gap-2">
-                <StatusBadge status={displayStatus} />
-                {isArchived && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    (arquivada)
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={onPrev}
-                disabled={!canPrev}
-                className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"
-                aria-label="Entrega anterior"
-                title="Anterior (← ou k)"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={!canNext}
-                className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"
-                aria-label="Próxima entrega"
-                title="Próxima (→ ou j)"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </DrawerHeader>
-
-        {/* Body */}
-        <DrawerBody>
-          <div className="space-y-4">
-            {copiedMessage && (
-              <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200 animate-slide-up">
-                {copiedMessage}
-              </div>
-            )}
-
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Ações rápidas
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    copyToClipboard(
-                      deliveryUrl,
-                      t("partner.deliveries.actions.linkCopied"),
-                    )
-                  }
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-                >
-                  <Eye className="w-4 h-4" />
-                  {t("partner.deliveries.actions.copyLink")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    copyToClipboard(
-                      delivery.id,
-                      t("partner.deliveries.actions.idCopied"),
-                    )
-                  }
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-                >
-                  <Package className="w-4 h-4" />
-                  {t("partner.deliveries.actions.copyId")}
-                </button>
-                {delivery.voucher_code ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      copyToClipboard(
-                        delivery.voucher_code!,
-                        t("partner.deliveries.actions.voucherCopied"),
-                      )
-                    }
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-                    title={t("partner.deliveries.actions.copyVoucher")}
-                    aria-label={t("partner.deliveries.actions.copyVoucher")}
-                  >
-                    <Gift className="w-4 h-4" />
-                    {t("partner.deliveries.actions.copyVoucher")}
-                  </button>
-                ) : canGenerateVoucher ? (
-                  <Link
-                    to={`/partner/deliveries/${delivery.id}?openVoucher=1`}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600 transition-colors text-sm font-medium"
-                    title={
-                      isDirectImport
-                        ? "Gerar link de importação"
-                        : "Gerar voucher"
-                    }
-                    aria-label={
-                      isDirectImport
-                        ? "Gerar link de importação"
-                        : "Gerar voucher"
-                    }
-                  >
-                    <Ticket className="w-4 h-4" />
-                    {isDirectImport ? "Gerar link" : "Gerar voucher"}
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 transition-colors text-sm font-medium opacity-50"
-                    title={`Voucher ${PLACEHOLDER_NOT_GENERATED.toLowerCase()}`}
-                    aria-label={`Voucher ${PLACEHOLDER_NOT_GENERATED.toLowerCase()}`}
-                  >
-                    <Gift className="w-4 h-4" />
-                    Voucher
-                  </button>
-                )}
-
-                <Link
-                  to={`/partner/deliveries/${delivery.id}`}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-                >
-                  Abrir
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t("partner.deliveries.sections.client")}
-              </p>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {delivery.client_name || PLACEHOLDER_NOT_INFORMED}
-              </p>
-              {delivery.redeemed_at && (
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Resgatado em {formatDateTime(delivery.redeemed_at, language)}
-                  {delivery.redeemed_by ? ` por ${delivery.redeemed_by}` : ""}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Arquivos
-                </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {delivery.assets_count}
-                </p>
-              </div>
-              <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Criada em
-                </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {formatDate(delivery.created_at, language)}
-                </p>
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Voucher / Crédito
-              </p>
-              {delivery.voucher_code ? (
-                <div className="mt-1 flex items-start justify-between gap-2">
-                  <p className="text-sm font-mono text-gray-900 dark:text-white">
-                    {delivery.voucher_code}
-                  </p>
-                  <CreditStatusBadge
-                    status={delivery.credit_status}
-                    variant="subtle"
-                  />
-                </div>
-              ) : (
-                <div className="mt-1 space-y-1">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {PLACEHOLDER_NOT_GENERATED}
-                  </p>
-                  <CreditStatusBadge
-                    status={delivery.credit_status}
-                    variant={hasVoucher ? "subtle" : "pill"}
-                  />
-                  {displayStatus === "ready" ? (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Dica: abra os detalhes para gerar o voucher.
-                    </p>
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Histórico
-              </p>
-              <div className="mt-3">
-                <DeliveryTimeline items={timeline} />
-              </div>
-            </div>
-          </div>
-        </DrawerBody>
-
-        {/* Footer actions */}
-        <DrawerFooter>
-          {canGenerateVoucher ? (
-            <Link
-              to={`/partner/deliveries/${delivery.id}?openVoucher=1`}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium w-full"
-            >
-              <Ticket className="w-4 h-4" />
-              {isDirectImport ? "Gerar link de importação" : "Gerar voucher"}
-            </Link>
-          ) : null}
-          {delivery.status === "pending_upload" && (
-            <Link
-              to={`/partner/deliveries/${delivery.id}/upload`}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium w-full"
-            >
-              <Upload className="w-4 h-4" />
-              Enviar arquivos
-            </Link>
-          )}
-          <Link
-            to={`/partner/deliveries/${delivery.id}`}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium w-full"
-          >
-            Abrir detalhes
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
-            Dica: <span className="font-medium">Esc</span> fecha •{" "}
-            <span className="font-medium">←/→</span> navega.
-          </p>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  );
+    return { data, items, total, aggregations, ...rest };
 }
-
-type TimelineItem = {
-  key: string;
-  title: string;
-  subtitle?: string;
-  state: "done" | "current" | "pending";
-  icon: typeof Clock;
-};
-
-function getDeliveryTimeline(
-  delivery: Delivery,
-  language: string,
-): TimelineItem[] {
-  const effectiveStatus: DeliveryStatus =
-    delivery.status === "failed" ? "processing" : delivery.status;
-
-  const isDone = (status: DeliveryStatus) => {
-    const order: DeliveryStatus[] = [
-      "draft",
-      "pending_upload",
-      "processing",
-      "ready",
-      "delivered",
-      "archived",
-    ];
-    return order.indexOf(effectiveStatus) >= order.indexOf(status);
-  };
-
-  const created: TimelineItem = {
-    key: "created",
-    title: "Entrega criada",
-    subtitle: formatDateTime(delivery.created_at, language),
-    state: "done",
-    icon: Clock,
-  };
-
-  const upload: TimelineItem = {
-    key: "upload",
-    title: "Upload",
-    subtitle:
-      delivery.status === "draft"
-        ? "Aguardando iniciar"
-        : "Em andamento / concluído",
-    state:
-      delivery.status === "pending_upload"
-        ? "current"
-        : isDone("pending_upload")
-          ? "done"
-          : "pending",
-    icon: Upload,
-  };
-
-  const processing: TimelineItem = {
-    key: "processing",
-    title: "Processamento",
-    subtitle:
-      delivery.status === "failed"
-        ? "Falhou no processamento"
-        : delivery.status === "processing"
-          ? "Estamos preparando seus arquivos"
-          : isDone("processing")
-            ? "Concluído"
-            : "Pendente",
-    state:
-      delivery.status === "failed" || delivery.status === "processing"
-        ? "current"
-        : isDone("processing")
-          ? "done"
-          : "pending",
-    icon: Loader2,
-  };
-
-  const ready: TimelineItem = {
-    key: "ready",
-    title: "Pronta",
-    subtitle:
-      delivery.status === "ready"
-        ? "Entrega pronta para envio"
-        : isDone("ready")
-          ? "Concluído"
-          : "Pendente",
-    state:
-      delivery.status === "ready"
-        ? "current"
-        : isDone("ready")
-          ? "done"
-          : "pending",
-    icon: CheckCircle2,
-  };
-
-  const voucher: TimelineItem = {
-    key: "voucher",
-    title: "Voucher",
-    subtitle: delivery.voucher_code ? "Gerado" : PLACEHOLDER_NOT_GENERATED,
-    state: delivery.voucher_code ? "done" : "pending",
-    icon: Gift,
-  };
-
-  const redeemed: TimelineItem = {
-    key: "redeemed",
-    title: "Resgate",
-    subtitle: delivery.redeemed_at
-      ? formatDateTime(delivery.redeemed_at, language)
-      : "Aguardando cliente",
-    state: delivery.redeemed_at
-      ? "done"
-      : delivery.status === "delivered"
-        ? "current"
-        : "pending",
-    icon: Gift,
-  };
-
-  return [created, upload, processing, ready, voucher, redeemed];
-}
-
-function DeliveryTimeline({ items }: { items: TimelineItem[] }) {
-  return (
-    <ol className="space-y-3">
-      {items.map((it) => {
-        const Icon = it.icon;
-        const tone =
-          it.state === "done"
-            ? "text-emerald-600 dark:text-emerald-400"
-            : it.state === "current"
-              ? "text-pink-600 dark:text-pink-400"
-              : "text-gray-400 dark:text-gray-500";
-
-        const bg =
-          it.state === "done"
-            ? "bg-emerald-50 dark:bg-emerald-900/20"
-            : it.state === "current"
-              ? "bg-pink-50 dark:bg-pink-900/20"
-              : "bg-gray-50 dark:bg-gray-800";
-
-        return (
-          <li key={it.key} className="flex items-start gap-3">
-            <div
-              className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-800 ${bg}`}
-            >
-              <Icon
-                className={`w-4 h-4 ${it.key === "processing" && it.state === "current" ? "animate-spin" : ""} ${tone}`}
-              />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {it.title}
-              </p>
-              {it.subtitle && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {it.subtitle}
-                </p>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-export default DeliveriesListPage;

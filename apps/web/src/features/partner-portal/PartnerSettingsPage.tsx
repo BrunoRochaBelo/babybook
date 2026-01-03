@@ -207,7 +207,7 @@ export function PartnerSettingsPage() {
 
       <form onSubmit={handleSubmit}>
         {/* Logo Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t("partner.settings.profile.logo")}
           </h2>
@@ -260,7 +260,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Profile Fields */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t("partner.settings.profile.title")}
           </h2>
@@ -278,7 +278,7 @@ export function PartnerSettingsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("partner.settings.profile.contactName")}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
 
@@ -295,7 +295,7 @@ export function PartnerSettingsPage() {
                 value={studioName}
                 onChange={(e) => setStudioName(e.target.value)}
                 placeholder={t("partner.settings.profile.companyName")}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {t("partner.settings.profile.companyName")}
@@ -315,7 +315,7 @@ export function PartnerSettingsPage() {
                 value={phone}
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="(11) 99999-9999"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
 
@@ -327,7 +327,7 @@ export function PartnerSettingsPage() {
                 type="email"
                 value={profile?.email || ""}
                 disabled
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {t("common.email")}
@@ -337,7 +337,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Preferences Section - Language */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5 text-gray-500" />
             {t("partner.settings.preferences.title")}
@@ -360,7 +360,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Account Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t("partner.settings.title")}
           </h2>
@@ -390,7 +390,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Security Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             {t("partner.settings.security.title")}
           </h2>

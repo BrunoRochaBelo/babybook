@@ -139,6 +139,8 @@ pnpm run dev:web
 
 Para iniciar a landing page + API + Workers com o ambiente Python criado, rode primeiro `pnpm run bootstrap` e depois `pnpm run dev:all`.
 
+> Nota: `dev:all` também sobe o **Portal de Afiliados** (apps/affiliates).
+
 Se não quiser subir os Workers (evitar conexões com o banco local), utilize a versão "lite":
 
 ```bash
@@ -149,6 +151,16 @@ Isso irá iniciar os apps em modo watch (hot-reload):
 
 - API (FastAPI): http://localhost:8000 (Acesse /docs para o Swagger).
 - Web (React/Vite): http://localhost:5173
+
+Opcionalmente, você pode rodar o Portal de Afiliados isolado:
+
+```bash
+pnpm run dev:affiliates
+```
+
+### Tracking de afiliados (ref)
+
+O programa de afiliados usa `?ref=CODIGO` como mecanismo de atribuição (com persistência via `localStorage`, TTL em dev). Para detalhes do portal e variáveis, veja `apps/affiliates/README.md`.
 
 ### 3.6. O que NÃO roda localmente (A Fila e o Worker)
 

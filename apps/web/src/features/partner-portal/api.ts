@@ -22,6 +22,7 @@ import type {
   VoucherCardData,
   OnboardingRequest,
   OnboardingResponse,
+  CreditHistoryResponse,
 } from "./types";
 
 const API_BASE = "/partner";
@@ -233,6 +234,18 @@ export async function purchaseCredits(
       payment_method: paymentMethod,
     },
   );
+}
+
+/**
+ * Get credit usage history
+ */
+export async function getCreditsHistory(params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<CreditHistoryResponse> {
+  return apiClient.get<CreditHistoryResponse>(`${API_BASE}/credits/history`, {
+    searchParams: params,
+  });
 }
 
 // ============================================================

@@ -2,6 +2,7 @@
 import "./styles/main.css";
 import "./styles/animations.css";
 import "./styles/book-3d.css";
+import { captureAffiliateReferralFromLocation } from "./utils/affiliateReferral";
 // Note: book-flip behaviour moved to a mountable component to allow safe cleanup
 // import "./book-flip"; // legacy - removed
 
@@ -10,6 +11,13 @@ import "./styles/book-3d.css";
 if (!document.documentElement.classList.contains("styles-loaded")) {
   document.body.style.visibility = "hidden";
   document.body.style.opacity = "0";
+}
+
+// Tracking do afiliado: salva ?ref=... com TTL (best-effort)
+try {
+  captureAffiliateReferralFromLocation();
+} catch {
+  // ignore
 }
 
 // Marca que os estilos foram carregados (anti-FOUC)
@@ -135,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Core Features
   safeInit("Scroll Progress", () => initScrollProgress());
   safeInit("Language Selector", () => setupLanguageSelector());
-  
+
   if (isFeatureEnabled("navigation")) {
     safeInit("Navigation", () => initNavigation());
   }
@@ -285,7 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const { setupAccessModal } = await import("./features/access");
     return setupAccessModal();
   });
-
 
   // PREMIUM: Smart Interactions
   safeInit("Smart Prefetch & Haptic", async () => {

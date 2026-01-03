@@ -40,6 +40,7 @@ import { PartnerPage } from "@/layouts/PartnerPage";
 import {
   PartnerErrorState,
 } from "@/layouts/partnerStates";
+import { PartnerBackButton as PartnerBackButtonStandalone } from "@/layouts/PartnerBackButton";
 import { DeliveryDetailLoadingSkeleton } from "./components/DeliveryDetailLoadingSkeleton";
 import { getPartnerDeliveryStatusMeta } from "./deliveryStatus";
 
@@ -320,13 +321,9 @@ export function DeliveryDetailPage() {
     <>
       <PartnerPage>
         {/* Back Navigation */}
-        <Link
-          to="/partner/deliveries"
-          className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 mb-4 transition-all duration-200 rounded-lg px-2 py-1 -ml-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t("partner.details.backToDeliveries")}</span>
-        </Link>
+        <div className="mb-0">
+          <PartnerBackButtonStandalone to="/partner/deliveries" label={t("partner.details.backToDeliveries")} />
+        </div>
 
         {/* Mobile meta (evita duplicar o header grande) */}
         <div className="md:hidden mb-4">
@@ -379,7 +376,7 @@ export function DeliveryDetailPage() {
         )}
 
         {/* Voucher (sempre visível) */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="mb-6 bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -419,15 +416,15 @@ export function DeliveryDetailPage() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
               {hasVoucher ? (
                 <>
                   <button
                     type="button"
                     onClick={() => setShowVoucherModal(true)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:-translate-y-0.5 transition-all font-semibold"
                   >
-                    <QrCode className="w-4 h-4" />
+                    <QrCode className="w-5 h-5" />
                     {t("partner.voucher.openCard")}
                   </button>
                   <button
@@ -441,7 +438,7 @@ export function DeliveryDetailPage() {
                           : t("partner.voucher.copyFailed"),
                       );
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors font-medium"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-all font-medium"
                   >
                     <Copy className="w-4 h-4" />
                     {t("partner.voucher.copy")}
@@ -451,27 +448,27 @@ export function DeliveryDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowVoucherModal(true)}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:-translate-y-0.5 transition-all font-bold text-base"
                 >
-                  <Ticket className="w-4 h-4" />
+                  <Ticket className="w-5 h-5" />
                   {t("partner.voucher.generate")}
                 </button>
               ) : canUploadAssets ? (
                 <Link
                   to={`/partner/deliveries/${deliveryId}/upload`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-500 text-white hover:bg-pink-600 transition-colors font-medium"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:-translate-y-0.5 transition-all font-bold text-base"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                   {t("partner.details.sendFiles")}
                 </Link>
               ) : (
                 <button
                   type="button"
                   disabled
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 font-medium cursor-not-allowed"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-gray-400 dark:text-gray-500 font-medium cursor-not-allowed"
                   title="Entrega finalizada"
                 >
-                  <Ticket className="w-4 h-4" />
+                  <Ticket className="w-5 h-5" />
                   {t("partner.voucher.unavailable")}
                 </button>
               )}
@@ -505,7 +502,7 @@ export function DeliveryDetailPage() {
         )}
 
         {/* Assets Grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {t("partner.details.files")} ({delivery.assets_count})
@@ -513,13 +510,15 @@ export function DeliveryDetailPage() {
             {!hasVoucher ? (
               <Link
                 to={`/partner/deliveries/${deliveryId}/upload`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 hover:bg-pink-100 dark:hover:bg-pink-900/40 rounded-xl font-semibold transition-colors"
               >
-                <Plus className="w-4 h-4" />
+                <div className="w-5 h-5 rounded-full bg-pink-200 dark:bg-pink-800 flex items-center justify-center">
+                  <Plus className="w-3 h-3 text-pink-700 dark:text-pink-300" />
+                </div>
                 {t("partner.details.add")}
               </Link>
             ) : (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400">
                 {t("partner.details.finalizedAdd")}
               </span>
             )}
@@ -544,7 +543,7 @@ export function DeliveryDetailPage() {
               {delivery.assets.map((asset) => (
                 <div
                   key={asset.key}
-                  className="group relative rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-3"
+                  className="group relative rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex items-start gap-3">
@@ -579,6 +578,13 @@ export function DeliveryDetailPage() {
             </div>
           )}
         </div>
+        
+        {/* Helper text for finalized deliveries */}
+        {hasVoucher && (
+           <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">
+             Esta entrega foi finalizada. Para adicionar mais fotos, é necessário gerar um novo voucher.
+           </p>
+        )}
       </PartnerPage>
 
       {/* Voucher Modal */}

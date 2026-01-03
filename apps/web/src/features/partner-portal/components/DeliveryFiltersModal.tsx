@@ -196,7 +196,7 @@ function FilterSelect({
           w-full appearance-none px-4 py-2.5 pr-10 
           bg-white dark:bg-gray-800/80 
           border border-gray-200 dark:border-gray-700/80 
-          rounded-xl 
+          rounded-2xl 
           text-sm text-gray-900 dark:text-white
           focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500
           transition-all duration-200
@@ -232,7 +232,7 @@ function FilterChipButton({
       type="button"
       onClick={onClick}
       className={`
-        px-3 py-1.5 rounded-lg text-sm font-medium
+        px-3.5 py-2 rounded-xl text-sm font-medium
         transition-all duration-200 ease-out
         ${
           active
@@ -326,7 +326,7 @@ export function DeliveryFiltersModal({
         {/* Header */}
         <DrawerHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-pink-50 dark:bg-pink-900/30">
+            <div className="p-2.5 rounded-2xl bg-pink-50 dark:bg-pink-900/30">
               <Filter className="w-5 h-5 text-pink-500 dark:text-pink-400" />
             </div>
             <div>
@@ -548,7 +548,7 @@ export function DeliveryFiltersModal({
                         onChange={(e) =>
                           updateFilter("createdFrom", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
                       />
                     </label>
                     <label className="block">
@@ -561,7 +561,7 @@ export function DeliveryFiltersModal({
                         onChange={(e) =>
                           updateFilter("createdTo", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
                       />
                     </label>
                   </div>
@@ -605,7 +605,7 @@ export function DeliveryFiltersModal({
                         onChange={(e) =>
                           updateFilter("redeemedFrom", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
                       />
                     </label>
                     <label className="block">
@@ -618,7 +618,7 @@ export function DeliveryFiltersModal({
                         onChange={(e) =>
                           updateFilter("redeemedTo", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500"
                       />
                     </label>
                   </div>
@@ -640,7 +640,7 @@ export function DeliveryFiltersModal({
                       type="button"
                       onClick={() => onSelectPreset(preset)}
                       className={`
-                        w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                        w-full flex items-center gap-3 px-4 py-3 rounded-2xl
                         transition-all duration-200
                         ${
                           selectedPresetId === preset.id
@@ -668,7 +668,7 @@ export function DeliveryFiltersModal({
               {/* Meus presets */}
               <div className="space-y-4">
                 {/* Card de Salvar - sempre visível */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 border border-pink-100 dark:border-pink-800/50">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 border border-pink-100 dark:border-pink-800/50 shadow-sm">
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
                       <Bookmark className="w-5 h-5 text-pink-500" />
@@ -749,7 +749,7 @@ export function DeliveryFiltersModal({
                         <div
                           key={preset.id}
                           className={`
-                          flex items-center gap-3 px-4 py-3 rounded-xl
+                          flex items-center gap-3 px-4 py-3 rounded-2xl
                           transition-all duration-200
                           ${
                             selectedPresetId === preset.id

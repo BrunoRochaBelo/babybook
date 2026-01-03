@@ -67,6 +67,89 @@
     "profile": "Perfil"
   },
   "partner": {
+    "auth": {
+      "login": {
+        "title": "Portal do Parceiro",
+        "subtitle": "Entre para gerenciar suas entregas",
+        "backToHome": "Voltar para Baby Book Pro",
+        "noAccount": "Ainda não tem conta?",
+        "registerLink": "Cadastre-se grátis",
+        "forgotPassword": "Esqueci minha senha",
+        "rememberMe": "Lembrar de mim",
+        "submit": "Entrar",
+        "submitting": "Entrando...",
+        "errors": {
+          "emailRequired": "Informe seu e-mail",
+          "passwordRequired": "Informe sua senha",
+          "notPartner": "Sua conta não é uma conta de parceiro. Entre em contato com o suporte.",
+          "invalid": "Email ou senha inválidos"
+        }
+      },
+      "register": {
+        "title": "Criar Conta de Parceiro",
+        "step": "Passo {{current}} de {{total}} — {{title}}",
+        "steps": {
+          "personal": "Dados Pessoais",
+          "contact": "Contato",
+          "security": "Segurança"
+        },
+        "fields": {
+          "name": {
+            "label": "Seu Nome *",
+            "placeholder": "Como você gostaria de ser chamado",
+            "error": "Informe seu nome"
+          },
+          "studio": {
+            "label": "Nome do Estúdio",
+            "placeholder": "Ex: Studio Encanto Fotografia",
+            "help": "Este nome aparecerá para seus clientes no app"
+          },
+          "email": {
+            "label": "E-mail *",
+            "help": "Usaremos este e-mail para login e comunicações importantes",
+            "error": "Informe seu e-mail",
+            "invalid": "Informe um e-mail válido"
+          },
+          "whatsapp": {
+            "label": "WhatsApp",
+            "help": "Para suporte prioritário e notificações rápidas"
+          },
+          "password": {
+            "label": "Senha *",
+            "placeholder": "Mínimo 8 caracteres",
+            "error": "Crie uma senha",
+            "min": "A senha deve ter pelo menos 8 caracteres"
+          },
+          "confirmPassword": {
+            "label": "Confirmar Senha *",
+            "placeholder": "Repita a senha",
+            "match": "Senhas conferem",
+            "mismatch": "As senhas não conferem"
+          },
+          "terms": {
+            "text": "Li e aceito os <1>Termos de Uso</1> e a <2>Política de Privacidade</2>",
+            "error": "Você precisa aceitar os termos de uso"
+          }
+        },
+        "actions": {
+          "back": "Voltar",
+          "continue": "Continuar",
+          "submit": "Criar Conta Grátis",
+          "submitting": "Criando conta...",
+          "backToHome": "Voltar para Baby Book Pro"
+        },
+        "links": {
+          "hasAccount": "Já tem uma conta?",
+          "login": "Entrar"
+        },
+        "benefits": {
+          "title": "Ao se cadastrar você ganha:",
+          "item1": "1 crédito de boas-vindas",
+          "item2": "Acesso ao Portal do Parceiro",
+          "item3": "Suporte prioritário"
+        }
+      }
+    },
     "dashboard": {
       "title": "Painel do Parceiro",
       "welcome": "Olá",

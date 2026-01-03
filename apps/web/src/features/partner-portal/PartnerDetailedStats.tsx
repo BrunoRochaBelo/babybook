@@ -57,7 +57,7 @@ function StatItem({
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
       <div
         className={cn(
           "w-10 h-10 rounded-lg flex items-center justify-center",
@@ -192,7 +192,7 @@ export function PartnerDetailedStats({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+    <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 p-6 mb-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">

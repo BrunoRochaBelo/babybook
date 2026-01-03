@@ -26,6 +26,7 @@ import {
   PartnerEmptyState,
   PartnerErrorState,
 } from "@/layouts/partnerStates";
+import { PartnerBackButton } from "@/layouts/PartnerBackButton";
 import { UploadSkeleton } from "./components/UploadSkeleton";
 import { useTranslation } from "@babybook/i18n";
 
@@ -136,13 +137,13 @@ export function DeliveryUploadPage() {
   return (
     <PartnerPage size="narrow">
       {/* Back Navigation */}
-      <Link
-        to={`/partner/deliveries/${deliveryId}`}
-        className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 mb-4 transition-all duration-200 rounded-lg px-2 py-1 -ml-2"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>{t("partner.upload.backToDelivery")}</span>
-      </Link>
+      {/* Back Navigation */}
+      <div className="mb-4">
+        <PartnerBackButton 
+          to={`/partner/deliveries/${deliveryId}`} 
+          label={t("partner.upload.backToDelivery")} 
+        />
+      </div>
 
       {/* Page Header */}
       <div className="hidden md:block mb-6">
@@ -163,7 +164,7 @@ export function DeliveryUploadPage() {
         </p>
       </div>
       {/* Current Stats */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-4 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center">
@@ -198,7 +199,7 @@ export function DeliveryUploadPage() {
         role="button"
         tabIndex={0}
         aria-label={t("partner.upload.zone.ariaLabel")}
-        className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer"
+        className="bg-white dark:bg-gray-800 rounded-[1.5rem] border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center hover:border-pink-400 dark:hover:border-pink-500 transition-colors cursor-pointer group"
         onClick={openFilePicker}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -304,14 +305,14 @@ export function DeliveryUploadPage() {
       <div className="mt-8 flex gap-4">
         <button
           onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
-          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
         >
           {t("partner.upload.list.cancel")}
         </button>
         <button
           onClick={() => navigate(`/partner/deliveries/${deliveryId}`)}
           disabled={isUploading}
-          className="flex-1 px-4 py-3 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 font-medium"
+          className="flex-1 px-4 py-3 bg-pink-500 text-white rounded-2xl hover:bg-pink-600 transition-colors disabled:opacity-50 font-medium"
         >
           {isUploading ? t("partner.upload.list.wait") : t("partner.upload.list.finish")}
         </button>

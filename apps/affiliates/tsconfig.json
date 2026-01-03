@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/config/tsconfig/base.json",
+  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "types": ["vite/client", "vitest/globals", "node", "react", "react-dom"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@babybook/contracts": ["../../packages/contracts/src"],
+      "@babybook/ui": ["../../packages/ui/src"],
+      "@babybook/utils": ["../../packages/utils/src"],
+      "@babybook/i18n": ["../../packages/i18n/src"]
+    }
+  }
+}

@@ -27,10 +27,14 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  Sparkles,
+  LayoutTemplate,
+  Gift,
 } from "lucide-react";
 import { registerPartner } from "./api";
 import type { OnboardingRequest } from "./types";
 import { ValidatedInput, validationRules } from "@/components/ValidatedInput";
+import { cn } from "@/lib/utils";
 
 // Step configuration
 const STEPS = [
@@ -47,6 +51,7 @@ export function PartnerRegisterPage() {
 
   // Step state
   const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
 
   // Form fields
   const [name, setName] = useState("");
@@ -120,12 +125,14 @@ export function PartnerRegisterPage() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      setDirection("forward");
       setCurrentStep((prev) => Math.min(prev + 1, 3));
     }
   };
 
   const handleBack = () => {
     setError(null);
+    setDirection("back");
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
@@ -154,17 +161,17 @@ export function PartnerRegisterPage() {
 
   // Render step indicator
   const renderStepper = () => (
-    <div className="mb-8">
+    <div className="mb-10 px-4">
       {/* Progress bar and circles */}
-      <div className="relative flex items-center justify-between">
+      <div className="relative flex items-center justify-between max-w-xs mx-auto">
         {/* Background line */}
-        <div className="absolute left-0 right-0 top-6 h-0.5 bg-gray-200 dark:bg-gray-600 mx-6 sm:mx-8" />
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-100 dark:bg-gray-700/50 rounded-full" />
 
         {/* Progress line (animated) */}
         <div
-          className="absolute left-0 top-6 h-0.5 bg-pink-500 transition-all duration-500 ease-out mx-6 sm:mx-8"
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-500 ease-out"
           style={{
-            width: `calc(${((currentStep - 1) / (STEPS.length - 1)) * 100}% - ${currentStep === 1 ? "0px" : currentStep === 3 ? "0px" : "0px"})`,
+            width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%`,
           }}
         />
 
@@ -174,42 +181,33 @@ export function PartnerRegisterPage() {
           const isCurrent = currentStep === step.id;
 
           return (
-            <div
-              key={step.id}
-              className="flex flex-col items-center z-10 flex-1"
-            >
+            <div key={step.id} className="relative z-10 group">
               {/* Step circle */}
               <div
-                className={`
-                  relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center
-                  transition-all duration-300 ease-out
-                  ${
-                    isCompleted
-                      ? "bg-pink-500 text-white shadow-lg shadow-pink-200 dark:shadow-pink-900/50"
-                      : isCurrent
-                        ? "bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-400 ring-4 ring-pink-50 dark:ring-pink-900/40 border-2 border-pink-300 dark:border-pink-500"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-2 border-gray-200 dark:border-gray-600"
-                  }
-                `}
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ease-out border-4",
+                  isCompleted
+                    ? "bg-gradient-to-br from-pink-500 to-rose-600 text-white border-white dark:border-gray-800 shadow-lg shadow-pink-500/30 scale-100"
+                    : isCurrent
+                      ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 border-pink-100 dark:border-pink-900 ring-2 ring-pink-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 scale-110"
+                      : "bg-white dark:bg-gray-800 text-gray-300 dark:text-gray-600 border-gray-100 dark:border-gray-700",
+                )}
               >
                 {isCompleted ? (
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Check className="w-5 h-5" />
                 ) : (
-                  <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
-                {/* Pulse animation for current step */}
-                {isCurrent && (
-                  <span className="absolute inset-0 rounded-full animate-ping bg-pink-400 opacity-20" />
+                  <StepIcon className="w-4 h-4" />
                 )}
               </div>
 
-              {/* Step label */}
+              {/* Step label - hidden on mobile small */}
               <span
-                className={`
-                  mt-2 text-[10px] sm:text-xs font-medium text-center leading-tight
-                  transition-colors duration-300 px-1
-                  ${isCurrent ? "text-pink-600 dark:text-pink-400" : isCompleted ? "text-pink-500 dark:text-pink-400" : "text-gray-400 dark:text-gray-500"}
-                `}
+                className={cn(
+                  "absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300",
+                  isCurrent
+                    ? "text-pink-600 dark:text-pink-400 translate-y-0 opacity-100"
+                    : "text-gray-400 dark:text-gray-500 translate-y-1 opacity-0 sm:opacity-70",
+                )}
               >
                 {step.title}
               </span>
@@ -222,45 +220,50 @@ export function PartnerRegisterPage() {
 
   // Render step 1: Personal data
   const renderStep1 = () => (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-300">
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5"
         >
-          Seu Nome *
+          Seu Nome <span className="text-pink-500">*</span>
         </label>
-        <input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Como você gostaria de ser chamado"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
-          autoComplete="name"
-          autoFocus
-        />
+        <div className="relative group">
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Como você gostaria de ser chamado"
+            className="w-full pl-4 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 group-hover:bg-white dark:group-hover:bg-gray-800"
+            autoComplete="name"
+            autoFocus
+          />
+        </div>
       </div>
 
       <div>
         <label
           htmlFor="studioName"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5"
         >
           Nome do Estúdio{" "}
-          <span className="text-gray-400 dark:text-gray-500 font-normal">
+          <span className="text-gray-400 dark:text-gray-500 font-normal text-xs ml-1">
             (opcional)
           </span>
         </label>
-        <input
-          id="studioName"
-          type="text"
-          value={studioName}
-          onChange={(e) => setStudioName(e.target.value)}
-          placeholder="Ex: Studio Encanto Fotografia"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
-        />
-        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <div className="relative group">
+          <input
+            id="studioName"
+            type="text"
+            value={studioName}
+            onChange={(e) => setStudioName(e.target.value)}
+            placeholder="Ex: Studio Encanto Fotografia"
+            className="w-full pl-4 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 group-hover:bg-white dark:group-hover:bg-gray-800"
+          />
+        </div>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+          <Sparkles className="w-3 h-3 text-amber-500" />
           Este nome aparecerá para seus clientes no app
         </p>
       </div>
@@ -269,7 +272,7 @@ export function PartnerRegisterPage() {
 
   // Render step 2: Contact info
   const renderStep2 = () => (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-300">
       <ValidatedInput
         label="E-mail *"
         type="email"
@@ -280,29 +283,32 @@ export function PartnerRegisterPage() {
         autoFocus
         rules={[validationRules.email]}
         validateDelay={300}
-        helperText="Usaremos este e-mail para login e comunicações importantes"
+        helperText="Usaremos este e-mail para login e comunicações"
+        className="w-full pl-4 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 hover:bg-white dark:hover:bg-gray-800"
       />
 
       <div>
         <label
           htmlFor="phone"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5"
         >
           WhatsApp{" "}
-          <span className="text-gray-400 dark:text-gray-500 font-normal">
+          <span className="text-gray-400 dark:text-gray-500 font-normal text-xs ml-1">
             (opcional)
           </span>
         </label>
-        <input
-          id="phone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(formatPhone(e.target.value))}
-          placeholder="(11) 99999-9999"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
-          autoComplete="tel"
-        />
-        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <div className="relative group">
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
+            placeholder="(11) 99999-9999"
+            className="w-full pl-4 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 group-hover:bg-white dark:group-hover:bg-gray-800"
+            autoComplete="tel"
+          />
+        </div>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Para suporte prioritário e notificações rápidas
         </p>
       </div>
@@ -311,29 +317,29 @@ export function PartnerRegisterPage() {
 
   // Render step 3: Security
   const renderStep3 = () => (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-300">
       <div>
         <label
           htmlFor="password"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5"
         >
-          Senha *
+          Senha <span className="text-pink-500">*</span>
         </label>
-        <div className="relative">
+        <div className="relative group">
           <input
             id="password"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mínimo 8 caracteres"
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="w-full pl-4 pr-12 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 group-hover:bg-white dark:group-hover:bg-gray-800"
             autoComplete="new-password"
             autoFocus
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors p-1"
           >
             {showPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -343,47 +349,46 @@ export function PartnerRegisterPage() {
           </button>
         </div>
         {/* Password strength indicator */}
-        {password && (
-          <div className="mt-2 flex gap-1">
-            {[1, 2, 3, 4].map((level) => (
-              <div
-                key={level}
-                className={`h-1 flex-1 rounded-full transition-colors ${
-                  password.length >= level * 3
-                    ? password.length >= 12
-                      ? "bg-green-500"
-                      : password.length >= 8
-                        ? "bg-yellow-500"
-                        : "bg-red-400"
-                    : "bg-gray-200 dark:bg-gray-600"
-                }`}
-              />
-            ))}
-          </div>
-        )}
+        <div className="mt-2 h-1 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex gap-1">
+          {[1, 2, 3, 4].map((level) => (
+            <div
+              key={level}
+              className={cn(
+                "h-full flex-1 rounded-full transition-all duration-500",
+                password.length >= level * 3
+                  ? password.length >= 12
+                    ? "bg-emerald-500"
+                    : password.length >= 8
+                      ? "bg-amber-500"
+                      : "bg-rose-500"
+                  : "bg-transparent",
+              )}
+            />
+          ))}
+        </div>
       </div>
 
       <div>
         <label
           htmlFor="confirmPassword"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5"
         >
-          Confirmar Senha *
+          Confirmar Senha <span className="text-pink-500">*</span>
         </label>
-        <div className="relative">
+        <div className="relative group">
           <input
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repita a senha"
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors pr-10 sm:pr-12 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="w-full pl-4 pr-12 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 group-hover:bg-white dark:group-hover:bg-gray-800"
             autoComplete="new-password"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors p-1"
           >
             {showConfirmPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -395,40 +400,45 @@ export function PartnerRegisterPage() {
         {/* Match indicator */}
         {confirmPassword && (
           <p
-            className={`mt-1.5 text-xs flex items-center gap-1 ${
-              password === confirmPassword ? "text-green-600" : "text-red-500"
-            }`}
+            className={cn(
+              "mt-2 text-xs font-medium flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2",
+              password === confirmPassword ? "text-emerald-600" : "text-rose-500"
+            )}
           >
             {password === confirmPassword ? (
               <>
-                <Check className="w-3 h-3" /> Senhas conferem
+                <CheckCircle2 className="w-3.5 h-3.5" /> Senhas conferem
               </>
             ) : (
-              "As senhas não conferem"
+              <>
+                 <AlertCircle className="w-3.5 h-3.5" /> Senhas não conferem
+              </>
             )}
           </p>
         )}
       </div>
 
       <div className="pt-2">
-        <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
-          <input
-            id="terms"
-            type="checkbox"
-            checked={acceptTerms}
-            onChange={(e) => setAcceptTerms(e.target.checked)}
-            className="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-pink-500 focus:ring-pink-500 dark:bg-gray-700"
-          />
+        <div className="flex items-start gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          <div className="relative flex items-center h-5">
+             <input
+              id="terms"
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              className="w-5 h-5 rounded-md border-gray-300 dark:border-gray-600 text-pink-600 focus:ring-pink-500 dark:bg-gray-700 cursor-pointer"
+            />
+          </div>
           <label
             htmlFor="terms"
-            className="text-sm text-gray-600 dark:text-gray-400"
+            className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none"
           >
             Li e aceito os{" "}
             <Link
               to="/termos"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
+              className="font-bold text-gray-900 dark:text-white hover:text-pink-600 dark:hover:text-pink-400 transition-colors underline decoration-gray-300 dark:decoration-gray-600 underline-offset-2"
             >
               Termos de Uso
             </Link>{" "}
@@ -437,10 +447,10 @@ export function PartnerRegisterPage() {
               to="/privacidade"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 underline"
+              className="font-bold text-gray-900 dark:text-white hover:text-pink-600 dark:hover:text-pink-400 transition-colors underline decoration-gray-300 dark:decoration-gray-600 underline-offset-2"
             >
               Política de Privacidade
-            </Link>
+            </Link>.
           </label>
         </div>
       </div>
@@ -462,164 +472,141 @@ export function PartnerRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col">
-      {/* CSS Animation */}
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateX(10px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-      `}</style>
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-50 via-white to-pink-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      
+      {/* Background Decor */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-pink-200/20 to-purple-200/20 dark:from-pink-900/10 dark:to-purple-900/10 rounded-full blur-[100px] -mr-40 -mt-40" />
+         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-blue-200/20 to-emerald-200/20 dark:from-blue-900/10 dark:to-emerald-900/10 rounded-full blur-[100px] -ml-40 -mb-40" />
+      </div>
 
-      {/* Header */}
-      <header className="p-4">
-        <a
-          href={proUrl}
-          className="inline-flex items-center gap-2"
-          rel="noreferrer"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
-            <Heart className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">
-            Baby Book{" "}
-            <span className="text-pink-600 dark:text-pink-400">Pro</span>
-          </span>
-        </a>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:p-4 sm:py-8">
-        <div className="w-full max-w-md sm:max-w-lg">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-5 sm:p-8 border border-gray-100 dark:border-gray-700">
-            {/* Header */}
-            <div className="text-center mb-4 sm:mb-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-pink-100 dark:bg-pink-900/50 rounded-full mb-3">
-                <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-pink-600 dark:text-pink-400" />
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                Criar Conta de Parceiro
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs sm:text-sm">
-                Passo {currentStep} de 3 — {STEPS[currentStep - 1].title}
-              </p>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        {/* Header Branding */}
+        <div className="text-center mb-8">
+          <Link
+            to={proUrl}
+            className="inline-flex items-center gap-3 group"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-pink-500/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
+               <Heart className="w-6 h-6 fill-current" />
             </div>
-
-            {/* Stepper */}
-            {renderStepper()}
-
-            {/* Error Alert */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300">
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
-              {/* Step Content */}
-              {renderStepContent()}
-
-              {/* Navigation Buttons */}
-              <div className="mt-6 sm:mt-8 flex gap-2 sm:gap-3">
-                {currentStep > 1 && (
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm sm:text-base font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span className="hidden xs:inline">Voltar</span>
-                    <span className="xs:hidden">←</span>
-                  </button>
-                )}
-
-                {currentStep < 3 ? (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-pink-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-pink-600 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
-                  >
-                    Continuar
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={registerMutation.isPending}
-                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-pink-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2"
-                  >
-                    {registerMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                        <span className="hidden sm:inline">
-                          Criando conta...
-                        </span>
-                        <span className="sm:hidden">Aguarde...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span className="hidden sm:inline">
-                          Criar Conta Grátis
-                        </span>
-                        <span className="sm:hidden">Criar Conta</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </form>
-
-            {/* Benefits List - only show on first step */}
-            {currentStep === 1 && (
-              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-100 dark:border-green-800">
-                <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-                  Ao se cadastrar você ganha:
-                </p>
-                <ul className="space-y-1">
-                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
-                    <CheckCircle2 className="w-4 h-4" />1 crédito de boas-vindas
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Acesso ao Portal do Parceiro
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Suporte prioritário
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {/* Login Link */}
-            <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-              Já tem uma conta?{" "}
-              <Link
-                to="/pro/login"
-                className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
-              >
-                Entrar
-              </Link>
-            </div>
-          </div>
-
-          {/* Back to Home */}
-          <div className="text-center mt-6">
-            <a
-              href={proUrl}
-              className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-200 rounded-lg px-3 py-1.5"
-            >
-              ← Voltar para Baby Book Pro
-            </a>
-          </div>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              BabyBook <span className="text-pink-600 dark:text-pink-400">Pro</span>
+            </span>
+          </Link>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+             Crie sua conta parceira
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Comece a encantar seus clientes hoje mesmo.
+          </p>
         </div>
-      </main>
+
+        {/* Main Card */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl py-8 px-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 rounded-[2rem] border border-white/50 dark:border-gray-700/50 sm:px-10 relative">
+          
+          {/* Stepper */}
+          {renderStepper()}
+
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center gap-3 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
+              <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center flex-shrink-0">
+                 <AlertCircle className="w-4 h-4" />
+              </div>
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="relative min-h-[280px] flex flex-col justify-between">
+            {/* Step Content Area */}
+            <div className="flex-1">
+               {renderStepContent()}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-gray-700/50">
+              {currentStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="flex-1 py-3.5 px-4 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Voltar
+                </button>
+              ) : (
+                 <Link
+                    to="/pro/login"
+                    className="flex-1 py-3.5 px-4 bg-transparent text-gray-500 dark:text-gray-400 text-sm font-bold rounded-2xl hover:text-gray-900 dark:hover:text-white transition-colors flex items-center justify-center"
+                 >
+                    Ja tenho conta
+                 </Link>
+              )}
+
+              {currentStep < 3 ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex-[2] py-3.5 px-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold rounded-2xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-all active:scale-[0.98] shadow-lg shadow-gray-900/20 dark:shadow-white/10 flex items-center justify-center gap-2 group"
+                >
+                  Continuar
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={registerMutation.isPending}
+                  className="flex-[2] py-3.5 px-4 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-sm font-bold rounded-2xl hover:from-pink-600 hover:to-rose-700 transition-all active:scale-[0.98] shadow-lg shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {registerMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Finalizar Cadastro
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </form>
+          
+        </div>
+
+        {/* Benefits List - only show on first step */}
+       {currentStep === 1 && (
+            <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+              <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
+                 Benefícios exclusivos
+              </p>
+              <div className="flex justify-center gap-6">
+                 <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
+                       <Gift className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 max-w-[80px] leading-tight">1 crédito grátis</span>
+                 </div>
+                <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1">
+                       <LayoutTemplate className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 max-w-[80px] leading-tight">Portal completo</span>
+                 </div>
+                 <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1">
+                       <Sparkles className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 max-w-[80px] leading-tight">Suporte VIP</span>
+                 </div>
+              </div>
+            </div>
+       )}
+      </div>
     </div>
   );
 }

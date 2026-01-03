@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
   useParams,
+  useLocation,
 } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import { PartnerLayout } from "@/layouts/PartnerLayout";
@@ -36,6 +37,7 @@ import {
   PartnerSettingsPage,
   DeliveryUploadPage,
   PartnerNotificationsPage,
+  CreditsExtractPage,
 } from "@/features/partner-portal";
 // Voucher Redemption
 import { VoucherRedemptionPage } from "@/features/vouchers";
@@ -58,6 +60,18 @@ import {
   AssinaturaPage,
   ArmazenamentoPage,
 } from "@/features/settings";
+import { useEffect } from "react";
+import { captureAffiliateReferralFromSearch } from "@/lib/affiliate-referral";
+
+function ReferralCapture() {
+  const location = useLocation();
+
+  useEffect(() => {
+    captureAffiliateReferralFromSearch(location.search);
+  }, [location.search]);
+
+  return null;
+}
 
 function LegacyMomentosRedirect() {
   return <Navigate to="/jornada" replace />;
@@ -75,6 +89,7 @@ function LegacyJourneyChaptersRedirect() {
 export function AppRouter() {
   return (
     <Router future={{ v7_relativeSplatPath: true }}>
+      <ReferralCapture />
       <Routes>
         {/* Main app routes with layout */}
         <Route
@@ -186,6 +201,7 @@ export function AppRouter() {
         >
           <Route path="/partner" element={<PartnerDashboard />} />
           <Route path="/partner/credits" element={<CreditsPage />} />
+          <Route path="/partner/credits/extract" element={<CreditsExtractPage />} />
           <Route path="/partner/settings" element={<PartnerSettingsPage />} />
           <Route
             path="/partner/notifications"

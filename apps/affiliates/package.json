@@ -1,0 +1,55 @@
+{
+  "name": "@babybook/affiliates",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "cross-env VITE_ENABLE_MSW=true vite",
+    "dev:real": "cross-env VITE_ENABLE_MSW=false vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs",
+    "test": "vitest",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "@babybook/contracts": "workspace:*",
+    "@babybook/i18n": "workspace:*",
+    "@babybook/ui": "workspace:*",
+    "@babybook/utils": "workspace:*",
+    "@tanstack/react-query": "^5.51.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.487.0",
+    "nanoid": "^5.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "sonner": "^2.0.3",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@babybook/config": "workspace:*",
+    "@testing-library/jest-dom": "^6.4.3",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.9.3",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.2",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
+    "msw": "^2.4.2",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.9",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vitest": "^2.0.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

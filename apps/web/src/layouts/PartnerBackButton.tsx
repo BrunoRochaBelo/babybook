@@ -33,13 +33,13 @@ export function PartnerBackButton({
   const navigate = useNavigate();
 
   const baseClass = cn(
-    "inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400",
+    "inline-flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-400",
     "hover:text-pink-600 dark:hover:text-pink-400",
     "hover:bg-pink-50 dark:hover:bg-pink-900/20",
     "transition-all duration-200 mb-4",
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2",
     "dark:focus-visible:ring-offset-gray-900",
-    "rounded-lg px-2 py-1 -ml-2",
+    "rounded-xl px-4 py-2 -ml-4",
     className,
   );
 

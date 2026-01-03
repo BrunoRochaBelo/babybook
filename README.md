@@ -144,6 +144,22 @@ Em outro terminal, rode a SPA:
 pnpm run dev:web
 ```
 
+Para rodar o **Portal de Afiliados** (mock por padrão, com MSW + localStorage):
+
+```bash
+pnpm run dev:affiliates
+```
+
+Alternativas:
+
+```bash
+# Mock explícito (recomendado)
+pnpm run dev:affiliates:mock
+
+# Real (chama backend em VITE_API_BASE_URL)
+pnpm run dev:affiliates:real
+```
+
 Para iniciar landing page, API e workers em paralelo, use (recomendado com o venv Python ativo):
 
 Windows (PowerShell):
@@ -152,6 +168,8 @@ Windows (PowerShell):
 & .\.venv\Scripts\Activate.ps1  # se ainda não estiver ativo
 pnpm run dev:all
 ```
+
+> Nota: `dev:all` também sobe o **Portal de Afiliados** (apps/affiliates) quando disponível.
 
 Atalhos:
 
@@ -186,6 +204,16 @@ Observações:
 - A Landing Page roda por padrão em http://localhost:3001
 - API (FastAPI) roda em http://localhost:8000
 - Web (React/Vite) roda em http://localhost:5173
+- Afiliados (React/Vite) roda em http://localhost:5176
+
+### Tracking de afiliados (ref)
+
+O tracking de afiliados usa querystring `?ref=CODIGO` (também aceita `affiliate`/`affiliate_code`).
+
+- Landingpage e Web capturam o código e persistem em `localStorage` com TTL (30 dias).
+- No modo mock/dev, o Web pode registrar uma venda no mock do portal via bridge (iframe) em `/bridge/record-sale`.
+
+Para configurar o link que o afiliado copia (onde o público entra), use `VITE_REFERRAL_LINK_BASE_URL` no `apps/affiliates`.
 
 Isso irá iniciar os apps em modo watch (hot-reload):
 

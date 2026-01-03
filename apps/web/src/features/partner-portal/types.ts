@@ -203,3 +203,23 @@ export interface OnboardingResponse {
   partner_id: string;
   status: string;
 }
+
+// =============================================================================
+// Histórico de Créditos
+// =============================================================================
+
+export interface CreditHistoryItem {
+  id: string;
+  type: "purchase" | "consumption" | "refund" | "bonus" | "adjustment";
+  amount: number; // positivo ou negativo
+  balance_after: number;
+  description: string;
+  related_entity_id?: string; // ID da entrega, pagamento, etc.
+  created_at: string;
+}
+
+export interface CreditHistoryResponse {
+  items: CreditHistoryItem[];
+  total: number;
+  has_more: boolean;
+}

@@ -29,6 +29,8 @@ interface ValidatedInputProps
   /** Mensagem de erro vinda de validação externa (ex.: react-hook-form). */
   error?: string;
   containerClassName?: string;
+  icon?: React.ElementType; // Icon component
+  rightElement?: React.ReactNode; // Element to render on the right side (e.g. password toggle)
 }
 
 export function ValidatedInput({
@@ -44,6 +46,8 @@ export function ValidatedInput({
   containerClassName,
   className,
   id,
+  icon: Icon,
+  rightElement,
   ...props
 }: ValidatedInputProps) {
   const [status, setStatus] = useState<ValidationStatus>("idle");
@@ -130,13 +134,19 @@ export function ValidatedInput({
         </label>
       )}
       <div className="relative">
+        {Icon && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <Icon className="w-5 h-5" />
+          </div>
+        )}
         <input
           id={inputId}
           value={value}
           onChange={onChange}
           onBlur={handleBlur}
           className={cn(
-            "w-full px-4 py-3 border rounded-xl transition-colors",
+            "w-full py-3 border rounded-xl transition-colors",
+            Icon ? "pl-12 pr-4" : "px-4",
             "focus:ring-2 focus:ring-pink-500 focus:border-pink-500",
             "placeholder:text-gray-400 dark:placeholder:text-gray-500",
             "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
@@ -148,14 +158,16 @@ export function ValidatedInput({
               "border-gray-300 dark:border-gray-600",
             effectiveStatus === "validating" &&
               "border-gray-300 dark:border-gray-600",
-            showValidation && value && "pr-12",
+            (showValidation && value) || rightElement ? "pr-12" : "",
+             rightElement && (showValidation && value) ? "pr-20" : "", // Adjust padding if both exist
             className,
           )}
           {...props}
         />
-        {statusIcon && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            {statusIcon}
+        {(statusIcon || rightElement) && (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+             {rightElement}
+             {statusIcon}
           </div>
         )}
       </div>

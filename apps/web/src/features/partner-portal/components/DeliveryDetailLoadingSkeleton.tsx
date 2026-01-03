@@ -29,7 +29,7 @@ export function DeliveryDetailLoadingSkeleton() {
       </div>
 
       {/* Voucher Section Skeleton */}
-      <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="mb-6 bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="space-y-2">
             <Skeleton className="h-4 w-24 rounded" />
@@ -49,7 +49,7 @@ export function DeliveryDetailLoadingSkeleton() {
       </div>
 
       {/* Assets Grid Skeleton */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <Skeleton className="h-6 w-32 rounded" />
           <Skeleton className="h-8 w-24 rounded-lg" />

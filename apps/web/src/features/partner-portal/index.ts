@@ -17,6 +17,7 @@ export { PartnerRegisterPage } from "./PartnerRegisterPage";
 export { PartnerSettingsPage } from "./PartnerSettingsPage";
 export { DeliveryUploadPage } from "./DeliveryUploadPage";
 export { PartnerNotificationsPage } from "./PartnerNotificationsPage";
+export { CreditsExtractPage } from "./CreditsExtractPage";
 
 // Components
 export { VoucherCard } from "./VoucherCard";

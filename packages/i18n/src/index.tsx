@@ -161,3 +161,6 @@ export function t(key: string, options?: Record<string, unknown>): string {
   ensureInit();
   return i18next.t(key, options);
 }
+
+// Exportar componente Trans
+export { Trans } from "react-i18next";

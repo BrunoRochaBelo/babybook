@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   CreditCard,
@@ -80,8 +81,6 @@ export function CreditsPage() {
     useMemo(
       () => ({
         title: t("partner.credits.title"),
-        backTo: "/partner",
-        backLabel: t("partner.deliveries.list.backToPortal"),
       }),
       [t],
     ),
@@ -166,14 +165,8 @@ export function CreditsPage() {
     <PartnerPage>
       <div className="pb-60 lg:pb-12">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="hidden md:block">
-            <PartnerBackButton
-              to="/partner"
-              label={t("partner.deliveries.list.backToPortal")}
-            />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">
+        <div className="mb-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             {t("partner.credits.purchase.buyCredits")}
           </h1>
           <p className="text-base text-gray-500 dark:text-gray-400 mt-2 max-w-2xl">
@@ -189,6 +182,8 @@ export function CreditsPage() {
               available={stats?.voucher_balance ?? profile?.voucher_balance ?? 0}
               reserved={stats?.reserved_credits ?? 0}
             />
+            
+
 
             {/* Error Message */}
             {error && (
@@ -220,39 +215,42 @@ export function CreditsPage() {
             </div>
 
             {/* Info Section (Moved from bottom) */}
-            <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
-              <h3 className="flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-200 mb-4">
-                <Info className="w-5 h-5" />
+            {/* Info Section (Refined) */}
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-6">
+                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                  <Info className="w-5 h-5" />
+                </div>
                 {t("partner.credits.purchase.howItWorks")}
               </h3>
-              <ul className="grid gap-3 text-sm text-blue-800 dark:text-blue-300">
-                <li className="flex gap-2">
-                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+              <ul className="space-y-4 text-sm text-gray-600 dark:text-gray-300">
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
                   <span
                     dangerouslySetInnerHTML={{
                       __html: t("partner.credits.purchase.info.reserved").replace(
                         "RESERVED",
-                        "<strong>RESERVED</strong>",
+                        '<strong class="text-gray-900 dark:text-white font-medium">RESERVED</strong>',
                       ),
                     }}
                   />
                 </li>
-                <li className="flex gap-2">
-                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
                   <span
                     dangerouslySetInnerHTML={{
                       __html: t("partner.credits.purchase.info.consumed")
-                        .replace("CONSUMED", "<strong>CONSUMED</strong>")
-                        .replace("REFUNDED", "<strong>REFUNDED</strong>"),
+                        .replace("CONSUMED", '<strong class="text-gray-900 dark:text-white font-medium">CONSUMED</strong>')
+                        .replace("REFUNDED", '<strong class="text-gray-900 dark:text-white font-medium">REFUNDED</strong>'),
                     }}
                   />
                 </li>
-                <li className="flex gap-2">
-                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
                   {t("partner.credits.purchase.info.unique")}
                 </li>
-                <li className="flex gap-2">
-                  <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
                   {t("partner.credits.purchase.info.expiration")}
                 </li>
               </ul>
@@ -319,7 +317,7 @@ export function CreditsPage() {
             <button
               onClick={handlePurchase}
               disabled={!selectedPackage || purchaseMutation.isPending}
-              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-white shadow-lg transition-all active:scale-[0.98] ${
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.98] ${
                 selectedPackage
                   ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-pink-500/25"
                   : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
@@ -354,7 +352,7 @@ function WalletCard({
   const { t } = useTranslation();
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-gray-950 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-800">
+    <div className="relative overflow-hidden bg-white dark:bg-gray-950 rounded-[1.5rem] p-6 shadow-xl border border-gray-200 dark:border-gray-800">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
@@ -403,6 +401,31 @@ function WalletCard({
               {t("partner.credits.waitingRedemption")}
             </p>
           </div>
+
+          {/* Desktop Link */}
+          <div className="hidden md:flex flex-col justify-center items-end md:border-l md:border-gray-200 dark:md:border-gray-800 md:pl-6">
+            <Link 
+              to="/partner/credits/extract"
+              className="group flex flex-col items-end"
+            >
+              <span className="text-xs font-semibold text-pink-600 dark:text-pink-400 group-hover:text-pink-700 dark:group-hover:text-pink-300 flex items-center gap-1 transition-colors">
+                Ver extrato <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+              <span className="text-[10px] text-gray-400 mt-1">
+                Histórico completo
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Mobile Link */}
+        <div className="md:hidden mt-2 pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-center">
+            <Link 
+              to="/partner/credits/extract"
+              className="text-sm font-medium text-pink-600 dark:text-pink-400 flex items-center gap-1"
+            >
+              Ver extrato completo <ArrowRight className="w-4 h-4" />
+            </Link>
         </div>
       </div>
     </div>
@@ -434,16 +457,17 @@ function OrderSummaryCard({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-lg border border-gray-200 dark:border-gray-700 p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
         {t("partner.credits.purchase.orderSummary")}
       </h3>
 
       {/* Payment Method Selector */}
-      <div className="bg-gray-100 dark:bg-gray-900/50 p-1 rounded-xl mb-6 flex">
+      {/* Payment Method Selector */}
+      <div className="bg-gray-100 dark:bg-gray-900/50 p-1.5 rounded-2xl mb-6 flex">
         <button
           onClick={() => setPaymentMethod("pix")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
             paymentMethod === "pix"
               ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
@@ -454,7 +478,7 @@ function OrderSummaryCard({
         </button>
         <button
           onClick={() => setPaymentMethod("card")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
             paymentMethod === "card"
               ? "bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
@@ -512,7 +536,7 @@ function OrderSummaryCard({
       <button
         onClick={onPurchase}
         disabled={!selectedPkg || isProcessing}
-        className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-white shadow-lg transition-all active:scale-[0.95] ${
+        className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.95] ${
           selectedPkg
             ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-pink-500/25"
             : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
@@ -581,9 +605,9 @@ function PackageCard({
       tabIndex={0}
       onClick={selectCard}
       onKeyDown={handleKeyDown}
-      className={`relative w-full rounded-xl border-2 text-left transition-all duration-200 cursor-pointer outline-none group ${
+      className={`relative w-full rounded-2xl border transition-all duration-300 cursor-pointer outline-none group ${
         selected
-          ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/10 ring-1 ring-pink-500 shadow-md z-10"
+          ? "border-pink-500 bg-pink-50/30 dark:bg-pink-900/10 shadow-lg shadow-pink-500/10 ring-1 ring-pink-500"
           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-md"
       }`}
     >

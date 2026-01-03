@@ -258,6 +258,127 @@ const vaultDocumentKindSchema = z.enum([
 ]);
 export type VaultDocumentKind = z.infer<typeof vaultDocumentKindSchema>;
 
+// =============================================================================
+// Afiliados (Affiliate Program)
+// =============================================================================
+
+const affiliateStatusSchema = z.enum(["active", "paused"]);
+export type AffiliateStatus = z.infer<typeof affiliateStatusSchema>;
+
+export const affiliatePayoutMethodSchema = z
+  .object({
+    pix_key: z.string().min(3).nullable().optional(),
+    bank_account: z
+      .object({
+        bank: z.string().min(1),
+        agency: z.string().min(1),
+        account: z.string().min(1),
+        document: z.string().min(1),
+        name: z.string().min(1),
+      })
+      .nullable()
+      .optional(),
+  })
+  .transform((method) => ({
+    pixKey: method.pix_key ?? null,
+    bankAccount: method.bank_account ?? null,
+  }));
+
+export type AffiliatePayoutMethod = z.infer<typeof affiliatePayoutMethodSchema>;
+
+const rawAffiliateSchema = z.object({
+  id: z.string().uuid(),
+  code: z.string().min(2),
+  name: z.string().min(1),
+  email: z.string().email(),
+  status: affiliateStatusSchema,
+  commission_rate: z.number().min(0).max(1),
+  created_at: isoDateSchema,
+  updated_at: isoDateSchema,
+  payout_method: affiliatePayoutMethodSchema.optional(),
+});
+
+export const affiliateSchema = rawAffiliateSchema.transform((affiliate) => ({
+  id: affiliate.id,
+  code: affiliate.code,
+  name: affiliate.name,
+  email: affiliate.email,
+  status: affiliate.status,
+  commissionRate: affiliate.commission_rate,
+  createdAt: affiliate.created_at,
+  updatedAt: affiliate.updated_at,
+  payoutMethod: affiliate.payout_method ?? null,
+}));
+
+export type Affiliate = z.infer<typeof affiliateSchema>;
+
+const saleStatusSchema = z.enum(["pending", "approved", "refunded"]);
+export type SaleStatus = z.infer<typeof saleStatusSchema>;
+
+const rawAffiliateSaleSchema = z.object({
+  id: z.string().uuid(),
+  affiliate_id: z.string().uuid(),
+  order_id: z.string().min(1),
+  occurred_at: isoDateSchema,
+  amount_cents: z.number().int().nonnegative(),
+  commission_cents: z.number().int().nonnegative(),
+  status: saleStatusSchema,
+});
+
+export const affiliateSaleSchema = rawAffiliateSaleSchema.transform((sale) => ({
+  id: sale.id,
+  affiliateId: sale.affiliate_id,
+  orderId: sale.order_id,
+  occurredAt: sale.occurred_at,
+  amountCents: sale.amount_cents,
+  commissionCents: sale.commission_cents,
+  status: sale.status,
+}));
+
+export type AffiliateSale = z.infer<typeof affiliateSaleSchema>;
+
+const payoutStatusSchema = z.enum(["requested", "paid", "rejected"]);
+export type PayoutStatus = z.infer<typeof payoutStatusSchema>;
+
+const rawAffiliatePayoutSchema = z.object({
+  id: z.string().uuid(),
+  affiliate_id: z.string().uuid(),
+  amount_cents: z.number().int().positive(),
+  status: payoutStatusSchema,
+  requested_at: isoDateSchema,
+  paid_at: isoDateSchema.nullable(),
+  note: z.string().nullable().optional(),
+});
+
+export const affiliatePayoutSchema = rawAffiliatePayoutSchema.transform(
+  (payout) => ({
+    id: payout.id,
+    affiliateId: payout.affiliate_id,
+    amountCents: payout.amount_cents,
+    status: payout.status,
+    requestedAt: payout.requested_at,
+    paidAt: payout.paid_at,
+    note: payout.note ?? null,
+  }),
+);
+
+export type AffiliatePayout = z.infer<typeof affiliatePayoutSchema>;
+
+const rawAffiliateProgramConfigSchema = z.object({
+  default_commission_rate: z.number().min(0).max(1),
+  minimum_payout_cents: z.number().int().nonnegative(),
+});
+
+export const affiliateProgramConfigSchema =
+  rawAffiliateProgramConfigSchema.transform((config) => ({
+    defaultCommissionRate: config.default_commission_rate,
+    minimumPayoutCents: config.minimum_payout_cents,
+  }));
+
+export type AffiliateProgramConfig = z.infer<
+  typeof affiliateProgramConfigSchema
+>;
+
 const rawVaultDocumentSchema = z.object({
   id: z.string().uuid(),
   child_id: z.string().uuid(),

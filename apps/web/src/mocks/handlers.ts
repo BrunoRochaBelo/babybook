@@ -159,6 +159,14 @@ const baseURL = resolveBaseUrl();
 const withBase = (path: string) =>
   baseURL.startsWith("http") ? `${baseURL}${path}` : `${baseURL}${path}`;
 
+const safeAffiliateCode = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  const code = value.trim();
+  if (!code) return undefined;
+  if (!/^[a-z0-9][a-z0-9_-]{2,63}$/i.test(code)) return undefined;
+  return code;
+};
+
 const toChildResponse = (child: Child) => ({
   id: child.id,
   name: child.name,
@@ -1669,6 +1677,58 @@ export const handlers = [
   // ==========================================================================
   // Settings Handlers (B2C)
   // ==========================================================================
+
+  // ==========================================================================
+  // Checkout (B2C) - mock simplificado
+  // ==========================================================================
+
+  http.post(withBase("/webhooks/checkout"), async ({ request }) => {
+    const body = (await request.json()) as {
+      package_key?: unknown;
+      affiliate_code?: unknown;
+    };
+
+    const packageKey =
+      typeof body.package_key === "string" && body.package_key
+        ? body.package_key
+        : "unlimited_social";
+    const affiliateCode = safeAffiliateCode(body.affiliate_code);
+
+    // Em mock mode, simulamos um "checkout_url" que volta para a SPA.
+    const url = new URL("/checkout/success", window.location.origin);
+    url.searchParams.set("account_id", activeUser.id);
+    url.searchParams.set("package_key", packageKey);
+    if (affiliateCode) {
+      url.searchParams.set("affiliate_code", affiliateCode);
+    }
+
+    return HttpResponse.json({
+      checkout_id: `chk_${nanoid(16)}`,
+      checkout_url: `${url.pathname}${url.search}`,
+    });
+  }),
+
+  http.post(withBase("/webhooks/mock-complete"), async ({ request }) => {
+    const body = (await request.json()) as {
+      account_id?: unknown;
+      package_key?: unknown;
+      affiliate_code?: unknown;
+    };
+
+    // Marca como comprado no mock.
+    activeUser.has_purchased = true;
+    activeUser.onboarding_completed = true;
+
+    const affiliateCode = safeAffiliateCode(body.affiliate_code);
+
+    return HttpResponse.json({
+      status: "ok",
+      account_id: typeof body.account_id === "string" ? body.account_id : null,
+      package_key:
+        typeof body.package_key === "string" ? body.package_key : null,
+      affiliate_code: affiliateCode ?? null,
+    });
+  }),
 
   // Get family members
   http.get(withBase("/me/settings/family"), () => {

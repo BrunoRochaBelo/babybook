@@ -31,8 +31,7 @@ export function DeliveriesLoadingSkeleton() {
 
       {/* Desktop: Table Skeleton */}
       <div className="hidden lg:block">
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="overflow-hidden">
+        <div className="overflow-hidden animate-pulse">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-900/30">
                 <tr>
@@ -99,7 +98,6 @@ export function DeliveriesLoadingSkeleton() {
                 ))}
               </tbody>
             </table>
-          </div>
         </div>
       </div>
     </div>
