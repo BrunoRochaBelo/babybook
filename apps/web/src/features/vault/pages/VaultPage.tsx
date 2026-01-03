@@ -105,7 +105,7 @@ export const VaultPage = () => {
 
       <div className="mb-6">
         <HudCard
-          title={"HUD \u2022 cofre familiar"}
+          title="Cofre Familiar"
           value={`${storedEssentials} de ${DOCUMENT_SLOTS.length} documentos essenciais`}
           description="Tudo criptografado e visível apenas para você, o dono do álbum."
           progressPercent={essentialsPercent}

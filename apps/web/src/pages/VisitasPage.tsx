@@ -7,6 +7,7 @@ import {
   X,
   Baby,
   UserPlus,
+  ArrowUpCircle,
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
@@ -216,13 +217,14 @@ export const VisitasPage = () => {
 
       <div className="mb-6">
         <HudCard
-          title={"HUD \u2022 livro de visitas"}
+          title="Livro de visitas"
           value="Mensagens guardadas"
           description={`${approvedCount} de ${TOTAL_SLOTS} slots utilizados`}
           progressPercent={slotUsagePercent}
           actions={
             <>
               <B2CButton variant="secondary" size="sm">
+                <ArrowUpCircle className="h-4 w-4" />
                 Ampliar para 50
               </B2CButton>
             </>

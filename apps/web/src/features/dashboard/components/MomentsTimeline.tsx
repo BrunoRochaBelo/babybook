@@ -26,6 +26,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { cn } from "@/lib/utils";
 import { NextMomentSuggestion } from "./NextMomentSuggestion";
 import { JourneyProgressCard } from "./JourneyProgressCard";
+import { B2CButton } from "@/components/B2CButton";
 
 interface MomentsTimelineProps {
   moments: Moment[];
@@ -936,17 +937,14 @@ export const MomentsTimeline = ({
             Nenhum momento publicado ainda. Use o HUD ou crie um momento livre
             para iniciar a história.
           </p>
-          <button
+          <B2CButton
             onClick={handleCreateAvulso}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold transition-all duration-300 hover:shadow-md hover:bg-opacity-90 active:scale-[0.98]"
-            style={{
-              backgroundColor: "var(--bb-color-accent)",
-              color: "var(--bb-color-surface)",
-            }}
+            variant="secondary"
+            className="mt-4"
           >
             <Plus className="h-5 w-5" />
             Registrar primeiro momento
-          </button>
+          </B2CButton>
         </div>
       );
     }

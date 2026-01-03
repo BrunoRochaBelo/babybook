@@ -17,6 +17,7 @@ import { Plus, Maximize2, Activity } from "lucide-react";
 import { HudCard } from "@/components/HudCard";
 import { useTheme } from "@/hooks/useTheme";
 import { B2CErrorState } from "@/layouts/b2cStates";
+import { B2CButton } from "@/components/B2CButton";
 import {
   Dialog,
   DialogContent,
@@ -139,7 +140,7 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
   return (
     <section className="space-y-6">
       <HudCard
-        title={"HUD \u2022 curva de crescimento"}
+        title="Curva de Crescimento"
         value={hudValue}
         description={hudDescription}
         customVisual={
@@ -168,14 +169,14 @@ export const HealthGrowthTab = ({ childId }: HealthGrowthTabProps) => {
           ) : undefined
         }
         actions={
-          <button
-            type="button"
+          <B2CButton
+            variant="secondary"
+            size="sm"
             onClick={() => setShowForm((state) => !state)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
             {showForm ? "Fechar formulário" : "Adicionar medição"}
-          </button>
+          </B2CButton>
         }
       />
 

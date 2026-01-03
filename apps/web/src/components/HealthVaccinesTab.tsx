@@ -97,6 +97,8 @@ const VACCINE_CALENDAR = [
   },
 ];
 
+
+import { B2CButton } from "@/components/B2CButton";
 import { B2CErrorState } from "@/layouts/b2cStates";
 
 export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
@@ -178,21 +180,17 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
             description: statusText,
             isOverdue,
             actions: (
-              <button
-                type="button"
+              <B2CButton
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setSelectedVaccineForForm(vaccine.name);
                   setIsFormOpen(true);
                 }}
-                className="inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{
-                  backgroundColor: "var(--bb-color-accent)",
-                  color: "var(--bb-color-surface)",
-                }}
               >
                 <Syringe className="h-4 w-4" />
                 Marcar como tomada
-              </button>
+              </B2CButton>
             ),
           };
         }
@@ -266,7 +264,7 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
   return (
     <section className="space-y-6">
       <HudCard
-        title={"HUD \u2022 PRÓXIMA VACINA"}
+        title="Próxima Vacina"
         value={nextVaccine.title}
         description={nextVaccine.description}
         progressPercent={percentage}

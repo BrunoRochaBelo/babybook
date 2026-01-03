@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
 import type { CatalogSequenceItem } from "@/data/momentCatalog";
 import { motion } from "motion/react";
+import { B2CButton } from "@/components/B2CButton";
 
 interface NextMomentSuggestionProps {
   template: CatalogSequenceItem | null;
@@ -127,13 +128,14 @@ export const NextMomentSuggestion = ({
           </p>
         </div>
         
-        <button
+        <B2CButton
+          variant="secondary"
           onClick={() => navigate(`/jornada/moment/draft/${template.id}`)}
-          className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[var(--bb-color-accent)] px-5 py-3 text-sm font-bold text-[var(--bb-color-surface)] shadow-sm transition-all hover:opacity-90 active:scale-95"
+          className="shrink-0"
         >
           Registrar
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </B2CButton>
       </div>
       
       {/* Decorative background elements - Very subtle */}
