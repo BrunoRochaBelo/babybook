@@ -230,7 +230,7 @@ export const MainLayout = () => {
                   className={({ isActive }) =>
                     cn(
                       "relative isolate flex flex-1 items-center justify-center overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 ease-out",
-                      isActive ? "px-6 py-3" : "px-3 py-2",
+                      isActive ? "px-5 py-2.5" : "px-3 py-2",
                     )
                   }
                   style={({ isActive }) => ({
@@ -244,7 +244,6 @@ export const MainLayout = () => {
                       {isActive && (
                         <motion.span
                           layoutId="book-nav-pill"
-                          initial={false}
                           className="absolute inset-0 rounded-full"
                           style={{
                             backgroundColor: "var(--bb-color-ink)",

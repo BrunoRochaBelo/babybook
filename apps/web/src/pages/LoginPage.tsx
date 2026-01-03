@@ -45,11 +45,7 @@ export function LoginPage() {
   const params = new URLSearchParams(window.location.search);
   const redirectTo = sanitizeRedirectTo(params.get("redirectTo"), "/jornada");
 
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      navigate(redirectTo);
-    }
-  }, [isAuthenticated, navigate, redirectTo]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,12 +61,15 @@ export function LoginPage() {
     }
 
     try {
+      // Enviamos rememberMe para o backend definir a duração do cookie de sessão
+      // Boas práticas: não armazenamos credenciais no client, apenas uma flag
       await loginMutation.mutateAsync({
         email: email.trim(),
         password,
         rememberMe,
       });
 
+      // Força refresh do cache e busca perfil usando o mesmo client (cookies + redirects + parsing)
       queryClient.removeQueries({ queryKey: ["user-profile"] });
       const profileData = await apiClient.get("/me", {
         schema: userProfileSchema,
