@@ -746,12 +746,16 @@ Estas são áreas-chave do app que não são "capítulos" da timeline, mas sim f
 | **Limites de Mídia**    | 1 Foto OU 1 Áudio (30s)           |
 
 - **Descrição**: Funcionalidade central de engajamento para a família estendida ("Momento Aha!", Modelagem de Produto 7.0).
-- **Fluxo de Criação (Visitante)**: O `Guardian`/`Viewer` (ex: Avô "Sérgio") ou o "Link Público" (se habilitado pelo `Owner`) vê um botão "Deixar uma Mensagem".
+- **Fluxo de Criação (Visitante)**: O visitante entra por um **convite com link/QR único** (token público gerado pelo `Owner`) e envia uma mensagem.
 - **Campos (Visitante)**:
   - `nome_visitante` (TextInput, Obrigatório)
   - `mensagem` (TextArea, Obrigatório)
   - `midia` (Slot único, Opcional - 1 Foto OU 1 Áudio [limite 30s], para evitar abuso de Opex).
 - **Fluxo de Moderação (Owner)**: O `Owner` (Ana) recebe uma notificação sutil ("Nova mensagem no Livro de Visitas"). A mensagem só se torna pública após a aprovação.
+
+- **Parentesco (Owner)**: Na fila de moderação (“Pendentes”), o `Owner` define/ajusta o **grau de parentesco** (ex.: `avoa`, `tio`, `amigo`). Esse campo alimenta a visualização da “árvore afetiva”.
+
+- **Árvore afetiva (UX)**: Na aba de aprovadas, a UI exibe uma **árvore genealógica/afetiva** baseada nas mensagens aprovadas. Ela aparece como um card (HUD) com hint “Toque para expandir” e abre em tela cheia com uma visualização **gráfica** (lúdica) + resumo por parentesco.
 
 - **Critérios de Aceite (MVP)**:
   - **UI**: A tela do Guestbook (Aba "Visitas") tem duas abas para o `Owner`: "Aprovados" (público) e "Pendentes" (fila de moderação). O `Viewer` vê apenas a aba "Aprovados".

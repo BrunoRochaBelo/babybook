@@ -171,7 +171,7 @@ import { Confetti, UnboxingAnimation } from '@/components/animations';
 
 - Visualização pública de momentos compartilhados
 - Carrossel de mídia
-- Guestbook para mensagens de visitantes
+- (Opcional) Guestbook para mensagens de visitantes
 - CTA para criar próprio babybook (viral loop)
 - Meta tags para Open Graph/social sharing
 
@@ -179,8 +179,11 @@ import { Confetti, UnboxingAnimation } from '@/components/animations';
 
 1. Família compartilha link do momento
 2. Avó/visitante acessa link público
-3. Visualiza momento + deixa mensagem no guestbook
-4. CTA sugere criar próprio babybook
+3. Visualiza momento
+4. Se houver convite do Guestbook, visitante acessa `/guestbook/:token` e deixa uma mensagem (vai para moderação)
+5. CTA sugere criar próprio babybook
+
+> Nota: o fluxo de mensagens públicas do Livro de Visitas é baseado em convite/token do Guestbook (rota `/guestbook/:token`), com envio de mensagem em `POST /guestbook/invites/:token/entries`.
 
 ---
 

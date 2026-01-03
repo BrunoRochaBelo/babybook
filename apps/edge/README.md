@@ -54,6 +54,13 @@ GET /s/{token}
 GET /guestbook/{token}
 ```
 
+Esse endpoint existe para:
+
+- Servir uma página HTML leve com **OG tags** (para WhatsApp/Telegram etc.)
+- Fazer **redirect** imediato para o frontend na rota pública `GET /guestbook/:token`
+
+Internamente, o worker consulta a API para obter metadados do convite (`GET /guestbook/invites/{token}`) e enriquecer o título/descrição.
+
 ### Health Check
 
 ```

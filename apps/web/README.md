@@ -65,9 +65,14 @@ PATCH /moments/:momentId                    → Atualizar momento
 
 POST /uploads/init                          → Upload de mídia
 
-GET  /children/:childId/guestbook           → Livro de visitas
-POST /guestbook                             → Nova entrada
-POST /guestbook/:entryId/approve            → Aprovar entrada
+GET  /guestbook?child_id=:childId           → Livro de visitas (lista entradas)
+POST /guestbook                             → Nova entrada (autenticado, status=pending)
+POST /guestbook/:entryId/approve            → Aprovar entrada (moderação)
+POST /guestbook/:entryId/reject             → Rejeitar/ocultar entrada (moderação)
+
+POST /guestbook/invites                     → Criar convite (gera link público/QR)
+GET  /guestbook/invites/:token              → Metadados públicos do convite
+POST /guestbook/invites/:token/entries      → Enviar mensagem via convite (público)
 
 GET  /children/:childId/health/measurements → Medições de crescimento
 POST /health/measurements                   → Adicionar medição

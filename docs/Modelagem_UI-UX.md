@@ -656,7 +656,7 @@ Jornada Guiada: A sequência de rascunhos pré-definidos (ex: "A Descoberta", "M
 Template de Momento: O formulário específico para um tipo de momento (ex: Template "Primeira Comida").
 Momento Avulso: Um momento genérico (data, título, mídia) criado pelo FAB, fora da Jornada Guiada.
 Guardião: Um usuário convidado por e-mail (RBAC) que faz login. Pode ver o álbum e (se permitido) escrever no Livro de Visitas. Não pode editar momentos nem ver a "Aba Saúde".
-Visitante (Link Público): Um usuário anônimo que acessa um link de 'share' (item 3.4). Não pode ver o app, apenas a página SSR do momento. Visitantes (v1) não podem escrever no Livro de Visitas.
+Visitante (Link Público): Um usuário anônimo que acessa um link de compartilhamento (ex.: `/share/:token`) ou um convite público do Guestbook (ex.: `/guestbook/:token`). Não pode ver o app, apenas uma página pública específica. Visitantes podem escrever no Livro de Visitas **via convite do Guestbook** (mensagem entra como pendente e depende de aprovação do Owner).
 Sussurros: Notificações sutis (não intrusivas), geralmente em um hub de notificações, que não exigem ação imediata (ex: "Seu vídeo está pronto").
 Aba Jornada (Livro 1): Navegação principal. Onde vivem o HUD, a timeline, o FAB e o Perfil da Criança.
 Aba Saúde (Livro 2): Navegação principal. Onde vivem os utilitários privados do Owner (Crescimento, Cofre).

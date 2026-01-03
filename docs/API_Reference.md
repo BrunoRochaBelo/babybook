@@ -1153,36 +1153,127 @@ Cria um novo momento (via template) referenciando asset_ids de uploads concluíd
 
 Endpoints para interação de convidados e gestão de convites.
 
-#### POST /children/{child_id}/guestbook/invites
+#### GET /guestbook
 
-Envia um convite por e-mail para alguém deixar uma mensagem no Guestbook.
+Lista entradas do Guestbook para o usuário autenticado.
 
-**Racional:** Permite que o Owner convide avós e amigos de forma ativa. O sistema envia um e-mail com um link único (`/guestbook/{token}`).
+**Query params:**
+
+- `child_id` (opcional): filtra por criança
+- `limit` (opcional): default 25, max 100
+
+**Resposta de Sucesso:** 200 OK
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "child_id": "uuid",
+      "author_name": "Vovó Maria",
+      "author_email": "vovo@example.com",
+      "relationship_degree": "avoa",
+      "message": "...",
+      "status": "pending",
+      "created_at": "2026-01-02T12:34:56Z",
+      "asset_id": "uuid"
+    }
+  ],
+  "next": null
+}
+```
+
+> Nota: atualmente o endpoint retorna itens de múltiplos status; a UI filtra por `status` (Aprovados/Pendentes).
+
+#### POST /guestbook
+
+Cria uma entrada **autenticada** no Guestbook (sempre entra como `pending`).
+
+**Acesso:** Autenticado + CSRF
 
 **Corpo da Requisição:**
 
 ```json
 {
-  "email": "vovo@example.com",
-  "message": "Vovó, venha deixar um recadinho para a Alice!",
-  "lang": "pt-BR"
+  "child_id": "uuid",
+  "author_name": "Vovó Maria",
+  "author_email": "vovo@example.com",
+  "relationship_degree": "avoa",
+  "message": "Alice, você é a luz das nossas vidas!",
+  "asset_id": "uuid"
 }
 ```
+
+**Respostas de Sucesso:** 201 Created (Status: `pending`).
+
+#### POST /guestbook/{id}/approve
+
+Aprova uma entrada pendente.
+
+**Acesso:** Autenticado + CSRF
+
+**Corpo da Requisição:**
+
+```json
+{
+  "relationship_degree": "avoa"
+}
+```
+
+`relationship_degree` é opcional (permite ajustar o parentesco no momento da aprovação).
+
+**Resposta de Sucesso:** 200 OK (Status: `approved`).
+
+#### POST /guestbook/{id}/reject
+
+Rejeita/oculta uma entrada pendente.
+
+**Acesso:** Autenticado + CSRF
+
+**Resposta de Sucesso:** 200 OK (Status: `hidden`).
+
+---
+
+### Convites do Guestbook (token público)
+
+Permite gerar um link público único (para QR/compartilhamento) e receber mensagens **sem autenticação**.
+
+#### POST /guestbook/invites
+
+Cria um convite público e (se houver e-mail) dispara o envio.
+
+**Acesso:** Autenticado + CSRF
+
+**Corpo da Requisição:**
+
+```json
+{
+  "child_id": "uuid",
+  "invited_email": "vovo@example.com",
+  "expires_at": "2026-02-01T00:00:00Z"
+}
+```
+
+> Dica: se `invited_email` não for informado, o convite ainda pode ser criado para compartilhamento manual do link/QR, mas não há envio de e-mail.
 
 **Respostas de Sucesso:** 201 Created
 
 ```json
 {
-  "invite_id": "uuid",
-  "token": "..." // (Opcional, geralmente enviado por email)
+  "id": "uuid",
+  "token": "...",
+  "url": "https://app.../guestbook/<token>",
+  "child_id": "uuid",
+  "invited_email": "vovo@example.com",
+  "expires_at": "2026-02-01T00:00:00Z"
 }
 ```
 
-**Respostas de Erro:** 401 Unauthorized, 422 Unprocessable Entity (Ex: email inválido).
+**Respostas de Erro:** 401 Unauthorized, 422 Unprocessable Entity.
 
 #### GET /guestbook/invites/{token}
 
-Recupera metadados do convite usando o token público. Usado pela página de aterrissagem (Edge/Frontend) para mostrar "Você foi convidado por Ana para visitar o livro de Alice".
+Recupera metadados do convite usando o token público. Usado pela página de aterrissagem (Edge/Frontend) para exibir contexto (ex.: nome da criança) e para enriquecer OG tags.
 
 **Acesso:** Público (Autenticação via Token na URL).
 
@@ -1190,32 +1281,35 @@ Recupera metadados do convite usando o token público. Usado pela página de ate
 
 ```json
 {
+  "token": "...",
+  "child_id": "uuid",
   "child_name": "Alice",
-  "child_avatar_url": "...",
-  "inviter_name": "Ana",
-  "message": "Vovó...",
-  "valid": true
+  "invited_email": "vovo@example.com",
+  "expires_at": "2026-02-01T00:00:00Z"
 }
 ```
 
 **Respostas de Erro:** 404 Not Found (Token inválido ou expirado).
 
-#### POST /guestbook/entries (via Token)
+#### POST /guestbook/invites/{token}/entries
 
 Cria uma mensagem no guestbook usando o token do convite.
+
+**Acesso:** Público (Autenticação via token na URL)
 
 **Corpo da Requisição:**
 
 ```json
 {
-  "token": "...",
-  "name": "Vovó Maria",
+  "author_name": "Vovó Maria",
+  "author_email": "vovo@example.com",
+  "relationship_degree": "avoa",
   "message": "Alice, você é a luz das nossas vidas!",
-  "relationship": "Avó"
+  "asset_id": "uuid"
 }
 ```
 
-**Resposta de Sucesso:** 201 Created (Status: pending).
+**Resposta de Sucesso:** 201 Created (Status: `pending`).
 
 ### Recurso: Sinais Vitais (Health Checks)
 
