@@ -5,9 +5,9 @@
  */
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, UserPlus, Crown, X, Mail, ArrowRight, Shield, MessageCircle } from "lucide-react";
+import { UserPlus, Crown, X, Mail, ArrowRight, Shield, MessageCircle, Users } from "lucide-react";
 import { motion } from "motion/react";
 import {
   listFamilyMembers,
@@ -16,11 +16,14 @@ import {
   settingsApiKeys,
   type FamilyMember,
 } from "../api";
+
 import { useTranslation } from "@babybook/i18n";
 import { FamiliaSkeleton } from "../components/FamiliaSkeleton";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useGuestbookEntries } from "@/hooks/api";
 import { GuestbookFamilyTree } from "@/features/guestbook/GuestbookFamilyTree";
+
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 // Mock data para fallback em dev
 const MOCK_MEMBERS: FamilyMember[] = [
@@ -74,10 +77,12 @@ export const FamiliaPage = () => {
     }
   }, [data]);
 
+  const [inviteRole, setInviteRole] = useState<"guardian" | "viewer">("viewer");
+
   // Mutation para convidar membro
   const inviteMutation = useMutation({
     mutationFn: (email: string) =>
-      inviteFamilyMember({ email, role: "viewer" }),
+      inviteFamilyMember({ email, role: inviteRole }),
     onSuccess: (newMember) => {
       setLocalMembers((prev) => [
         ...prev,
@@ -87,12 +92,12 @@ export const FamiliaPage = () => {
       queryClient.invalidateQueries({ queryKey: settingsApiKeys.family });
     },
     onError: () => {
-      // Fallback: adiciona localmente mesmo com erro
+      // Fallback
       const newMember: FamilyMember = {
         id: Date.now().toString(),
         name: inviteEmail.split("@")[0],
         email: inviteEmail,
-        role: "viewer",
+        role: inviteRole,
         status: "pending",
       };
       setLocalMembers((prev) => [...prev, newMember]);
@@ -155,14 +160,7 @@ export const FamiliaPage = () => {
       className="max-w-4xl mx-auto px-4 py-6"
     >
       {/* Botão Voltar */}
-      <Link
-        to="/jornada/minha-conta"
-        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
-        style={{ color: "var(--bb-color-ink-muted)" }}
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Voltar para Minha Conta
-      </Link>
+      <B2CBackButton fallback="/jornada/minha-conta" />
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
@@ -218,7 +216,8 @@ export const FamiliaPage = () => {
             {t("b2c.family.inviteTitle")}
           </h3>
         </div>
-        <div className="flex gap-3">
+        
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <Mail
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
@@ -237,9 +236,24 @@ export const FamiliaPage = () => {
               }}
             />
           </div>
+          
+          <select
+            value={inviteRole}
+            onChange={(e) => setInviteRole(e.target.value as "guardian" | "viewer")}
+            className="px-4 py-3 border rounded-xl focus:ring-2 focus:outline-none transition-all appearance-none bg-no-repeat bg-[100%] pr-8"
+            style={{
+               backgroundColor: "var(--bb-color-bg)",
+               borderColor: "var(--bb-color-border)",
+               color: "var(--bb-color-ink)",
+            }}
+          >
+            <option value="viewer">{t("b2c.family.roles.viewer")}</option>
+            <option value="guardian">{t("b2c.family.roles.guardian")}</option>
+          </select>
+
           <button
             onClick={handleInviteMember}
-            className="px-6 py-3 rounded-xl font-medium transition-all active:scale-95 hover:opacity-90"
+            className="px-6 py-3 rounded-xl font-medium transition-all active:scale-95 hover:opacity-90 whitespace-nowrap"
             style={{
               backgroundColor: "var(--bb-color-accent)",
               color: "white",
@@ -258,90 +272,97 @@ export const FamiliaPage = () => {
           border: "1px solid var(--bb-color-border)",
         }}
       >
-        {localMembers.map((member, index) => {
-          const badge = getRoleBadge(member.role);
-          return (
-            <div
-              key={member.id}
-              className="p-4 md:p-5 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]/50"
-              style={{
-                borderBottom:
-                  index < localMembers.length - 1
-                    ? "1px solid var(--bb-color-border)"
-                    : "none",
-              }}
-            >
-              {/* Avatar */}
+        {localMembers.length === 0 ? (
+           <div className="p-8 text-center" style={{ color: "var(--bb-color-ink-muted)" }}>
+              <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p>Nenhum membro na família ainda.</p>
+           </div>
+        ) : (
+          localMembers.map((member, index) => {
+            const badge = getRoleBadge(member.role);
+            return (
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                key={member.id}
+                className="p-4 md:p-5 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]/50"
                 style={{
-                  background:
-                    "linear-gradient(135deg, var(--bb-color-accent), var(--bb-color-accent-dark, var(--bb-color-accent)))",
+                  borderBottom:
+                    index < localMembers.length - 1
+                      ? "1px solid var(--bb-color-border)"
+                      : "none",
                 }}
               >
-                {member.name[0].toUpperCase()}
-              </div>
+                {/* Avatar */}
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--bb-color-accent), var(--bb-color-accent-dark, var(--bb-color-accent)))",
+                  }}
+                >
+                  {member.name[0].toUpperCase()}
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p
+                      className="font-bold truncate text-base"
+                      style={{ color: "var(--bb-color-ink)" }}
+                    >
+                      {member.name}
+                    </p>
+                    {member.role === "owner" && (
+                      <Crown
+                        className="w-4 h-4"
+                        style={{ color: "var(--bb-color-accent)" }}
+                      />
+                    )}
+                  </div>
                   <p
-                    className="font-bold truncate text-base"
-                    style={{ color: "var(--bb-color-ink)" }}
+                    className="text-sm truncate"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
                   >
-                    {member.name}
+                    {member.email}
                   </p>
-                  {member.role === "owner" && (
-                    <Crown
-                      className="w-4 h-4"
-                      style={{ color: "var(--bb-color-accent)" }}
-                    />
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-col md:flex-row items-end md:items-center gap-2">
+                  <span
+                    className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                    style={{ backgroundColor: badge.bg, color: badge.color }}
+                  >
+                    {badge.label}
+                  </span>
+                  {member.status === "pending" && (
+                    <span
+                      className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                      style={{
+                        backgroundColor:
+                          "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
+                        color: "var(--bb-color-accent)",
+                      }}
+                    >
+                      {t("b2c.family.pending")}
+                    </span>
                   )}
                 </div>
-                <p
-                  className="text-sm truncate"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                >
-                  {member.email}
-                </p>
-              </div>
 
-              {/* Badges */}
-              <div className="flex items-center gap-2">
-                <span
-                  className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
-                  style={{ backgroundColor: badge.bg, color: badge.color }}
-                >
-                  {badge.label}
-                </span>
-                {member.status === "pending" && (
-                  <span
-                    className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
-                    style={{
-                      backgroundColor:
-                        "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
-                      color: "var(--bb-color-accent)",
-                    }}
+                {/* Remove Button */}
+                {member.role !== "owner" && (
+                  <button
+                    onClick={() => handleRemoveMember(member.id)}
+                    className="p-2 rounded-xl transition-colors hover:bg-[var(--bb-color-bg)] hover:text-red-500"
+                    style={{ color: "var(--bb-color-ink-muted)" }}
+                    title={t("b2c.family.removeMember")}
                   >
-                    {t("b2c.family.pending")}
-                  </span>
+                    <X className="w-5 h-5" />
+                  </button>
                 )}
               </div>
-
-              {/* Remove Button */}
-              {member.role !== "owner" && (
-                <button
-                  onClick={() => handleRemoveMember(member.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-[var(--bb-color-bg)] hover:text-red-500"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                  title={t("b2c.family.removeMember")}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {/* Guestbook Tree Preview */}

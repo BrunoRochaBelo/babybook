@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useMoment } from "@/hooks/api";
 import { getMediaUrl } from "@/lib/media";
 import {
-  ChevronLeft,
   Share2,
   Edit,
   Trash2,
@@ -13,6 +12,7 @@ import {
 import { motion } from "motion/react";
 import { FullscreenMediaViewer } from "@/components/FullscreenMediaViewer";
 import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 const MomentDetailSkeleton = () => (
   <div className="max-w-3xl mx-auto">
@@ -45,20 +45,10 @@ const MomentDetailSkeleton = () => (
 );
 
 export const MomentDetailPage = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: moment, isLoading, error } = useMoment(id || "");
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
-
-  const handleBack = () => {
-    // Tenta voltar no histórico (melhor UX), com fallback para a Jornada.
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-    navigate("/jornada");
-  };
 
   const openMediaViewer = (index: number) => {
     setViewerIndex(index);
@@ -69,14 +59,7 @@ export const MomentDetailPage = () => {
     return (
       <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-semibold">Voltar</span>
-          </button>
+          <B2CBackButton fallback="/jornada" className="mb-0" />
         </div>
 
         <MomentDetailSkeleton />
@@ -88,14 +71,7 @@ export const MomentDetailPage = () => {
     return (
       <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-semibold">Voltar</span>
-          </button>
+          <B2CBackButton fallback="/jornada" className="mb-0" />
         </div>
 
         <div className="text-center py-20">
@@ -115,14 +91,7 @@ export const MomentDetailPage = () => {
     return (
       <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-semibold">Voltar</span>
-          </button>
+          <B2CBackButton fallback="/jornada" className="mb-0" />
         </div>
 
         <div className="text-center py-20">
@@ -155,14 +124,7 @@ export const MomentDetailPage = () => {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-          <span className="font-semibold">Voltar</span>
-        </button>
+        <B2CBackButton fallback="/jornada" className="mb-0" />
         <div className="flex gap-2">
           <button
             type="button"

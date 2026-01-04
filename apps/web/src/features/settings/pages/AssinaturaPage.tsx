@@ -4,10 +4,8 @@
  * Página para visualização e gerenciamento de plano de assinatura.
  */
 
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ChevronLeft,
   Crown,
   Check,
   CreditCard,
@@ -17,6 +15,7 @@ import {
 import { getSubscription, settingsApiKeys } from "../api";
 import { useTranslation } from "@babybook/i18n";
 import { SettingsSubsectionSkeleton } from "../components/SettingsSubsectionSkeleton";
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 export const AssinaturaPage = () => {
   const { t } = useTranslation();
@@ -49,13 +48,7 @@ export const AssinaturaPage = () => {
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link
-          to="/jornada"
-          className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
+        <B2CBackButton fallback="/jornada" className="mb-0" />
         <h1
           className="text-2xl font-serif font-bold"
           style={{ color: "var(--bb-color-ink)" }}

@@ -19,7 +19,6 @@ import {
   Baby,
   Plus,
   ArrowRight,
-  ChevronLeft,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
@@ -29,6 +28,8 @@ import { apiClient } from "@/lib/api-client";
 import { useLanguage, useTranslation } from "@babybook/i18n";
 import { MinhaContaSkeleton } from "../components/MinhaContaSkeleton";
 import { B2CButton } from "@/components/B2CButton";
+
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 export const MinhaContaPage = () => {
   const { t } = useTranslation();
@@ -64,14 +65,7 @@ export const MinhaContaPage = () => {
     >
       {/* Header Info - Refatorado */}
       <div>
-        <Link
-          to="/jornada"
-          className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Voltar
-        </Link>
+        <B2CBackButton fallback="/jornada" />
         <div className="flex flex-col md:flex-row gap-6 mb-8 items-start">
         {/* Avatar */}
         <div

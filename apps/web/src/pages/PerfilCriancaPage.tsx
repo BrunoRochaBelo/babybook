@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
-import { Edit, Home, Lock, Send, ChevronLeft, Users, ArrowRight } from "lucide-react";
+import { Edit, Home, Lock, Send, Users, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { motion } from "motion/react";
+
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 export const PerfilCriancaPage = () => {
   const navigate = useNavigate();
@@ -12,14 +14,7 @@ export const PerfilCriancaPage = () => {
   if (!selectedChild) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 text-center">
-        <Link
-          to="/jornada/minha-conta"
-          className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Voltar
-        </Link>
+        <B2CBackButton fallback="/jornada/minha-conta" />
         <p style={{ color: "var(--bb-color-ink-muted)" }}>
           Selecione uma criança primeiro
         </p>
@@ -35,14 +30,7 @@ export const PerfilCriancaPage = () => {
       className="max-w-4xl mx-auto px-4 py-6"
     >
       {/* Botão Voltar */}
-      <Link
-        to="/jornada/minha-conta"
-        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
-        style={{ color: "var(--bb-color-ink-muted)" }}
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Voltar
-      </Link>
+      <B2CBackButton fallback="/jornada/minha-conta" />
 
       {/* Header com foto (Clean Style) */}
       <div className="flex flex-col md:flex-row gap-6 mb-8 items-start">

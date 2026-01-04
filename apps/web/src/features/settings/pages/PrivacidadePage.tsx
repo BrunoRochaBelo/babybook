@@ -6,10 +6,12 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Globe, Users, Lock, Eye, Download, Trash2, ArrowRight, FileText, MessageCircle } from "lucide-react";
+import { Globe, Users, Lock, Eye, Download, Trash2, ArrowRight, FileText, MessageCircle } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
 import { TextPageSkeleton } from "../components/TextPageSkeleton";
 import { motion } from "motion/react";
+
+import { B2CBackButton } from "@/components/B2CBackButton";
 
 interface PrivacySetting {
   id: string;
@@ -89,14 +91,7 @@ export const PrivacidadePage = () => {
       className="max-w-4xl mx-auto px-4 py-6"
     >
       {/* Botão Voltar */}
-      <Link
-        to="/jornada/minha-conta"
-        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
-        style={{ color: "var(--bb-color-ink-muted)" }}
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Voltar para Minha Conta
-      </Link>
+      <B2CBackButton fallback="/jornada/minha-conta" />
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-4">
