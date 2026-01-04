@@ -11,6 +11,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -109,6 +110,26 @@ notification_type_enum = Enum(
     "redemption",     # Resgate de voucher (B2B)
     "credits",        # Créditos (B2B)
     name="notification_type_enum",
+)
+
+
+# Afiliados (Affiliate Program)
+affiliate_status_enum = Enum(
+    "active",
+    "paused",
+    name="affiliate_status_enum",
+)
+affiliate_sale_status_enum = Enum(
+    "pending",
+    "approved",
+    "refunded",
+    name="affiliate_sale_status_enum",
+)
+affiliate_payout_status_enum = Enum(
+    "requested",
+    "paid",
+    "rejected",
+    name="affiliate_payout_status_enum",
 )
 
 
@@ -835,6 +856,110 @@ class DeliveryAsset(TimestampMixin, Base):
     delivery: Mapped[Delivery] = relationship(back_populates="assets")
     asset: Mapped[Asset] = relationship(foreign_keys=[asset_id])
     target_asset: Mapped[Asset | None] = relationship(foreign_keys=[target_asset_id])
+
+
+# =============================================================================
+# Afiliados (Affiliate Program)
+# =============================================================================
+
+
+class Affiliate(TimestampMixin, Base):
+    __tablename__ = "affiliates"
+    __table_args__ = (
+        Index("ix_affiliates_code", "code", unique=True),
+        Index("ix_affiliates_email", "email", unique=True),
+        Index("ix_affiliates_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+
+    # Associação opcional com um usuário (para login no portal). Mantemos nullable
+    # para permitir migração gradual e/ou integrações futuras.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+
+    code: Mapped[str] = mapped_column(String(80), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    email: Mapped[str] = mapped_column(String(180), nullable=False)
+    status: Mapped[str] = mapped_column(affiliate_status_enum, default="active")
+    commission_rate: Mapped[float] = mapped_column(Float, default=0.15)
+    payout_method: Mapped[dict[str, Any] | None] = mapped_column(
+        MutableDict.as_mutable(JSON),
+        nullable=True,
+        default=dict,
+    )
+
+    user: Mapped["User | None"] = relationship()
+    sales: Mapped[list["AffiliateSale"]] = relationship(
+        back_populates="affiliate",
+        cascade="all,delete-orphan",
+    )
+    payouts: Mapped[list["AffiliatePayout"]] = relationship(
+        back_populates="affiliate",
+        cascade="all,delete-orphan",
+    )
+
+
+class AffiliateSale(TimestampMixin, Base):
+    __tablename__ = "affiliate_sales"
+    __table_args__ = (
+        Index("ix_affiliate_sales_affiliate_occurred", "affiliate_id", "occurred_at"),
+        Index("ix_affiliate_sales_order_id", "order_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    affiliate_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("affiliates.id", ondelete="CASCADE"),
+        index=True,
+    )
+    order_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    commission_cents: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(affiliate_sale_status_enum, default="approved")
+
+    affiliate: Mapped[Affiliate] = relationship(back_populates="sales")
+
+
+class AffiliatePayout(TimestampMixin, Base):
+    __tablename__ = "affiliate_payouts"
+    __table_args__ = (
+        Index("ix_affiliate_payouts_affiliate_requested", "affiliate_id", "requested_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_generate_uuid)
+    affiliate_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        ForeignKey("affiliates.id", ondelete="CASCADE"),
+        index=True,
+    )
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(affiliate_payout_status_enum, default="requested")
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    affiliate: Mapped[Affiliate] = relationship(back_populates="payouts")
+
+
+class AffiliateProgramConfig(TimestampMixin, Base):
+    """Configuração global do programa de afiliados.
+
+    Mantemos como tabela para permitir ajustes dinâmicos via admin no futuro.
+    Por ora, usamos um singleton (id=1).
+    """
+
+    __tablename__ = "affiliate_program_config"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    default_commission_rate: Mapped[float] = mapped_column(Float, default=0.15)
+    minimum_payout_cents: Mapped[int] = mapped_column(Integer, default=50_00)
 
 
 # =============================================================================

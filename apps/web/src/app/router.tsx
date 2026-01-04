@@ -19,7 +19,6 @@ import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { MomentDetailPage } from "@/features/moments/pages/MomentDetailPage";
 import { CapsulePage } from "@/features/capsule/pages/CapsulePage";
 import { VaultPage } from "@/features/vault/pages/VaultPage";
-import { ProfilePage } from "@/features/profile/pages/ProfilePage";
 import { SaudePage } from "@/pages/SaudePage";
 import { VisitasPage } from "@/pages/VisitasPage";
 import { PerfilCriancaPage } from "@/pages/PerfilCriancaPage";
@@ -132,10 +131,13 @@ export function AppRouter() {
           />
           <Route path="/capsula" element={<CapsulePage />} />
           <Route path="/cofre" element={<VaultPage />} />
-          <Route path="/perfil-usuario" element={<ProfilePage />} />
+          <Route
+            path="/perfil-usuario"
+            element={<Navigate to="/jornada/minha-conta" replace />}
+          />
           <Route
             path="/perfil"
-            element={<Navigate to="/perfil-usuario" replace />}
+            element={<Navigate to="/jornada/minha-conta" replace />}
           />
           <Route
             path="/jornada/moment/draft/:template_id"

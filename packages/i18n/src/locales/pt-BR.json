@@ -1153,6 +1153,8 @@
       "signOutAllBtn": "Encerrar sessões",
       "signOutAllConfirm": "Deseja encerrar todas as sessões ativas? Você precisará logar novamente.",
       "signOutAllError": "Erro ao encerrar sessões. Tente novamente.",
+      "childProfileSuggestionTitle": "Gerenciar Perfil da Criança",
+      "childProfileSuggestionDesc": "Personalize a experiência para seu pequeno.",
       "preferences": "Preferências",
       "theme": "Tema",
       "themeLight": "Claro",

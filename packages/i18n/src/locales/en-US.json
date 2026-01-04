@@ -1069,6 +1069,8 @@
       "signOutAllDesc": "Ends all active sessions (e.g., other computers or phones).",
       "signOutAllBtn": "End sessions",
       "signOutAllConfirm": "Do you want to end all active sessions? You will need to log in again.",
+      "childProfileSuggestionTitle": "Manage Child Profile",
+      "childProfileSuggestionDesc": "Personalize the experience for your little one.",
       "signOutAllError": "Error ending sessions. Try again.",
       "preferences": "Preferences",
       "theme": "Theme",

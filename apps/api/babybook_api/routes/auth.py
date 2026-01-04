@@ -5,15 +5,24 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babybook_api.auth.session import get_current_session, require_csrf_token
 from babybook_api.db.models import Session as SessionModel
+from babybook_api.db.models import Affiliate
 from babybook_api.deps import get_db_session
 from babybook_api.errors import AppError
 from babybook_api.rate_limit import enforce_rate_limit
 from babybook_api.request_ip import get_client_ip
-from babybook_api.schemas.auth import CsrfResponse, LoginRequest, RegisterRequest
+from babybook_api.schemas.auth import (
+    CsrfResponse,
+    LoginRequest,
+    PortalLoginRequest,
+    PortalLoginResponse,
+    RegisterRequest,
+)
 from babybook_api.security import issue_csrf_token
 from babybook_api.services.auth import (
     SESSION_COOKIE_NAME,
@@ -71,7 +80,7 @@ async def csrf_token(request: Request) -> CsrfResponse:
     summary="Inicia sessão do usuário",
 )
 async def login(
-    payload: LoginRequest,
+    payload: LoginRequest | PortalLoginRequest,
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db_session),
@@ -82,6 +91,41 @@ async def login(
         limit="10/minute",
         identity=payload.email.strip().lower(),
     )
+    # ------------------------------------------------------------------
+    # Portal login (Afiliados/Empresa)
+    # ------------------------------------------------------------------
+    if isinstance(payload, PortalLoginRequest):
+        user = await authenticate_user(db, payload.email, payload.password)
+        if user.role != payload.role:
+            # Não vaze informação sobre existência de conta com outro papel
+            raise AppError(status_code=401, code="auth.credentials.invalid", message="Credenciais invalidas.")
+
+        csrf_token = issue_csrf_token()
+        session = await create_session(
+            db,
+            user,
+            csrf_token,
+            user_agent=request.headers.get("user-agent"),
+            client_ip=get_client_ip(request),
+            remember_me=False,
+        )
+        await db.commit()
+
+        affiliate_id: str | None = None
+        if payload.role == "affiliate":
+            # Associa o login ao affiliate_id (para UI/roteamento do portal)
+            result = await db.execute(select(Affiliate.id).where(Affiliate.user_id == user.id))
+            aff = result.scalar_one_or_none()
+            affiliate_id = str(aff) if aff else None
+
+        body = PortalLoginResponse(role=payload.role, email=user.email, affiliate_id=affiliate_id)
+        json_response = JSONResponse(content=body.model_dump(mode="json"), status_code=200)
+        apply_session_cookie(json_response, session.token, remember_me=False)
+        return json_response
+
+    # ------------------------------------------------------------------
+    # B2C login (cookie + CSRF pareado)
+    # ------------------------------------------------------------------
     user = await authenticate_user(db, payload.email, payload.password)
     session = await create_session(
         db,

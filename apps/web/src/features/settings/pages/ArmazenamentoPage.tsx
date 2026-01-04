@@ -14,7 +14,11 @@ import {
   Mic,
   Check,
   Cloud,
+  Shield,
+  ArrowRight,
+  User,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { getStorageStats, settingsApiKeys } from "../api";
 import { useTranslation } from "@babybook/i18n";
 import { SettingsSubsectionSkeleton } from "../components/SettingsSubsectionSkeleton";
@@ -54,27 +58,43 @@ export const ArmazenamentoPage = () => {
   const audiosCount = data?.audios_count ?? 8;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-4xl mx-auto px-4 py-6"
+    >
+      {/* Botão Voltar */}
+      <Link
+        to="/jornada/minha-conta"
+        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
+        style={{ color: "var(--bb-color-ink-muted)" }}
+      >
+        <ChevronLeft className="w-5 h-5" />
+        Voltar para Minha Conta
+      </Link>
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link
-          to="/jornada"
-          className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
         <h1
-          className="text-2xl font-serif font-bold"
+          className="text-3xl font-serif font-bold leading-tight"
           style={{ color: "var(--bb-color-ink)" }}
         >
           {t("b2c.storage.title")}
         </h1>
       </div>
 
+      {/* Descrição */}
+      <p
+        className="mb-8 text-lg"
+        style={{ color: "var(--bb-color-ink-muted)" }}
+      >
+        Gerencie o espaço utilizado por suas memórias e backups.
+      </p>
+
       {/* Storage Usage */}
       <div
-        className="rounded-2xl p-6 mb-6"
+        className="rounded-2xl p-6 mb-8 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
@@ -86,35 +106,37 @@ export const ArmazenamentoPage = () => {
             style={{ color: "var(--bb-color-accent)" }}
           />
           <h3
-            className="font-semibold"
+            className="font-bold text-lg"
             style={{ color: "var(--bb-color-ink)" }}
           >
             {t("b2c.storage.usedSpace")}
           </h3>
         </div>
-        <div className="flex justify-between items-baseline mb-3">
+        <div className="flex justify-between items-baseline mb-4">
           <span
-            className="text-2xl font-bold"
+            className="text-4xl font-bold tracking-tight"
             style={{ color: "var(--bb-color-ink)" }}
           >
             {storageUsed} GB
           </span>
           <span
-            className="text-sm"
+            className="text-sm font-medium"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
             {t("b2c.storage.usedOfTotal", { total: storageTotal })}
           </span>
         </div>
         <div
-          className="h-3 rounded-full overflow-hidden"
+          className="h-4 rounded-full overflow-hidden"
           style={{ backgroundColor: "var(--bb-color-bg)" }}
         >
-          <div
-            className="h-full rounded-full transition-all"
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${usagePercentage}%` }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="h-full rounded-full"
             style={{
               backgroundColor: "var(--bb-color-accent)",
-              width: `${usagePercentage}%`,
             }}
           />
         </div>
@@ -122,14 +144,14 @@ export const ArmazenamentoPage = () => {
 
       {/* Statistics */}
       <div
-        className="rounded-2xl p-4 mb-6"
+        className="rounded-2xl p-6 mb-8 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
         }}
       >
         <h4
-          className="font-semibold mb-4"
+          className="font-bold mb-4 text-base"
           style={{ color: "var(--bb-color-ink)" }}
         >
           {t("b2c.storage.statsByType")}
@@ -159,21 +181,21 @@ export const ArmazenamentoPage = () => {
             return (
               <div
                 key={i}
-                className="text-center p-3 rounded-xl"
+                className="text-center p-4 rounded-2xl transition-transform hover:scale-105"
                 style={{ backgroundColor: "var(--bb-color-bg)" }}
               >
                 <Icon
-                  className="w-6 h-6 mx-auto mb-2"
+                  className="w-8 h-8 mx-auto mb-3"
                   style={{ color: stat.color }}
                 />
                 <p
-                  className="text-2xl font-bold"
+                  className="text-2xl font-bold mb-1"
                   style={{ color: "var(--bb-color-ink)" }}
                 >
                   {stat.value}
                 </p>
                 <p
-                  className="text-xs"
+                  className="text-xs font-medium uppercase tracking-wide"
                   style={{ color: "var(--bb-color-ink-muted)" }}
                 >
                   {stat.label}
@@ -186,26 +208,26 @@ export const ArmazenamentoPage = () => {
 
       {/* Backup Status */}
       <div
-        className="rounded-2xl p-4"
+        className="rounded-2xl p-6 mb-8 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
         }}
       >
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-4 mb-6">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
+            className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
             }}
           >
             <Check
-              className="w-5 h-5"
+              className="w-6 h-6"
               style={{ color: "var(--bb-color-accent)" }}
             />
           </div>
           <div>
-            <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+            <p className="font-bold text-lg" style={{ color: "var(--bb-color-ink)" }}>
               {t("b2c.storage.backupActive")}
             </p>
             <p
@@ -217,7 +239,7 @@ export const ArmazenamentoPage = () => {
           </div>
         </div>
         <button
-          className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+          className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90"
           style={{
             backgroundColor: "var(--bb-color-accent)",
             color: "white",
@@ -228,20 +250,66 @@ export const ArmazenamentoPage = () => {
         </button>
       </div>
 
-      {/* Info */}
-      <div
-        className="mt-6 p-4 rounded-2xl"
+      {/* Info Tip */}
+       <div
+        className="mb-10 p-6 rounded-2xl"
         style={{
           backgroundColor: "var(--bb-color-bg)",
           border: "1px solid var(--bb-color-border)",
         }}
       >
         <p
-          className="text-sm"
+          className="text-sm leading-relaxed"
           style={{ color: "var(--bb-color-ink-muted)" }}
           dangerouslySetInnerHTML={{ __html: t("b2c.storage.tip") }}
         />
       </div>
-    </div>
+
+      {/* Sugestões (Teia de Navegação) */}
+      <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--bb-color-ink-muted)" }}>
+        Veja também
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link
+          to="/cofre"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <Shield className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Cofre Seguro</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Proteja seus documentos</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
+        
+        <Link
+          to="/jornada/minha-conta"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <User className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Minha Conta</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Planos e Perfil</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
+      </div>
+    </motion.div>
   );
 };

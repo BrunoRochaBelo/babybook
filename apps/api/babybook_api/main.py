@@ -16,6 +16,8 @@ from .errors import (
 from .observability import TraceIdMiddleware
 from .routes import (
     assets,
+    affiliates_admin,
+    affiliates_portal,
     auth,
     billing,
     chapters,
@@ -38,7 +40,10 @@ from .routes import (
     vault,
     vouchers,
 )
+import os
+
 from .services.auth import bootstrap_dev_partner, bootstrap_dev_user
+from .services.seed_affiliates import bootstrap_dev_affiliates
 from .settings import settings
 
 
@@ -124,8 +129,12 @@ def create_app() -> FastAPI:
     # Partner Portal: Self-service para fotógrafos (role PHOTOGRAPHER)
     app.include_router(partner_portal.router, prefix="/partner", tags=["partner-portal"])
 
+    # Portal de Afiliados
+    app.include_router(affiliates_admin.router, prefix="/admin", tags=["affiliates-admin"])
+    app.include_router(affiliates_portal.router, prefix="/affiliate", tags=["affiliates"])
+
     # Dev-only: ensure dev users exist on startup so developers can login with known credentials
-    if settings.app_env == "local":
+    if settings.app_env == "local" and os.getenv("PYTEST_CURRENT_TEST") is None:
         @app.on_event("startup")
         async def _seed_dev_users():
             try:
@@ -136,6 +145,9 @@ def create_app() -> FastAPI:
                     # Seed partner/photographer dev user
                     # Credentials: pro@babybook.dev / pro123
                     await bootstrap_dev_partner(session)
+
+                    # Seed affiliate portal dev users (company_admin + affiliates)
+                    await bootstrap_dev_affiliates(session)
                     
                     await session.commit()
                     print("[babybook] dev users seeded: dev user + partner user")

@@ -6,9 +6,10 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, FileText, Shield, ExternalLink } from "lucide-react";
+import { ChevronLeft, FileText, Shield, ExternalLink, ArrowRight, MessageCircle } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
 import { TextPageSkeleton } from "../components/TextPageSkeleton";
+import { motion } from "motion/react";
 
 interface LegalDoc {
   id: string;
@@ -52,18 +53,26 @@ export const TermosPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-4xl mx-auto px-4 py-6"
+    >
+      {/* Botão Voltar */}
+      <Link
+        to="/jornada/minha-conta"
+        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
+        style={{ color: "var(--bb-color-ink-muted)" }}
+      >
+        <ChevronLeft className="w-5 h-5" />
+        Voltar para Minha Conta
+      </Link>
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link
-          to="/jornada"
-          className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
         <h1
-          className="text-2xl font-serif font-bold"
+          className="text-3xl font-serif font-bold leading-tight"
           style={{ color: "var(--bb-color-ink)" }}
         >
           {t("b2c.terms.title")}
@@ -71,7 +80,7 @@ export const TermosPage = () => {
       </div>
 
       {/* Documents List */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         {LEGAL_DOCS.map((doc) => {
           const Icon = doc.icon;
           return (
@@ -80,14 +89,14 @@ export const TermosPage = () => {
               href={doc.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 rounded-2xl transition-all hover:shadow-sm"
+              className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:shadow-md hover:scale-[1.01] group"
               style={{
                 backgroundColor: "var(--bb-color-surface)",
                 border: "1px solid var(--bb-color-border)",
               }}
             >
               <div
-                className="p-3 rounded-xl"
+                className="p-3 rounded-xl transition-colors group-hover:bg-[var(--bb-color-bg)]"
                 style={{
                   backgroundColor: "var(--bb-color-bg)",
                   color: "var(--bb-color-accent)",
@@ -97,7 +106,7 @@ export const TermosPage = () => {
               </div>
               <div className="flex-1">
                 <p
-                  className="font-medium"
+                  className="font-bold text-lg mb-1"
                   style={{ color: "var(--bb-color-ink)" }}
                 >
                   {doc.title}
@@ -109,14 +118,14 @@ export const TermosPage = () => {
                   {doc.description}
                 </p>
                 <p
-                  className="text-xs mt-1"
+                  className="text-xs mt-2 font-medium"
                   style={{ color: "var(--bb-color-ink-muted)" }}
                 >
                   {doc.lastUpdated}
                 </p>
               </div>
               <ExternalLink
-                className="w-5 h-5"
+                className="w-5 h-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               />
             </a>
@@ -126,48 +135,77 @@ export const TermosPage = () => {
 
       {/* Version Info */}
       <div
-        className="mt-8 p-4 rounded-2xl text-center"
+        className="mb-10 p-6 rounded-2xl text-center"
         style={{
           backgroundColor: "var(--bb-color-bg)",
           border: "1px solid var(--bb-color-border)",
         }}
       >
         <p
-          className="text-sm font-medium"
+          className="text-base font-bold"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Baby Book
+          Baby Book App
         </p>
         <p
-          className="text-xs mt-1"
+          className="text-sm mt-1"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
           {t("b2c.terms.version")} 1.0.0
         </p>
         <p
-          className="text-xs mt-2"
+          className="text-xs mt-3 opacity-60"
           style={{ color: "var(--bb-color-ink-muted)" }}
         >
           © 2024 Baby Book. {t("b2c.terms.rightsReserved")}
         </p>
       </div>
 
-      {/* Content */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 dark:bg-zinc-900 dark:border-zinc-800 space-y-8">
-        <p
-          className="text-sm text-center"
-          style={{ color: "var(--bb-color-ink-muted)" }}
+      {/* Sugestões (Teia de Navegação) */}
+      <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--bb-color-ink-muted)" }}>
+        Veja também
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link
+          to="/jornada/privacidade"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
         >
-          {t("b2c.terms.questions")}{" "}
-          <a
-            href="mailto:legal@babybook.app"
-            className="font-medium underline"
-            style={{ color: "var(--bb-color-accent)" }}
-          >
-            {t("b2c.terms.contact")}
-          </a>
-        </p>
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <Shield className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Privacidade</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Seus dados</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
+        
+        <Link
+          to="/jornada/ajuda"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <MessageCircle className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Central de Ajuda</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Suporte</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
       </div>
-    </div>
+    </motion.div>
   );
 };

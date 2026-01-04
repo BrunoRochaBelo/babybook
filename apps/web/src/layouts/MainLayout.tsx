@@ -62,7 +62,9 @@ export const MainLayout = () => {
     /^\/app\/novo-momento(\/|$)/.test(location.pathname) ||
     /^\/jornada\/importar-entrega(\/|$)/.test(location.pathname) ||
     /^\/perfil-usuario(\/|$)/.test(location.pathname) ||
-    /^\/jornada\/(minha-conta|notificacoes|privacidade|familia|assinatura|armazenamento|ajuda|termos)(\/|$)/.test(location.pathname);
+    /^\/jornada\/(minha-conta|notificacoes|privacidade|familia|assinatura|armazenamento|ajuda|termos|perfil-crianca)(\/|$)/.test(location.pathname) ||
+    /^\/termos-de-uso(\/|$)/.test(location.pathname) ||
+    /^\/politica-de-privacidade(\/|$)/.test(location.pathname);
 
   const hideBottomNav = isFullscreenFormRoute;
   const hideHeader = isFullscreenFormRoute;

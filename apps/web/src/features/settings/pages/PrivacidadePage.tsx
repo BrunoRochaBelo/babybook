@@ -6,9 +6,10 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Globe, Users, Lock, Eye, Download, Trash2 } from "lucide-react";
+import { ChevronLeft, Globe, Users, Lock, Eye, Download, Trash2, ArrowRight, FileText, MessageCircle } from "lucide-react";
 import { useTranslation } from "@babybook/i18n";
 import { TextPageSkeleton } from "../components/TextPageSkeleton";
+import { motion } from "motion/react";
 
 interface PrivacySetting {
   id: string;
@@ -81,18 +82,26 @@ export const PrivacidadePage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-4xl mx-auto px-4 py-6"
+    >
+      {/* Botão Voltar */}
+      <Link
+        to="/jornada/minha-conta"
+        className="inline-flex items-center gap-2 mb-6 p-2 -ml-2 rounded-xl text-sm font-semibold transition-colors hover:bg-[var(--bb-color-bg)]"
+        style={{ color: "var(--bb-color-ink-muted)" }}
+      >
+        <ChevronLeft className="w-5 h-5" />
+        Voltar para Minha Conta
+      </Link>
+
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link
-          to="/jornada"
-          className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
-          style={{ color: "var(--bb-color-ink-muted)" }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
+      <div className="flex items-center gap-4 mb-4">
         <h1
-          className="text-2xl font-serif font-bold"
+          className="text-3xl font-serif font-bold leading-tight"
           style={{ color: "var(--bb-color-ink)" }}
         >
           {t("b2c.privacy.title")}
@@ -101,38 +110,38 @@ export const PrivacidadePage = () => {
 
       {/* Descrição */}
       <p
-        className="mb-6 text-sm"
+        className="mb-8 text-lg"
         style={{ color: "var(--bb-color-ink-muted)" }}
       >
         {t("b2c.privacy.description")}
       </p>
 
       {/* Settings List */}
-      <div className="space-y-4">
+      <div className="space-y-6 mb-8">
         {settings.map((setting) => {
           const Icon = setting.icon;
           return (
             <div
               key={setting.id}
-              className="rounded-2xl p-4"
+              className="rounded-2xl p-6 transition-all hover:shadow-sm"
               style={{
                 backgroundColor: "var(--bb-color-surface)",
                 border: "1px solid var(--bb-color-border)",
               }}
             >
-              <div className="flex items-start gap-4 mb-4">
+              <div className="flex items-start gap-4 mb-6">
                 <div
-                  className="p-2 rounded-lg"
+                  className="p-3 rounded-xl"
                   style={{
                     backgroundColor: "var(--bb-color-bg)",
                     color: "var(--bb-color-accent)",
                   }}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
                   <p
-                    className="font-medium"
+                    className="font-bold text-lg mb-1"
                     style={{ color: "var(--bb-color-ink)" }}
                   >
                     {setting.title}
@@ -152,7 +161,7 @@ export const PrivacidadePage = () => {
                     key={option.value}
                     type="button"
                     onClick={() => updateSetting(setting.id, option.value)}
-                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                    className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
                     style={{
                       backgroundColor:
                         setting.value === option.value
@@ -166,6 +175,7 @@ export const PrivacidadePage = () => {
                         setting.value === option.value
                           ? "1px solid transparent"
                           : "1px solid var(--bb-color-border)",
+                      opacity: setting.value === option.value ? 1 : 0.7,
                     }}
                   >
                     {option.label}
@@ -179,7 +189,7 @@ export const PrivacidadePage = () => {
 
       {/* Security Info */}
       <div
-        className="mt-6 p-4 rounded-2xl flex items-start gap-3"
+        className="mb-8 p-4 rounded-2xl flex items-start gap-3"
         style={{
           backgroundColor: "var(--bb-color-accent-light, rgba(0,0,0,0.03))",
           border: "1px solid var(--bb-color-border)",
@@ -189,14 +199,14 @@ export const PrivacidadePage = () => {
           className="w-5 h-5 flex-shrink-0 mt-0.5"
           style={{ color: "var(--bb-color-accent)" }}
         />
-        <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
+        <p className="text-sm font-medium" style={{ color: "var(--bb-color-ink-muted)" }}>
           {t("b2c.privacy.securityInfo")}
         </p>
       </div>
 
       {/* Data Management */}
       <div
-        className="mt-6 rounded-2xl overflow-hidden"
+        className="mb-10 rounded-2xl overflow-hidden"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
@@ -204,7 +214,7 @@ export const PrivacidadePage = () => {
       >
         <button
           type="button"
-          className="w-full p-4 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
+          className="w-full p-5 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
           style={{ borderBottom: "1px solid var(--bb-color-border)" }}
         >
           <div
@@ -217,7 +227,7 @@ export const PrivacidadePage = () => {
             <Download className="w-5 h-5" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-medium" style={{ color: "var(--bb-color-ink)" }}>
+            <p className="font-bold text-base" style={{ color: "var(--bb-color-ink)" }}>
               {t("b2c.privacy.exportData")}
             </p>
             <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
@@ -228,7 +238,7 @@ export const PrivacidadePage = () => {
 
         <button
           type="button"
-          className="w-full p-4 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
+          className="w-full p-5 flex items-center gap-4 transition-colors hover:bg-[var(--bb-color-bg)]"
         >
           <div
             className="p-2.5 rounded-xl"
@@ -241,7 +251,7 @@ export const PrivacidadePage = () => {
           </div>
           <div className="flex-1 text-left">
             <p
-              className="font-medium"
+              className="font-bold text-base"
               style={{ color: "var(--bb-color-danger, #ef4444)" }}
             >
               {t("b2c.privacy.deleteAccount")}
@@ -255,6 +265,52 @@ export const PrivacidadePage = () => {
           </div>
         </button>
       </div>
-    </div>
+
+      {/* Sugestões (Teia de Navegação) */}
+      <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--bb-color-ink-muted)" }}>
+        Veja também
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link
+          to="/jornada/termos"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <FileText className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Termos de Uso</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Regras e condições</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
+        
+        <Link
+          to="/jornada/ajuda"
+          className="flex items-center justify-between p-4 rounded-2xl transition-all hover:opacity-90 active:scale-[0.99] group"
+          style={{
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--bb-color-bg)]" style={{ backgroundColor: "var(--bb-color-bg)", border: "1px solid var(--bb-color-border)" }}>
+                <MessageCircle className="w-5 h-5" style={{ color: "var(--bb-color-accent)" }} />
+             </div>
+             <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--bb-color-ink)" }}>Central de Ajuda</p>
+                <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>Tire suas dúvidas</p>
+             </div>
+          </div>
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: "var(--bb-color-ink-muted)" }} />
+        </Link>
+      </div>
+    </motion.div>
   );
 };
