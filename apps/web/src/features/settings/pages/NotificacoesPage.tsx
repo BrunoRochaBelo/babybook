@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { useNotifications, type NotificationType } from "@/contexts/NotificationsContext";
 import { B2CNotificationsSkeleton } from "@/components/skeletons/B2CNotificationsSkeleton";
 import { useTranslation } from "@babybook/i18n";
+import { B2CButton } from "@/components/B2CButton";
 
 interface NotificationPreference {
   id: string;
@@ -118,7 +119,7 @@ export const NotificacoesPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <Link
           to="/jornada"
           className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
@@ -127,10 +128,7 @@ export const NotificacoesPage = () => {
           <ChevronLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">
-          <h1
-            className="text-2xl font-serif font-bold"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
+          <h1 className="text-2xl font-bold">
             {t("b2c.notifications.title")}
           </h1>
           <p
@@ -146,7 +144,7 @@ export const NotificacoesPage = () => {
 
       {/* Tabs */}
       <div
-        className="flex gap-1 p-1 rounded-xl mb-6"
+        className="flex gap-1 p-1 rounded-xl mb-8"
         style={{
           backgroundColor: "var(--bb-color-bg)",
           border: "1px solid var(--bb-color-border)",
@@ -205,11 +203,11 @@ export const NotificacoesPage = () => {
           {/* Action bar */}
           {notifications.length > 0 && unreadCount > 0 && (
             <div className="flex items-center justify-end mb-4">
-              <button
+              <B2CButton
+                variant="secondary"
+                size="sm"
                 onClick={handleMarkAllAsRead}
                 disabled={isMarkingAll}
-                className="flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
-                style={{ color: "var(--bb-color-accent)" }}
               >
                 {isMarkingAll ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -217,7 +215,7 @@ export const NotificacoesPage = () => {
                   <CheckCheck className="w-4 h-4" />
                 )}
                 {t("b2c.notifications.markAllAsRead")}
-              </button>
+              </B2CButton>
             </div>
           )}
 
@@ -462,7 +460,7 @@ export const NotificacoesPage = () => {
 
           {/* Push info */}
           <div
-            className="mt-6 p-4 rounded-2xl"
+            className="mt-8 p-4 rounded-2xl"
             style={{
               backgroundColor: "var(--bb-color-bg)",
               border: "1px solid var(--bb-color-border)",

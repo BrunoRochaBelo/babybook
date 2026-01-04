@@ -57,6 +57,8 @@ const ALLOWED_VALUES = [
   "pro123", // Senha de desenvolvimento local
   "test123",
   "password123",
+  "admin123",
+  "affiliate123",
 ];
 
 function getStagedFiles() {

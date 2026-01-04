@@ -342,9 +342,9 @@ export function DeliveryDetailPage() {
         </div>
 
         {/* Desktop Page Header */}
-        <div className="hidden md:block mb-6">
+        <div className="hidden md:block mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               {delivery.title ||
                 delivery.client_name ||
                 t("partner.details.title")}
@@ -352,11 +352,11 @@ export function DeliveryDetailPage() {
             <StatusBadge status={delivery.status} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-500 dark:text-gray-400">
             {delivery.client_name && (
               <span className="inline-flex items-center gap-1.5">
                 <User className="w-4 h-4" />
-                <span className="text-gray-700 dark:text-gray-200">
+                <span className="font-medium text-gray-700 dark:text-gray-200">
                   {delivery.client_name}
                 </span>
               </span>
@@ -376,7 +376,7 @@ export function DeliveryDetailPage() {
         )}
 
         {/* Voucher (sempre visível) */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+        <div className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-gray-700/50 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ export function DeliveryDetailPage() {
         )}
 
         {/* Assets Grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {t("partner.details.files")} ({delivery.assets_count})

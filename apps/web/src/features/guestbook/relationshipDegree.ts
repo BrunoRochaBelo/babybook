@@ -1,32 +1,43 @@
+import { useMemo } from "react";
+import { useTranslation } from "@babybook/i18n";
 import { GuestbookEntry } from "@babybook/contracts";
 
-export const relationshipDegreeOptions = [
-  { value: "mae", label: "Mãe" },
-  { value: "pai", label: "Pai" },
-  { value: "tio", label: "Tio" },
-  { value: "tia", label: "Tia" },
-  { value: "irmao_irma", label: "Irmão / Irmã" },
-  { value: "avo", label: "Avô" },
-  { value: "avoa", label: "Avó" },
-  { value: "amigo", label: "Amigo(a)" },
-  { value: "madrasta", label: "Madrasta" },
-  { value: "padrasto", label: "Padrasto" },
-] as const satisfies ReadonlyArray<{
-  value: GuestbookEntry["relationshipDegree"];
-  label: string;
-}>;
+export const rawRelationshipDegrees: GuestbookEntry["relationshipDegree"][] = [
+  "mae",
+  "pai",
+  "tio",
+  "tia",
+  "irmao_irma",
+  "avo",
+  "avoa",
+  "amigo",
+  "madrasta",
+  "padrasto",
+];
 
-const labelByValue: Record<GuestbookEntry["relationshipDegree"], string> =
-  relationshipDegreeOptions.reduce(
-    (acc, option) => {
-      acc[option.value] = option.label;
-      return acc;
-    },
-    {} as Record<GuestbookEntry["relationshipDegree"], string>,
-  );
+export function useRelationshipDegrees() {
+  const { t } = useTranslation();
 
-export function formatRelationshipDegree(
+  const options = useMemo(() => {
+    return rawRelationshipDegrees.map((value) => ({
+      value,
+      label: t(`b2c.guestbook.relationship.${value}` as any, value),
+    }));
+  }, [t]);
+
+  const formatRelationshipDegree = (
+    value: GuestbookEntry["relationshipDegree"],
+  ): string => {
+    return t(`b2c.guestbook.relationship.${value}` as any, value);
+  };
+
+  return { options, formatRelationshipDegree };
+}
+
+// Deprecated: kept for migration, but should use the hook above
+export function formatRelationshipDegreeSimple(
   value: GuestbookEntry["relationshipDegree"],
+  t: (key: any, fallback: string) => string,
 ): string {
-  return labelByValue[value] ?? value;
+  return t(`b2c.guestbook.relationship.${value}` as any, value);
 }

@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import { HealthVaccineForm } from "@/components/HealthVaccineForm";
 import { HealthCardDetailViewer } from "@/components/HealthCardDetailViewer";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@babybook/i18n";
 
 interface HealthVaccinesTabProps {
   childId: string;
@@ -99,9 +100,11 @@ const VACCINE_CALENDAR = [
 
 
 import { B2CButton } from "@/components/B2CButton";
+import { B2CEmptyState } from "@/components/B2CEmptyState";
 import { B2CErrorState } from "@/layouts/b2cStates";
 
 export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
+  const { t } = useTranslation();
   const {
     data = [],
     isLoading,
@@ -197,8 +200,9 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
       }
     }
     return {
-      title: "Vacinação em dia!",
-      description: "Parabéns, todas as vacinas registradas foram aplicadas.",
+      status: "completed" as const,
+      title: t("b2c.health.vaccines.empty.title"),
+      description: t("b2c.health.vaccines.empty.description"),
       actions: null,
     };
   };
@@ -263,14 +267,26 @@ export const HealthVaccinesTab = ({ childId }: HealthVaccinesTabProps) => {
 
   return (
     <section className="space-y-6">
-      <HudCard
-        title="Próxima Vacina"
-        value={nextVaccine.title}
-        description={nextVaccine.description}
-        progressPercent={percentage}
-        progressText={`${applied} de ${totalVaccines}`}
-        actions={nextVaccine.actions}
-      />
+      {nextVaccine.status === "completed" ? (
+        <B2CEmptyState
+          title={nextVaccine.title}
+          description={nextVaccine.description}
+          illustration={
+            <div className="text-6xl animate-pulse">
+              🛡️
+            </div>
+          }
+        />
+      ) : (
+        <HudCard
+          title={t("b2c.health.vaccines.hud.nextVaccine")}
+          value={nextVaccine.title}
+          description={nextVaccine.description}
+          progressPercent={percentage}
+          progressText={`${applied} ${t("b2c.health.vaccines.hud.countSeparator")} ${totalVaccines}`}
+          actions={nextVaccine.actions}
+        />
+      )}
 
       {schedule.map((section) => (
         <div

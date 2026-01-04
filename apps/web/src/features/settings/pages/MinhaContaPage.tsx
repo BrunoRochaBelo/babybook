@@ -24,6 +24,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { apiClient } from "@/lib/api-client";
 import { useLanguage, useTranslation } from "@babybook/i18n";
 import { MinhaContaSkeleton } from "../components/MinhaContaSkeleton";
+import { B2CButton } from "@/components/B2CButton";
 
 export const MinhaContaPage = () => {
   const { t } = useTranslation();
@@ -52,7 +53,7 @@ export const MinhaContaPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <Link
           to="/jornada"
           className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
@@ -60,17 +61,14 @@ export const MinhaContaPage = () => {
         >
           <ChevronLeft className="w-5 h-5" />
         </Link>
-        <h1
-          className="text-2xl font-serif font-bold"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
+        <h1 className="text-2xl font-bold">
           {t("b2c.myAccount.title")}
         </h1>
       </div>
 
       {/* Avatar */}
       <div
-        className="rounded-2xl p-6 mb-6"
+        className="rounded-2xl p-6 mb-8"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
@@ -118,7 +116,7 @@ export const MinhaContaPage = () => {
 
       {/* Dados Pessoais */}
       <div
-        className="rounded-2xl p-6 mb-6"
+        className="rounded-2xl p-6 mb-8"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           border: "1px solid var(--bb-color-border)",
@@ -132,27 +130,19 @@ export const MinhaContaPage = () => {
             {t("b2c.myAccount.personalData")}
           </h2>
           {!isEditing ? (
-            <button
-              type="button"
+            <B2CButton
+              variant="secondary"
+              size="sm"
               onClick={() => setIsEditing(true)}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
-              style={{
-                color: "var(--bb-color-accent)",
-                backgroundColor:
-                  "var(--bb-color-accent-light, rgba(0,0,0,0.05))",
-              }}
             >
               {t("b2c.myAccount.edit")}
-            </button>
+            </B2CButton>
           ) : (
-            <button
-              type="button"
+            <B2CButton
+              variant="primary"
+              size="sm"
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg text-white transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: "var(--bb-color-accent)",
-              }}
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -160,7 +150,7 @@ export const MinhaContaPage = () => {
                 <Save className="w-4 h-4" />
               )}
               {isSaving ? t("b2c.myAccount.saving") : t("b2c.myAccount.save")}
-            </button>
+            </B2CButton>
           )}
         </div>
 
@@ -442,7 +432,7 @@ export const MinhaContaPage = () => {
 
       {/* Logout */}
       <button
-        className="mt-6 w-full py-4 flex items-center justify-center gap-2 rounded-2xl font-medium transition-opacity hover:opacity-80"
+        className="mt-8 w-full py-4 flex items-center justify-center gap-2 rounded-2xl font-medium transition-opacity hover:opacity-80"
         style={{ color: "var(--bb-color-danger, #ef4444)" }}
       >
         <LogOut className="w-5 h-5" />

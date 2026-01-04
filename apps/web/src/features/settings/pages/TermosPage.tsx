@@ -54,7 +54,7 @@ export const TermosPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <Link
           to="/jornada"
           className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
@@ -152,14 +152,8 @@ export const TermosPage = () => {
         </p>
       </div>
 
-      {/* Contact */}
-      <div
-        className="mt-4 p-4 rounded-2xl"
-        style={{
-          backgroundColor: "var(--bb-color-surface)",
-          border: "1px solid var(--bb-color-border)",
-        }}
-      >
+      {/* Content */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 dark:bg-zinc-900 dark:border-zinc-800 space-y-8">
         <p
           className="text-sm text-center"
           style={{ color: "var(--bb-color-ink-muted)" }}

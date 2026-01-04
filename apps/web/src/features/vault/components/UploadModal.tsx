@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { UploadCloud } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  B2CDialog,
+  B2CDialogContent,
+  B2CDialogHeader,
+  B2CDialogTitle,
+  B2CDialogDescription,
+  B2CDialogFooter,
+} from "@/components/B2CDialog";
+import { B2CButton } from "@/components/B2CButton";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -31,35 +31,40 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Carregar Novo Documento</DialogTitle>
-          <DialogDescription>
+    <B2CDialog open={isOpen} onOpenChange={onClose}>
+      <B2CDialogContent>
+        <B2CDialogHeader>
+          <B2CDialogTitle>Carregar Novo Documento</B2CDialogTitle>
+          <B2CDialogDescription>
             Faça o upload de um documento para guardar no seu cofre.
-          </DialogDescription>
-        </DialogHeader>
+          </B2CDialogDescription>
+        </B2CDialogHeader>
 
         <div className="py-4">
           <div className="flex items-center justify-center w-full">
             <label
               htmlFor="dropzone-file"
-              className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
+              className="group flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-colors hover:border-[var(--bb-color-accent)]/50"
               style={{
                 backgroundColor: "var(--bb-color-bg)",
                 borderColor: "var(--bb-color-border)",
               }}
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <UploadCloud
-                  className="w-10 h-10 mb-4"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                />
-                <p
-                  className="mb-2 text-sm"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
+                <div 
+                    className="p-4 rounded-full mb-4 transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: "var(--bb-color-surface)" }}
                 >
-                  <span className="font-semibold">Clique para carregar</span> ou
+                    <UploadCloud
+                    className="w-8 h-8"
+                    style={{ color: "var(--bb-color-accent)" }}
+                    />
+                </div>
+                <p
+                  className="mb-2 text-sm font-medium"
+                  style={{ color: "var(--bb-color-ink)" }}
+                >
+                  <span className="font-bold">Clique para carregar</span> ou
                   arraste e solte
                 </p>
                 <p
@@ -79,34 +84,45 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
             </label>
           </div>
           {files.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: "var(--bb-color-bg)" }}>
               <h4
-                className="font-semibold"
+                className="text-sm font-bold mb-2"
                 style={{ color: "var(--bb-color-ink)" }}
               >
-                Arquivos selecionados:
+                Arquivos selecionados ({files.length}):
               </h4>
               <ul
-                className="list-disc list-inside"
-                style={{ color: "var(--bb-color-ink)" }}
+                className="text-sm space-y-1"
+                style={{ color: "var(--bb-color-ink-muted)" }}
               >
                 {files.map((file, i) => (
-                  <li key={i}>{file.name}</li>
+                  <li key={i} className="flex items-center gap-2">
+                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--bb-color-accent)]"/>
+                     {file.name}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <B2CDialogFooter className="flex-row gap-3">
+          <B2CButton 
+            variant="secondary" 
+            onClick={onClose}
+            className="flex-1"
+          >
             Cancelar
-          </Button>
-          <Button onClick={handleUpload} disabled={files.length === 0}>
+          </B2CButton>
+          <B2CButton 
+            onClick={handleUpload} 
+            disabled={files.length === 0}
+            className="flex-1"
+          >
             Carregar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </B2CButton>
+        </B2CDialogFooter>
+      </B2CDialogContent>
+    </B2CDialog>
   );
 };

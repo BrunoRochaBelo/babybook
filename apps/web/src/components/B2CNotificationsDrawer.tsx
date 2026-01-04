@@ -33,6 +33,7 @@ import {
   DrawerFooter,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { motion, AnimatePresence } from "motion/react";
 
 import { NotificationType } from "@/features/notifications/api";
 
@@ -95,11 +96,35 @@ export function B2CNotificationsDrawer({
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "spring", stiffness: 400, damping: 30 },
+    },
+    exit: { opacity: 0, x: -20, transition: { duration: 0.2 } }
+  };
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent
-        className="h-full w-full sm:max-w-sm"
-        style={{ backgroundColor: "var(--bb-color-surface)" }}
+        className="h-full w-full sm:max-w-sm rounded-l-[32px] border-l outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
       >
         <DrawerHeader
           className="px-6 py-4"
@@ -172,8 +197,7 @@ export function B2CNotificationsDrawer({
                 <div
                   className="absolute inset-0 rounded-full animate-pulse"
                   style={{
-                    background:
-                      "linear-gradient(135deg, var(--bb-color-accent-light, rgba(0,0,0,0.05)), var(--bb-color-accent-light, rgba(0,0,0,0.1)))",
+                    backgroundColor: "var(--bb-color-accent-soft)",
                   }}
                 />
                 <div
@@ -209,14 +233,23 @@ export function B2CNotificationsDrawer({
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-[var(--bb-color-border)]">
+            <motion.div 
+                className="divide-y divide-[var(--bb-color-border)]"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+              <AnimatePresence>
               {notifications.map((notification) => {
                 const Icon = NOTIFICATION_ICONS[notification.type];
 
                 const content = (
-                  <div
+                  <motion.div
+                    layout
+                    variants={itemVariants}
+                    whileTap={{ scale: 0.98 }}
                     className={cn(
-                      "flex items-start gap-4 p-4 transition-colors",
+                      "flex items-start gap-4 p-4 transition-colors cursor-pointer",
                       notification.unread
                         ? "bg-[var(--bb-color-accent)]/5 hover:bg-[var(--bb-color-accent)]/10"
                         : "hover:bg-[var(--bb-color-bg)]"
@@ -287,7 +320,7 @@ export function B2CNotificationsDrawer({
                         <Check className="w-4 h-4" />
                       </button>
                     )}
-                  </div>
+                  </motion.div>
                 );
 
                 if (notification.link) {
@@ -304,7 +337,8 @@ export function B2CNotificationsDrawer({
 
                 return <div key={notification.id}>{content}</div>;
               })}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           )}
         </DrawerBody>
 

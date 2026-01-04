@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Heart, Sparkles } from "lucide-react";
-
+import { useTranslation } from "@babybook/i18n";
 import { cn } from "@/lib/utils";
 
 export type GuestbookFamilyTreeGraphNode = {
@@ -23,6 +23,7 @@ export function GuestbookFamilyTreeGraph(props: {
   nodes: GuestbookFamilyTreeGraphNode[];
   className?: string;
 }) {
+  const { t } = useTranslation();
   const nodes = props.nodes;
 
   const layout = useMemo(() => {
@@ -64,13 +65,13 @@ export function GuestbookFamilyTreeGraph(props: {
   return (
     <div
       className={cn("w-full", props.className)}
-      aria-label="Árvore genealógica (visualização gráfica)"
+      aria-label={t("b2c.guestbook.tree.graph.ariaLabel")}
     >
       <svg
         viewBox="0 0 360 300"
         className="w-full h-[260px] sm:h-[300px]"
         role="img"
-        aria-label={`Árvore genealógica de ${props.childName}`}
+        aria-label={t("b2c.guestbook.tree.graph.ariaDescription", { childName: props.childName })}
       >
         <defs>
           <filter
@@ -237,7 +238,7 @@ export function GuestbookFamilyTreeGraph(props: {
         style={{ color: "var(--bb-color-ink-muted)" }}
       >
         <Sparkles className="h-3 w-3" />
-        Um mapa afetivo gerado a partir das mensagens aprovadas
+        {t("b2c.guestbook.tree.graph.footnote")}
       </div>
     </div>
   );

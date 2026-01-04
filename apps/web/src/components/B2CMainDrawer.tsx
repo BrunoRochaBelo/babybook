@@ -32,6 +32,7 @@ import {
   DrawerFooter,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { motion } from "motion/react";
 
 interface Child {
   id: string;
@@ -81,12 +82,33 @@ export function B2CMainDrawer({
 
   const hasChildren = childrenList.length > 0;
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  };
+
   // Widget de Armazenamento Estilizado
   const StorageWidget = () => (
     <Link
       to="/jornada/armazenamento"
       onClick={() => onOpenChange(false)}
-      className="group relative overflow-hidden flex flex-col gap-3 p-4 rounded-2xl border transition-all hover:shadow-md"
+      className="group relative overflow-hidden flex flex-col gap-3 p-4 rounded-2xl border transition-all hover:shadow-md active:scale-95"
       style={{
         backgroundColor: "var(--bb-color-surface)",
         borderColor: "var(--bb-color-border)",
@@ -139,7 +161,7 @@ export function B2CMainDrawer({
     <Link
       to={to}
       onClick={() => onOpenChange(false)}
-      className="flex items-center gap-4 p-3 rounded-2xl bg-transparent hover:bg-[var(--bb-color-bg)] transition-all group"
+      className="flex items-center gap-4 p-3 rounded-2xl bg-transparent hover:bg-[var(--bb-color-bg)] transition-all group active:scale-95"
     >
       <div className="w-10 h-10 rounded-xl bg-[var(--bb-color-bg)] group-hover:bg-[var(--bb-color-surface)] border border-[var(--bb-color-border)] flex items-center justify-center text-[var(--bb-color-ink-muted)] group-hover:text-[var(--bb-color-accent)] group-hover:border-[var(--bb-color-accent)]/30 transition-all shadow-sm">
         <Icon className="w-5 h-5" />
@@ -159,7 +181,7 @@ export function B2CMainDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent
-        className="h-full w-full sm:max-w-[380px] border-l outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right"
+        className="h-full w-full sm:max-w-[380px] rounded-l-[32px] border-l outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
@@ -197,182 +219,189 @@ export function B2CMainDrawer({
           </div>
         </DrawerHeader>
 
-        <DrawerBody className="px-6 py-6 space-y-8 overflow-y-auto custom-scrollbar">
-          {/* Child Selector Section */}
-          <div className="space-y-4">
-            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
-              Álbum Atual
-            </p>
-            <div className="space-y-2.5">
-              {hasChildren ? (
-                <>
-                  {childrenList.map((child) => {
-                    const isSelected = selectedChild?.id === child.id;
-                    return (
-                      <button
-                        key={child.id}
-                        type="button"
-                        onClick={() => {
-                          onSelectChild(child.id);
-                          onOpenChange(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-2 pr-4 rounded-2xl border transition-all",
-                          isSelected
-                            ? "border-[var(--bb-color-accent)] bg-[var(--bb-color-accent)]/5 shadow-sm"
-                            : "border-[var(--bb-color-border)] bg-[var(--bb-color-bg)] hover:border-[var(--bb-color-ink-muted)]",
-                        )}
-                      >
-                        <div
+        <DrawerBody className="px-6 py-6 overflow-y-auto custom-scrollbar">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8"
+          >
+            {/* Child Selector Section */}
+            <motion.div className="space-y-4" variants={itemVariants}>
+              <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+                Álbum Atual
+              </p>
+              <div className="space-y-2.5">
+                {hasChildren ? (
+                  <>
+                    {childrenList.map((child) => {
+                      const isSelected = selectedChild?.id === child.id;
+                      return (
+                        <button
+                          key={child.id}
+                          type="button"
+                          onClick={() => {
+                            onSelectChild(child.id);
+                            onOpenChange(false);
+                          }}
                           className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-sm transition-transform active:scale-95",
+                            "w-full flex items-center gap-3 p-2 pr-4 rounded-2xl border transition-all",
                             isSelected
-                              ? "bg-[var(--bb-color-accent)]"
-                              : "bg-[var(--bb-color-ink-muted)]",
+                              ? "border-[var(--bb-color-accent)] bg-[var(--bb-color-accent)]/5 shadow-sm"
+                              : "border-[var(--bb-color-border)] bg-[var(--bb-color-bg)] hover:border-[var(--bb-color-ink-muted)]",
                           )}
                         >
-                          {child.avatarUrl ? (
-                            <img
-                              src={child.avatarUrl}
-                              alt={child.name}
-                              className="w-full h-full rounded-xl object-cover"
-                            />
-                          ) : (
-                            child.name[0]?.toUpperCase() || "?"
-                          )}
-                        </div>
-                        <span
-                          className={cn(
-                            "flex-1 text-left font-bold text-sm",
-                            isSelected
-                              ? "text-[var(--bb-color-accent)]"
-                              : "text-[var(--bb-color-ink)]",
-                          )}
-                        >
-                          {child.name}
-                        </span>
-                        {isSelected && (
-                          <div className="bg-[var(--bb-color-accent)] text-white rounded-full p-0.5">
-                            <Check className="w-3 h-3" />
+                          <div
+                            className={cn(
+                              "w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-sm transition-transform active:scale-95",
+                              isSelected
+                                ? "bg-[var(--bb-color-accent)]"
+                                : "bg-[var(--bb-color-ink-muted)]",
+                            )}
+                          >
+                            {child.avatarUrl ? (
+                              <img
+                                src={child.avatarUrl}
+                                alt={child.name}
+                                className="w-full h-full rounded-xl object-cover"
+                              />
+                            ) : (
+                              child.name[0]?.toUpperCase() || "?"
+                            )}
                           </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                          <span
+                            className={cn(
+                              "flex-1 text-left font-bold text-sm",
+                              isSelected
+                                ? "text-[var(--bb-color-accent)]"
+                                : "text-[var(--bb-color-ink)]",
+                            )}
+                          >
+                            {child.name}
+                          </span>
+                          {isSelected && (
+                            <div className="bg-[var(--bb-color-accent)] text-white rounded-full p-0.5">
+                              <Check className="w-3 h-3" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
 
-                  <Link
-                    to="/jornada/perfil-crianca"
-                    onClick={() => onOpenChange(false)}
-                    className="flex text-xs font-semibold text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-accent)] items-center justify-center gap-2 py-3 transition-colors border-t border-[var(--bb-color-border)] border-dashed mt-3 pt-4"
+                    <Link
+                      to="/jornada/perfil-crianca"
+                      onClick={() => onOpenChange(false)}
+                      className="flex text-xs font-semibold text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-accent)] items-center justify-center gap-2 py-3 transition-colors border-t border-[var(--bb-color-border)] border-dashed mt-3 pt-4"
+                    >
+                      <Baby className="w-3.5 h-3.5" />
+                      Gerenciar ou adicionar criança
+                    </Link>
+                  </>
+                ) : (
+                  <div
+                    className="rounded-2xl border border-dashed p-6 text-center bg-[var(--bb-color-bg)]"
+                    style={{ borderColor: "var(--bb-color-border)" }}
                   >
-                    <Baby className="w-3.5 h-3.5" />
-                    Gerenciar ou adicionar criança
-                  </Link>
-                </>
-              ) : (
-                <div
-                  className="rounded-2xl border border-dashed p-6 text-center bg-[var(--bb-color-bg)]"
-                  style={{ borderColor: "var(--bb-color-border)" }}
-                >
-                  <UserPlus className="w-8 h-8 mx-auto mb-3 text-[var(--bb-color-ink-muted)]" />
-                  <p className="text-sm mb-4 text-[var(--bb-color-ink-muted)]">
-                    Cadastre uma criança para começar.
-                  </p>
-                  <Link
-                    to="/jornada/perfil-crianca"
-                    onClick={() => onOpenChange(false)}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95"
-                    style={{
-                      backgroundColor: "var(--bb-color-accent)",
-                      color: "var(--bb-color-surface)",
-                    }}
-                  >
-                    Cadastrar
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
+                    <UserPlus className="w-8 h-8 mx-auto mb-3 text-[var(--bb-color-ink-muted)]" />
+                    <p className="text-sm mb-4 text-[var(--bb-color-ink-muted)]">
+                      Cadastre uma criança para começar.
+                    </p>
+                    <Link
+                      to="/jornada/perfil-crianca"
+                      onClick={() => onOpenChange(false)}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        backgroundColor: "var(--bb-color-accent)",
+                        color: "var(--bb-color-surface)",
+                      }}
+                    >
+                      Cadastrar
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
 
-          {/* Appearance Section */}
-          <div className="space-y-4">
-            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
-              Aparência
-            </p>
-            <div className="flex gap-2 p-1.5 rounded-2xl bg-[var(--bb-color-bg)] border border-[var(--bb-color-border)]">
-              {THEME_OPTIONS.map((option) => {
-                const Icon = option.icon;
-                const isActive = theme === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setTheme(option.value)}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold transition-all duration-300",
-                      isActive
-                        ? "bg-[var(--bb-color-surface)] text-[var(--bb-color-accent)] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                        : "text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)] hover:bg-[var(--bb-color-surface)]/50",
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{option.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            {/* Appearance Section */}
+            <motion.div className="space-y-4" variants={itemVariants}>
+              <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+                Aparência
+              </p>
+              <div className="flex gap-2 p-1.5 rounded-2xl bg-[var(--bb-color-bg)] border border-[var(--bb-color-border)]">
+                {THEME_OPTIONS.map((option) => {
+                  const Icon = option.icon;
+                  const isActive = theme === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setTheme(option.value)}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold transition-all duration-300",
+                        isActive
+                          ? "bg-[var(--bb-color-surface)] text-[var(--bb-color-accent)] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                          : "text-[var(--bb-color-ink-muted)] hover:text-[var(--bb-color-ink)] hover:bg-[var(--bb-color-surface)]/50",
+                      )}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
 
-          {/* Account Section */}
-          <div className="space-y-4">
-            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
-              Conta
-            </p>
+            {/* Account Section */}
+            <motion.div className="space-y-4" variants={itemVariants}>
+              <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+                Conta
+              </p>
 
-            <StorageWidget />
+              <StorageWidget />
 
-            <div className="space-y-1.5 mt-4">
-              <MenuLink
-                to="/jornada/minha-conta"
-                icon={Settings}
-                title="Configurações"
-                subtitle="Meus dados e preferências"
-              />
-              <MenuLink
-                to="/jornada/familia"
-                icon={Users}
-                title="Família"
-                subtitle="Membros com acesso"
-              />
-              <MenuLink
-                to="/jornada/privacidade"
-                icon={Shield}
-                title="Privacidade"
-                subtitle="Seus dados e segurança"
-              />
-            </div>
-          </div>
+              <div className="space-y-1.5 mt-4">
+                <MenuLink
+                  to="/jornada/minha-conta"
+                  icon={Settings}
+                  title="Configurações"
+                  subtitle="Meus dados e preferências"
+                />
+                <MenuLink
+                  to="/jornada/familia"
+                  icon={Users}
+                  title="Família"
+                  subtitle="Membros com acesso"
+                />
+                <MenuLink
+                  to="/jornada/privacidade"
+                  icon={Shield}
+                  title="Privacidade"
+                  subtitle="Seus dados e segurança"
+                />
+              </div>
+            </motion.div>
 
-          {/* Support Section */}
-          <div className="space-y-4">
-            <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
-              Suporte
-            </p>
-            <div className="space-y-1.5">
-              <MenuLink
-                to="/jornada/ajuda"
-                icon={HelpCircle}
-                title="Central de Ajuda"
-                subtitle="Tire suas dúvidas"
-              />
-              <MenuLink
-                to="/jornada/termos"
-                icon={FileText}
-                title="Termos e Políticas"
-                subtitle="Informações legais"
-              />
-            </div>
-          </div>
+            {/* Support Section */}
+            <motion.div className="space-y-4" variants={itemVariants}>
+              <p className="text-[11px] font-bold text-[var(--bb-color-ink-muted)] uppercase tracking-wider pl-1 opacity-70">
+                Suporte
+              </p>
+              <div className="space-y-1.5">
+                <MenuLink
+                  to="/jornada/ajuda"
+                  icon={HelpCircle}
+                  title="Central de Ajuda"
+                  subtitle="Tire suas dúvidas"
+                />
+                <MenuLink
+                  to="/jornada/termos"
+                  icon={FileText}
+                  title="Termos e Políticas"
+                  subtitle="Informações legais"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         </DrawerBody>
 
         <DrawerFooter

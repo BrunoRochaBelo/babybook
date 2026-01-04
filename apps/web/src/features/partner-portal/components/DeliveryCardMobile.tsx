@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   X,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { type Delivery } from "../types";
 import {
   isPartnerDeliveryArchived,
@@ -44,8 +45,12 @@ export function DeliveryCardMobile({
   const hasVoucher = Boolean(delivery.voucher_code);
 
   return (
-    <div
-      className={`rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all ${
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 15 },
+        visible: { opacity: 1, y: 0 }
+      }}
+      className={`rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-300 ${
         isArchived ? "opacity-70" : ""
       }`}
     >
@@ -126,7 +131,7 @@ export function DeliveryCardMobile({
           </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

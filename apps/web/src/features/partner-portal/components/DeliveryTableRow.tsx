@@ -11,6 +11,7 @@ import {
   X,
   User,
 } from "lucide-react";
+import { motion } from "motion/react";
 import type { Delivery } from "../types";
 import {
   getPartnerDeliveryDisplayStatus,
@@ -69,7 +70,11 @@ export function DeliveryTableRow({
   };
 
   return (
-    <div
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0 }
+      }}
       onClick={handleRowClick}
       className={`
         group
@@ -77,7 +82,8 @@ export function DeliveryTableRow({
         cursor-pointer
         bg-white dark:bg-transparent
         hover:bg-gray-50 dark:hover:bg-gray-700/30
-        transition-colors
+        active:scale-[0.99]
+        transition-all duration-300
         ${isArchived ? "opacity-70 grayscale" : ""}
         ${
           isSelected
@@ -152,7 +158,7 @@ export function DeliveryTableRow({
           <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

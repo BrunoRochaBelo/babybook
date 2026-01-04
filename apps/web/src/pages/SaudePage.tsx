@@ -193,16 +193,42 @@ export const SaudePage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
+    <motion.div
+      className="mx-auto max-w-4xl px-4 py-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1,
+          },
+        },
+      }}
+    >
+      <motion.div
+        className="mb-8 mt-2 px-2"
+        variants={{
+          hidden: { opacity: 0, y: 20 },
+          visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: "spring", stiffness: 300, damping: 24 },
+          },
+        }}
       >
-        Livro da Saúde
-      </h1>
+        <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
+          Livro da Saúde
+        </h1>
+        <p className="mt-2 text-lg opacity-60 font-medium max-w-lg">
+          Acompanhe vacinas, crescimento e consultas.
+        </p>
+      </motion.div>
 
       <div
-        className="mb-6 rounded-2xl border p-1.5 shadow-sm"
+        className="mb-8 rounded-2xl border p-1.5 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
@@ -258,7 +284,7 @@ export const SaudePage = () => {
         </LayoutGroup>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -299,10 +325,7 @@ export const SaudePage = () => {
             >
               Sessão protegida
             </p>
-            <h2
-              className="mt-2 font-serif text-2xl"
-              style={{ color: "var(--bb-color-ink)" }}
-            >
+            <h2 className="mt-2 text-2xl">
               Vamos confirmar que é você
             </h2>
             <p
@@ -340,6 +363,6 @@ export const SaudePage = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

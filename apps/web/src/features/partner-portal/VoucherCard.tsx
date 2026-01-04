@@ -149,7 +149,7 @@ export function VoucherCard({ data, onCopy }: VoucherCardProps) {
       {/* Card Preview - This is what gets downloaded */}
       <div
         ref={cardRef}
-        className="bg-gradient-to-br from-pink-50 to-rose-100 rounded-2xl p-6 border border-pink-200 shadow-sm"
+        className="bg-gradient-to-br from-pink-50 to-rose-100 rounded-[2.5rem] p-8 border border-pink-200 shadow-sm"
       >
         {/* Header */}
         <div className="text-center mb-6">

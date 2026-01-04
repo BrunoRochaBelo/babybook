@@ -10,8 +10,10 @@ import {
   ArrowUpCircle,
 } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { useTranslation } from "@babybook/i18n";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useCreateGuestbookInvite, useGuestbookEntries } from "@/hooks/api";
+import { toast } from "sonner";
 import { GuestbookList } from "@/components/GuestbookList";
 import { GuestbookForm } from "@/components/GuestbookForm";
 import { HudCard } from "@/components/HudCard";
@@ -25,6 +27,7 @@ import { QRCodeSVG } from "qrcode.react";
 const TOTAL_SLOTS: number = 20;
 
 export const VisitasPage = () => {
+  const { t } = useTranslation();
   const { selectedChild } = useSelectedChild();
   const {
     data: entries = [],
@@ -65,7 +68,6 @@ export const VisitasPage = () => {
   useEffect(() => {
     if (!showInviteModal || !selectedChild) return;
 
-    // Gera um convite genérico (sem e-mail) quando o modal abre.
     setInviteError(null);
     createInvite(
       { childId: selectedChild.id },
@@ -75,11 +77,11 @@ export const VisitasPage = () => {
           setInviteError(
             err instanceof Error
               ? err.message
-              : "Não foi possível gerar o convite.",
+              : t("b2c.guestbook.invite.modal.errorGenerate"),
           ),
       },
     );
-  }, [showInviteModal, selectedChild, createInvite]);
+  }, [showInviteModal, selectedChild, createInvite, t]);
 
   if (isLoading) {
     return <GuestbookSkeleton />;
@@ -88,8 +90,8 @@ export const VisitasPage = () => {
   if (isError) {
     return (
       <B2CErrorState
-        title="Erro ao carregar visitas"
-        description="Não foi possível buscar as mensagens do livro de visitas."
+        title={t("b2c.errors.guestbookLoadTitle")}
+        description={t("b2c.errors.guestbookLoadDesc")}
         errorDetails={error?.message}
         onRetry={() => refetch()}
         skeleton={<GuestbookSkeleton />}
@@ -125,10 +127,10 @@ export const VisitasPage = () => {
       <B2CEmptyState
         variant="page"
         icon={Baby}
-        title="Selecione uma criança"
-        description="Para ver o livro de visitas, selecione uma criança primeiro."
+        title={t("b2c.common.selectChildTitle")}
+        description={t("b2c.common.selectChildDesc")}
         primaryAction={{
-          label: "Ir para Perfil da Criança",
+          label: t("b2c.common.goToChildProfile"),
           to: "/jornada/perfil-crianca",
         }}
       />
@@ -136,16 +138,42 @@ export const VisitasPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
+    <motion.div
+      className="mx-auto max-w-4xl px-4 py-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1,
+          },
+        },
+      }}
+    >
+      <motion.div
+        className="mb-8 mt-2 px-2"
+        variants={{
+          hidden: { opacity: 0, y: 20 },
+          visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: "spring", stiffness: 300, damping: 24 },
+          },
+        }}
       >
-        Livro de Visitas
-      </h1>
+        <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
+          {t("b2c.guestbook.title")}
+        </h1>
+        <p className="mt-2 text-lg opacity-60 font-medium max-w-lg">
+          {t("b2c.guestbook.description")}
+        </p>
+      </motion.div>
 
       <div
-        className="mb-6 rounded-2xl border p-1.5 shadow-sm"
+        className="mb-8 rounded-2xl border p-1.5 shadow-sm"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
@@ -154,8 +182,8 @@ export const VisitasPage = () => {
         <LayoutGroup id="guestbook-tabs">
           <div className="flex flex-wrap gap-1.5">
             {[
-              { id: "approved", icon: CheckCircle, label: "Aprovadas" },
-              { id: "pending", icon: Users, label: "Pendentes" },
+              { id: "approved", icon: CheckCircle, label: t("b2c.guestbook.tabs.approved") },
+              { id: "pending", icon: Users, label: t("b2c.guestbook.tabs.pending") },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
@@ -215,17 +243,20 @@ export const VisitasPage = () => {
         </LayoutGroup>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-8">
         <HudCard
-          title="Livro de visitas"
-          value="Mensagens guardadas"
-          description={`${approvedCount} de ${TOTAL_SLOTS} slots utilizados`}
+          title={t("b2c.guestbook.hud.title")}
+          value={t("b2c.guestbook.hud.subtitle")}
+          description={t("b2c.guestbook.hud.description", {
+            count: approvedCount,
+            total: TOTAL_SLOTS,
+          })}
           progressPercent={slotUsagePercent}
           actions={
             <>
               <B2CButton variant="secondary" size="sm">
                 <ArrowUpCircle className="h-4 w-4" />
-                Ampliar para 50
+                {t("b2c.guestbook.hud.actions.expand")}
               </B2CButton>
             </>
           }
@@ -233,7 +264,7 @@ export const VisitasPage = () => {
       </div>
 
       {activeTab === "approved" && (
-        <div className="mb-6">
+        <div className="mb-8">
           <GuestbookFamilyTree
             childName={selectedChild.name}
             entries={entries}
@@ -248,13 +279,13 @@ export const VisitasPage = () => {
             onClick={() => setShowForm((state) => !state)}
           >
             <Users className="h-4 w-4" />
-            {showForm ? "Fechar formulário" : "Deixar mensagem"}
+            {showForm ? t("b2c.guestbook.actions.closeForm") : t("b2c.guestbook.actions.leaveMessage")}
           </B2CButton>
         )}
 
         <B2CButton variant="secondary" onClick={() => setShowInviteModal(true)}>
           <UserPlus className="h-4 w-4" />
-          Convidar
+          {t("b2c.guestbook.actions.invite")}
         </B2CButton>
       </B2CActionBar>
 
@@ -288,13 +319,10 @@ export const VisitasPage = () => {
                   className="text-xs uppercase tracking-[0.3em]"
                   style={{ color: "var(--bb-color-ink-muted)" }}
                 >
-                  Convide para deixar uma mensagem
+                  {t("b2c.guestbook.invite.modal.label")}
                 </p>
-                <h2
-                  className="mt-1 font-serif text-xl"
-                  style={{ color: "var(--bb-color-ink)" }}
-                >
-                  Envie o livro de visitas
+                <h2 className="mt-1 text-xl">
+                  {t("b2c.guestbook.invite.modal.title")}
                 </h2>
               </div>
               <button
@@ -305,7 +333,7 @@ export const VisitasPage = () => {
                   borderColor: "var(--bb-color-border)",
                   color: "var(--bb-color-ink-muted)",
                 }}
-                aria-label="Fechar"
+                aria-label={t("b2c.guestbook.list.aria.close")}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -335,7 +363,7 @@ export const VisitasPage = () => {
                     className="text-sm font-semibold"
                     style={{ color: "var(--bb-color-ink-muted)" }}
                   >
-                    {isCreatingInvite ? "Gerando..." : "QR"}
+                    {isCreatingInvite ? t("b2c.guestbook.invite.modal.generating") : "QR"}
                   </span>
                 )}
               </div>
@@ -343,7 +371,7 @@ export const VisitasPage = () => {
                 className="mt-3 text-xs uppercase tracking-[0.3em]"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                Escaneie o QR Code para acessar
+                {t("b2c.guestbook.invite.modal.qrLabel")}
               </p>
             </div>
 
@@ -353,14 +381,14 @@ export const VisitasPage = () => {
                 htmlFor="guestbook-invited-email"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                E-mail do convidado (opcional, para pré-preencher)
+                {t("b2c.guestbook.invite.modal.emailLabel")}
               </label>
               <input
                 id="guestbook-invited-email"
                 type="email"
                 value={invitedEmail}
                 onChange={(event) => setInvitedEmail(event.target.value)}
-                placeholder="convidado@email.com"
+                placeholder={t("b2c.guestbook.invite.modal.emailPlaceholder")}
                 className="w-full px-3 py-2 border rounded-xl"
                 style={{
                   backgroundColor: "var(--bb-color-surface)",
@@ -391,13 +419,13 @@ export const VisitasPage = () => {
                           setInviteError(
                             err instanceof Error
                               ? err.message
-                              : "Não foi possível gerar o convite.",
+                              : t("b2c.guestbook.invite.modal.errorGenerate"),
                           ),
                       },
                     );
                   }}
                 >
-                  {isCreatingInvite ? "Gerando..." : "Gerar/atualizar convite"}
+                  {isCreatingInvite ? t("b2c.guestbook.invite.modal.generating") : (inviteUrl ? t("b2c.guestbook.invite.modal.updateAction") : t("b2c.guestbook.invite.modal.generateAction"))}
                 </button>
               </div>
               {inviteError && (
@@ -422,11 +450,14 @@ export const VisitasPage = () => {
                   borderColor: "var(--bb-color-border)",
                   color: "var(--bb-color-ink)",
                 }}
-                onClick={() =>
-                  inviteUrl && navigator.clipboard?.writeText(inviteUrl)
-                }
+                onClick={() => {
+                  if (inviteUrl) {
+                    navigator.clipboard?.writeText(inviteUrl);
+                    toast.success(t("b2c.guestbook.invite.modal.copied"));
+                  }
+                }}
               >
-                Copiar
+                {t("b2c.guestbook.invite.modal.copyAction")}
               </button>
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -440,13 +471,13 @@ export const VisitasPage = () => {
                 onClick={() => {
                   if (!inviteUrl) return;
                   const message = encodeURIComponent(
-                    `Deixe uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteUrl}`,
+                    t("b2c.guestbook.invite.shareMessage", { childName: selectedChild?.name, url: inviteUrl })
                   );
                   window.open(`https://wa.me/?text=${message}`, "_blank");
                 }}
               >
                 <MessageCircle className="h-4 w-4" />
-                WhatsApp
+                {t("b2c.guestbook.invite.modal.whatsapp")}
               </button>
               <button
                 type="button"
@@ -458,22 +489,22 @@ export const VisitasPage = () => {
                 onClick={() => {
                   if (!inviteUrl) return;
                   const subject = encodeURIComponent(
-                    "Convite para deixar mensagem",
+                    t("b2c.guestbook.invite.shareSubject")
                   );
                   const body = encodeURIComponent(
-                    `Olá! Você foi convidado a deixar uma mensagem no livro de visitas ${selectedChild?.name}: ${inviteUrl}`,
+                    t("b2c.guestbook.invite.shareMessage", { childName: selectedChild?.name, url: inviteUrl })
                   );
                   const recipient = invitedEmail.trim();
                   window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
                 }}
               >
                 <Mail className="h-4 w-4" />
-                E-mail
+                {t("b2c.guestbook.invite.modal.email")}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

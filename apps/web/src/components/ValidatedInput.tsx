@@ -31,6 +31,8 @@ interface ValidatedInputProps
   containerClassName?: string;
   icon?: React.ElementType; // Icon component
   rightElement?: React.ReactNode; // Element to render on the right side (e.g. password toggle)
+  multiline?: boolean;
+  rows?: number;
 }
 
 export function ValidatedInput({
@@ -107,14 +109,21 @@ export function ValidatedInput({
       case "validating":
         return <Loader2 className="w-4 h-4 animate-spin text-gray-400" />;
       case "valid":
+      case "valid":
         return (
-          <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center animate-in zoom-in-50 duration-200">
+          <div
+            className="w-5 h-5 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-200"
+            style={{ backgroundColor: "var(--bb-color-success)" }}
+          >
             <Check className="w-3 h-3 text-white" />
           </div>
         );
       case "invalid":
         return (
-          <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center animate-in zoom-in-50 duration-200">
+          <div
+            className="w-5 h-5 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-200"
+            style={{ backgroundColor: "var(--bb-color-danger)" }}
+          >
             <X className="w-3 h-3 text-white" />
           </div>
         );
@@ -128,7 +137,8 @@ export function ValidatedInput({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium mb-1"
+          style={{ color: "var(--bb-color-ink)" }}
         >
           {label}
         </label>
@@ -139,31 +149,59 @@ export function ValidatedInput({
             <Icon className="w-5 h-5" />
           </div>
         )}
-        <input
-          id={inputId}
-          value={value}
-          onChange={onChange}
-          onBlur={handleBlur}
-          className={cn(
-            "w-full py-3 border rounded-xl transition-colors",
-            Icon ? "pl-12 pr-4" : "px-4",
-            "focus:ring-2 focus:ring-pink-500 focus:border-pink-500",
-            "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-            "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
-            effectiveStatus === "valid" &&
-              "border-green-500 dark:border-green-500",
-            effectiveStatus === "invalid" &&
-              "border-red-500 dark:border-red-500",
-            effectiveStatus === "idle" &&
-              "border-gray-300 dark:border-gray-600",
-            effectiveStatus === "validating" &&
-              "border-gray-300 dark:border-gray-600",
-            (showValidation && value) || rightElement ? "pr-12" : "",
-             rightElement && (showValidation && value) ? "pr-20" : "", // Adjust padding if both exist
-            className,
-          )}
-          {...props}
-        />
+        {props.multiline ? (
+          <textarea
+            id={inputId}
+            value={value}
+            onChange={onChange as any} // textarea onChange is compatible
+            onBlur={handleBlur}
+            className={cn(
+              "w-full py-3 border rounded-xl transition-all outline-none resize-none",
+              Icon ? "pl-12 pr-4" : "px-4",
+              "focus:ring-2 focus:ring-[var(--bb-color-accent)]/20 focus:border-[var(--bb-color-accent)]",
+              (showValidation && value) || rightElement ? "pr-12" : "",
+              rightElement && (showValidation && value) ? "pr-20" : "",
+              className,
+            )}
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              color: "var(--bb-color-ink)",
+              borderColor:
+                effectiveStatus === "invalid"
+                  ? "var(--bb-color-danger)"
+                  : effectiveStatus === "valid"
+                  ? "var(--bb-color-success)"
+                  : "var(--bb-color-border-strong)",
+            }}
+            {...(props as any)}
+          />
+        ) : (
+          <input
+            id={inputId}
+            value={value}
+            onChange={onChange}
+            onBlur={handleBlur}
+            className={cn(
+              "w-full py-3 border rounded-xl transition-all outline-none",
+              Icon ? "pl-12 pr-4" : "px-4",
+              "focus:ring-2 focus:ring-[var(--bb-color-accent)]/20 focus:border-[var(--bb-color-accent)]",
+              (showValidation && value) || rightElement ? "pr-12" : "",
+              rightElement && (showValidation && value) ? "pr-20" : "",
+              className,
+            )}
+            style={{
+              backgroundColor: "var(--bb-color-surface)",
+              color: "var(--bb-color-ink)",
+              borderColor:
+                effectiveStatus === "invalid"
+                  ? "var(--bb-color-danger)"
+                  : effectiveStatus === "valid"
+                  ? "var(--bb-color-success)"
+                  : "var(--bb-color-border-strong)",
+            }}
+            {...props}
+          />
+        )}
         {(statusIcon || rightElement) && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
              {rightElement}
@@ -174,13 +212,19 @@ export function ValidatedInput({
 
       {/* Mensagem de erro ou helper text */}
       {effectiveErrorMessage && effectiveStatus === "invalid" && (
-        <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+        <p
+          className="mt-1.5 text-xs flex items-center gap-1 animate-in fade-in-0 slide-in-from-top-1 duration-200"
+          style={{ color: "var(--bb-color-danger)" }}
+        >
           <AlertCircle className="w-3 h-3" />
           {effectiveErrorMessage}
         </p>
       )}
       {helperText && effectiveStatus !== "invalid" && (
-        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <p
+          className="mt-1.5 text-xs"
+          style={{ color: "var(--bb-color-ink-muted)" }}
+        >
           {helperText}
         </p>
       )}

@@ -1,35 +1,39 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Play, Camera } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 import { useMoments } from "@/hooks/api";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAppStore } from "@/store/app";
 import { MomentCard } from "@/components/MomentCard";
-import { B2CErrorState, B2CEmptyState } from "@/layouts/b2cStates";
+import { B2CErrorState } from "@/layouts/b2cStates";
+import { B2CEmptyState } from "@/components/B2CEmptyState";
 import { DashboardSkeleton } from "@/components/skeletons";
 
-const templates = [
-  {
-    id: "descoberta",
-    title: "A Descoberta",
-    description: "O primeiro momento especial",
-  },
-  {
-    id: "primeiro-sorriso",
-    title: "Primeiro Sorriso",
-    description: "Aquele sorriso inesquecível",
-  },
-  {
-    id: "primeira-gargalhada",
-    title: "Primeira Gargalhada",
-    description: "O som mais especial",
-  },
-];
-
 export const DashboardPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { children = [], selectedChild } = useSelectedChild();
   const setSelectedChildId = useAppStore((state) => state.setSelectedChildId);
+
+  const templates = useMemo(() => [
+    {
+      id: "descoberta",
+      title: t("b2c.dashboard.templates.descoberta.title"),
+      description: t("b2c.dashboard.templates.descoberta.description"),
+    },
+    {
+      id: "primeiro-sorriso",
+      title: t("b2c.dashboard.templates.primeiro-sorriso.title"),
+      description: t("b2c.dashboard.templates.primeiro-sorriso.description"),
+    },
+    {
+      id: "primeira-gargalhada",
+      title: t("b2c.dashboard.templates.primeira-gargalhada.title"),
+      description: t("b2c.dashboard.templates.primeira-gargalhada.description"),
+    },
+  ], [t]);
+
   const [nextTemplate] = useState(templates[0]);
   const {
     data: moments = [],
@@ -60,8 +64,8 @@ export const DashboardPage = () => {
   if (isError) {
     return (
       <B2CErrorState
-        title="Não foi possível carregar seus momentos"
-        description="Verifique sua conexão e tente novamente."
+        title={t("b2c.dashboard.errorTitle")}
+        description={t("b2c.dashboard.errorDescription")}
         errorDetails={error instanceof Error ? error.message : null}
         onRetry={() => refetch()}
         skeleton={<DashboardSkeleton />}
@@ -71,16 +75,13 @@ export const DashboardPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
-      >
-        Jornada
+      <h1 className="mb-8 text-3xl font-bold">
+        {t("b2c.dashboard.title")}
       </h1>
 
       {/* Child Selector */}
       {children.length > 0 && (
-        <div className="mb-6 flex justify-center">
+        <div className="mb-8 flex justify-center">
           <select
             value={selectedChild?.id || ""}
             onChange={(e) => handleChildChange(e.target.value)}
@@ -103,23 +104,20 @@ export const DashboardPage = () => {
       {/* HUD (Head-Up Display) */}
       {selectedChild && (
         <div
-          className="rounded-2xl shadow-lg p-6 mb-6 border"
+          className="rounded-2xl shadow-lg p-6 mb-8 border"
           style={{
             backgroundColor: "var(--bb-color-surface)",
             borderColor: "var(--bb-color-border)",
           }}
         >
-          <h2
-            className="text-2xl font-serif font-bold mb-2"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
-            Sua Jornada
+          <h2 className="text-2xl font-bold mb-2">
+            {t("b2c.dashboard.hud.title")}
           </h2>
           <p
             className="text-sm mb-4"
             style={{ color: "var(--bb-color-ink-muted)" }}
           >
-            Próxima sugestão
+            {t("b2c.dashboard.hud.suggestion")}
           </p>
           <div
             className="rounded-2xl p-6 text-white mb-4"
@@ -141,12 +139,11 @@ export const DashboardPage = () => {
               }}
             >
               <Play className="w-4 h-4" />
-              Começar
+              {t("b2c.dashboard.hud.start")}
             </button>
           </div>
           <p className="text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>
-            Não obrigatório. Você pode criar um momento livre a qualquer
-            momento.
+            {t("b2c.dashboard.hud.hint")}
           </p>
         </div>
       )}
@@ -157,7 +154,7 @@ export const DashboardPage = () => {
           className="text-lg font-bold mb-4"
           style={{ color: "var(--bb-color-ink)" }}
         >
-          Seus Momentos
+          {t("b2c.dashboard.hud.momentsTitle")}
         </h3>
 
         {moments.length > 0 ? (
@@ -168,15 +165,26 @@ export const DashboardPage = () => {
           </div>
         ) : (
           <B2CEmptyState
-            variant="section"
-            icon={Camera}
-            title="Nenhum momento registrado ainda"
-            description="Comece a documentar a jornada do seu bebê. Cada momento é único e especial."
-            primaryAction={{
-              label: "Registrar Primeiro Momento",
-              onClick: handleCreateAvulso,
-              icon: Plus,
-            }}
+            title={t("b2c.moments.empty.title")}
+            description={t("b2c.moments.empty.description")}
+            illustration={
+              <div className="text-6xl animate-bounce">
+                🌱
+              </div>
+            }
+            action={
+              <button
+                onClick={handleCreateAvulso}
+                className="mt-4 flex items-center gap-2 px-6 py-3 rounded-full font-semibold shadow-md active:scale-95 transition-all hover:brightness-110"
+                style={{
+                  backgroundColor: "var(--bb-color-accent)",
+                  color: "var(--bb-color-surface)",
+                }}
+              >
+                <Plus className="w-5 h-5" />
+                {t("b2c.moments.empty.action")}
+              </button>
+            }
           />
         )}
       </div>

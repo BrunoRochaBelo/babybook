@@ -5,23 +5,25 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Calendar, Type, AlignLeft, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MediaUploader } from "./MediaUploader";
-import { Button } from "@/components/ui/button";
+import { B2CButton } from "@/components/B2CButton";
+import { ValidatedInput } from "@/components/ValidatedInput";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  B2CDialog,
+  B2CDialogContent,
+  B2CDialogDescription,
+  B2CDialogFooter,
+  B2CDialogHeader,
+  B2CDialogTitle,
+} from "@/components/B2CDialog";
 import { useCreateMoment } from "@/hooks/api";
 import type { MomentTemplate } from "../hooks/useMomentTemplate";
 import { StampGenerator } from "./StampGenerator";
 import { useTranslation } from "@babybook/i18n";
 import { uploadMomentMediaFiles } from "@/features/uploads/b2cUpload";
+import { cn } from "@/lib/utils";
 
 type MediaKind = "photo" | "video" | "audio";
 
@@ -756,29 +758,29 @@ export const MomentForm = ({
 
   return (
     <>
-      <Dialog open={isNoMediaDialogOpen} onOpenChange={setIsNoMediaDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle style={{ color: "var(--bb-color-ink)" }}>
+      <B2CDialog open={isNoMediaDialogOpen} onOpenChange={setIsNoMediaDialogOpen}>
+        <B2CDialogContent>
+          <B2CDialogHeader>
+            <B2CDialogTitle style={{ color: "var(--bb-color-ink)" }}>
               {t("b2c.moments.common.noMediaNudge.title")}
-            </DialogTitle>
-            <DialogDescription style={{ color: "var(--bb-color-ink-muted)" }}>
+            </B2CDialogTitle>
+            <B2CDialogDescription style={{ color: "var(--bb-color-ink-muted)" }}>
               {t("b2c.moments.common.noMediaNudge.description")}
-            </DialogDescription>
-          </DialogHeader>
+            </B2CDialogDescription>
+          </B2CDialogHeader>
 
-          <DialogFooter>
-            <Button
+          <B2CDialogFooter>
+            <B2CButton
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setIsNoMediaDialogOpen(false);
                 scrollToId("moment-media");
               }}
             >
               {t("b2c.moments.common.noMediaNudge.addNow")}
-            </Button>
-            <Button
+            </B2CButton>
+            <B2CButton
               type="button"
               onClick={() => {
                 setNoMediaConfirmed(true);
@@ -787,281 +789,197 @@ export const MomentForm = ({
               }}
             >
               {t("b2c.moments.common.noMediaNudge.saveAnyway")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </B2CButton>
+          </B2CDialogFooter>
+        </B2CDialogContent>
+      </B2CDialog>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-            {t("b2c.moments.form.fields.titleLabel")}
-          </label>
-          <input
-            id="moment-title"
-            type="text"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setTitleError(null);
-            }}
-            className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
-            style={{
-              backgroundColor: "var(--bb-color-surface)",
-              borderColor: "var(--bb-color-border)",
-              color: "var(--bb-color-ink)",
-            }}
-            placeholder={t("b2c.moments.form.fields.titlePlaceholder")}
-            required
-            aria-invalid={
-              Boolean(titleError) || (submitAttempted && !isTitleValid)
-            }
-          />
+        {/* === SECTION 1: HEADER & CORE INFO (Title/Date) === */}
+        <div
+          className="rounded-[2rem] p-6 shadow-sm border border-[var(--bb-color-border)]"
+          style={{ backgroundColor: "var(--bb-color-surface)" }}
+        >
+          <div className="space-y-6">
+            <ValidatedInput
+              id="moment-title"
+              label={t("b2c.moments.form.fields.titleLabel")}
+              placeholder={t("b2c.moments.form.fields.titlePlaceholder")}
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setTitleError(null);
+              }}
+              icon={Type}
+              error={titleError || (submitAttempted && !isTitleValid ? "Obrigatório" : undefined)}
+              required
+            />
 
-          {titleError ? (
-            <p
-              className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
-              role="alert"
-            >
-              {titleError}
-            </p>
-          ) : null}
+            <ValidatedInput
+              id="moment-date"
+              type="date"
+              label={t("b2c.moments.form.fields.dateLabel")}
+              value={occurredAt}
+              onChange={(e) => {
+                setOccurredAt(e.target.value);
+                setOccurredAtError(null);
+              }}
+              icon={Calendar}
+              error={occurredAtError || (submitAttempted && !isDateValid ? "Obrigatório" : undefined)}
+              required
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-            {t("b2c.moments.form.fields.dateLabel")}
-          </label>
-          <input
-            id="moment-date"
-            type="date"
-            value={occurredAt}
-            onChange={(e) => {
-              setOccurredAt(e.target.value);
-              setOccurredAtError(null);
-            }}
-            className="w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none"
-            style={{
-              backgroundColor: "var(--bb-color-surface)",
-              borderColor: "var(--bb-color-border)",
-              color: "var(--bb-color-ink)",
-            }}
-            required
-            aria-invalid={
-              Boolean(occurredAtError) || (submitAttempted && !isDateValid)
-            }
-          />
-
-          {occurredAtError ? (
-            <p
-              className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
-              role="alert"
-            >
-              {occurredAtError}
-            </p>
-          ) : null}
-        </div>
-
+        {/* === SECTION 2: DYNAMIC FIELDS (If any) === */}
         {template?.fields?.length ? (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-[var(--bb-color-ink)]">
+          <div
+            className="rounded-[2rem] p-6 shadow-sm border border-[var(--bb-color-border)]"
+            style={{ backgroundColor: "var(--bb-color-surface)" }}
+          >
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-[var(--bb-color-ink)] flex items-center gap-2">
+                <AlignLeft className="w-5 h-5 opacity-50" />
                 {t("b2c.moments.form.sections.details")}
               </h3>
-              <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
+              <p className="mt-1 text-sm text-[var(--bb-color-ink-muted)]">
                 {template.prompt}
               </p>
             </div>
 
-            {template.fields
-              .filter(
-                (f) => template.id !== "marcas-crescimento" || f.key !== "limb",
-              )
-              .map((field) => {
-                const value = fieldValues[field.key];
-                const error = fieldErrors[field.key];
-                const commonClassName =
-                  "w-full rounded-xl border-2 px-4 py-2 focus:border-primary focus:outline-none";
+            <div className="space-y-5">
+              {template.fields
+                .filter(
+                  (f) => template.id !== "marcas-crescimento" || f.key !== "limb",
+                )
+                .map((field) => {
+                  const value = fieldValues[field.key];
+                  const error = fieldErrors[field.key];
 
-                return (
-                  <div key={field.key}>
-                    <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-                      {field.label}
-                      {field.required ? " *" : ""}
-                    </label>
+                  // Handle Select
+                  if (field.type === "select") {
+                    return (
+                       <div key={field.key}>
+                        <label className="mb-1 block text-sm font-medium text-[var(--bb-color-ink)]">
+                          {field.label}
+                          {field.required ? " *" : ""}
+                        </label>
+                        <select
+                          id={`moment-field-${field.key}`}
+                          value={typeof value === "string" ? value : ""}
+                          onChange={(e) => setField(field.key, e.target.value)}
+                          className={cn(
+                            "w-full py-3 px-4 rounded-xl border-2 transition-all outline-none appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%236b7280%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-no-repeat bg-[right_1rem_center]",
+                            "focus:ring-2 focus:ring-[var(--bb-color-accent)]/20 focus:border-[var(--bb-color-accent)]"
+                          )}
+                          disabled={field.readOnly}
+                          style={{
+                            backgroundColor: "var(--bb-color-surface)",
+                            borderColor: error ? "var(--bb-color-danger)" : "var(--bb-color-border)",
+                            color: "var(--bb-color-ink)",
+                          }}
+                        >
+                          <option value="">{t("common.select")}</option>
+                          {(field.options ?? []).map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                         {error && (
+                            <p className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]">
+                              {error}
+                            </p>
+                          )}
+                      </div>
+                    );
+                  }
 
-                    {field.type === "select" ? (
-                      <select
+                  // Handle TextArea / RichText
+                  if (field.type === "textarea" || field.type === "richtext") {
+                    return (
+                      <ValidatedInput
+                        key={field.key}
                         id={`moment-field-${field.key}`}
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(e) => setField(field.key, e.target.value)}
-                        className={commonClassName}
-                        disabled={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
-                      >
-                        <option value="">{t("common.select")}</option>
-                        {(field.options ?? []).map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : field.type === "textarea" ||
-                      field.type === "richtext" ? (
-                      <textarea
-                        id={`moment-field-${field.key}`}
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(e) => setField(field.key, e.target.value)}
-                        className={
-                          "w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
-                        }
+                        label={field.label}
+                        multiline
                         rows={4}
                         placeholder={field.placeholder}
+                        value={typeof value === "string" ? value : ""}
+                        onChange={(e) => setField(field.key, e.target.value)}
                         readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
+                        error={error || undefined}
+                        required={field.required}
                       />
-                    ) : field.type === "number" ? (
-                      <input
+                    );
+                  }
+                  
+                  // Handle Number
+                  if (field.type === "number") {
+                     return (
+                      <ValidatedInput
+                        key={field.key}
                         id={`moment-field-${field.key}`}
                         type="number"
-                        value={
-                          typeof value === "number"
-                            ? String(value)
-                            : typeof value === "string"
-                              ? value
-                              : ""
-                        }
+                        label={field.label}
+                        placeholder={field.placeholder}
+                        value={typeof value === "number" ? String(value) : (value as string)}
                         onChange={(e) => {
                           const raw = e.target.value;
-                          if (raw === "") {
-                            setField(field.key, "");
-                            return;
-                          }
-                          setField(field.key, Number(raw));
+                          setField(field.key, raw === "" ? "" : Number(raw));
                         }}
-                        className={commonClassName}
-                        placeholder={field.placeholder}
+                        readOnly={field.readOnly}
                         min={field.min}
                         max={field.max}
-                        readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
+                        error={error || undefined}
+                         required={field.required}
                       />
-                    ) : field.type === "tags" ? (
-                      <input
-                        id={`moment-field-${field.key}`}
-                        type="text"
-                        value={Array.isArray(value) ? value.join(", ") : ""}
-                        onChange={(e) =>
-                          setField(field.key, toTags(e.target.value))
-                        }
-                        className={commonClassName}
-                        placeholder={
-                          field.placeholder ??
-                          t("b2c.moments.form.fields.tagsPlaceholder")
-                        }
-                        readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
-                      />
-                    ) : field.type === "date" ? (
-                      <input
-                        id={`moment-field-${field.key}`}
-                        type="date"
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(e) => setField(field.key, e.target.value)}
-                        className={commonClassName}
-                        readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
-                      />
-                    ) : field.type === "datetime" ? (
-                      <input
-                        id={`moment-field-${field.key}`}
-                        type="datetime-local"
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(e) => setField(field.key, e.target.value)}
-                        className={commonClassName}
-                        readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
-                      />
-                    ) : (
-                      <input
-                        id={`moment-field-${field.key}`}
-                        type="text"
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(e) => setField(field.key, e.target.value)}
-                        className={commonClassName}
-                        placeholder={field.placeholder}
-                        readOnly={field.readOnly}
-                        style={{
-                          backgroundColor: "var(--bb-color-surface)",
-                          borderColor: "var(--bb-color-border)",
-                          color: "var(--bb-color-ink)",
-                        }}
-                      />
-                    )}
+                    );
+                  }
 
-                    {field.helperText ? (
-                      <p className="mt-1 text-xs text-[var(--bb-color-ink-muted)]">
-                        {field.helperText}
-                      </p>
-                    ) : null}
-
-                    {error ? (
-                      <p
-                        className="mt-1 text-sm font-medium text-[var(--bb-color-danger)]"
-                        role="alert"
-                      >
-                        {error}
-                      </p>
-                    ) : null}
-                  </div>
-                );
-              })}
+                  // Default Text / Date / Tags
+                  return (
+                     <ValidatedInput
+                        key={field.key}
+                        id={`moment-field-${field.key}`}
+                        type={field.type === 'date' ? 'date' : field.type === 'datetime' ? 'datetime-local' : 'text'}
+                        label={field.label}
+                        placeholder={field.placeholder || (field.type==='tags' ? t("b2c.moments.form.fields.tagsPlaceholder") : undefined)}
+                        value={Array.isArray(value) ? value.join(", ") : (value as string)}
+                        onChange={(e) => field.type === 'tags' ? setField(field.key, toTags(e.target.value)) : setField(field.key, e.target.value)}
+                        readOnly={field.readOnly}
+                        error={error || undefined}
+                         required={field.required}
+                         helperText={field.helperText}
+                      />
+                  );
+                })}
+            </div>
           </div>
         ) : null}
+        
+         {/* === SECTION 3: SUMMARY === */}
+         <div
+            className="rounded-[2rem] p-6 shadow-sm border border-[var(--bb-color-border)]"
+            style={{ backgroundColor: "var(--bb-color-surface)" }}
+          >
+             <ValidatedInput
+              label={t("b2c.moments.form.fields.summaryLabel")}
+              multiline
+              rows={3}
+              placeholder={t("b2c.moments.form.fields.summaryPlaceholder")}
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              icon={Info}
+            />
+          </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-[var(--bb-color-ink)]">
-            {t("b2c.moments.form.fields.summaryLabel")}
-          </label>
-          <textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            className="w-full resize-none rounded-xl border-2 px-4 py-3 focus:border-primary focus:outline-none"
-            style={{
-              backgroundColor: "var(--bb-color-surface)",
-              borderColor: "var(--bb-color-border)",
-              color: "var(--bb-color-ink)",
-            }}
-            rows={4}
-            placeholder={t("b2c.moments.form.fields.summaryPlaceholder")}
-          />
-        </div>
-
-        {template?.id === "marcas-crescimento" ? (
+        {/* === SECTION 4: MEDIA / STAMPS === */}
+         <div
+            className="rounded-[2rem] p-6 shadow-sm border border-[var(--bb-color-border)]"
+            style={{ backgroundColor: "var(--bb-color-surface)" }}
+          >
+            {template?.id === "marcas-crescimento" ? (
           <div className="space-y-6" id="moment-media">
             <div
               className="rounded-2xl border p-4"
@@ -1216,6 +1134,7 @@ export const MomentForm = ({
             />
           </div>
         )}
+        </div>
 
         {mediaUploadPct !== null ? (
           <div
@@ -1246,8 +1165,8 @@ export const MomentForm = ({
           </div>
         ) : null}
 
-        <div className="flex gap-4 pt-4">
-          <Button
+        <div className="flex gap-4 pt-4 pb-20">
+          <B2CButton
             type="submit"
             disabled={!canSubmit}
             className="flex-1"
@@ -1256,21 +1175,21 @@ export const MomentForm = ({
             {isPending
               ? t("b2c.moments.form.saving")
               : t("b2c.moments.form.save")}
-          </Button>
-          <Button
+          </B2CButton>
+          <B2CButton
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate("/jornada")}
             className="flex-1"
             disabled={isPending}
           >
             {t("common.cancel")}
-          </Button>
+          </B2CButton>
         </div>
 
         {!canSubmit && submitHint ? (
           <p
-            className="text-xs text-[var(--bb-color-ink-muted)]"
+            className="text-center text-xs text-[var(--bb-color-ink-muted)]"
             role={submitAttempted ? "alert" : "status"}
           >
             {submitHint}

@@ -1,23 +1,23 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from "lucide-react";
+import { X, Check, AlertCircle, Info, Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const toastVariants = cva(
-  "relative flex items-start gap-3 p-4 rounded-xl shadow-lg backdrop-blur-sm transition-all animate-slide-up",
+  "relative flex items-center gap-3 px-4 py-3 rounded-full shadow-lg backdrop-blur-md transition-all animate-slide-up ring-1",
   {
     variants: {
       variant: {
         default:
-          "bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white",
+          "bg-white/95 dark:bg-[#2c2420]/95 border-none text-stone-800 dark:text-stone-200 ring-black/5 dark:ring-white/10",
         success:
-          "bg-emerald-50/95 dark:bg-emerald-950/95 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200",
+          "bg-[#F2FBF9]/95 dark:bg-[#064e3b]/95 border-none text-[#115E59] dark:text-[#a7f3d0] ring-[#115E59]/10",
         error:
-          "bg-red-50/95 dark:bg-red-950/95 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
+          "bg-[#FEF2F2]/95 dark:bg-[#7f1d1d]/95 border-none text-[#991B1B] dark:text-[#fecaca] ring-[#991B1B]/10",
         warning:
-          "bg-amber-50/95 dark:bg-amber-950/95 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200",
-        info: "bg-blue-50/95 dark:bg-blue-950/95 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200",
+          "bg-[#FFFBEB]/95 dark:bg-[#78350f]/95 border-none text-[#92400E] dark:text-[#fde68a] ring-[#92400E]/10",
+        info: "bg-[#EFF6FF]/95 dark:bg-[#1e3a8a]/95 border-none text-[#1E40AF] dark:text-[#bfdbfe] ring-[#1E40AF]/10",
       },
     },
     defaultVariants: {
@@ -28,18 +28,18 @@ const toastVariants = cva(
 
 const iconMap = {
   default: Info,
-  success: CheckCircle2,
+  success: Check,
   error: AlertCircle,
-  warning: AlertTriangle,
+  warning: AlertCircle,
   info: Info,
 };
 
 const iconColorMap = {
-  default: "text-gray-500 dark:text-gray-400",
-  success: "text-emerald-500 dark:text-emerald-400",
-  error: "text-red-500 dark:text-red-400",
-  warning: "text-amber-500 dark:text-amber-400",
-  info: "text-blue-500 dark:text-blue-400",
+  default: "text-stone-500 dark:text-stone-400",
+  success: "text-[#115E59] dark:text-[#a7f3d0]",
+  error: "text-[#991B1B] dark:text-[#fecaca]",
+  warning: "text-[#92400E] dark:text-[#fde68a]",
+  info: "text-[#1E40AF] dark:text-[#bfdbfe]",
 };
 
 export interface ToastProps
@@ -76,31 +76,47 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         role="alert"
         {...props}
       >
-        {/* Icon */}
-        <div className="flex-shrink-0 mt-0.5">
-          {icon || <Icon className={cn("w-5 h-5", iconColorMap[variant || "default"])} />}
+        {/* Icon Container */}
+        <div
+          className={cn(
+            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center -ml-1",
+            variant === "default"
+              ? "bg-stone-100 dark:bg-white/10"
+              : "bg-white/60 dark:bg-black/20"
+          )}
+        >
+          {icon || (
+            <Icon
+              className={cn("w-4 h-4", iconColorMap[variant || "default"])}
+              strokeWidth={2.5}
+            />
+          )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          {title && (
-            <p className="font-medium text-sm">{title}</p>
-          )}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          {title && <p className="font-bold text-sm leading-tight">{title}</p>}
           {description && (
-            <p className="text-sm opacity-80 mt-0.5">{description}</p>
+            <p className="text-xs font-medium opacity-90 mt-0.5 leading-tight">
+              {description}
+            </p>
           )}
           {children}
-          {action && <div className="mt-2">{action}</div>}
         </div>
 
-        {/* Close button */}
+        {/* Action */}
+        {action && <div className="pl-2">{action}</div>}
+
+        {/* Close button - Only show if strictly necessary or manually requested, 
+            usually pills auto-dismiss so close button might be noisy. 
+            Keeping it subtle. */}
         {onClose && (
           <button
             onClick={onClose}
-            className="flex-shrink-0 p-1 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 transition-all touch-target"
-            aria-label="Fechar notificação"
+            className="flex-shrink-0 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors -mr-1"
+            aria-label="Fechar"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5 opacity-60" />
           </button>
         )}
       </div>
@@ -117,8 +133,8 @@ const ToastContainer = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "fixed z-50 flex flex-col gap-2 p-4 pointer-events-none",
-      position === "top" ? "top-0 left-0 right-0" : "bottom-0 left-0 right-0",
+      "fixed z-50 flex flex-col gap-2 p-4 pointer-events-none items-center sm:items-end w-full sm:w-auto",
+      position === "top" ? "top-4 left-0 right-0" : "bottom-20 left-0 right-0 sm:bottom-6 sm:right-6",
       "[&>*]:pointer-events-auto",
       className
     )}

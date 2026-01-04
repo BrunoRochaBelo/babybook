@@ -4,9 +4,9 @@ export function HealthSkeleton() {
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10 space-y-8">
       {/* Icon + Title */}
-      <div className="text-center space-y-2">
-        <B2CSkeleton className="h-10 w-10 rounded-full mx-auto" />
-        <B2CSkeleton className="h-8 w-32 rounded-xl mx-auto" />
+      <div className="space-y-2">
+        <B2CSkeleton className="h-10 w-10 rounded-full" />
+        <B2CSkeleton className="h-8 w-32 rounded-xl" />
       </div>
 
       {/* Tabs Navigation */}

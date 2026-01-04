@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useCreateGuestbookEntry } from "@/hooks/api";
 import { X } from "lucide-react";
 import { uploadMomentMediaFiles } from "@/features/uploads/b2cUpload";
-import { relationshipDegreeOptions } from "@/features/guestbook/relationshipDegree";
+import { useTranslation } from "@babybook/i18n";
+import { useRelationshipDegrees } from "@/features/guestbook/relationshipDegree";
 import { GuestbookEntry } from "@babybook/contracts";
 
 interface GuestbookFormProps {
@@ -14,6 +15,8 @@ const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
+  const { t } = useTranslation();
+  const { options } = useRelationshipDegrees();
   const [authorName, setAuthorName] = useState("");
   const [authorEmail, setAuthorEmail] = useState("");
   const [relationshipDegree, setRelationshipDegree] = useState<
@@ -41,7 +44,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
         video.src = url;
         video.onloadedmetadata = () => resolve(video.duration);
         video.onerror = () =>
-          reject(new Error("Falha ao ler duração do vídeo"));
+          reject(new Error(t("b2c.guestbook.invite.errors.mediaFailed")));
       });
       return duration;
     } finally {
@@ -105,7 +108,9 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
           const duration = await getVideoDurationSeconds(mediaFile);
           if (Number.isFinite(duration) && duration > 15) {
             setErrorMsg(
-              `O vídeo tem ${Math.ceil(duration)}s. Por enquanto, aceitamos até 15s.`,
+              t("b2c.guestbook.invite.errors.videoTooLong", {
+                duration: Math.ceil(duration),
+              }),
             );
             return;
           }
@@ -144,7 +149,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
             setErrorMsg(
               err instanceof Error
                 ? err.message
-                : "Não foi possível enviar sua mensagem.",
+                : t("b2c.guestbook.invite.errors.sendFailed"),
             );
           },
           onSettled: () => {
@@ -157,7 +162,9 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
       setIsUploading(false);
       setUploadPct(0);
       setErrorMsg(
-        err instanceof Error ? err.message : "Não foi possível anexar a mídia.",
+        err instanceof Error
+          ? err.message
+          : t("b2c.guestbook.invite.errors.mediaFailed"),
       );
     }
   };
@@ -189,14 +196,14 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
             className="text-lg font-bold"
             style={{ color: "var(--bb-color-ink)" }}
           >
-            Deixe uma Mensagem
+            {t("b2c.guestbook.form.title")}
           </h3>
           <button
             type="button"
             onClick={onClose}
             className="p-1 rounded-lg transition-colors"
             style={{ color: "var(--bb-color-ink)" }}
-            aria-label="Fechar formulário de mensagem"
+            aria-label={t("b2c.guestbook.form.aria.close")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -209,7 +216,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               htmlFor="guestbook-name"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Seu Nome
+              {t("b2c.guestbook.form.labels.name")}
             </label>
             <input
               id="guestbook-name"
@@ -222,7 +229,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
                 borderColor: "var(--bb-color-border)",
                 color: "var(--bb-color-ink)",
               }}
-              placeholder="Como você se chama?"
+              placeholder={t("b2c.guestbook.form.placeholders.name")}
               ref={nameInputRef}
               required
             />
@@ -234,7 +241,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               htmlFor="guestbook-email"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Seu E-mail (opcional)
+              {t("b2c.guestbook.form.labels.email")}
             </label>
             <input
               id="guestbook-email"
@@ -247,7 +254,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
                 borderColor: "var(--bb-color-border)",
                 color: "var(--bb-color-ink)",
               }}
-              placeholder="voce@email.com"
+              placeholder={t("b2c.guestbook.form.placeholders.email")}
             />
           </div>
 
@@ -257,7 +264,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               htmlFor="guestbook-relationship"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Grau de parentesco
+              {t("b2c.guestbook.form.labels.relationship")}
             </label>
             <select
               id="guestbook-relationship"
@@ -278,9 +285,9 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               required
             >
               <option value="" disabled>
-                Selecione...
+                {t("b2c.guestbook.form.placeholders.relationship")}
               </option>
-              {relationshipDegreeOptions.map((opt) => (
+              {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -294,7 +301,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               htmlFor="guestbook-media"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Foto ou vídeo (opcional)
+              {t("b2c.guestbook.form.labels.media")}
             </label>
             <input
               id="guestbook-media"
@@ -316,15 +323,14 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               className="mt-2 text-xs"
               style={{ color: "var(--bb-color-ink-muted)" }}
             >
-              Vídeos: até 15s. O upload pode demorar um pouco dependendo da sua
-              conexão.
+              {t("b2c.guestbook.form.hints.videoLimit")}
             </p>
             {isUploading && (
               <p
                 className="mt-2 text-xs"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                Enviando anexo... {uploadPct}%
+                {t("b2c.guestbook.form.hints.uploadingAttachment", { pct: uploadPct })}
               </p>
             )}
           </div>
@@ -349,7 +355,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
               htmlFor="guestbook-message"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Sua Mensagem
+              {t("b2c.guestbook.form.labels.message")}
             </label>
             <textarea
               id="guestbook-message"
@@ -362,7 +368,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
                 color: "var(--bb-color-ink)",
               }}
               rows={5}
-              placeholder="Escreva uma mensagem especial..."
+              placeholder={t("b2c.guestbook.form.placeholders.message")}
               required
             />
           </div>
@@ -376,7 +382,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
             }}
           >
             <p className="text-xs" style={{ color: "var(--bb-color-ink)" }}>
-              Sua mensagem será revisada antes de ser publicada.
+              {t("b2c.guestbook.form.hints.moderation")}
             </p>
           </div>
 
@@ -390,7 +396,9 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
                 color: "var(--bb-color-surface)",
               }}
             >
-              {isSubmitting ? "Enviando..." : "Enviar"}
+              {isSubmitting
+                ? t("b2c.guestbook.form.actions.submitting")
+                : t("b2c.guestbook.form.actions.submit")}
             </button>
             <button
               type="button"
@@ -401,7 +409,7 @@ export const GuestbookForm = ({ childId, onClose }: GuestbookFormProps) => {
                 color: "var(--bb-color-ink)",
               }}
             >
-              Cancelar
+              {t("b2c.guestbook.form.actions.cancel")}
             </button>
           </div>
         </form>

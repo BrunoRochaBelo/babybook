@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus } from "lucide-react";
+import { useTranslation } from "@babybook/i18n";
 
 interface VaultEmptyCardProps {
   label: string;
@@ -8,6 +9,7 @@ interface VaultEmptyCardProps {
 }
 
 export const VaultEmptyCard = ({ label, helper, onClick }: VaultEmptyCardProps) => {
+  const { t } = useTranslation();
   return (
     <button
       onClick={onClick}
@@ -19,14 +21,14 @@ export const VaultEmptyCard = ({ label, helper, onClick }: VaultEmptyCardProps) 
       }}
     >
       <div
-        className="mb-3 rounded-full p-3 transition-colors group-hover:bg-pink-100 dark:group-hover:bg-pink-900/30"
+        className="mb-3 rounded-full p-3 transition-colors group-hover:bg-[var(--bb-color-accent-soft)]"
         style={{ color: "var(--bb-color-accent)" }}
       >
         <Plus className="h-6 w-6" />
       </div>
       
       <h3 className="mb-1 font-semibold" style={{ color: "var(--bb-color-ink)" }}>
-        Adicionar {label}
+        {t("b2c.vault.empty.addPrefix")} {label}
       </h3>
       
       <p className="max-w-[200px] text-xs" style={{ color: "var(--bb-color-ink-muted)" }}>

@@ -3,10 +3,10 @@ import { B2CSkeleton } from "./B2CSkeleton";
 export function GuestbookSkeleton() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-      {/* Icon + Title */}
-      <div className="text-center space-y-2">
-        <B2CSkeleton className="h-10 w-10 rounded-full mx-auto" />
-        <B2CSkeleton className="h-8 w-40 rounded-xl mx-auto" />
+      {/* Title + Subtitle */}
+      <div className="space-y-4 mb-8">
+        <B2CSkeleton className="h-12 w-64 rounded-xl" />
+        <B2CSkeleton className="h-6 w-96 rounded-lg opacity-60" />
       </div>
 
       {/* Tabs */}

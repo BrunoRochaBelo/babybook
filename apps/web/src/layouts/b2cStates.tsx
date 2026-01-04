@@ -7,7 +7,7 @@
 
 import React, { type ComponentType, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@babybook/i18n";
 import { B2C_BUTTON_SIZE_CLASSES } from "@/designTokens/b2cButton";
@@ -297,8 +297,8 @@ export function B2CLoadingState({
       )}
     >
       <div className="inline-flex items-center gap-3 text-sm text-[var(--bb-color-ink-muted)]">
-        <Loader2 className="w-5 h-5 animate-spin text-[var(--bb-color-accent)]" />
-        <span>{finalLabel}</span>
+        <Heart className="w-6 h-6 animate-pulse text-[var(--bb-color-accent)] fill-current" />
+        <span className="animate-pulse">{finalLabel}</span>
       </div>
     </div>
   );

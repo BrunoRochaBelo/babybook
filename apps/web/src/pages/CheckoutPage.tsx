@@ -28,7 +28,7 @@ export function CheckoutPage() {
 
   return (
     <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Checkout (Mock)</h1>
+      <h1 className="mb-8 text-3xl font-bold">Checkout (Mock)</h1>
       <p className="mb-4">Pacote: Pacote Completo - Repetições Ilimitadas</p>
       <Button onClick={handleBuy}>Comprar agora</Button>
       <div className="mt-6">

@@ -26,6 +26,7 @@ import {
   Info,
   ArrowRight,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useTranslation } from "@babybook/i18n";
 import {
   getPartnerProfile,
@@ -55,9 +56,10 @@ type TFn = (key: string, options?: Record<string, unknown>) => string;
  */
 function getGreeting(t: TFn): string {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return t("partner.dashboard.welcomeMorning");
-  if (hour >= 12 && hour < 18) return t("partner.dashboard.welcomeAfternoon");
-  return t("partner.dashboard.welcomeEvening");
+  // Greetings mais calorosas e humanas
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
 }
 
 /**
@@ -339,7 +341,7 @@ export function PartnerDashboard() {
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-serif font-bold text-gray-900 dark:text-white tracking-tight">
             Dashboard
           </h1>
 
@@ -443,7 +445,7 @@ export function PartnerDashboard() {
         </div>
 
         {/* Quick Tip / Action Card */}
-        <div className="lg:col-span-1 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 shadow-xl shadow-gray-100/50 dark:shadow-none flex flex-col justify-center relative overflow-hidden">
+        <div className="lg:col-span-1 rounded-[2.5rem] p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 flex flex-col justify-center relative overflow-hidden">
           {pendingUpload ? (
             <Link
               to={`/partner/deliveries/${pendingUpload.id}/upload`}
@@ -571,7 +573,7 @@ export function PartnerDashboard() {
       {/* Recent Deliveries */}
       <div
         data-tour="recent-deliveries"
-        className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 border border-white/50 dark:border-gray-700/50 overflow-hidden"
       >
         <div className="flex items-center justify-between p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700/50">
           <div>
@@ -613,7 +615,18 @@ export function PartnerDashboard() {
         ) : (
           <>
             {/* Mobile: cards with improved spacing */}
-            <div className="lg:hidden grid gap-4 p-4">
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
+              className="lg:hidden grid gap-4 p-4"
+            >
               {deliveries.map((delivery) => (
                 <DeliveryCardMobile
                   key={delivery.id}
@@ -623,7 +636,7 @@ export function PartnerDashboard() {
                   variant="dashboard"
                 />
               ))}
-            </div>
+            </motion.div>
             {/* Desktop Table with refined styling */}
             <div className="hidden lg:block overflow-x-auto">
               <div className="flex flex-col min-w-[700px]">
@@ -634,7 +647,18 @@ export function PartnerDashboard() {
                   <div>Criado em</div>
                   <div className="text-right">Ações</div>
                 </div>
-                <div className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                  <motion.div 
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.05
+                        }
+                      }
+                    }}
+                    className="divide-y divide-gray-50 dark:divide-zinc-800/50"
+                  >
                   {deliveries.map((delivery) => (
                     <DeliveryTableRow
                       key={delivery.id}
@@ -648,12 +672,12 @@ export function PartnerDashboard() {
                       variant="dashboard"
                     />
                   ))}
+                  </motion.div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
 
       <GuidedTour steps={PARTNER_TOUR_STEPS} tourKey={TOUR_COMPLETED_KEY_B2B} />
     </PartnerPage>

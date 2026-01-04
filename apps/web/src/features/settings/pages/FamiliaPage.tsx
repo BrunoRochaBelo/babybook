@@ -149,7 +149,7 @@ export const FamiliaPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <Link
           to="/jornada"
           className="p-2 rounded-xl hover:bg-[var(--bb-color-bg)] transition-colors"
@@ -194,13 +194,13 @@ export const FamiliaPage = () => {
               className="text-xs uppercase tracking-[0.3em]"
               style={{ color: "var(--bb-color-ink-muted)" }}
             >
-              Rede afetiva
+              {t("b2c.guestbook.tree.hud.label")}
             </p>
             <h2
               className="mt-1 font-serif text-xl"
               style={{ color: "var(--bb-color-ink)" }}
             >
-              Livro de Visitas
+              {t("b2c.guestbook.title")}
             </h2>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -209,7 +209,7 @@ export const FamiliaPage = () => {
                 className="text-sm"
                 style={{ color: "var(--bb-color-ink-muted)" }}
               >
-                Criança:{" "}
+                {t("b2c.guestbook.tree.common.child")}:{" "}
                 <span style={{ color: "var(--bb-color-ink)" }}>
                   {selectedChild.name}
                 </span>
@@ -233,8 +233,7 @@ export const FamiliaPage = () => {
               color: "var(--bb-color-ink-muted)",
             }}
           >
-            Selecione uma criança para ver a rede afetiva a partir das mensagens
-            aprovadas no Livro de Visitas.
+            {t("b2c.guestbook.tree.selectChild")}
           </div>
         )}
       </div>

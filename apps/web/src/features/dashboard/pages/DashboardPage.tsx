@@ -14,6 +14,7 @@ import {
 import { useVault } from "@/features/vault/hooks/useVault";
 import { useQuery } from "@tanstack/react-query";
 import { listFamilyMembers, settingsApiKeys } from "@/features/settings/api";
+import { motion } from "motion/react";
 
 export const DashboardPage = () => {
   const { t } = useTranslation();
@@ -62,18 +63,57 @@ export const DashboardPage = () => {
     hasFamilyMembers: (familyData?.members?.length ?? 0) > 1, // > 1 pois o dono da conta sempre está lá
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
-      >
-        {t("b2c.dashboard.title")}
-      </h1>
+    <motion.div
+      className="max-w-4xl mx-auto px-4 py-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="mb-8 mt-2 px-2" variants={itemVariants}>
+        <h1
+          className="text-4xl md:text-5xl font-serif font-medium tracking-tight"
+          style={{ color: "var(--bb-color-ink)" }}
+        >
+          {t("b2c.dashboard.title")}
+        </h1>
+        <p className="mt-2 text-lg opacity-60 font-medium max-w-lg">
+          {selectedChild?.name
+            ? t("b2c.dashboard.subtitle_child", {
+                defaultValue: "O livro da vida de " + selectedChild.name,
+                name: selectedChild.name,
+              })
+            : t("b2c.dashboard.subtitle_generic", {
+                defaultValue: "Cada momento conta uma história.",
+              })}
+        </p>
+      </motion.div>
 
-      <B2COnboarding stats={onboardingStats} />
+      <motion.div variants={itemVariants}>
+        <B2COnboarding stats={onboardingStats} />
+      </motion.div>
 
-      <div data-tour="moments-timeline">
+      <motion.div data-tour="moments-timeline" variants={itemVariants}>
         <MomentsTimeline
           moments={data?.moments || []}
           isLoading={isLoading}
@@ -82,9 +122,9 @@ export const DashboardPage = () => {
           hasBirthday={hasBirthday}
           completedCount={completedMoments}
         />
-      </div>
+      </motion.div>
 
       <GuidedTour steps={B2C_TOUR_STEPS} tourKey={TOUR_COMPLETED_KEY_B2C} />
-    </div>
+    </motion.div>
   );
 };

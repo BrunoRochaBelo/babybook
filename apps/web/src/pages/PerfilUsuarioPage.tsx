@@ -36,7 +36,7 @@ export const PerfilUsuarioPage = () => {
             borderColor: "var(--bb-color-border)",
           }}
         >
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-8">
             <User className="w-8 h-8" style={{ color: "var(--bb-color-accent)" }} />
             <div>
               <h3

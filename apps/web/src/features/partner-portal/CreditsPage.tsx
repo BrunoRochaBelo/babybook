@@ -165,11 +165,11 @@ export function CreditsPage() {
     <PartnerPage>
       <div className="pb-60 lg:pb-12">
         {/* Header Section */}
-        <div className="mb-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {t("partner.credits.purchase.buyCredits")}
           </h1>
-          <p className="text-base text-gray-500 dark:text-gray-400 mt-2 max-w-2xl">
+          <p className="text-gray-500 dark:text-gray-400 max-w-2xl">
             {t("partner.credits.subtitle")}
           </p>
         </div>
@@ -352,7 +352,7 @@ function WalletCard({
   const { t } = useTranslation();
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-gray-950 rounded-[1.5rem] p-6 shadow-xl border border-gray-200 dark:border-gray-800">
+    <div className="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 border border-white/50 dark:border-gray-700/50">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
@@ -457,7 +457,7 @@ function OrderSummaryCard({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 border border-white/50 dark:border-gray-700/50 p-8">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
         {t("partner.credits.purchase.orderSummary")}
       </h3>

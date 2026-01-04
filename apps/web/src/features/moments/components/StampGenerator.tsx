@@ -310,7 +310,13 @@ export function StampGenerator({
 
   return (
     <>
-      <div className="w-full flex-1 overflow-hidden rounded-3xl border border-[#E0E0E0] bg-white dark:bg-surface dark:border-border shadow-sm transition-all hover:shadow-md">
+      <div 
+        className="w-full flex-1 overflow-hidden rounded-3xl border shadow-sm transition-all hover:shadow-md"
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
+      >
         <AnimatePresence mode="wait">
           {!isProcessing && !previewUrl && !error && (
             <motion.div
@@ -318,9 +324,10 @@ export function StampGenerator({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`flex flex-col items-center justify-center p-6 text-center transition-colors h-full min-h-[340px] ${
-                isDragging ? "bg-[#F7F3EF] dark:bg-muted/50" : "bg-transparent"
-              }`}
+              className={`flex flex-col items-center justify-center p-6 text-center transition-colors h-full min-h-[340px]`}
+              style={{
+                backgroundColor: isDragging ? "var(--bb-color-bg)" : "transparent"
+              }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDragging(true);
@@ -330,10 +337,16 @@ export function StampGenerator({
             >
               {/* CONFIGURAÇÃO DE COR (ANTES DO UPLOAD) */}
               <div className="mb-6 flex flex-col items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-ink-muted">
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--bb-color-ink-muted)" }}>
                   Escolha a Tinta
                 </span>
-                <div className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-muted/50 rounded-full border border-gray-100 dark:border-border shadow-sm">
+                <div 
+                  className="flex items-center gap-2 p-1.5 rounded-full border shadow-sm"
+                  style={{
+                    backgroundColor: "var(--bb-color-bg)",
+                    borderColor: "var(--bb-color-border)"
+                  }}
+                >
                   {INK_COLORS.map((color) => (
                     <button
                       key={color.name}
@@ -341,8 +354,11 @@ export function StampGenerator({
                         e.stopPropagation();
                         setSelectedColor(color);
                       }}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${selectedColor.name === color.name ? "scale-125 shadow-md border-white ring-2 ring-gray-200" : "border-transparent hover:scale-110"}`}
-                      style={{ backgroundColor: color.hex }}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${selectedColor.name === color.name ? "scale-125 shadow-md border-white ring-2" : "border-transparent hover:scale-110"}`}
+                      style={{ 
+                        backgroundColor: color.hex,
+                        boxShadow: selectedColor.name === color.name ? "0 0 0 2px var(--bb-color-border)" : "none"
+                      }}
                       title={color.name}
                     />
                   ))}
@@ -358,12 +374,15 @@ export function StampGenerator({
                   />
                 </div>
               ) : (
-                <div className="mb-6 rounded-2xl bg-[#F7F3EF] dark:bg-surface-muted p-5 text-[#F2995D]">
+                <div 
+                  className="mb-6 rounded-2xl p-5 text-[#F2995D]"
+                  style={{ backgroundColor: "var(--bb-color-bg)" }}
+                >
                   <Camera className="h-10 w-10" />
                 </div>
               )}
 
-              <h3 className="mb-2 text-lg font-bold text-[#2A2A2A] dark:text-ink">
+              <h3 className="mb-2 text-lg font-bold" style={{ color: "var(--bb-color-ink)" }}>
                 {label}
               </h3>
 
@@ -384,15 +403,21 @@ export function StampGenerator({
                 </span>
               </div>
 
-              <p className="mb-6 text-xs font-medium text-gray-400 dark:text-ink-muted max-w-[200px]">
+              <p className="mb-6 text-xs font-medium max-w-[200px]" style={{ color: "var(--bb-color-ink-muted)" }}>
                 Arraste uma foto aqui ou clique para selecionar
               </p>
 
-              <details className="mb-6 w-full max-w-[320px] rounded-2xl border border-gray-100 dark:border-border bg-gray-50/50 dark:bg-muted/30 px-4 py-3 text-left">
-                <summary className="cursor-pointer select-none text-xs font-bold text-[#2A2A2A] dark:text-ink">
+              <details 
+                className="mb-6 w-full max-w-[320px] rounded-2xl border px-4 py-3 text-left"
+                style={{
+                    backgroundColor: "var(--bb-color-bg)",
+                    borderColor: "var(--bb-color-border)"
+                }}
+              >
+                <summary className="cursor-pointer select-none text-xs font-bold" style={{ color: "var(--bb-color-ink)" }}>
                   Dicas para melhor resultado
                 </summary>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-[11px] leading-relaxed text-gray-500 dark:text-ink-muted">
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-[11px] leading-relaxed" style={{ color: "var(--bb-color-ink-muted)" }}>
                   <li>{QUICK_TIPS[0]}</li>
                   <li>{QUICK_TIPS[1]}</li>
                   <li>{QUICK_TIPS[2]}</li>
@@ -404,7 +429,11 @@ export function StampGenerator({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="group flex items-center gap-2 rounded-full bg-[#2A2A2A] dark:bg-accent px-6 py-3 text-sm font-bold text-white dark:text-surface shadow-lg transition-all hover:bg-black dark:hover:bg-accent-hover hover:scale-105 active:scale-95"
+                className="group flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
+                style={{
+                  backgroundColor: "var(--bb-color-ink)",
+                  color: "var(--bb-color-surface)",
+                }}
               >
                 <Upload className="h-4 w-4" />
                 <span>Escolher Foto</span>
@@ -444,8 +473,7 @@ export function StampGenerator({
                   }}
                 />
 
-                {/* Anel de progresso (conic gradient)
-                    Obs: o anel não gira para manter o percentual sempre "em pé". */}
+                {/* Anel de progresso */}
                 <div
                   className="absolute inset-0 rounded-full p-[3px]"
                   style={{
@@ -460,7 +488,7 @@ export function StampGenerator({
                         "0 0 0 1px rgba(255,255,255,0.06) inset, 0 10px 30px rgba(0,0,0,0.22)",
                     }}
                   >
-                    {/* Shimmer diagonal (premium) */}
+                    {/* Shimmer e efeitos mantidos, apenas ajustando cores se necessário */}
                     <motion.div
                       aria-hidden
                       className="absolute -inset-10"
@@ -475,33 +503,6 @@ export function StampGenerator({
                           "linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%)",
                         transform: "rotate(12deg)",
                         opacity: 0.28,
-                      }}
-                    />
-
-                    {/* Textura tech sutil */}
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 opacity-[0.10]"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(to right, rgba(148,163,184,0.20) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.14) 1px, transparent 1px)",
-                        backgroundSize: "10px 10px",
-                      }}
-                    />
-
-                    {/* Spotlight */}
-                    <motion.div
-                      aria-hidden
-                      className="absolute -inset-10"
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 7,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      style={{
-                        background:
-                          "conic-gradient(from 180deg, transparent 0 65%, rgba(255,255,255,0.20) 75%, transparent 85% 100%)",
                       }}
                     />
 
@@ -538,25 +539,31 @@ export function StampGenerator({
               </div>
 
               <div className="w-full max-w-[200px] space-y-2">
-                <div className="flex justify-center flex-col items-center text-[#2A2A2A] dark:text-ink gap-1">
+                <div className="flex justify-center flex-col items-center gap-1" style={{ color: "var(--bb-color-ink)" }}>
                   <span className="text-xs font-bold uppercase tracking-wider animate-pulse">
                     {status}
                   </span>
-                  <span className="text-[10px] font-mono text-gray-400 dark:text-ink-muted max-w-[180px] truncate">
+                  <span className="text-[10px] font-mono max-w-[180px] truncate" style={{ color: "var(--bb-color-ink-muted)" }}>
                     {loadingCopy}
                   </span>
                 </div>
               </div>
 
               {isFirstTimeHint ? (
-                <p className="mt-4 max-w-[260px] text-[11px] leading-relaxed text-gray-500 dark:text-ink-muted">
+                <p className="mt-4 max-w-[260px] text-[11px] leading-relaxed" style={{ color: "var(--bb-color-ink-muted)" }}>
                   Primeira vez pode demorar um pouco mais (baixando modelos da
                   IA). Nas próximas, fica bem mais rápido.
                 </p>
               ) : null}
 
-              <div className="mt-4 w-full max-w-[300px] rounded-2xl border border-gray-100 dark:border-border bg-gray-50/60 dark:bg-muted/30 px-4 py-3 text-left">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-ink-muted">
+              <div 
+                className="mt-4 w-full max-w-[300px] rounded-2xl border px-4 py-3 text-left"
+                style={{
+                  backgroundColor: "var(--bb-color-bg)",
+                  borderColor: "var(--bb-color-border)",
+                }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--bb-color-ink-muted)" }}>
                   Etapas
                 </p>
                 <ul className="mt-2 space-y-1">
@@ -578,16 +585,18 @@ export function StampGenerator({
                               ? "bg-green-500"
                               : state === "active"
                                 ? "bg-[var(--bb-color-accent)]"
-                                : "bg-gray-300 dark:bg-border")
+                                : "bg-gray-300 dark:bg-border") // Fallback ok
                           }
+                          style={{
+                              backgroundColor: state === "idle" ? "var(--bb-color-border)" : undefined
+                          }}
                         />
                         <span
-                          className={
-                            "text-[11px] " +
-                            (state === "active"
-                              ? "font-semibold text-[#2A2A2A] dark:text-ink"
-                              : "text-gray-500 dark:text-ink-muted")
-                          }
+                          className={`text-[11px]`}
+                          style={{
+                              fontWeight: state === "active" ? 600 : 400,
+                              color: state === "active" ? "var(--bb-color-ink)" : "var(--bb-color-ink-muted)"
+                          }}
                         >
                           {p.label}
                         </span>
@@ -596,7 +605,7 @@ export function StampGenerator({
                   })}
                 </ul>
 
-                <p className="mt-3 text-[11px] leading-relaxed text-gray-500 dark:text-ink-muted">
+                <p className="mt-3 text-[11px] leading-relaxed" style={{ color: "var(--bb-color-ink-muted)" }}>
                   Enquanto isso: {QUICK_TIPS[tipIndex]}
                 </p>
               </div>
@@ -646,7 +655,13 @@ export function StampGenerator({
                 </div>
 
                 {/* Color Picker Compacto */}
-                <div className="flex items-center gap-1.5 p-1 bg-gray-50 dark:bg-surface-muted rounded-lg border border-gray-100 dark:border-border">
+                <div 
+                    className="flex items-center gap-1.5 p-1 rounded-lg border"
+                    style={{
+                        backgroundColor: "var(--bb-color-bg)",
+                        borderColor: "var(--bb-color-border)"
+                    }}
+                >
                   {INK_COLORS.slice(0, 3).map((color) => (
                     <button
                       key={color.name}
@@ -660,14 +675,19 @@ export function StampGenerator({
                     onClick={() => {
                       /* Expandir paleta completa se necessário */
                     }}
-                    className="w-5 h-5 flex items-center justify-center rounded-full bg-white dark:bg-surface border border-gray-200 dark:border-border text-gray-400 dark:text-ink-muted hover:text-gray-600 dark:hover:text-ink"
+                    className="w-5 h-5 flex items-center justify-center rounded-full border hover:text-gray-600"
+                    style={{
+                        backgroundColor: "var(--bb-color-surface)",
+                        borderColor: "var(--bb-color-border)",
+                        color: "var(--bb-color-ink-muted)"
+                    }}
                   >
                     <Palette className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
-              {/* Fundo BRANCO como papel sulfite, independente do tema */}
+              {/* Fundo BRANCO como papel sulfite, independente do tema (IMPORTANT) */}
               <div className="relative flex-1 w-full rounded-2xl bg-white p-4 border border-gray-200 group overflow-hidden shadow-sm">
                 {/* Textura de papel sutil (pontilhado) */}
                 <div
@@ -703,7 +723,12 @@ export function StampGenerator({
                 <button
                   type="button"
                   onClick={reset}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-border bg-white dark:bg-secondary py-3 text-xs font-bold text-gray-600 dark:text-secondary-foreground transition hover:bg-gray-50 dark:hover:bg-secondary/80 hover:border-gray-300"
+                  className="flex items-center justify-center gap-2 rounded-xl border py-3 text-xs font-bold transition hover:opacity-80"
+                  style={{
+                      borderColor: "var(--bb-color-border)",
+                      backgroundColor: "var(--bb-color-surface)",
+                      color: "var(--bb-color-ink)"
+                  }}
                 >
                   <RefreshCcw className="h-3.5 w-3.5" />
                   Refazer
@@ -711,7 +736,11 @@ export function StampGenerator({
                 <button
                   type="button"
                   onClick={() => generatedFile && onSuccess(generatedFile)}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#2A2A2A] dark:bg-primary py-3 text-xs font-bold text-white dark:text-primary-foreground shadow-lg transition hover:bg-black hover:scale-[1.02] active:scale-95"
+                  className="flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold shadow-lg transition hover:scale-[1.02] active:scale-95"
+                  style={{
+                      backgroundColor: "var(--bb-color-ink)",
+                      color: "var(--bb-color-surface)"
+                  }}
                 >
                   <Hand className="h-3.5 w-3.5" />
                   Confirmar
@@ -727,7 +756,10 @@ export function StampGenerator({
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl max-h-[90vh] outline-none animate-in zoom-in-95 duration-200">
-            <div className="relative bg-white dark:bg-surface rounded-2xl shadow-2xl overflow-hidden p-2">
+            <div 
+                className="relative rounded-2xl shadow-2xl overflow-hidden p-2"
+                style={{ backgroundColor: "var(--bb-color-surface)" }}
+            >
               <button
                 onClick={() => setIsZoomOpen(false)}
                 className="absolute top-4 right-4 z-10 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-sm hover:bg-white text-gray-700 transition-all"
@@ -735,7 +767,7 @@ export function StampGenerator({
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Fundo BRANCO como papel sulfite, independente do tema */}
+              {/* Fundo BRANCO como papel sulfite */}
               <div className="w-full h-[60vh] md:h-[70vh] bg-white rounded-xl flex items-center justify-center relative border border-gray-200 shadow-inner">
                 <div
                   className="absolute inset-0 opacity-5"
@@ -754,8 +786,8 @@ export function StampGenerator({
                 )}
               </div>
 
-              <div className="p-4 bg-white dark:bg-surface flex flex-col items-center gap-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-ink-muted">
+              <div className="p-4 flex flex-col items-center gap-4" style={{ backgroundColor: "var(--bb-color-surface)" }}>
+                <p className="text-sm font-medium" style={{ color: "var(--bb-color-ink-muted)" }}>
                   Escolha a cor da tinta
                 </p>
                 <div className="flex gap-3">

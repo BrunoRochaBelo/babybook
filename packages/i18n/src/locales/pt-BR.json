@@ -589,7 +589,28 @@
     "dashboard": {
       "title": "Jornada",
       "errorTitle": "Não foi possível carregar a jornada",
-      "errorDescription": "Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar."
+      "errorDescription": "Ocorreu um problema ao buscar os dados do dashboard. Tente recarregar.",
+      "hud": {
+        "title": "Sua Jornada",
+        "suggestion": "Próxima sugestão",
+        "start": "Começar",
+        "hint": "Não obrigatório. Você pode criar um momento livre a qualquer momento.",
+        "momentsTitle": "Seus Momentos"
+      },
+      "templates": {
+        "descoberta": {
+          "title": "A Descoberta",
+          "description": "O primeiro momento especial"
+        },
+        "primeiro-sorriso": {
+          "title": "Primeiro Sorriso",
+          "description": "Aquele sorriso inesquecível"
+        },
+        "primeira-gargalhada": {
+          "title": "Primeira Gargalhada",
+          "description": "O som mais especial"
+        }
+      }
     },
     "onboarding": {
       "title": "Bem-vinda ao Baby Book!",
@@ -637,7 +658,232 @@
       }
     },
 
+    "guestbook": {
+      "title": "Livro de Visitas",
+      "description": "Mensagens e memórias dos amigos e família.",
+      "relationship": {
+        "mae": "Mãe",
+        "pai": "Pai",
+        "tio": "Tio",
+        "tia": "Tia",
+        "irmao_irma": "Irmão / Irmã",
+        "avo": "Avô",
+        "avoa": "Avó",
+        "amigo": "Amigo(a)",
+        "madrasta": "Madrasta",
+        "padrasto": "Padrasto"
+      },
+      "tabs": {
+        "approved": "Aprovadas",
+        "pending": "Pendentes"
+      },
+      "list": {
+        "status": {
+          "published": "Publicada",
+          "pending": "Pendente de revisão"
+        },
+        "actions": {
+          "approve": "Aprovar",
+          "reject": "Rejeitar"
+        },
+        "forms": {
+          "relationshipLabel": "Grau de parentesco"
+        },
+        "attachment": {
+          "sent": "Anexo enviado",
+          "previewSoon": "Anexo enviado (visualização em breve)"
+        },
+        "aria": {
+          "openEntry": "Abrir mensagem de {{author}}",
+          "close": "Fechar"
+        }
+      },
+      "invite": {
+        "modal": {
+          "label": "Convide para deixar uma mensagem",
+          "title": "Envie o livro de visitas",
+          "qrLabel": "Escaneie o QR Code para acessar",
+          "emailLabel": "E-mail do convidado (opcional, para pré-preencher)",
+          "emailPlaceholder": "convidado@email.com",
+          "generateAction": "Gerar convite",
+          "updateAction": "Atualizar convite",
+          "generating": "Gerando...",
+          "copyAction": "Copiar",
+          "copied": "Copiado!",
+          "whatsapp": "WhatsApp",
+          "email": "E-mail"
+        },
+        "title": "Deixe uma mensagem para {{childName}}",
+        "titleFallback": "a criança",
+        "description": "Sua mensagem vai para <bold>pendentes</bold> e será revisada antes de aparecer no livro de visitas.",
+        "sentTitle": "Mensagem enviada!",
+        "sentDescription": "Obrigado! Assim que for aprovada, ela aparecerá no livro de visitas.",
+        "labels": {
+          "name": "Seu nome",
+          "email": "Seu e-mail (opcional)",
+          "relationship": "Grau de parentesco",
+          "message": "Mensagem",
+          "media": "Foto ou vídeo (opcional)"
+        },
+        "placeholders": {
+          "name": "Como você se chama?",
+          "email": "voce@email.com",
+          "relationship": "Selecione...",
+          "message": "Escreva uma mensagem especial..."
+        },
+        "hints": {
+          "videoLimit": "Vídeos: até 15s.",
+          "uploading": "Enviando... {{pct}}%"
+        },
+        "errors": {
+          "fillRequired": "Preencha seu nome, grau de parentesco e mensagem.",
+          "videoTooLong": "O vídeo tem {{duration}}s. Por enquanto, aceitamos até 15s.",
+          "sendFailed": "Não foi possível enviar sua mensagem.",
+          "mediaFailed": "Não foi possível anexar a mídia."
+        },
+        "notFound": {
+          "title": "Convite não encontrado",
+          "description": "Este link pode ter expirado ou foi revogado.",
+          "cta": "Criar meu Babybook"
+        },
+        "actions": {
+          "submit": "Enviar mensagem",
+          "submitting": "Enviando...",
+          "createMyDiary": "Criar meu diário",
+          "wantToCreate": "Quero criar meu Babybook"
+        },
+        "shareSubject": "Convite para deixar mensagem",
+        "shareMessage": "Deixe uma mensagem no livro de visitas {{childName}}: {{url}}"
+      },
+      "actions": {
+        "leaveMessage": "Deixar mensagem",
+        "closeForm": "Fechar formulário",
+        "invite": "Convidar"
+      },
+      "form": {
+        "title": "Deixe uma Mensagem",
+        "labels": {
+          "name": "Seu Nome",
+          "email": "Seu E-mail (opcional)",
+          "relationship": "Grau de parentesco",
+          "media": "Foto ou vídeo (opcional)",
+          "message": "Sua Mensagem"
+        },
+        "placeholders": {
+          "name": "Como você se chama?",
+          "email": "voce@email.com",
+          "relationship": "Selecione...",
+          "message": "Escreva uma mensagem especial..."
+        },
+        "hints": {
+          "videoLimit": "Vídeos: até 15s. O upload pode demorar um pouco dependendo da sua conexão.",
+          "uploadingAttachment": "Enviando anexo... {{pct}}%",
+          "moderation": "Sua mensagem será revisada antes de ser publicada."
+        },
+        "actions": {
+          "submit": "Enviar",
+          "submitting": "Enviando...",
+          "cancel": "Cancelar"
+        },
+        "aria": {
+          "close": "Fechar formulário de mensagem"
+        }
+      },
+      "tree": {
+        "selectChild": "Selecione uma criança para ver a rede afetiva a partir das mensagens aprovadas no Livro de Visitas.",
+        "empty": "Quando você aprovar mensagens, a árvore afetiva aparece aqui com os parentescos.",
+        "hud": {
+          "label": "Árvore genealógica",
+          "title": "Quem faz parte da história",
+          "peopleCount_one": "{{count}} pessoa já deixou recado aprovado.",
+          "peopleCount_other": "{{count}} pessoas já deixaram recados aprovados.",
+          "hint": "Dica: você pode ajustar o parentesco ao aprovar mensagens na aba “Pendentes”.",
+          "expand": "Toque para expandir",
+          "ariaExpand": "Ver árvore genealógica"
+        },
+        "full": {
+          "title": "Árvore genealógica",
+          "description": "{{childName}} • {{peopleCount}} pessoa • {{entryCount}} recado aprovado",
+          "description_plural": "{{childName}} • {{peopleCount}} pessoas • {{entryCount}} recados aprovados",
+          "source": "Baseado no Livro de Visitas",
+          "subtitle": "Mapa completo de parentescos",
+          "footnote": "Mostrando apenas mensagens aprovadas.",
+          "graph": {
+            "ariaLabel": "Árvore genealógica (visualização gráfica)",
+            "ariaDescription": "Árvore genealógica de {{childName}}",
+            "footnote": "Um mapa afetivo gerado a partir das mensagens aprovadas"
+          }
+        },
+        "common": {
+          "child": "Criança"
+        }
+      },
+      "empty": {
+        "approvedTitle": "Nenhuma mensagem no livro",
+        "approvedDescription": "Compartilhe o link do Guestbook com a família para receber mensagens de carinho.",
+        "pendingTitle": "Tudo tranquilo por aqui",
+        "pendingDescription": "Não há novas mensagens aguardando aprovação no momento."
+      },
+      "hud": {
+        "title": "Livro de visitas",
+        "subtitle": "Mensagens guardadas",
+        "description": "{{count}} de {{total}} slots utilizados",
+        "actions": {
+          "expand": "Ampliar para 50"
+        }
+      }
+    },
+    "health": {
+      "vaccines": {
+        "hud": {
+          "nextVaccine": "Próxima Vacina",
+          "countSeparator": "de"
+        },
+        "empty": {
+          "title": "Calendário em dia",
+          "description": "Não há vacinas pendentes para este período. O cartão de vacinação está atualizado!"
+        }
+      }
+    },
+    "vault": {
+      "empty": {
+         "title": "Nenhum documento no cofre",
+         "description": "Use os cartões acima para enviar seus documentos.",
+         "addPrefix": "Adicionar"
+      },
+      "slots": {
+        "certidao": {
+          "label": "Certidão de nascimento",
+          "helper": "PDF ou foto digitalizada do cartório"
+        },
+        "cpf": {
+          "label": "CPF",
+          "helper": "Comprovante emitido pela Receita Federal"
+        },
+        "vaccine": {
+          "label": "Carteira de vacinação",
+          "helper": "Frente e verso atualizados"
+        },
+        "sus": {
+          "label": "Cartão SUS",
+          "helper": "Identificação do Sistema Único de Saúde"
+        },
+        "insurance": {
+          "label": "Plano de saúde",
+          "helper": "Carteirinha do plano ou seguro"
+        },
+        "rg": {
+          "label": "Documento de identidade",
+          "helper": "Caso o bebê já possua RG ou passaporte"
+        }
+      }
+    },
     "moments": {
+      "empty": {
+        "title": "Sua primeira memória",
+        "description": "Ainda não há momentos registrados. Que tal capturar a primeira memória hoje?",
+        "action": "Criar primeiro momento"
+      },
       "common": {
         "newMoment": "Novo Momento",
         "noMediaNudge": {
@@ -656,6 +902,20 @@
           "seeLess": "Ver menos",
           "prevMedia": "Mídia anterior",
           "nextMedia": "Próxima mídia"
+        },
+        "status": {
+          "draft": "Rascunho",
+          "archived": "Arquivado"
+        },
+        "privacy": {
+          "private": "Privado",
+          "people": "Guardiões",
+          "public": "Link público"
+        },
+        "type": {
+          "recurring": "Recorrente",
+          "series": "Série fixa",
+          "unique": "Momento único"
         },
         "dialog": {
           "label": "Visualização de mídia"

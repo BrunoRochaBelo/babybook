@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { FileText, Lock } from "lucide-react";
+import { motion } from "motion/react";
+import { useTranslation } from "@babybook/i18n";
 import { useVault } from "../hooks/useVault";
 import { VaultCard } from "../components/VaultCard";
 import { VaultEmptyCard } from "../components/VaultEmptyCard";
@@ -8,40 +10,8 @@ import { HudCard } from "@/components/HudCard";
 import { VaultSkeleton } from "@/components/skeletons/VaultSkeleton";
 import { B2CErrorState } from "@/layouts/b2cStates";
 
-const DOCUMENT_SLOTS = [
-  {
-    id: "certidao",
-    label: "Certidão de nascimento",
-    helper: "PDF ou foto digitalizada do cartório",
-  },
-  {
-    id: "cpf",
-    label: "CPF",
-    helper: "Comprovante emitido pela Receita Federal",
-  },
-  {
-    id: "carteira-vacinacao",
-    label: "Carteira de vacinação",
-    helper: "Frente e verso atualizados",
-  },
-  {
-    id: "cartao-sus",
-    label: "Cartão SUS",
-    helper: "Identificação do Sistema Único de Saúde",
-  },
-  {
-    id: "plano-saude",
-    label: "Plano de saúde",
-    helper: "Carteirinha do plano ou seguro",
-  },
-  {
-    id: "rg",
-    label: "Documento de identidade",
-    helper: "Caso o bebê já possua RG ou passaporte",
-  },
-];
-
 export const VaultPage = () => {
+  const { t } = useTranslation();
   const {
     data: documents = [],
     isLoading,
@@ -50,14 +20,48 @@ export const VaultPage = () => {
     refetch,
   } = useVault();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
   const handleSlotClick = (id: string) => {
     console.log("Clicked slot", id);
     // TODO: Implement view Details
   };
 
   const slotDocuments = useMemo(() => {
+    const slotsDef = [
+      {
+        id: "certidao",
+        label: t("b2c.vault.slots.certidao.label", "Certidão de nascimento"),
+        helper: t("b2c.vault.slots.certidao.helper", "PDF ou foto digitalizada do cartório"),
+      },
+      {
+        id: "cpf",
+        label: t("b2c.vault.slots.cpf.label", "CPF"),
+        helper: t("b2c.vault.slots.cpf.helper", "Comprovante emitido pela Receita Federal"),
+      },
+      {
+        id: "carteira-vacinacao",
+        label: t("b2c.vault.slots.vaccine.label", "Carteira de vacinação"),
+        helper: t("b2c.vault.slots.vaccine.helper", "Frente e verso atualizados"),
+      },
+      {
+        id: "cartao-sus",
+        label: t("b2c.vault.slots.sus.label", "Cartão SUS"),
+        helper: t("b2c.vault.slots.sus.helper", "Identificação do Sistema Único de Saúde"),
+      },
+      {
+        id: "plano-saude",
+        label: t("b2c.vault.slots.insurance.label", "Plano de saúde"),
+        helper: t("b2c.vault.slots.insurance.helper", "Carteirinha do plano ou seguro"),
+      },
+      {
+        id: "rg",
+        label: t("b2c.vault.slots.rg.label", "Documento de identidade"),
+        helper: t("b2c.vault.slots.rg.helper", "Caso o bebê já possua RG ou passaporte"),
+      },
+    ];
+
     const used = new Set<string>();
-    const slots = DOCUMENT_SLOTS.map((slot) => {
+    const slots = slotsDef.map((slot) => {
       const found = documents.find(
         (doc) => doc.name.toLowerCase().includes(slot.id) && !used.has(doc.id),
       );
@@ -68,14 +72,17 @@ export const VaultPage = () => {
     });
     const additional = documents.filter((doc) => !used.has(doc.id));
     return { slots, additional };
-  }, [documents]);
+  }, [documents, t]);
+  
+  // Need to fix usage of DOCUMENT_SLOTS.length below as it is no longer available
+  const totalSlots = 6; // Hardcoded length or extracted from a constant ID list if preferred
 
   const storedEssentials = slotDocuments.slots.filter((slot) =>
     Boolean(slot.document),
   ).length;
   const essentialsPercent = Math.min(
     100,
-    Math.round((storedEssentials / DOCUMENT_SLOTS.length) * 100),
+    Math.round((storedEssentials / totalSlots) * 100),
   );
 
   if (isLoading) {
@@ -95,25 +102,51 @@ export const VaultPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
+    <motion.div
+      className="mx-auto max-w-4xl px-4 py-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1,
+          },
+        },
+      }}
+    >
+      <motion.div
+        className="mb-8 mt-2 px-2"
+        variants={{
+          hidden: { opacity: 0, y: 20 },
+          visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: "spring", stiffness: 300, damping: 24 },
+          },
+        }}
       >
-        Cofre de Documentos
-      </h1>
+        <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
+          Cofre de Documentos
+        </h1>
+        <p className="mt-2 text-lg opacity-60 font-medium max-w-lg">
+          Armazene certidões, documentos e cartões de saúde com segurança.
+        </p>
+      </motion.div>
 
-      <div className="mb-6">
+      <div className="mb-8">
         <HudCard
           title="Cofre Familiar"
-          value={`${storedEssentials} de ${DOCUMENT_SLOTS.length} documentos essenciais`}
+          value={`${storedEssentials} de ${totalSlots} documentos essenciais`}
           description="Tudo criptografado e visível apenas para você, o dono do álbum."
           progressPercent={essentialsPercent}
         />
       </div>
 
       <div
-        className="mt-4 rounded-[32px] border px-5 py-4 text-sm shadow-inner"
+        className="mt-4 mb-8 rounded-[32px] border px-5 py-4 text-sm shadow-inner"
         style={{
           backgroundColor: "var(--bb-color-accent-soft)",
           borderColor: "var(--bb-color-accent)",
@@ -144,10 +177,7 @@ export const VaultPage = () => {
           borderColor: "var(--bb-color-border)",
         }}
       >
-        <h2
-          className="text-center text-lg font-semibold"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
+        <h2 className="text-center text-lg font-semibold">
           Seus documentos privados
         </h2>
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
@@ -178,30 +208,7 @@ export const VaultPage = () => {
             />
           ))}
 
-          {slotDocuments.slots.length === 0 &&
-            slotDocuments.additional.length === 0 && (
-              <div
-                className="col-span-full rounded-xl border-2 border-dashed py-16 text-center"
-                style={{ borderColor: "var(--bb-color-border)" }}
-              >
-                <FileText
-                  className="mx-auto mb-4 h-12 w-12"
-                  style={{ color: "var(--bb-color-muted)" }}
-                />
-                <h3
-                  className="mb-2 text-lg font-semibold"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                >
-                  Nenhum documento no cofre
-                </h3>
-                <p
-                  className="text-sm"
-                  style={{ color: "var(--bb-color-ink-muted)" }}
-                >
-                  Use os cartões acima para enviar seus documentos.
-                </p>
-              </div>
-            )}
+
         </div>
       </div>
 
@@ -209,6 +216,6 @@ export const VaultPage = () => {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 };

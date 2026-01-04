@@ -4,7 +4,8 @@ export function DashboardSkeleton() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header - "Jornada" title */}
-      <div className="flex justify-center mb-6">
+      {/* Header - "Jornada" title */}
+      <div className="mb-6">
         <B2CSkeleton className="h-9 w-32 rounded-lg" />
       </div>
 

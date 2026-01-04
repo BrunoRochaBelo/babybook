@@ -30,8 +30,10 @@ import {
   Sun,
   HelpCircle,
   FileText,
+  Heart,
 } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import { useTranslation } from "@babybook/i18n";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/api";
 import { useAuthStore } from "@/store/auth";
@@ -169,12 +171,10 @@ export function PartnerLayout() {
   const shouldShowNav = SHOW_NAV_ROUTES.includes(location.pathname.replace(/\/$/, ""));
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-50 via-white to-pink-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col transition-colors duration-500">
-      {/* Decorative background blob */}
-      <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-br from-pink-100/40 to-transparent dark:from-pink-900/10 dark:to-transparent pointer-events-none blur-3xl opacity-60" />
-
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-50 via-white to-pink-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col transition-colors duration-700 font-sans pb-20">
+      
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-white/20 dark:border-white/5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] dark:shadow-none supports-[backdrop-filter]:bg-white/60">
+      <header className="sticky top-0 z-40 bg-white/40 dark:bg-gray-900/40 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] dark:shadow-none transition-all duration-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 relative">
             {/* Logo & Brand */}
@@ -378,7 +378,7 @@ export function PartnerLayout() {
                         )}
                       </div>
                     </DrawerHeader>
-                    <DrawerBody className="p-0 bg-white dark:bg-gray-900">
+                    <DrawerBody className="p-0 overflow-y-auto">
                       {/* Action Bar */}
                       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-50 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-800/20">
                         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -392,10 +392,24 @@ export function PartnerLayout() {
                           Marcar lidas
                         </button>
                       </div>
-
-                      <div className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                      <motion.div 
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                          visible: {
+                            transition: {
+                              staggerChildren: 0.05
+                            }
+                          }
+                        }}
+                        className="divide-y divide-gray-100 dark:divide-gray-800"
+                      >
                         {notifications.map((notification) => (
-                          <div
+                          <motion.div
+                            variants={{
+                              hidden: { opacity: 0, x: 20 },
+                              visible: { opacity: 1, x: 0 }
+                            }}
                             key={notification.id}
                             onClick={() =>
                               handleNotificationClick(notification)
@@ -444,22 +458,22 @@ export function PartnerLayout() {
                                 </div>
                               )}
                             </div>
-                          </div>
+                          </motion.div>
                         ))}
-                        {notifications.length === 0 && (
-                          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
-                              <Bell className="w-8 h-8 text-gray-300 dark:text-gray-600" />
-                            </div>
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
-                              Tudo limpo por aqui
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[200px]">
-                              Você não tem novas notificações no momento.
-                            </p>
+                      </motion.div>
+                      {notifications.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
+                            <Bell className="w-8 h-8 text-gray-300 dark:text-gray-600" />
                           </div>
-                        )}
-                      </div>
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
+                            Tudo limpo por aqui
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[200px]">
+                            Você não tem novas notificações no momento.
+                          </p>
+                        </div>
+                      )}
                     </DrawerBody>
                     <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 p-6 bg-gray-50/50 dark:bg-gray-800/20">
                       <Link
@@ -525,82 +539,141 @@ export function PartnerLayout() {
                     </DrawerHeader>
 
                     <DrawerBody className="p-6 space-y-8 overflow-y-auto">
-                      {/* Theme Selector */}
-                      <div>
-                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-4 uppercase tracking-wider pl-1">
-                          Aparência
-                        </p>
-                        <div className="flex gap-2 p-1.5 rounded-2xl bg-gray-100/80 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800">
-                          <button
-                            type="button"
-                            onClick={() => setTheme("light")}
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
-                              theme === "light"
-                                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
-                            )}
-                          >
-                            <Sun className="w-4 h-4" />
-                            <span className="hidden sm:inline">Claro</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setTheme("dark")}
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
-                              theme === "dark"
-                                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
-                            )}
-                          >
-                            <MoonStar className="w-4 h-4" />
-                            <span className="hidden sm:inline">Escuro</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setTheme("system")}
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
-                              theme === "system"
-                                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
-                            )}
-                          >
-                            <Monitor className="w-4 h-4" />
-                            <span className="hidden sm:inline">Auto</span>
-                          </button>
-                        </div>
-                      </div>
+                      <motion.div 
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                          visible: {
+                            transition: {
+                              staggerChildren: 0.05
+                            }
+                          }
+                        }}
+                        className="space-y-8"
+                      >
+                        {/* Theme Selector */}
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            visible: { opacity: 1, y: 0 }
+                          }}
+                        >
+                          <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-4 uppercase tracking-wider pl-1 font-sans">
+                            Aparência
+                          </p>
+                          <div className="flex gap-2 p-1.5 rounded-2xl bg-gray-100/80 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800">
+                            <button
+                              type="button"
+                              onClick={() => setTheme("light")}
+                              className={cn(
+                                "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                                theme === "light"
+                                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
+                                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
+                              )}
+                            >
+                              <Sun className="w-4 h-4" />
+                              <span className="hidden sm:inline">Claro</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTheme("dark")}
+                              className={cn(
+                                "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                                theme === "dark"
+                                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
+                                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
+                              )}
+                            >
+                              <MoonStar className="w-4 h-4" />
+                              <span className="hidden sm:inline">Escuro</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTheme("system")}
+                              className={cn(
+                                "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                                theme === "system"
+                                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
+                                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50",
+                              )}
+                            >
+                              <Monitor className="w-4 h-4" />
+                              <span className="hidden sm:inline">Auto</span>
+                            </button>
+                          </div>
+                        </motion.div>
 
-                      {/* Menu Links */}
-                      <div>
-                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-4 uppercase tracking-wider pl-1">
-                          Conta
-                        </p>
-                        <nav className="space-y-3">
-                          <Link
-                            to="/partner/settings"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-4 p-3.5 rounded-2xl bg-white dark:bg-gray-800/40 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-md transition-all group active:scale-[0.99]"
-                          >
-                            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 group-hover:bg-pink-50 dark:group-hover:bg-pink-900/20 group-hover:border-pink-100 dark:group-hover:border-pink-900/30 transition-all">
-                              <Settings className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
-                                Configurações
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Gerencie seus dados
-                              </p>
-                            </div>
-                            <div className="text-gray-300 group-hover:text-pink-400 group-hover:translate-x-1 transition-all">
-                              <ChevronRight className="w-5 h-5" />
-                            </div>
-                          </Link>
-                        </nav>
-                      </div>
+                        {/* Menu Links */}
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            visible: { opacity: 1, y: 0 }
+                          }}
+                        >
+                          <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-4 uppercase tracking-wider pl-1 font-sans">
+                            Conta
+                          </p>
+                          <nav className="space-y-3">
+                            <Link
+                              to="/partner/settings"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-4 p-3.5 rounded-2xl bg-white dark:bg-gray-800/40 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-md transition-all group active:scale-[0.99]"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 group-hover:bg-pink-50 dark:group-hover:bg-pink-900/20 group-hover:border-pink-100 dark:group-hover:border-pink-900/30 transition-all">
+                                <Settings className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                                  Configurações
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                  Gerencie seus dados
+                                </p>
+                              </div>
+                              <div className="text-gray-300 group-hover:text-pink-400 group-hover:translate-x-1 transition-all">
+                                <ChevronRight className="w-5 h-5" />
+                              </div>
+                            </Link>
+
+                            <a
+                              href="https://babybook.ai/help"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-4 p-3.5 rounded-2xl bg-white dark:bg-gray-800/40 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-md transition-all group active:scale-[0.99]"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 group-hover:border-blue-100 dark:group-hover:border-blue-900/30 transition-all">
+                                <HelpCircle className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                  Central de Ajuda
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                  Suporte e tutoriais
+                                </p>
+                              </div>
+                              <div className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-1 transition-all">
+                                <ChevronRight className="w-5 h-5" />
+                              </div>
+                            </a>
+                            
+                            <Link
+                              to="/partner/logout"
+                              className="flex items-center gap-4 p-3.5 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 group transition-all active:scale-[0.99]"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:bg-red-50 dark:group-hover:bg-red-900/20 group-hover:border-red-100 dark:group-hover:border-red-900/30 transition-all">
+                                <LogOut className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-bold text-gray-600 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                  Sair da Conta
+                                </p>
+                              </div>
+                            </Link>
+                          </nav>
+                        </motion.div>
+                      </motion.div>
 
                       {/* Support Links */}
                       <div>

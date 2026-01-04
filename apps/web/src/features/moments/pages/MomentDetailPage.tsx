@@ -10,20 +10,36 @@ import {
   Play,
   Maximize2,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { FullscreenMediaViewer } from "@/components/FullscreenMediaViewer";
+import { B2CSkeleton } from "@/components/skeletons/B2CSkeleton";
 
 const MomentDetailSkeleton = () => (
-  <div className="max-w-3xl mx-auto animate-pulse">
-    <div className="h-10 bg-gray-200 rounded-lg w-1/3 mb-8" />
-    <div className="bg-white rounded-2xl p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="h-64 bg-gray-200 rounded-lg" />
-        <div className="h-64 bg-gray-200 rounded-lg" />
+  <div className="max-w-3xl mx-auto">
+    <div className="flex justify-between mb-6">
+       <B2CSkeleton className="h-10 w-24 rounded-lg" />
+       <div className="flex gap-2">
+         <B2CSkeleton className="h-10 w-10 rounded-lg" />
+         <B2CSkeleton className="h-10 w-10 rounded-lg" />
+         <B2CSkeleton className="h-10 w-10 rounded-lg" />
+       </div>
+    </div>
+    
+    <div 
+        className="rounded-2xl p-6 border" 
+        style={{ 
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)"
+        }}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <B2CSkeleton className="h-64 w-full rounded-lg" />
+        <B2CSkeleton className="h-64 w-full rounded-lg" />
       </div>
-      <div className="h-8 bg-gray-200 rounded-lg w-3/4 mb-4" />
-      <div className="h-4 bg-gray-200 rounded-lg w-full mb-2" />
-      <div className="h-4 bg-gray-200 rounded-lg w-full mb-2" />
-      <div className="h-4 bg-gray-200 rounded-lg w-1/2" />
+      <B2CSkeleton className="h-8 w-3/4 mb-4 rounded-lg" />
+      <B2CSkeleton className="h-4 w-full mb-2 rounded-lg opacity-60" />
+      <B2CSkeleton className="h-4 w-full mb-2 rounded-lg opacity-60" />
+      <B2CSkeleton className="h-4 w-1/2 rounded-lg opacity-60" />
     </div>
   </div>
 );
@@ -51,14 +67,15 @@ export const MomentDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+            style={{ color: "var(--bb-color-ink)" }}
           >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-            <span className="font-semibold text-gray-700">Voltar</span>
+            <ChevronLeft className="w-5 h-5" />
+            <span className="font-semibold">Voltar</span>
           </button>
         </div>
 
@@ -69,22 +86,23 @@ export const MomentDetailPage = () => {
 
   if (error) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+            style={{ color: "var(--bb-color-ink)" }}
           >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-            <span className="font-semibold text-gray-700">Voltar</span>
+            <ChevronLeft className="w-5 h-5" />
+            <span className="font-semibold">Voltar</span>
           </button>
         </div>
 
         <div className="text-center py-20">
-          <h2 className="text-xl font-semibold text-gray-700">
+          <h2 className="text-xl font-semibold" style={{ color: "var(--bb-color-ink)" }}>
             Erro ao carregar o momento
           </h2>
-          <p className="text-gray-500 mt-2">
+          <p className="mt-2" style={{ color: "var(--bb-color-ink-muted)" }}>
             Não foi possível carregar este momento agora. Tente novamente em
             instantes.
           </p>
@@ -95,22 +113,23 @@ export const MomentDetailPage = () => {
 
   if (!moment) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto text-[var(--bb-color-ink)]">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+            style={{ color: "var(--bb-color-ink)" }}
           >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-            <span className="font-semibold text-gray-700">Voltar</span>
+            <ChevronLeft className="w-5 h-5" />
+            <span className="font-semibold">Voltar</span>
           </button>
         </div>
 
         <div className="text-center py-20">
-          <h2 className="text-xl font-semibold text-gray-600">
+          <h2 className="text-xl font-semibold" style={{ color: "var(--bb-color-ink-muted)" }}>
             Momento não encontrado
           </h2>
-          <p className="text-gray-400 mt-2">
+          <p className="mt-2" style={{ color: "var(--bb-color-ink-subtle)" }}>
             O momento que você está procurando não existe ou foi removido.
           </p>
         </div>
@@ -128,46 +147,60 @@ export const MomentDetailPage = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <motion.div
+      className="max-w-3xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+          style={{ color: "var(--bb-color-ink)" }}
         >
-          <ChevronLeft className="w-5 h-5 text-gray-700" />
-          <span className="font-semibold text-gray-700">Voltar</span>
+          <ChevronLeft className="w-5 h-5" />
+          <span className="font-semibold">Voltar</span>
         </button>
         <div className="flex gap-2">
           <button
             type="button"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
             aria-label="Compartilhar momento"
             title="Compartilhar momento"
           >
-            <Share2 className="w-5 h-5 text-primary" />
+            <Share2 className="w-5 h-5 text-[var(--bb-color-accent)]" />
           </button>
           <button
             type="button"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+            style={{ color: "var(--bb-color-ink)" }}
             aria-label="Editar momento"
             title="Editar momento"
           >
-            <Edit className="w-5 h-5 text-gray-700" />
+            <Edit className="w-5 h-5" />
           </button>
           <button
             type="button"
-            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-danger-soft)]"
+            style={{ color: "var(--bb-color-danger)" }}
             aria-label="Excluir momento"
             title="Excluir momento"
           >
-            <Trash2 className="w-5 h-5 text-red-600" />
+            <Trash2 className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+      <div 
+        className="rounded-2xl overflow-hidden shadow-sm"
+        style={{ 
+            backgroundColor: "var(--bb-color-surface)",
+            border: "1px solid var(--bb-color-border)"
+        }}
+      >
         {/* Media */}
         {moment.media.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
@@ -176,7 +209,7 @@ export const MomentDetailPage = () => {
                 type="button"
                 key={media.id}
                 onClick={() => openMediaViewer(index)}
-                className="rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center aspect-w-4 aspect-h-3 relative group cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                className="rounded-lg overflow-hidden bg-gray-100 dark:bg-stone-800 flex items-center justify-center aspect-w-4 aspect-h-3 relative group cursor-pointer ring-offset-2 ring-offset-[var(--bb-color-surface)] hover:ring-2 hover:ring-[var(--bb-color-accent)] transition-all"
               >
                 {media.kind === "photo" && (
                   <img
@@ -230,23 +263,23 @@ export const MomentDetailPage = () => {
         {/* Text */}
         <div className="p-6">
           <div className="mb-4">
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-sm mb-1" style={{ color: "var(--bb-color-ink-muted)" }}>
               {formatDate(moment.occurredAt ?? moment.createdAt)}
             </p>
-            <h1 className="text-3xl font-bold text-gray-800">{moment.title}</h1>
+            <h1 className="text-3xl font-bold" style={{ color: "var(--bb-color-ink)" }}>{moment.title}</h1>
           </div>
 
           {moment.summary && (
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            <p className="leading-relaxed whitespace-pre-wrap" style={{ color: "var(--bb-color-ink)" }}>
               {moment.summary}
             </p>
           )}
 
           {moment.templateKey && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
+            <div className="mt-6 pt-4 border-t" style={{ borderColor: "var(--bb-color-border)" }}>
+              <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>
                 Template:{" "}
-                <span className="font-semibold capitalize text-gray-600">
+                <span className="font-semibold capitalize" style={{ color: "var(--bb-color-ink)" }}>
                   {moment.templateKey.replace("-", " ")}
                 </span>
               </p>
@@ -254,6 +287,6 @@ export const MomentDetailPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

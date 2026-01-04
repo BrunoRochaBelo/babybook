@@ -506,7 +506,28 @@
     "dashboard": {
       "title": "Journey",
       "errorTitle": "Could not load the journey",
-      "errorDescription": "There was a problem fetching dashboard data. Try reloading."
+      "errorDescription": "There was a problem fetching dashboard data. Try reloading.",
+      "hud": {
+        "title": "Your Journey",
+        "suggestion": "Next suggestion",
+        "start": "Start",
+        "hint": "Optional. You can create a free moment at any time.",
+        "momentsTitle": "Your Moments"
+      },
+      "templates": {
+        "descoberta": {
+          "title": "The Discovery",
+          "description": "The first special moment"
+        },
+        "primeiro-sorriso": {
+          "title": "First Smile",
+          "description": "That unforgettable smile"
+        },
+        "primeira-gargalhada": {
+          "title": "First Laugh",
+          "description": "The most special sound"
+        }
+      }
     },
     "onboarding": {
       "title": "Welcome to Baby Book!",
@@ -554,7 +575,232 @@
       }
     },
 
+    "guestbook": {
+      "title": "Guestbook",
+      "description": "Messages and memories from friends and family.",
+      "relationship": {
+        "mae": "Mother",
+        "pai": "Father",
+        "tio": "Uncle",
+        "tia": "Aunt",
+        "irmao_irma": "Brother / Sister",
+        "avo": "Grandfather",
+        "avoa": "Grandmother",
+        "amigo": "Friend",
+        "madrasta": "Stepmother",
+        "padrasto": "Stepfather"
+      },
+      "tabs": {
+        "approved": "Approved",
+        "pending": "Pending"
+      },
+      "list": {
+        "status": {
+          "published": "Published",
+          "pending": "Pending review"
+        },
+        "actions": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "forms": {
+          "relationshipLabel": "Relationship degree"
+        },
+        "attachment": {
+          "sent": "Attachment sent",
+          "previewSoon": "Attachment sent (preview soon)"
+        },
+        "aria": {
+          "openEntry": "Open message from {{author}}",
+          "close": "Close"
+        }
+      },
+      "invite": {
+        "modal": {
+          "label": "Invite to leave a message",
+          "title": "Send the guestbook",
+          "qrLabel": "Scan the QR Code to access",
+          "emailLabel": "Guest email (optional, for pre-filling)",
+          "emailPlaceholder": "guest@email.com",
+          "generateAction": "Generate invite",
+          "updateAction": "Update invite",
+          "generating": "Generating...",
+          "copyAction": "Copy",
+          "copied": "Copied!",
+          "whatsapp": "WhatsApp",
+          "email": "Email"
+        },
+        "title": "Leave a message for {{childName}}",
+        "titleFallback": "the child",
+        "description": "Your message will be sent to <bold>pending</bold> and will be reviewed before appearing in the guestbook.",
+        "sentTitle": "Message sent!",
+        "sentDescription": "Thank you! Once approved, it will appear in the guestbook.",
+        "labels": {
+          "name": "Your name",
+          "email": "Your email (optional)",
+          "relationship": "Relationship degree",
+          "message": "Message",
+          "media": "Photo or video (optional)"
+        },
+        "placeholders": {
+          "name": "What's your name?",
+          "email": "you@email.com",
+          "relationship": "Select...",
+          "message": "Write a special message..."
+        },
+        "hints": {
+          "videoLimit": "Videos: up to 15s.",
+          "uploading": "Uploading... {{pct}}%"
+        },
+        "errors": {
+          "fillRequired": "Please fill in your name, relationship degree, and message.",
+          "videoTooLong": "The video is {{duration}}s long. For now, we accept up to 15s.",
+          "sendFailed": "Could not send your message.",
+          "mediaFailed": "Could not attach media."
+        },
+        "notFound": {
+          "title": "Invite not found",
+          "description": "This link may have expired or been revoked.",
+          "cta": "Create my Babybook"
+        },
+        "actions": {
+          "submit": "Send message",
+          "submitting": "Sending...",
+          "createMyDiary": "Create my diary",
+          "wantToCreate": "I want to create my Babybook"
+        },
+        "shareSubject": "Invite to leave a message",
+        "shareMessage": "Leave a message in {{childName}}'s guestbook: {{url}}"
+      },
+      "actions": {
+        "leaveMessage": "Leave message",
+        "closeForm": "Close form",
+        "invite": "Invite"
+      },
+      "form": {
+        "title": "Leave a Message",
+        "labels": {
+          "name": "Your Name",
+          "email": "Your Email (optional)",
+          "relationship": "Relationship degree",
+          "media": "Photo or video (optional)",
+          "message": "Your Message"
+        },
+        "placeholders": {
+          "name": "What's your name?",
+          "email": "you@email.com",
+          "relationship": "Select...",
+          "message": "Write a special message..."
+        },
+        "hints": {
+          "videoLimit": "Videos: up to 15s. Upload may take a while depending on your connection.",
+          "uploadingAttachment": "Uploading attachment... {{pct}}%",
+          "moderation": "Your message will be reviewed before being published."
+        },
+        "actions": {
+          "submit": "Send",
+          "submitting": "Sending...",
+          "cancel": "Cancel"
+        },
+        "aria": {
+          "close": "Close message form"
+        }
+      },
+      "tree": {
+        "selectChild": "Select a child to view the affective network from the approved messages in the Guestbook.",
+        "empty": "When you approve messages, the family tree will appear here with the relationships.",
+        "hud": {
+          "label": "Family tree",
+          "title": "Who's part of the story",
+          "peopleCount_one": "{{count}} person has left an approved message.",
+          "peopleCount_other": "{{count}} people have left approved messages.",
+          "hint": "Tip: you can adjust the relationship when approving messages in the “Pending” tab.",
+          "expand": "Tap to expand",
+          "ariaExpand": "View family tree"
+        },
+        "full": {
+          "title": "Family tree",
+          "description": "{{childName}} • {{peopleCount}} person • {{entryCount}} approved message",
+          "description_plural": "{{childName}} • {{peopleCount}} people • {{entryCount}} approved messages",
+          "source": "Based on the Guestbook",
+          "subtitle": "Complete relationship map",
+          "footnote": "Showing only approved messages.",
+          "graph": {
+            "ariaLabel": "Family tree (graphic visualization)",
+            "ariaDescription": "Family tree of {{childName}}",
+            "footnote": "An affective map generated from approved messages"
+          }
+        },
+        "common": {
+          "child": "Child"
+        }
+      },
+      "empty": {
+        "approvedTitle": "No messages in the book",
+        "approvedDescription": "Share the Guestbook link with the family to receive affectionate messages.",
+        "pendingTitle": "All quiet here",
+        "pendingDescription": "There are no new messages waiting for approval at the moment."
+      },
+      "hud": {
+        "title": "Guestbook",
+        "subtitle": "Saved messages",
+        "description": "{{count}} of {{total}} slots used",
+        "actions": {
+          "expand": "Expand to 50"
+        }
+      }
+    },
+    "health": {
+      "vaccines": {
+        "hud": {
+          "nextVaccine": "Next Vaccine",
+          "countSeparator": "of"
+        },
+        "empty": {
+          "title": "Schedule up to date",
+          "description": "No pending vaccines for this period. The vaccination card is up to date!"
+        }
+      }
+    },
+    "vault": {
+      "empty": {
+         "title": "No documents in the vault",
+         "description": "Use the cards above to upload your documents.",
+         "addPrefix": "Add"
+      },
+      "slots": {
+        "certidao": {
+          "label": "Birth certificate",
+          "helper": "PDF or scanned photo from the registry"
+        },
+        "cpf": {
+          "label": "Tax ID (CPF)",
+          "helper": "Proof issued by the IRS"
+        },
+        "vaccine": {
+          "label": "Vaccination card",
+          "helper": "Updated front and back"
+        },
+        "sus": {
+          "label": "National Health Card",
+          "helper": "Public health identification"
+        },
+        "insurance": {
+          "label": "Health insurance",
+          "helper": "Insurance or plan card"
+        },
+        "rg": {
+          "label": "Identity document",
+          "helper": "If the baby already has an ID or passport"
+        }
+      }
+    },
     "moments": {
+      "empty": {
+        "title": "Your first memory",
+        "description": "No moments recorded yet. How about capturing the first memory today?",
+        "action": "Create first moment"
+      },
       "common": {
         "newMoment": "New Moment",
         "noMediaNudge": {
@@ -573,6 +819,20 @@
           "seeLess": "See less",
           "prevMedia": "Previous media",
           "nextMedia": "Next media"
+        },
+        "status": {
+          "draft": "Draft",
+          "archived": "Archived"
+        },
+        "privacy": {
+          "private": "Private",
+          "people": "Guardians",
+          "public": "Public link"
+        },
+        "type": {
+          "recurring": "Recurring",
+          "series": "Fixed series",
+          "unique": "Unique moment"
         },
         "dialog": {
           "label": "Media viewer"

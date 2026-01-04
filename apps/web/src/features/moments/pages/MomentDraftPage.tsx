@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "motion/react";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { useAuthStore } from "@/store/auth";
 import { useMyVouchers } from "@/features/vouchers";
@@ -77,10 +78,7 @@ export const MomentDraftPage = () => {
   if (!template) {
     return (
       <div className="mx-auto max-w-2xl py-10 text-center">
-        <h1
-          className="text-2xl font-serif"
-          style={{ color: "var(--bb-color-ink)" }}
-        >
+        <h1 className="text-2xl font-bold">
           {t("b2c.moments.draft.missingTemplateTitle")}
         </h1>
         <p
@@ -119,23 +117,24 @@ export const MomentDraftPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-6">
-      <div className="mb-6 flex items-center gap-4">
+    <motion.div
+      className="mx-auto max-w-2xl py-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="mb-8 flex items-start sm:items-center gap-4 flex-col sm:flex-row">
         <button
           onClick={handleBack}
-          className="rounded-full p-2 transition-colors"
-          style={{
-            color: "var(--bb-color-ink)",
-          }}
+          className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--bb-color-bg)]"
+          style={{ color: "var(--bb-color-ink)" }}
         >
-          <ChevronLeft className="h-5 w-5" aria-hidden />
+          <ChevronLeft className="w-5 h-5" />
+          <span className="font-semibold text-sm">Voltar</span>
         </button>
-        <div>
+        <div className="flex-1">
           <div className="flex flex-wrap items-center gap-3">
-            <h1
-              className="text-2xl font-bold"
-              style={{ color: "var(--bb-color-ink)" }}
-            >
+            <h1 className="text-2xl font-bold">
               {template?.title || t("b2c.moments.common.newMoment")}
             </h1>
 
@@ -158,7 +157,7 @@ export const MomentDraftPage = () => {
           </div>
           {template?.prompt && (
             <p
-              className="text-sm"
+              className="text-sm mt-1"
               style={{ color: "var(--bb-color-ink-muted)" }}
             >
               {template.prompt}
@@ -178,7 +177,7 @@ export const MomentDraftPage = () => {
       </div>
 
       <div
-        className="rounded-2xl border p-6"
+        className="rounded-2xl border p-6 mb-8"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
@@ -190,6 +189,6 @@ export const MomentDraftPage = () => {
           audience={audience}
         />
       </div>
-    </div>
+    </motion.div>
   );
 };

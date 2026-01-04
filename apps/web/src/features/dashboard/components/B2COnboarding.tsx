@@ -89,80 +89,56 @@ export function B2COnboarding({ stats }: B2COnboardingProps) {
   };
 
   const completedCount = STEPS.filter((step) => step.check(stats)).length;
-  const progress = (completedCount / STEPS.length) * 100;
+  // const progress = (completedCount / STEPS.length) * 100; // Not used in new design for cleaner look
   const isComplete = completedCount === STEPS.length;
 
   if (!isLoaded || isDismissed || isComplete) return null;
 
   return (
-    <div 
-      className="rounded-3xl border p-6 mb-8 animate-in fade-in-0 slide-in-from-top-2 duration-500 shadow-sm"
+    <div
+      className="relative mb-12 overflow-hidden rounded-[2.5rem] p-8 shadow-sm transition-all hover:shadow-md group"
       style={{
-        background: "var(--bb-color-accent-soft)",
-        borderColor: "var(--bb-color-border)",
+        background: "linear-gradient(135deg, var(--bb-color-surface) 0%, var(--bb-color-bg) 100%)",
+        boxShadow: "0 20px 40px -10px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(0,0,0,0.03)",
       }}
     >
+      {/* Decorative Blur */}
+      <div 
+        className="absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-10 blur-3xl transition-opacity group-hover:opacity-20"
+        style={{ background: "var(--bb-color-accent)" }}
+      />
+
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div 
-            className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md"
-            style={{ background: "var(--bb-color-accent)" }}
-          >
-            <Sparkles className="w-5 h-5 text-white" />
+      <div className="relative z-10 flex items-start justify-between mb-8">
+        <div>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider backdrop-blur-sm"
+               style={{ 
+                 borderColor: "var(--bb-color-border)",
+                 color: "var(--bb-color-accent)"
+               }}>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Comece por aqui</span>
           </div>
-          <div>
-            <h3 className="text-lg font-bold" style={{ color: "var(--bb-color-ink)" }}>
-              {t("b2c.onboarding.title")} ✨
-            </h3>
-            <p className="text-sm opacity-80" style={{ color: "var(--bb-color-ink)" }}>
-              {t("b2c.onboarding.subtitle")}
-            </p>
-          </div>
+          <h3 className="font-serif text-2xl font-medium leading-tight" style={{ color: "var(--bb-color-ink)" }}>
+            Vamos, criar o livro da vida? ✨
+          </h3>
+          <p className="mt-2 text-base opacity-70 max-w-md leading-relaxed" style={{ color: "var(--bb-color-ink)" }}>
+            Complete estes passos essenciais para deixar a linha do tempo do seu bebê mais rica e segura.
+          </p>
         </div>
+        
         <button
           onClick={handleDismiss}
-          className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          style={{ color: "var(--bb-color-ink-subtle)" }}
+          className="rounded-full p-2 transition-colors hover:bg-black/5 active:scale-95"
+          style={{ color: "var(--bb-color-ink-muted)" }}
           title={t("common.dismiss")}
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-sm mb-2 font-medium">
-          <span style={{ color: "var(--bb-color-ink-muted)" }}>
-            {completedCount === 0 
-              ? t("b2c.onboarding.progress.start")
-              : completedCount === STEPS.length - 1 
-                ? t("b2c.onboarding.progress.almost")
-                : t("b2c.onboarding.progress.continue")}
-          </span>
-          <span style={{ color: "var(--bb-color-accent)" }}>
-            {completedCount}/{STEPS.length}
-          </span>
-        </div>
-        <div 
-          className="h-2.5 rounded-full overflow-hidden p-0.5 border"
-          style={{ 
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            borderColor: "rgba(0, 0, 0, 0.05)"
-          }}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out shadow-sm"
-            style={{ 
-              width: `${progress}%`,
-              background: "var(--bb-color-accent)"
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Steps */}
-      <div className="grid sm:grid-cols-2 gap-3">
+      {/* Steps Grid */}
+      <div className="relative z-10 grid gap-4 sm:grid-cols-2">
         {STEPS.map((step) => {
           const isCompleted = step.check(stats);
           const Icon = step.icon;
@@ -171,46 +147,49 @@ export function B2COnboarding({ stats }: B2COnboardingProps) {
             <Link
               key={step.id}
               to={step.to}
-              className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${
-                isCompleted ? "opacity-75" : "hover:shadow-md active:scale-[0.98]"
+              className={`flex items-center gap-5 rounded-[1.5rem] p-4 transition-all duration-300 ${
+                isCompleted 
+                  ? "opacity-60 grayscale-[0.5]" 
+                  : "bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
               }`}
               style={{
-                backgroundColor: isCompleted ? "var(--bb-color-success-soft)" : "var(--bb-color-surface)",
-                borderColor: isCompleted ? "var(--bb-color-success)" : "var(--bb-color-border)",
+                // border: "1px solid rgba(0,0,0,0.03)" 
               }}
             >
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-colors ${
+                  isCompleted ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-white dark:bg-white/10 text-[var(--bb-color-accent)]"
+                }`}
                 style={{
-                  backgroundColor: isCompleted ? "var(--bb-color-surface)" : "var(--bb-color-accent-soft)",
-                  color: isCompleted ? "var(--bb-color-success)" : "var(--bb-color-accent)",
+                  boxShadow: isCompleted ? "none" : "0 4px 12px rgba(0,0,0,0.06)"
                 }}
               >
                 {isCompleted ? (
                   <CheckCircle2 className="w-6 h-6" />
                 ) : (
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-6 h-6" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              
+              <div className="min-w-0 flex-1">
                 <p
-                  className={`text-sm font-bold ${isCompleted ? "line-through" : ""}`}
-                  style={{ color: isCompleted ? "var(--bb-color-success)" : "var(--bb-color-ink)" }}
+                  className={`font-semibold ${isCompleted ? "line-through opacity-80" : ""}`}
+                  style={{ color: "var(--bb-color-ink)" }}
                 >
                   {t(step.titleKey)}
                 </p>
                 <p
-                  className="text-xs"
-                  style={{ color: isCompleted ? "var(--bb-color-success)" : "var(--bb-color-ink-muted)", opacity: isCompleted ? 0.7 : 1 }}
+                  className="truncate text-sm opacity-70"
+                  style={{ color: "var(--bb-color-ink)" }}
                 >
                   {t(step.descriptionKey)}
                 </p>
               </div>
+
               {!isCompleted && (
-                <ChevronRight 
-                  className="w-5 h-5 flex-shrink-0" 
-                  style={{ color: "var(--bb-color-border-strong)" }}
-                />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 dark:bg-white/10 shadow-sm">
+                   <ChevronRight className="w-4 h-4 text-[var(--bb-color-ink-muted)]" />
+                </div>
               )}
             </Link>
           );

@@ -507,7 +507,7 @@ export function DeliveriesListPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar por cliente ou título..."
-                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-none rounded-[1.5rem] shadow-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500/50 transition-all text-base"
+                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-none rounded-[2.5rem] shadow-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500/50 transition-all text-base"
                   />
                   <button 
                      onClick={() => setIsFiltersModalOpen(true)}
@@ -613,7 +613,7 @@ export function DeliveriesListPage() {
         />
 
         {/* Content Area */}
-        <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden min-h-[400px]">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20 border border-white/50 dark:border-gray-700/50 overflow-hidden min-h-[400px]">
            {isLoading ? (
                <div className="p-8">
                   <DeliveriesLoadingSkeleton />

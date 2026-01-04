@@ -951,16 +951,28 @@ export const MomentsTimeline = ({
 
     return (
       <LayoutGroup id="journey-timeline-items">
-        <div className="mt-6 space-y-4">
-          {timelineItems.map((item) => {
+        {/* Container principal com padding à esquerda para a linha do tempo */}
+        <div className="relative mt-6 space-y-10 pl-8">
+          
+          {/* Soft Line: Linha vertical contínua conectando tudo */}
+          <div 
+            className="absolute left-[11px] top-4 bottom-4 w-px bg-gradient-to-b from-gray-200/0 via-gray-200 dark:via-stone-700 to-gray-200/0" 
+            aria-hidden="true" 
+          />
+
+          {timelineItems.map((item, index) => {
             if (item.kind === "moment") {
               const moment = item.moment;
               return (
-                <EnhancedMomentCard
-                  key={moment.id}
-                  moment={moment}
-                  recurrence={recurrenceMetaById.get(moment.id) ?? null}
-                />
+                <div key={moment.id} className="relative">
+                  {/* Timeline Dot */}
+                  <div className="absolute -left-[26px] top-8 h-3 w-3 rounded-full border-2 border-white dark:border-[#1c1917] bg-pink-300 dark:bg-pink-600 shadow-sm z-10 box-content" />
+                  
+                  <EnhancedMomentCard
+                    moment={moment}
+                    recurrence={recurrenceMetaById.get(moment.id) ?? null}
+                  />
+                </div>
               );
             }
 
@@ -968,48 +980,71 @@ export const MomentsTimeline = ({
               item.canonicalTemplateKey,
             );
             const historyCount = item.history.length;
+            const recurrenceColor = item.recurrenceKind === "series" ? "bg-purple-300 dark:bg-purple-600" : "bg-orange-300 dark:bg-orange-600";
 
             return (
               <motion.div
                 layout
                 key={`recurrence:${item.canonicalTemplateKey}`}
-                className="space-y-2"
+                className="relative space-y-3"
               >
-                <div className="flex items-center justify-between gap-3">
+                {/* Timeline Dot for Group */}
+                <div className={`absolute -left-[26px] top-8 h-3 w-3 rounded-full border-2 border-white dark:border-[#1c1917] ${recurrenceColor} shadow-sm z-10 box-content`} />
+
+                <div className="flex items-center justify-between gap-3 pr-2">
                   <div
-                    className="min-w-0 text-xs font-semibold truncate"
+                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
                     style={{ color: "var(--bb-color-ink-muted)" }}
                     title={item.label}
                   >
-                    {item.recurrenceKind === "series" ? "Série" : "Recorrente"}:{" "}
-                    {item.label}
+                     <span className={`inline-block w-1.5 h-1.5 rounded-full ${item.recurrenceKind === "series" ? "bg-purple-400" : "bg-orange-400"}`} />
+                    {item.recurrenceKind === "series" ? "Série de Momentos" : "Registro Recorrente"}
                   </div>
+                  
+                  {/* Header do grupo (opcional, pode ficar dentro do card ou acima) */}
+                </div>
 
+                {/* Latest Moment Card */}
+                <div className="relative z-0">
+                   <EnhancedMomentCard
+                    moment={item.latest}
+                    recurrence={recurrenceMetaById.get(item.latest.id) ?? null}
+                  />
+                  {/* Visual stack effect underneath if history exists */}
+                  {historyCount > 0 && !expanded && (
+                     <div className="absolute top-full inset-x-4 -mt-6 h-4 bg-white/50 dark:bg-stone-800/50 border border-t-0 border-black/5 dark:border-white/5 rounded-b-[2rem] -z-10 scale-[0.98]" />
+                  )}
+                </div>
+
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() =>
                       toggleRecurrenceGroup(item.canonicalTemplateKey)
                     }
                     className={cn(
-                      "shrink-0 text-xs font-semibold transition",
+                      "group flex items-center gap-2 text-xs font-semibold transition px-3 py-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10",
                       historyCount > 0
-                        ? "hover:opacity-80 active:scale-[0.98]"
-                        : "opacity-40 cursor-default",
+                        ? "opacity-100"
+                        : "opacity-40 cursor-default pointer-events-none",
                     )}
-                    style={{ color: "var(--bb-color-accent)" }}
+                    style={{ color: "var(--bb-color-ink-muted)" }}
                     aria-expanded={expanded}
                     disabled={historyCount === 0}
                   >
-                    {expanded
-                      ? "Ocultar histórico"
-                      : `Ver histórico (${historyCount})`}
+                    {expanded ? (
+                        <>
+                            <ChevronDown className="w-3 h-3 rotate-180 transition-transform" />
+                            Ocultar {historyCount} momentos anteriores
+                        </>
+                    ) : (
+                        <>
+                            <History className="w-3 h-3" />
+                            Ver {historyCount} momentos anteriores
+                        </>
+                    )}
                   </button>
                 </div>
-
-                <EnhancedMomentCard
-                  moment={item.latest}
-                  recurrence={recurrenceMetaById.get(item.latest.id) ?? null}
-                />
 
                 <AnimatePresence initial={false}>
                   {expanded && historyCount > 0 ? (
@@ -1024,20 +1059,22 @@ export const MomentsTimeline = ({
                         damping: 40,
                         mass: 0.8,
                       }}
-                      className="overflow-hidden"
+                      className="overflow-hidden pl-2"
                     >
                       <motion.div
                         layout
-                        className="space-y-3 pl-3 border-l"
-                        style={{ borderColor: "var(--bb-color-border)" }}
+                        className="space-y-6 pt-2 pb-4 border-l-2 border-dashed border-gray-100 dark:border-stone-800 ml-[5px]"
                       >
                         {item.history.map((m) => (
-                          <EnhancedMomentCard
-                            key={m.id}
-                            moment={m}
-                            compact
-                            recurrence={recurrenceMetaById.get(m.id) ?? null}
-                          />
+                          <div key={m.id} className="relative pl-6">
+                             {/* Small dot for history items */}
+                             <div className="absolute -left-[5px] top-6 w-2 h-2 rounded-full bg-gray-200 dark:bg-stone-700 ring-4 ring-white dark:ring-[#1c1917]" />
+                             <EnhancedMomentCard
+                               moment={m}
+                               compact
+                               recurrence={recurrenceMetaById.get(m.id) ?? null}
+                             />
+                          </div>
                         ))}
                       </motion.div>
                     </motion.div>
@@ -1132,11 +1169,7 @@ export const MomentsTimeline = ({
                   ref={(el) => {
                     chapterCardRefs.current[chapter.id] = el;
                   }}
-                  className="rounded-3xl border p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600"
-                  style={{
-                    backgroundColor: "var(--bb-color-surface)",
-                    borderColor: "var(--bb-color-border)",
-                  }}
+                  className="rounded-3xl border border-gray-100 dark:border-stone-800 p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600 bg-white dark:bg-[#1c1917]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -1440,11 +1473,7 @@ export const MomentsTimeline = ({
                 ref={(el) => {
                   chapterCardRefs.current[chapter.id] = el;
                 }}
-                className="rounded-3xl border p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600"
-                style={{
-                  backgroundColor: "var(--bb-color-surface)",
-                  borderColor: "var(--bb-color-border)",
-                }}
+                className="rounded-3xl border border-gray-100 dark:border-stone-800 p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-pink-300 dark:hover:border-pink-600 bg-white dark:bg-[#1c1917]"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>

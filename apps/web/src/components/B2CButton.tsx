@@ -6,7 +6,7 @@ import {
   type B2CButtonSize,
 } from "@/designTokens/b2cButton";
 
-type B2CButtonVariant = "primary" | "secondary";
+type B2CButtonVariant = "primary" | "secondary" | "ghost";
 
 export interface B2CButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -96,15 +96,27 @@ export const B2CButton = React.forwardRef<HTMLButtonElement, B2CButtonProps>(
     const sizeClasses =
       B2C_BUTTON_SIZE_CLASSES[size] ?? B2C_BUTTON_SIZE_CLASSES.md;
 
-    const variantClasses =
-      variant === "secondary"
-        ? "border border-[var(--bb-color-accent)] text-[var(--bb-color-accent)] bg-transparent hover:bg-[var(--bb-color-accent)] hover:text-[var(--bb-color-surface)]"
-        : "bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] hover:opacity-90";
+    const variantClasses = (() => {
+      switch (variant) {
+        case "secondary":
+          return "border border-[var(--bb-color-accent)] text-[var(--bb-color-accent)] bg-transparent hover:bg-[var(--bb-color-accent)] hover:text-[var(--bb-color-surface)]";
+        case "ghost":
+          return "text-[var(--bb-color-ink-muted)] bg-transparent hover:bg-[var(--bb-color-bg)] hover:text-[var(--bb-color-ink)]";
+        case "primary":
+        default:
+          return "bg-[var(--bb-color-accent)] text-[var(--bb-color-surface)] hover:brightness-110 shadow-sm hover:shadow-md";
+      }
+    })();
 
-    const rippleColor =
-      variant === "secondary"
-        ? "rgba(242, 153, 93, 0.25)"
-        : "rgba(255, 255, 255, 0.25)";
+    const rippleColor = (() => {
+      switch (variant) {
+        case "secondary":
+        case "ghost":
+          return "rgba(242, 153, 93, 0.25)";
+        default:
+          return "rgba(255, 255, 255, 0.25)";
+      }
+    })();
 
     return (
       <button
@@ -126,7 +138,7 @@ export const B2CButton = React.forwardRef<HTMLButtonElement, B2CButtonProps>(
           }
         }}
         className={cn(
-          "bb-pressable relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bb-color-accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bb-color-surface)] disabled:opacity-50",
+          "bb-pressable relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bb-color-accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bb-color-surface)] disabled:opacity-50",
           sizeClasses,
           variantClasses,
           className,

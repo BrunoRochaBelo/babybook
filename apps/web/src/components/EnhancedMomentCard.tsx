@@ -356,48 +356,50 @@ export const EnhancedMomentCard = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "relative w-full flex flex-col bg-[var(--bb-color-surface)] border border-[var(--bb-color-border)] rounded-[24px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 mb-6",
-          // Mantém o card inteiro visível (card-a-card), considerando header da página.
+          "relative w-full flex flex-col rounded-[2.5rem] overflow-hidden shadow-[0_12px_36px_-8px_rgba(0,0,0,0.08)] dark:shadow-none border transition-all duration-300 mb-8 hover:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.12)]",
           "max-h-[calc(100svh-11rem)]",
         )}
+        style={{
+          backgroundColor: "var(--bb-color-surface)",
+          borderColor: "var(--bb-color-border)",
+        }}
         onClick={handleCardClick}
       >
         {recurrence ? (
           <div
-            className="absolute left-0 top-0 h-full w-1"
+            className="absolute left-0 top-0 h-full w-1.5 opacity-80"
             style={{
               backgroundColor:
                 recurrence.kind === "recurring"
                   ? "var(--bb-color-accent)"
-                  : "color-mix(in srgb, var(--bb-color-ink) 25%, transparent)",
+                  : "var(--bb-color-ink-muted)",
             }}
             aria-hidden
           />
         ) : null}
 
         {/* Header */}
-        <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
           <div className="min-w-0 flex flex-col">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)]">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold uppercase tracking-wider text-[var(--bb-color-ink-muted)] opacity-80">
               <span>{formatDayMonth(displayDate, locale)}</span>
               {ageLabel && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-[var(--bb-color-border)]" />
+                  <span className="w-1 h-1 rounded-full bg-current opacity-40" />
                   <span>{ageLabel}</span>
                 </>
               )}
 
               {recurrence ? (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-[var(--bb-color-border)]" />
+                  <span className="w-1 h-1 rounded-full bg-current opacity-40" />
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
+                    className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.25em]"
                     style={{
-                      borderColor: "var(--bb-color-border)",
                       backgroundColor:
                         recurrence.kind === "recurring"
-                          ? "rgba(242,153,93,0.14)"
-                          : "rgba(148,163,184,0.18)",
+                          ? "rgba(242,153,93,0.1)"
+                          : "rgba(148,163,184,0.1)",
                       color: "var(--bb-color-ink)",
                     }}
                     title={`${recurrence.label} · ${recurrence.index}/${recurrence.total}`}
@@ -418,14 +420,14 @@ export const EnhancedMomentCard = ({
               ) : null}
             </div>
 
-            <h3 className="text-[18px] font-bold text-[var(--bb-color-ink)] mt-1 leading-snug truncate">
+            <h3 className="text-[22px] font-serif font-bold text-[var(--bb-color-ink)] mt-2 leading-tight truncate tracking-tight">
               {moment.title}
             </h3>
 
             {headerExtra ? (
               <p
-                className="mt-1 text-[13px] leading-snug truncate"
-                style={{ color: "var(--bb-color-ink-muted)" }}
+                className="mt-1 text-[13px] leading-snug truncate opacity-70"
+                style={{ color: "var(--bb-color-ink)" }}
                 title={headerExtra}
               >
                 {headerExtra}
@@ -434,7 +436,7 @@ export const EnhancedMomentCard = ({
           </div>
 
           {/* Privacy Icon */}
-          <div className="text-[var(--bb-color-ink-muted)]">
+          <div className="text-[var(--bb-color-ink-muted)] opacity-50">
             {React.createElement(privacyConfig[moment.privacy].icon, {
               className: "w-4 h-4",
             })}
@@ -457,11 +459,12 @@ export const EnhancedMomentCard = ({
               <motion.div
                 layoutId={`media-${moment.id}-${heroMedia.id}`}
                 className={cn(
-                  "relative w-full overflow-hidden bg-gray-100",
+                  "relative w-full overflow-hidden",
                   media.length <= 1
                     ? "aspect-[4/3] max-h-[min(52svh,420px)]"
                     : "aspect-[4/3] max-h-[min(42svh,340px)]",
                 )}
+                style={{ backgroundColor: "var(--bb-color-bg)" }}
               >
                 {(() => {
                   const heroUrl =
@@ -474,7 +477,13 @@ export const EnhancedMomentCard = ({
 
                   if (!heroUrl) {
                     return (
-                      <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
+                      <div 
+                        className="w-full h-full opacity-10" 
+                        style={{ 
+                            background: "repeating-linear-gradient(45deg, var(--bb-color-border) 0, var(--bb-color-border) 1px, transparent 0, transparent 50%)",
+                            backgroundSize: "20px 20px"
+                        }}
+                      />
                     );
                   }
 
@@ -538,7 +547,8 @@ export const EnhancedMomentCard = ({
                         e.stopPropagation();
                         openMedia(item.id);
                       }}
-                      className="relative aspect-square overflow-hidden bg-gray-100 text-left"
+                      className="relative aspect-square overflow-hidden text-left"
+                      style={{ backgroundColor: "var(--bb-color-bg)" }}
                       aria-label={
                         isVideoTile
                           ? t("b2c.moments.card.actions.openVideo")
@@ -557,7 +567,13 @@ export const EnhancedMomentCard = ({
                             loading="lazy"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
+                          <div 
+                            className="w-full h-full opacity-10" 
+                            style={{ 
+                                background: "repeating-linear-gradient(45deg, var(--bb-color-border) 0, var(--bb-color-border) 1px, transparent 0, transparent 50%)",
+                                backgroundSize: "20px 20px"
+                            }}
+                          />
                         )}
                       </motion.div>
 

@@ -1,6 +1,7 @@
-import React, { type ComponentType, type ReactNode } from "react";
+import { type ComponentType, type ReactNode, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, Info } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { PartnerPage } from "@/layouts/PartnerPage";
 
@@ -149,7 +150,7 @@ function StateBody({
 
   const wrapClass =
     variant === "page"
-      ? "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg p-8 animate-scale-in"
+      ? "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-12"
       : "";
 
   const innerClass =
@@ -158,7 +159,11 @@ function StateBody({
   const padClass = variant === "page" ? "" : "py-12";
 
   return (
-    <div className={cn(wrapClass, styles.border)}>
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn(wrapClass, styles.border)}
+    >
       <div className={cn(innerClass, padClass)}>
         {/* Ícone grande em círculo com animação */}
         {Icon ? (
@@ -172,14 +177,14 @@ function StateBody({
           </div>
         ) : null}
 
-        {/* Título mais suave */}
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2.5">
+        {/* Título Serifado e acolhedor */}
+        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-3">
           {title}
         </h2>
 
-        {/* Descrição com cor mais suave */}
+        {/* Descrição com cor mais suave e melhor tipografia */}
         {description ? (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-5 leading-relaxed max-w-sm mx-auto">
+          <p className="text-base text-gray-500 dark:text-gray-400 mb-8 leading-relaxed max-w-sm mx-auto">
             {description}
           </p>
         ) : null}
@@ -199,7 +204,7 @@ function StateBody({
           </div>
         ) : null}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -270,7 +275,7 @@ export function PartnerErrorState({
   // Em desenvolvimento, SEMPRE fazer auto-reload silencioso
   const shouldAutoReload = isDev && autoReloadInDev;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (shouldAutoReload) {
       const attempts = parseInt(sessionStorage.getItem(RELOAD_KEY) || "0", 10);
 

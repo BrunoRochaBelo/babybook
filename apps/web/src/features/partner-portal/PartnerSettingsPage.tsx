@@ -188,12 +188,12 @@ export function PartnerSettingsPage() {
   return (
     <PartnerPage>
       {/* Desktop Header */}
-      <div className="hidden md:block mb-8">
+      <div className="hidden md:block mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
         <PartnerBackButton label={t("common.back")} />
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           {t("partner.settings.profile.title")}
         </h1>
-        <p className="text-base text-gray-500 dark:text-gray-400 mt-2">
+        <p className="text-gray-500 dark:text-gray-400">
           {t("partner.settings.title")}
         </p>
       </div>
@@ -207,7 +207,7 @@ export function PartnerSettingsPage() {
 
       <form onSubmit={handleSubmit}>
         {/* Logo Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-gray-700/50 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t("partner.settings.profile.logo")}
           </h2>
@@ -260,7 +260,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Profile Fields */}
-        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-gray-700/50 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t("partner.settings.profile.title")}
           </h2>
@@ -337,7 +337,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Preferences Section - Language */}
-        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-gray-700/50 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5 text-gray-500" />
             {t("partner.settings.preferences.title")}
@@ -390,7 +390,7 @@ export function PartnerSettingsPage() {
         </div>
 
         {/* Security Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-gray-700/50 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-black/20">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             {t("partner.settings.security.title")}
           </h2>

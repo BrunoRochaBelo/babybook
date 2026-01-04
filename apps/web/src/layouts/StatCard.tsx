@@ -92,7 +92,7 @@ export function StatCard({
 
   const baseClass = cn(
     // Layout
-    "relative overflow-hidden group p-5 rounded-[2rem]",
+    "relative overflow-hidden group p-5 rounded-[2.5rem]",
     "bg-white dark:bg-gray-800",
     "border border-gray-100 dark:border-gray-700/50",
     // Shadow
@@ -130,13 +130,12 @@ export function StatCard({
       </div>
 
       <div className="mt-auto">
-        <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums tracking-tight mb-1">
+        <p className="text-4xl font-bold text-gray-900 dark:text-white tabular-nums tracking-tighter mb-1">
           {value.toLocaleString("pt-BR")}
         </p>
-        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-tight">
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 leading-tight">
           {label}
         </p>
-        
         {description && (
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/50">
              <p className="text-xs font-medium text-gray-400 dark:text-gray-500">

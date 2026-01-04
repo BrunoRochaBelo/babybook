@@ -53,38 +53,36 @@ export const CapsulaPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1
-        className="mb-6 text-center text-3xl font-serif font-bold"
-        style={{ color: "var(--bb-color-ink)" }}
-      >
+      <h1 className="mb-8 text-3xl font-bold">
         Cápsula do Tempo
       </h1>
 
       {!isSealed ? (
         // Modo edição - não selada
-        <div className="bg-white rounded-2xl p-6 border border-[#C9D3C2]">
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
+        <div 
+          className="rounded-2xl p-6 border transition-all mb-8"
+          style={{ 
+            backgroundColor: "var(--bb-color-surface)",
+            borderColor: "var(--bb-color-border)"
+          }}
+        >
+          <h2 className="text-lg font-semibold mb-4">
             Escreva a Sua Carta
           </h2>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-[#2A2A2A] mb-2">
+              <label className="block text-sm font-semibold mb-2">
                 Data de Abertura
               </label>
               <input
                 type="date"
                 value={openDate}
                 onChange={(e) => setOpenDate(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-[#C9D3C2] rounded-2xl"
+                className="w-full px-4 py-2 border-2 rounded-2xl bg-transparent"
+                style={{ borderColor: "var(--bb-color-border)" }}
               />
-              <p
-                className="mt-1 text-xs"
-                style={{ color: "var(--bb-color-ink-muted)" }}
-              >
+              <p className="mt-1 text-xs opacity-60">
                 Mínimo de 10 anos a partir de hoje
               </p>
             </div>
@@ -107,7 +105,8 @@ export const CapsulaPage = () => {
             <button
               onClick={handleSeal}
               disabled={!letter || !openDate}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#F2995D] text-white px-6 py-3 rounded-2xl font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex-1 flex items-center justify-center gap-2 text-white px-6 py-3 rounded-2xl font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              style={{ backgroundColor: "var(--bb-color-accent)" }}
             >
               <Lock className="w-5 h-5" />
               Selar Cápsula

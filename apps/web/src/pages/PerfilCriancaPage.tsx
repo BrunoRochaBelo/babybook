@@ -20,7 +20,7 @@ export const PerfilCriancaPage = () => {
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Header com foto */}
       <div
-        className="rounded-2xl p-6 border mb-6"
+        className="rounded-2xl p-6 border mb-8"
         style={{
           backgroundColor: "var(--bb-color-surface)",
           borderColor: "var(--bb-color-border)",
@@ -61,7 +61,7 @@ export const PerfilCriancaPage = () => {
       </div>
 
       {/* Seções principais */}
-      <div className="space-y-4">
+      <div className="space-y-8">
         <button
           className="w-full rounded-2xl p-6 border text-left transition-colors"
           style={{

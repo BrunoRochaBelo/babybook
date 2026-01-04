@@ -59,7 +59,7 @@ export const MomentAvulsoPage = () => {
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-8 flex items-center gap-4">
         <button
           onClick={handleBack}
           className="rounded-full p-2 transition"
@@ -69,10 +69,7 @@ export const MomentAvulsoPage = () => {
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
         <div>
-          <h1
-            className="text-2xl font-serif font-bold"
-            style={{ color: "var(--bb-color-ink)" }}
-          >
+          <h1 className="text-2xl font-bold">
             {t("b2c.moments.common.newMoment")}
           </h1>
           <p className="text-sm" style={{ color: "var(--bb-color-ink-muted)" }}>

@@ -5,6 +5,7 @@ import {
   useGuestbookEntries,
   useRejectGuestbookEntry,
 } from "@/hooks/api";
+import { useTranslation } from "@babybook/i18n";
 import {
   CheckCircle,
   CheckCircle2,
@@ -15,9 +16,9 @@ import {
 } from "lucide-react";
 import { GuestbookEntry } from "@babybook/contracts";
 import {
-  formatRelationshipDegree,
-  relationshipDegreeOptions,
+  useRelationshipDegrees,
 } from "@/features/guestbook/relationshipDegree";
+import { B2CEmptyState } from "@/components/B2CEmptyState";
 
 interface GuestbookListProps {
   childId: string;
@@ -25,6 +26,8 @@ interface GuestbookListProps {
 }
 
 export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
+  const { t, i18n } = useTranslation();
+  const { options, formatRelationshipDegree } = useRelationshipDegrees();
   const { data: entries = [] } = useGuestbookEntries(childId);
   const { mutate: approveEntry, isPending: isApproving } =
     useApproveGuestbookEntry();
@@ -70,19 +73,23 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
 
   if (filtered.length === 0) {
     return (
-      <div
-        className="text-center py-12 rounded-2xl border"
-        style={{
-          backgroundColor: "var(--bb-color-surface)",
-          borderColor: "var(--bb-color-border)",
-        }}
-      >
-        <p style={{ color: "var(--bb-color-ink-muted)" }}>
-          {status === "approved"
-            ? "Nenhuma mensagem aprovada ainda."
-            : "Nenhuma mensagem pendente"}
-        </p>
-      </div>
+      <B2CEmptyState
+        title={
+          status === "approved"
+            ? t("b2c.guestbook.empty.approvedTitle")
+            : t("b2c.guestbook.empty.pendingTitle")
+        }
+        description={
+          status === "approved"
+            ? t("b2c.guestbook.empty.approvedDescription")
+            : t("b2c.guestbook.empty.pendingDescription")
+        }
+        illustration={
+          <div className="text-6xl animate-pulse">
+            {status === "approved" ? "📖" : "🛡️"}
+          </div>
+        }
+      />
     );
   }
 
@@ -101,7 +108,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                   backgroundColor: "var(--bb-color-surface)",
                   borderColor: "var(--bb-color-border)",
                 }}
-                aria-label={`Abrir mensagem de ${entry.authorName}`}
+                aria-label={t("b2c.guestbook.list.aria.openEntry", { author: entry.authorName })}
                 transition={{ type: "spring", stiffness: 520, damping: 46 }}
               >
                 <div className="flex justify-between items-start mb-3">
@@ -117,7 +124,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       style={{ color: "var(--bb-color-ink-muted)" }}
                     >
                       {formatRelationshipDegree(entry.relationshipDegree)} •{" "}
-                      {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(entry.createdAt).toLocaleDateString(i18n.language)}
                     </p>
                   </div>
                   <div
@@ -129,7 +136,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                     }}
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Publicada
+                    {t("b2c.guestbook.list.status.published")}
                   </div>
                 </div>
 
@@ -151,7 +158,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       style={{ color: "var(--bb-color-ink-muted)" }}
                     >
                       <ImageIcon className="h-4 w-4" />
-                      Anexo enviado
+                      {t("b2c.guestbook.list.attachment.sent")}
                     </div>
                   </motion.div>
                 )}
@@ -177,7 +184,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       style={{ color: "var(--bb-color-ink-muted)" }}
                     >
                       {formatRelationshipDegree(entry.relationshipDegree)} •{" "}
-                      {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(entry.createdAt).toLocaleDateString(i18n.language)}
                     </p>
                   </div>
                   {status === "pending" ? (
@@ -189,7 +196,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       }}
                     >
                       <ShieldAlert className="w-4 h-4" />
-                      Pendente de revisão
+                      {t("b2c.guestbook.list.status.pending")}
                     </div>
                   ) : (
                     <div
@@ -201,7 +208,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       }}
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Publicada
+                      {t("b2c.guestbook.list.status.published")}
                     </div>
                   )}
                 </div>
@@ -214,7 +221,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                     className="text-xs mb-3"
                     style={{ color: "var(--bb-color-ink-muted)" }}
                   >
-                    Anexo enviado
+                    {t("b2c.guestbook.list.attachment.sent")}
                   </p>
                 )}
 
@@ -226,7 +233,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                         htmlFor={`guestbook-relationship-${entry.id}`}
                         style={{ color: "var(--bb-color-ink-muted)" }}
                       >
-                        Grau de parentesco
+                        {t("b2c.guestbook.list.forms.relationshipLabel")}
                       </label>
                       <select
                         id={`guestbook-relationship-${entry.id}`}
@@ -248,7 +255,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                           color: "var(--bb-color-ink)",
                         }}
                       >
-                        {relationshipDegreeOptions.map((opt) => (
+                        {options.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
                           </option>
@@ -259,7 +266,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                     <button
                       type="button"
                       disabled={isModerating}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--bb-color-success)] text-[var(--bb-color-surface)] px-4 py-2 text-sm font-bold shadow-sm transition hover:opacity-90 disabled:opacity-50"
+                      className="bb-button-success inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-bold shadow-sm transition hover:opacity-90 disabled:opacity-50"
                       onClick={() => {
                         const relationshipDegree =
                           relationshipEdits[entry.id] ??
@@ -268,7 +275,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       }}
                     >
                       <CheckCircle className="h-4 w-4" />
-                      Aprovar
+                      {t("b2c.guestbook.list.actions.approve")}
                     </button>
 
                     <button
@@ -282,7 +289,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                       onClick={() => rejectEntry({ entryId: entry.id })}
                     >
                       <XCircle className="h-4 w-4" />
-                      Rejeitar
+                      {t("b2c.guestbook.list.actions.reject")}
                     </button>
                   </div>
                 )}
@@ -303,7 +310,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                 type="button"
                 className="absolute inset-0 w-full h-full"
                 onClick={() => setSelectedEntry(null)}
-                aria-label="Fechar mensagem"
+                aria-label={t("b2c.guestbook.list.aria.close")}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -339,7 +346,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                           )}{" "}
                           •{" "}
                           {new Date(selectedEntry.createdAt).toLocaleDateString(
-                            "pt-BR",
+                            i18n.language,
                           )}
                         </div>
                       </div>
@@ -348,7 +355,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                         type="button"
                         className="rounded-xl p-2 transition hover:opacity-90"
                         onClick={() => setSelectedEntry(null)}
-                        aria-label="Fechar"
+                        aria-label={t("b2c.guestbook.list.aria.close")}
                         style={{
                           backgroundColor: "var(--bb-color-bg)",
                           border: "1px solid var(--bb-color-border)",
@@ -379,7 +386,7 @@ export const GuestbookList = ({ childId, status }: GuestbookListProps) => {
                         >
                           <div className="flex items-center gap-2 text-sm font-semibold">
                             <ImageIcon className="h-4 w-4" />
-                            Anexo enviado (visualização em breve)
+                            {t("b2c.guestbook.list.attachment.previewSoon")}
                           </div>
                         </motion.div>
                       )}

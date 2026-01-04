@@ -19,6 +19,7 @@ import { BabyBookLogo } from "@/components/BabyBookLogo";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import MicrosoftIcon from "@/components/icons/MicrosoftIcon";
 import AppleIcon from "@/components/icons/AppleIcon";
+import { B2CButton } from "@/components/B2CButton";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -114,7 +115,7 @@ export function LoginPage() {
             }}
           >
             {/* Header */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-8">
               <h1
                 className="text-xl font-bold"
                 style={{ color: "var(--bb-color-ink)" }}
@@ -221,7 +222,7 @@ export function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 p-1 rounded-full hover:bg-[var(--bb-color-bg)] transition-colors"
                     style={{ color: "var(--bb-color-ink)" }}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
@@ -269,7 +270,7 @@ export function LoginPage() {
                 </button>
                 <Link
                   to="/forgot-password"
-                  className="hover:underline"
+                  className="hover:underline font-medium"
                   style={{ color: "var(--bb-color-accent)" }}
                 >
                   Esqueci a senha
@@ -307,13 +308,11 @@ export function LoginPage() {
               )}
 
               {/* Submit */}
-              <button
+              <B2CButton
                 type="submit"
                 disabled={loginMutation.isPending}
-                className="w-full py-2.5 px-4 text-white font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                style={{
-                  backgroundColor: "var(--bb-color-accent)",
-                }}
+                className="w-full"
+                size="lg"
               >
                 {loginMutation.isPending ? (
                   <>
@@ -323,7 +322,7 @@ export function LoginPage() {
                 ) : (
                   "Entrar"
                 )}
-              </button>
+              </B2CButton>
             </form>
 
             {/* Register */}
