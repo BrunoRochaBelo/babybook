@@ -3,39 +3,55 @@
 @tailwind utilities;
 
 :root {
-  /* Paleta do portal de Afiliados (light) */
-  --bb-color-bg: #f6f7fb;
+  /* Surfaces (Organic & Airy - matched to Partner Portal but Indigo accent) */
+  --bb-color-bg: #f9fafb; /* gray-50 */
   --bb-color-surface: #ffffff;
-  --bb-color-ink: #0f172a;
-  --bb-color-ink-muted: rgba(15, 23, 42, 0.62);
-  --bb-color-muted: #eef2ff;
-  --bb-color-accent: #4f46e5;
-  --bb-color-accent-soft: rgba(79, 70, 229, 0.12);
-  --bb-color-danger: #ef4444;
-  --bb-color-danger-soft: rgba(239, 68, 68, 0.12);
-  --bb-color-success: #10b981;
-  --bb-color-border: rgba(15, 23, 42, 0.12);
+  --bb-color-surface-elevated: #ffffff;
+  --bb-color-muted: #f3f4f6; /* gray-100 */
 
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  /* Text (Modern Slate mix) */
+  --bb-color-ink: #111827; /* gray-900 */
+  --bb-color-ink-secondary: #4b5563; /* gray-600 */
+  --bb-color-ink-muted: #6b7280; /* gray-500 */
+
+  /* Accents (Success & Growth - Indigo/Emerald) */
+  --bb-color-accent: #4f46e5; /* indigo-600 */
+  --bb-color-accent-soft: rgba(79, 70, 229, 0.08);
+  --bb-color-success: #059669; /* emerald-600 */
+  --bb-color-danger: #dc2626; /* red-600 */
+  --bb-color-danger-soft: #fef2f2;
+
+  /* Borders & Shadows */
+  --bb-color-border: #e5e7eb; /* gray-200 */
+  --bb-color-border-strong: #d1d5db; /* gray-300 */
+
+  /* Spacing & Radius */
+  --bb-radius-2xl: 2.5rem; /* 40px - Premium geometry */
+
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .dark {
-  --bb-color-bg: #0b1220;
-  --bb-color-surface: #0f172a;
-  --bb-color-ink: #e2e8f0;
-  --bb-color-ink-muted: rgba(226, 232, 240, 0.6);
-  --bb-color-muted: rgba(79, 70, 229, 0.16);
-  --bb-color-accent: #818cf8;
-  --bb-color-accent-soft: rgba(129, 140, 248, 0.16);
-  --bb-color-danger: #fb7185;
-  --bb-color-danger-soft: rgba(251, 113, 133, 0.16);
+  /* Surfaces (Rich Obsidian / Modern Gray) */
+  --bb-color-bg: #111827; /* gray-900 */
+  --bb-color-surface: #1f2937; /* gray-800 */
+  --bb-color-surface-elevated: #374151; /* gray-700 */
+  --bb-color-muted: #111827;
+
+  /* Text (High contrast) */
+  --bb-color-ink: #f9fafb;
+  --bb-color-ink-secondary: #d1d5db;
+  --bb-color-ink-muted: #9ca3af;
+
+  /* Accents (Indigo/Emerald) */
+  --bb-color-accent: #818cf8; /* indigo-400 */
+  --bb-color-accent-soft: rgba(129, 140, 248, 0.12);
   --bb-color-success: #34d399;
-  --bb-color-border: rgba(226, 232, 240, 0.14);
+  --bb-color-danger: #fb7185;
+  --bb-color-danger-soft: rgba(251, 113, 133, 0.12);
+
+  /* Borders - Subtle but distinct */
+  --bb-color-border: rgba(255, 255, 255, 0.08);
 }
 
 html,

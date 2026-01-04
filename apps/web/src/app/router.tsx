@@ -86,10 +86,30 @@ function LegacyJourneyChaptersRedirect() {
   return <Navigate to="/jornada" replace />;
 }
 
+function PortalScopeEnforcer() {
+  const location = useLocation();
+
+  const scope = (import.meta.env.VITE_PORTAL ?? "all").toString().toLowerCase();
+  const isPartnerRoute =
+    location.pathname.startsWith("/partner") ||
+    location.pathname.startsWith("/pro");
+
+  if (scope === "partner" && !isPartnerRoute) {
+    return <Navigate to="/partner" replace />;
+  }
+
+  if (scope === "b2c" && isPartnerRoute) {
+    return <Navigate to="/jornada" replace />;
+  }
+
+  return null;
+}
+
 export function AppRouter() {
   return (
     <Router future={{ v7_relativeSplatPath: true }}>
       <ReferralCapture />
+      <PortalScopeEnforcer />
       <Routes>
         {/* Main app routes with layout */}
         <Route
@@ -201,7 +221,10 @@ export function AppRouter() {
         >
           <Route path="/partner" element={<PartnerDashboard />} />
           <Route path="/partner/credits" element={<CreditsPage />} />
-          <Route path="/partner/credits/extract" element={<CreditsExtractPage />} />
+          <Route
+            path="/partner/credits/extract"
+            element={<CreditsExtractPage />}
+          />
           <Route path="/partner/settings" element={<PartnerSettingsPage />} />
           <Route
             path="/partner/notifications"

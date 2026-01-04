@@ -8,6 +8,8 @@
     "dev:mock": "cross-env VITE_ENABLE_MSW=true vite",
     "dev:real": "cross-env VITE_ENABLE_MSW=false vite",
     "build": "tsc --noEmit && vite build",
+    "build:prod": "cross-env VITE_ENABLE_MSW=false tsc --noEmit && vite build",
+    "build:prod:out": "cross-env VITE_ENABLE_MSW=false tsc --noEmit && vite build --outDir dist-affiliates",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx --config ../../packages/config/eslint/index.mjs",
     "test": "vitest",

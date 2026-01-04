@@ -133,31 +133,32 @@ async def register(
 
 @router.get("/{provider}/authorize", summary="OAuth authorize (dev mock)")
 async def oauth_authorize(provider: str, state: str | None = None):
-        _require_local_env("oauth_mock")
-        """Dev-only: Render a simple consent page that posts back to this endpoint."""
+    """Dev-only: Renderiza uma tela simples de consentimento (mock) e faz POST de volta."""
 
-        state_val = _sanitize_frontend_path(state, fallback="/")
-        # Escape para evitar XSS em dev (state é input do usuário)
-        state_escaped = html_escape(state_val, quote=True)
-        html = f"""
-        <!doctype html>
-        <html>
-        <head>
-            <meta charset='utf-8' />
-            <title>Mock OAuth - {provider.title()}</title>
-        </head>
-        <body>
-            <h1>Mock OAuth Consent</h1>
-            <p>App asks to allow access on behalf of the user.</p>
-            <form method='post' action='/auth/{provider}/authorize'>
-                <input type='hidden' name='state' value='{state_escaped}' />
-                <button type='submit' name='action' value='authorize'>Authorize</button>
-                <button type='submit' name='action' value='deny'>Deny</button>
-            </form>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=html)
+    _require_local_env("oauth_mock")
+
+    state_val = _sanitize_frontend_path(state, fallback="/")
+    # Escape para evitar XSS em dev (state é input do usuário)
+    state_escaped = html_escape(state_val, quote=True)
+    html = f"""
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset='utf-8' />
+        <title>Mock OAuth - {provider.title()}</title>
+    </head>
+    <body>
+        <h1>Mock OAuth Consent</h1>
+        <p>App asks to allow access on behalf of the user.</p>
+        <form method='post' action='/auth/{provider}/authorize'>
+            <input type='hidden' name='state' value='{state_escaped}' />
+            <button type='submit' name='action' value='authorize'>Authorize</button>
+            <button type='submit' name='action' value='deny'>Deny</button>
+        </form>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
 
 
 @router.post("/{provider}/authorize", summary="OAuth authorize POST (dev mock)")
@@ -168,7 +169,8 @@ async def oauth_authorize_post(provider: str, action: str = Form(...), state: st
     state_val = _sanitize_frontend_path(state, fallback="/")
     if action != "authorize":
         # Denied -> redirect back to frontend
-        return RedirectResponse(url=f"{settings.frontend_url}{state_val}", status_code=303)
+        base = settings.partner_frontend_url if state_val.startswith(("/partner", "/pro")) else settings.frontend_url
+        return RedirectResponse(url=f"{base}{state_val}", status_code=303)
 
     # Encode state to keep the callback URL well-formed
     state_q = quote(state_val, safe="")
@@ -197,7 +199,8 @@ async def oauth_callback(
     session = await create_session(db, user, csrf_token, user_agent=user_agent, client_ip=client_ip)
     await db.commit()
     redirect_to = _sanitize_frontend_path(state, fallback="/")
-    redirect_response = RedirectResponse(url=f"{settings.frontend_url}{redirect_to}")
+    base = settings.partner_frontend_url if redirect_to.startswith(("/partner", "/pro")) else settings.frontend_url
+    redirect_response = RedirectResponse(url=f"{base}{redirect_to}")
     apply_session_cookie(redirect_response, session.token)
     return redirect_response
 

@@ -1,0 +1,35 @@
+{
+  "name": "Baby Book",
+  "short_name": "Baby Book",
+  "description": "Preserve os momentos mais especiais do seu bebê em um álbum digital vitalício.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ef",
+  "theme_color": "#f2995d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon-b2c.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-b2c.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon-partner.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["lifestyle", "family", "photo"],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

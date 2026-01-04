@@ -17,13 +17,14 @@ import {
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { Toaster } from "sonner";
 import "./index.css";
+import { getThemeStorageKeyForPath } from "./lib/themeStorageKey";
 
 // Aplica tema o mais cedo possível (sem inline <script> no index.html).
 // Mantém o comportamento de escolher entre light/dark/system com base em localStorage.
 function applyInitialTheme() {
   try {
-    const THEME_KEY = "babybook-theme";
-    const stored = localStorage.getItem(THEME_KEY);
+    const themeKey = getThemeStorageKeyForPath(window.location.pathname);
+    const stored = localStorage.getItem(themeKey);
     const theme =
       stored === "light" || stored === "dark" || stored === "system"
         ? stored

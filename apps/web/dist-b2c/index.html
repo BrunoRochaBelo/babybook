@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <link id="favicon" rel="icon" type="image/svg+xml" href="/favicon-b2c.svg" />
+  <script>
+    function updateDynamicBranding() {
+      const favicon = document.getElementById('favicon');
+      const themeColor = document.getElementById('theme-color-meta');
+      if (!favicon || !themeColor) return;
+
+      const isPartner = window.location.pathname.includes('/partner') || window.location.pathname.includes('/pro');
+      const nextFavicon = isPartner ? '/favicon-partner.svg' : '/favicon-b2c.svg';
+      const nextThemeColor = isPartner ? '#ec4899' : '#f2995d';
+
+      if (favicon.getAttribute('href') !== nextFavicon) {
+        favicon.setAttribute('href', nextFavicon);
+      }
+      if (themeColor.getAttribute('content') !== nextThemeColor) {
+        themeColor.setAttribute('content', nextThemeColor);
+      }
+    }
+    updateDynamicBranding();
+    // Observer para mudanças de rota em SPAs
+    const observer = new MutationObserver(() => updateDynamicBranding());
+    observer.observe(document.querySelector('title') || document.head, { subtree: true, characterData: true, childList: true });
+
+    // Fallback para mudanças de histórico
+    window.addEventListener('popstate', updateDynamicBranding);
+    const originalPushState = history.pushState;
+    history.pushState = function () {
+      originalPushState.apply(this, arguments);
+      updateDynamicBranding();
+    };
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baby Book</title>
+  <meta name="description" content="Preserve os momentos mais especiais do seu bebê em um álbum digital vitalício." />
+  <meta name="theme-color" content="#f2995d" id="theme-color-meta" />
+  <link rel="apple-touch-icon" href="/favicon-b2c.svg" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://app.babybook.com.br">
+  <meta property="og:title" content="Baby Book - Suas Memórias Seguras">
+  <meta property="og:description" content="Preserve os momentos mais especiais do seu bebê em um álbum digital vitalício.">
+  <meta property="og:image" content="/og-image-b2c.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://app.babybook.com.br">
+  <meta property="twitter:title" content="Baby Book - Suas Memórias Seguras">
+  <meta property="twitter:description" content="Preserve os momentos mais especiais do seu bebê em um álbum digital vitalício.">
+  <meta property="twitter:image" content="/og-image-b2c.png">
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Baby Book" />
+  <link rel="apple-touch-icon" href="/favicon-b2c.svg" />
+  <script type="module" crossorigin src="/assets/index-CdcR2JxW.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/react-kF-aRxYe.js">
+  <link rel="modulepreload" crossorigin href="/assets/radix-D4-CbPT3.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor--YHnU7YG.js">
+  <link rel="modulepreload" crossorigin href="/assets/tanstack-iTdlcIZ5.js">
+  <link rel="modulepreload" crossorigin href="/assets/router-CSYYBgtz.js">
+  <link rel="modulepreload" crossorigin href="/assets/zustand-Bmu2yk5i.js">
+  <link rel="modulepreload" crossorigin href="/assets/icons-CDR1cT6v.js">
+  <link rel="modulepreload" crossorigin href="/assets/motion-jqufgt2G.js">
+  <link rel="modulepreload" crossorigin href="/assets/charts-Er1wA-7U.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-C4M9XPdm.css">
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>

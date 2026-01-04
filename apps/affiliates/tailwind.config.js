@@ -44,6 +44,7 @@ const config = {
         md: radii.md,
         lg: radii.lg,
         xl: `calc(${radii.lg} + 4px)`,
+        "2xl": "2.5rem",
         pill: radii.pill,
       },
     },

@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = False
     public_base_url: str = "https://share.babybook.dev"
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
+    # Portal do parceiro (B2B). Em produção, normalmente será outro subdomínio.
+    # Mantemos default igual ao frontend_url para retrocompatibilidade.
+    partner_frontend_url: str = Field(
+        default="http://localhost:5173", alias="PARTNER_FRONTEND_URL"
+    )
     upload_part_bytes: int = 5 * 1024 * 1024
     upload_url_base: str = "https://uploads.dev.babybook"
     # Se habilitado, o /uploads/complete valida tamanho e assinatura (magic bytes)
@@ -178,6 +183,7 @@ def validate_settings_or_raise(s: "Settings") -> None:
     # URLs publicas devem ser https
     for name, url in (
         ("FRONTEND_URL", s.frontend_url),
+        ("PARTNER_FRONTEND_URL", s.partner_frontend_url),
         ("PUBLIC_BASE_URL", s.public_base_url),
         ("UPLOAD_URL_BASE", s.upload_url_base),
     ):

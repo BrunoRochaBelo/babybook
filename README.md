@@ -59,6 +59,12 @@ Este README.md é apenas a porta de entrada. Antes de codar, todo desenvolvedor 
 
 Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é ter o ambiente local 100% funcional em 5 minutos.
 
+### Produção (apps separados por origem)
+
+Para publicar **B2C** e **Partner** como apps realmente separados (subdomínios distintos), com checklist de segurança (HTTPS/CORS/cookies) e builds separados, veja:
+
+- `docs/runbooks/deploy-portals.md`
+
 ### 3.1. Pré-requisitos
 
 - **pnpm**: Essencial para gerenciar os workspaces do monorepo (corepack enable ou npm i -g pnpm).
@@ -82,6 +88,12 @@ Este guia é um resumo da docs/estrutura_projeto.md (Seção 1). O objetivo é t
    ```
 
    (Edite .env.local se precisar, mas os defaults devem funcionar para o Docker.)
+
+Se você for rodar os portais em **origens diferentes** (B2C em 5173 e Partner em 5174), garanta que `.env.local` tenha:
+
+- `FRONTEND_URL=http://localhost:5173`
+- `PARTNER_FRONTEND_URL=http://localhost:5174`
+- `CORS_ORIGINS` contendo **ambas** as origens (e também `http://localhost:5176` se o affiliates chamar a API).
 
 Nota (staging/prod): a API possui guardrails e **falha no startup** se estiver com configuração insegura. Garanta que, nos ambientes não-locais, estejam definidos `ENV`, `ALLOWED_HOSTS`, `SECRET_KEY`, `SERVICE_API_TOKEN`, `BILLING_WEBHOOK_SECRET`, `SESSION_COOKIE_SECURE=true`, `CORS_ORIGINS` (sem localhost) e URLs públicas em https.
 
@@ -144,6 +156,26 @@ Em outro terminal, rode a SPA:
 pnpm run dev:web
 ```
 
+### 3.5.1. Portais separados por origem (recomendado)
+
+Para isolar de verdade storage/sessão do navegador entre os portais (B2C vs Parceiro), rode **duas instâncias** do `@babybook/web` em portas diferentes:
+
+- **B2C (Pais)**: http://localhost:5173
+- **Partner (Fotógrafos)**: http://localhost:5174
+
+Scripts:
+
+```bash
+pnpm run dev:web:b2c
+pnpm run dev:web:partner
+```
+
+Ou suba tudo em paralelo (infra + api + workers + ambos portais + affiliates):
+
+```bash
+pnpm run dev:portals
+```
+
 Para rodar o **Portal de Afiliados** (mock por padrão, com MSW + localStorage):
 
 ```bash
@@ -203,7 +235,8 @@ Observações:
 
 - A Landing Page roda por padrão em http://localhost:3001
 - API (FastAPI) roda em http://localhost:8000
-- Web (React/Vite) roda em http://localhost:5173
+- Web B2C (React/Vite) roda em http://localhost:5173
+- Web Partner (React/Vite) roda em http://localhost:5174
 - Afiliados (React/Vite) roda em http://localhost:5176
 
 ### Tracking de afiliados (ref)

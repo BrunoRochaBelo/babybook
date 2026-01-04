@@ -8,7 +8,7 @@ import "./index.css";
 
 function applyInitialTheme() {
   try {
-    const key = "babybook-theme";
+    const key = "babybook-theme:affiliates";
     const stored = localStorage.getItem(key);
     const theme =
       stored === "light" || stored === "dark" || stored === "system"

@@ -9,10 +9,10 @@
  */
 
 import { useEffect, useCallback, useSyncExternalStore } from "react";
+import { useLocation } from "react-router-dom";
+import { getThemeStorageKeyForPath } from "@/lib/themeStorageKey";
 
 export type Theme = "light" | "dark" | "system";
-
-const THEME_KEY = "babybook-theme";
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window !== "undefined") {
@@ -23,9 +23,9 @@ function getSystemTheme(): "light" | "dark" {
   return "light";
 }
 
-function getStoredTheme(): Theme {
+function getStoredTheme(themeKey: string): Theme {
   if (typeof window === "undefined") return "system";
-  const stored = localStorage.getItem(THEME_KEY);
+  const stored = localStorage.getItem(themeKey);
   if (stored === "light" || stored === "dark" || stored === "system") {
     return stored;
   }
@@ -41,42 +41,60 @@ function applyTheme(theme: Theme) {
   } else {
     root.classList.remove("dark");
   }
-
-  // Log para debug (remover em produção)
-  console.log("[applyTheme] Applied:", effectiveTheme, "| From:", theme);
 }
 
-// Store global para sincronizar entre componentes
-let themeListeners: Array<() => void> = [];
-let currentTheme: Theme = getStoredTheme();
+// Store global para sincronizar entre componentes.
+// Importante: o B2C e o B2B (partner portal) usam chaves diferentes.
+const themeListenersByKey = new Map<string, Set<() => void>>();
+const currentThemeByKey: Record<string, Theme | undefined> = {};
 
-function subscribeToTheme(callback: () => void) {
-  themeListeners.push(callback);
+function getOrInitTheme(themeKey: string): Theme {
+  const existing = currentThemeByKey[themeKey];
+  if (existing === "light" || existing === "dark" || existing === "system") {
+    return existing;
+  }
+  const loaded = getStoredTheme(themeKey);
+  currentThemeByKey[themeKey] = loaded;
+  return loaded;
+}
+
+function subscribeToTheme(themeKey: string, callback: () => void) {
+  const set = themeListenersByKey.get(themeKey) ?? new Set<() => void>();
+  set.add(callback);
+  themeListenersByKey.set(themeKey, set);
   return () => {
-    themeListeners = themeListeners.filter((l) => l !== callback);
+    const listeners = themeListenersByKey.get(themeKey);
+    listeners?.delete(callback);
+    if (listeners && listeners.size === 0) {
+      themeListenersByKey.delete(themeKey);
+    }
   };
 }
 
-function getThemeSnapshot() {
-  return currentTheme;
-}
-
-function setGlobalTheme(newTheme: Theme) {
-  console.log("[setGlobalTheme] Setting theme to:", newTheme);
-  currentTheme = newTheme;
-  localStorage.setItem(THEME_KEY, newTheme);
+function setGlobalTheme(themeKey: string, newTheme: Theme) {
+  currentThemeByKey[themeKey] = newTheme;
+  localStorage.setItem(themeKey, newTheme);
   applyTheme(newTheme);
-  // Notifica todos os listeners
-  themeListeners.forEach((listener) => listener());
+
+  const listeners = themeListenersByKey.get(themeKey);
+  listeners?.forEach((listener) => listener());
 }
 
 export function useTheme() {
+  const location = useLocation();
+  const themeKey = getThemeStorageKeyForPath(location.pathname);
+
   // Usa useSyncExternalStore para sincronizar entre componentes
   const theme = useSyncExternalStore(
-    subscribeToTheme,
-    getThemeSnapshot,
-    getThemeSnapshot,
+    (callback) => subscribeToTheme(themeKey, callback),
+    () => getOrInitTheme(themeKey),
+    () => getOrInitTheme(themeKey),
   );
+
+  // Quando troca de "portal" (B2C <-> B2B), aplica o tema armazenado daquela chave.
+  useEffect(() => {
+    applyTheme(theme);
+  }, [themeKey, theme]);
 
   // Escuta mudanças na preferência do sistema
   useEffect(() => {
@@ -93,9 +111,12 @@ export function useTheme() {
   }, [theme]);
 
   // Função para mudar o tema
-  const setTheme = useCallback((newTheme: Theme) => {
-    setGlobalTheme(newTheme);
-  }, []);
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      setGlobalTheme(themeKey, newTheme);
+    },
+    [themeKey],
+  );
 
   // Toggle simples
   const toggleTheme = useCallback(() => {

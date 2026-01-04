@@ -86,3 +86,8 @@ secrets.yml
 .aws/
 .gcloud/
 .azure/
+ 
+# Build artifacts for web apps
+apps/web/dist-b2c/
+apps/web/dist-partner/
+apps/web/dist/
